@@ -2,7 +2,21 @@
 ### A Set-Theoretic Framework for Analyzing Systems of Domination
 
 [![LaTeX](https://img.shields.io/badge/LaTeX-Document-008080?logo=latex)](Redefining_Racism.pdf)
+[![Website](https://img.shields.io/badge/Interactive-Website-blueviolet?logo=react)](website/)
 [![License](https://img.shields.io/badge/License-All%20Rights%20Reserved-red)]()
+
+---
+
+## 🌐 Interactive Website
+
+**[Explore the Interactive Visualization →](website/)**
+
+Experience the research through an immersive web application featuring:
+- **Story Mode**: 8-chapter narrative journey with animated visualizations
+- **Interactive Dashboard**: Explore mathematical models, historical timelines, and data
+- **Podcast Insights**: Deep dive into key concepts from companion podcast
+
+Built with React + TypeScript + D3.js + Framer Motion
 
 ---
 
