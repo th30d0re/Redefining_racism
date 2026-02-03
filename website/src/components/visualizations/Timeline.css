@@ -1,0 +1,59 @@
+.timeline-container {
+  width: 100%;
+  margin: 2rem 0;
+}
+
+.timeline-svg {
+  width: 100%;
+  max-width: 900px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.axis {
+  color: var(--text-secondary);
+}
+
+.axis text {
+  fill: var(--text-secondary);
+  font-size: 12px;
+}
+
+.axis path,
+.axis line {
+  stroke: var(--text-secondary);
+}
+
+.timeline-year {
+  fill: var(--text-primary);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.timeline-event {
+  fill: var(--text-secondary);
+  font-size: 12px;
+}
+
+.timeline-outgroups {
+  margin-top: 2rem;
+  background: var(--bg-light);
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.timeline-outgroups h4 {
+  color: var(--accent-red);
+  margin-bottom: 1rem;
+}
+
+.outgroup-entry {
+  margin-bottom: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.outgroup-entry strong {
+  color: var(--text-primary);
+}

@@ -1,0 +1,61 @@
+.venn-diagram {
+  width: 100%;
+  margin: 2rem 0;
+}
+
+.venn-svg {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.venn-label {
+  fill: var(--text-primary);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.venn-label.elite {
+  fill: var(--accent-purple);
+  font-weight: 700;
+}
+
+.venn-legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.legend-section {
+  background: var(--bg-light);
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.legend-title {
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.legend-section ul {
+  list-style: none;
+}
+
+.legend-section li {
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.legend-section li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--accent-red);
+}

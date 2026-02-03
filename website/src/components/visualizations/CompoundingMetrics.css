@@ -1,0 +1,128 @@
+.compounding-metrics {
+  width: 100%;
+  margin: 2rem 0;
+}
+
+.metric-selector {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.metric-selector button {
+  padding: 0.75rem 1.5rem;
+  background: var(--bg-light);
+  color: var(--text-secondary);
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.metric-selector button.active {
+  background: var(--accent-blue);
+  color: var(--text-primary);
+}
+
+.metric-selector button:hover {
+  transform: translateY(-2px);
+}
+
+.metric-content {
+  background: var(--bg-medium);
+  padding: 2rem;
+  border-radius: 12px;
+}
+
+.metric-content h3 {
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.metric-content p {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.formula {
+  background: var(--bg-dark);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.formula code {
+  font-size: 1.1rem;
+  color: var(--accent-blue);
+}
+
+.chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 300px;
+  background: var(--bg-light);
+  padding: 2rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.bar-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  max-width: 100px;
+}
+
+.bar {
+  width: 100%;
+  background: linear-gradient(180deg, var(--accent-red), var(--accent-purple));
+  border-radius: 4px 4px 0 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 0.5rem;
+  transform-origin: bottom;
+  transition: all 0.3s ease;
+}
+
+.bar:hover {
+  filter: brightness(1.2);
+}
+
+.bar-value {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.bar-label {
+  margin-top: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.insight {
+  background: var(--bg-light);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid var(--accent-green);
+}
+
+.insight h4 {
+  color: var(--accent-green);
+  margin-bottom: 0.75rem;
+}
+
+.insight p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
