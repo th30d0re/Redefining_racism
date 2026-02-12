@@ -5,7 +5,7 @@
 \usepackage{microtype}
 \usepackage{amsmath,amssymb}
 \usepackage{geometry}
-\usepackage{hyperref}
+\usepackage[colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue]{hyperref}
 \usepackage{setspace}
 \usepackage{tikz}
 \usetikzlibrary{shapes,positioning,calc}
@@ -23,7 +23,7 @@
 \maketitle
 
 \begin{abstract}
-This paper develops a formal mathematical framework for analyzing systems of oppression using set theory, discrete mathematics, and historical analysis. The framework identifies four architectural components common to all oppressive systems: (1) asymmetric autonomy restriction between In-groups and Out-groups, (2) selective empathy that validates In-group suffering while dismissing Out-group harm, (3) ideological justification through spurious claims, and (4) resistance to structural critique. Through detailed analysis of American racism---from slave patrols to mass incarceration---I demonstrate that the Out-group targeted by systemic oppression \textit{expands} over time, progressively encompassing groups once part of the In-group. This expansion reveals that oppressive systems serve not the nominal In-group but an Elite class ($E \subset I$) that uses division to prevent solidarity. To demonstrate the framework's generality, I briefly examine how identical mathematical structures manifest at the micro-relational level in asymmetric intimate relationships. The transferability of this architecture across scales---from macro-level racial systems to micro-level relational dynamics---suggests that oppression operates through recognizable, formalizable patterns that can be identified and resisted across contexts.
+This paper develops a formal mathematical framework for analyzing systems of oppression using set theory, discrete mathematics, and historical analysis. The framework identifies four architectural components common to all oppressive systems: (1) asymmetric autonomy restriction between In-groups and Out-groups, (2) selective empathy that validates In-group suffering while dismissing Out-group harm, (3) ideological justification through spurious claims, and (4) resistance to structural critique. Through detailed analysis of American racism---tracing the algorithm of Elite extraction from Portuguese racialization through Bacon's Rebellion, the invention of whiteness, the 13th Amendment loophole, redlining, the War on Drugs, and the present-day cannibalization of the In-group---I demonstrate that the Out-group targeted by systemic oppression \textit{expands} over time, progressively encompassing groups once part of the In-group. This expansion reveals that oppressive systems serve not the nominal In-group but an Elite class ($E \subset I$) that uses division to prevent solidarity. The architecture of this system---a Predatory Min-Max Function that maximizes extraction while minimizing class resistance---operates through recognizable, formalizable patterns that can be identified and resisted.
 \end{abstract}
 
 \section{Introduction}
@@ -42,7 +42,7 @@ To develop and validate this framework, I examine \textbf{racism} as the primary
 
 This expansion reveals a deeper truth: the system does not ultimately serve the racial In-group but rather an Elite class ($E \subset I$) that uses racial division to prevent cross-group solidarity. The ``wages of whiteness''---psychological compensation for poor whites---substitute for material advancement while the Elite extract value from both groups.
 
-To demonstrate that this framework applies beyond macro-level racial systems, I briefly examine how identical mathematical structures manifest in \textbf{asymmetric intimate relation\-ships}---a phenomenon analyzed in detail in companion work on Pseudo-Hybrid Asymmetric Monogamy (PHAM). The transferability of oppressive architecture across scales---from geopolitical systems to intimate relationships---suggests that oppression operates through recognizable patterns that can be formalized and resisted.
+The architecture of this system---which I formalize as a Predatory Min-Max Function optimizing Elite extraction against class resistance---operates through recognizable patterns that can be formalized, identified, and resisted across contexts.
 
 \textbf{A critical methodological note}: Comparing the \textit{architecture} of different oppressive systems does not equate their \textit{phenomenology}. This paper analyzes design principles---how asymmetry is created, justified, and maintained---not magnitudes of suffering. Recognizing shared structure illuminates how systems of domination reproduce themselves; it does not diminish the unique gravity of any particular manifestation.
 
@@ -431,7 +431,71 @@ This reveals how racism was \textbf{deliberately engineered by Elites to break c
 
 \section{Set Theory and Racism}
 
-Utilizing set theory, let us model racism as a system of inequalities that disproportionately affect certain groups based on racial categorizations. Given the historical origins traced to the racialization of African peoples in the 15th century, we define the Out-group as $O_{\text{racialized}}$ (those subjected to racialization, initially African peoples and their descendants) and the In-group as $I$ (those positioned as the dominant group), with policies ($P$) enacted that impact these groups differently.
+Utilizing set theory, let us model racism as a system of inequalities that disproportionately affect certain groups based on racial categorizations. Given the historical origins traced to the racialization of African peoples in the 15th century, we define three sets:
+
+\begin{itemize}
+    \item $O_{\text{racialized}}$: the Out-group---those subjected to racialization, initially African peoples and their descendants
+    \item $I$: the nominal In-group---those positioned as the dominant racial group
+    \item $E \subset I$, where $|E| \ll |I|$: the Elite---the small subset of the In-group that architects and primarily benefits from the system of racial oppression
+\end{itemize}
+
+The critical structural insight, which the historical analysis of Section~2 already demonstrates, is that the system does not serve the In-group; it serves the Elite. The broader In-group ($I \setminus E$)---the working-class members of the dominant racial group---functions as a \textbf{buffer class}, receiving psychological rather than material compensation. Following W.E.B.\ Du~Bois, we formalize this as the \textbf{psychological wage} $\psi$: the non-material benefit (social status, legal privilege, racial solidarity with elites) offered to $I \setminus E$ in exchange for policing the racial boundary rather than pursuing cross-racial class solidarity with $O_{\text{racialized}}$.
+
+The foundational inequality of the system is therefore three-tiered:
+\[
+\text{Benefit}(E) \gg \text{Benefit}(I \setminus E) > \text{Benefit}(O_{\text{racialized}})
+\]
+where $\text{Benefit}(I \setminus E)$ consists primarily of $\psi$ (psychological wages) rather than material extraction, and $\text{Benefit}(E)$ reflects the material wealth extracted from both $O_{\text{racialized}}$ and, over time, from $I \setminus E$ itself.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[scale=1.3]
+    % Draw the Out-group (large circle on left)
+    \draw[thick, red, fill=red!20] (-3,0) circle (1.8cm);
+    \node[red] at (-3,0) {$O_{\text{racialized}}$};
+
+    % Draw the In-group (large circle on right)
+    \draw[thick, blue, fill=blue!15] (2,0) circle (2.2cm);
+    \node[blue] at (2,-1.5) {$I$ (In-group)};
+
+    % Draw the Elite (small circle inside In-group)
+    \draw[thick, green!60!black, fill=green!40] (2,0.5) circle (0.8cm);
+    \node[green!60!black, font=\small] at (2,0.5) {$E$};
+    \node[green!60!black, font=\tiny] at (2,-0.1) {(Elite)};
+
+    % Draw the non-Elite In-group region label - moved inside circle, away from boundary
+    \node[blue, font=\small] at (3.3,0.8) {$I \setminus E$};
+    \node[blue, font=\tiny] at (3.5,0.4) {(working-class};
+    \node[blue, font=\tiny] at (3.3,0.0) {In-group)};
+
+    % Arrow annotations showing benefit flow
+    \draw[->, thick, green!60!black] (2,1.8) -- (2,2.5);
+    % "Greatest benefit" moved above arrow
+    \node[green!60!black, font=\small] at (2,2.8) {Greatest benefit};
+
+    % Psychological benefit arrow - shifted right more
+    \draw[->, thick, blue] (4.0,0) -- (5.3,0);
+    \node[blue, font=\small, align=center] at (6.3,0) {Psychological\\benefit ($\psi$)};
+
+    \draw[->, thick, red] (-3,-2.3) -- (-3,-3);
+    \node[red, font=\small] at (-3,-3.5) {Exploitation};
+\end{tikzpicture}
+\caption{Three-tier model showing Elite ($E$) as a small subset of In-group ($I$), with Out-group ($O_{\text{racialized}}$) exploited to benefit the Elite while $(I \setminus E)$ receives psychological compensation ($\psi$). This is the foundational structure of the system.}
+\label{fig:elite_model}
+\end{figure}
+
+This three-tier structure is governed by what we term the \textbf{Predatory Min-Max Function}. The system operates according to two imperatives:
+
+\begin{enumerate}
+    \item \textbf{Maximize ($Max$):} The extraction of capital, labor, and autonomy from the labor force---primarily from $O_{\text{racialized}}$, but eventually from $I \setminus E$ as well.
+    \item \textbf{Minimize ($Min$):} The risk of a unified class revolution against the Elite ($E$), achieved by deploying $\psi$ to keep $I \setminus E$ invested in racial hierarchy rather than class solidarity.
+\end{enumerate}
+
+\[
+\text{Objective:} \quad \frac{\text{Max}(\text{Extraction})}{\text{Min}(\text{Resistance}_{\text{class}})} \rightarrow \text{System Stability}
+\]
+
+Policies ($P$) are the instruments through which this optimization is executed, impacting $O_{\text{racialized}}$, $I \setminus E$, and $E$ in structurally different ways. The remainder of this section formalizes how these policies compound over time; Section~4 then traces the historical algorithm of Elite optimization through six phases.
 
 \textbf{A Note on Scope and Specificity}: This model is specifically designed to analyze racism as a unique system rooted in the 15th century racialization of African peoples for the purposes of enslavement and colonial exploitation. The notation $O_{\text{racialized}}$ reflects this historical specificity. While the mathematical architecture may share structural similarities with other systems of oppression, this paper focuses on racism's particular genealogy and mechanisms. The subscript ``racialized'' anchors the mathematical formalism to the historical narrative established in Section 2, ensuring that the model captures the unique features of racism rather than generic intergroup conflict.
 
@@ -439,9 +503,9 @@ Utilizing set theory, let us model racism as a system of inequalities that dispr
 
 Traditional approaches might model the cumulative negative impact of policies as simple summation:
 \[
-\sum (O_{\text{racialized}} \cap P) > \sum (I \cap P)
+\sum (O_{\text{racialized}} \cap P) > \sum ((I \setminus E) \cap P) > \sum (E \cap P)
 \]
-However, this additive model fails to capture a critical dimension of systemic racism: \textbf{policies compound over time}. Each policy does not merely add harm; it fundamentally alters the vulnerability of the Out-group to subsequent policies.
+where the burden of policy falls most heavily on $O_{\text{racialized}}$, partially on the buffer class $I \setminus E$, and least on the Elite $E$ who architect the policies. However, even this three-tiered additive model fails to capture a critical dimension of systemic racism: \textbf{policies compound over time}. Each policy does not merely add harm; it fundamentally alters the vulnerability of the targeted groups to subsequent policies.
 
 To capture this compounding effect, we introduce a temporal model where the state of the Out-group at time $t+1$ depends on its state at time $t$ and the policy enacted:
 \[
@@ -454,6 +518,8 @@ This formulation reveals why historical sequencing matters. Consider two policie
 O_2^{\text{capacity}} = O_0^{\text{capacity}} \cdot (1 - \alpha P_1) \cdot (1 - \beta P_2)
 \]
 The impact of $P_2$ is applied to an Out-group \textit{already diminished} by $P_1$. If we applied the same policy $P_2$ to a group without the history of $P_1$, the absolute harm would be less severe. This multiplicative effect explains the \textbf{entrenchment} of systemic racism: early oppression doesn't just add disadvantage; it changes the entire equation for all subsequent policies.
+
+Crucially, while $O_{\text{racialized}}$ bears the primary compounding burden, the buffer class $I \setminus E$ is not immune. As the Predatory Min-Max Function exhausts extraction from $O_{\text{racialized}}$, the same compounding logic eventually turns inward: the tools developed to diminish $O_{\text{racialized}}$ are redeployed against $I \setminus E$, whose own capacity then begins to compound downward (see Section~4.7).
 
 \begin{figure}[htbp]
 \centering
@@ -496,7 +562,7 @@ The impact of $P_2$ is applied to an Out-group \textit{already diminished} by $P
     % Annotation
     \node[align=center, font=\small] at ($(o1)+(0,-4.55)$) {$P_2$ applied to \textit{already diminished} group\\$\Rightarrow$ compounding harm, not additive};
 \end{tikzpicture}
-\caption{Temporal compounding model: Each policy reduces Out-group capacity, making subsequent policies more harmful. Policy $P_2$ (redlining) causes greater harm when applied to a group already diminished by $P_1$ (enslavement).}
+\caption{Temporal compounding model: Each policy reduces Out-group capacity, making subsequent policies more harmful. Policy $P_2$ (redlining) causes greater harm when applied to a group already diminished by $P_1$ (enslavement). As the system exhausts extraction from $O_{\text{racialized}}$, this same compounding mechanism is eventually turned against $I \setminus E$ (Section~4.7).}
 \label{fig:compounding}
 \end{figure}
 
@@ -506,30 +572,34 @@ The impact of $P_2$ is applied to an Out-group \textit{already diminished} by $P
     % Define the circles
     \def\circleA{(0,0) circle (1.5cm)}
     \def\circleB{(2.5,0) circle (1.5cm)}
-    \def\circleC{(1.25,1.5) circle (1.3cm)}
-    
+    \def\circleC{(0.7,1.1) circle (1.3cm)}
+
     % Fill the intersections with different shades
     \begin{scope}[fill opacity=0.3]
         \fill[red] \circleA;
         \fill[blue] \circleB;
         \fill[green!70!black] \circleC;
     \end{scope}
-    
+
     % Draw the circles
     \draw[thick] \circleA;
     \draw[thick] \circleB;
     \draw[thick] \circleC;
-    
+
+    % Draw Elite as small circle nested inside I
+    \draw[thick, green!60!black, fill=green!40, fill opacity=0.5] (3.0,0.3) circle (0.45cm);
+    \node[green!60!black, font=\scriptsize] at (3.0,0.3) {$E$};
+
     % Add labels
     \node at (-0.8,-0.3) {$O_{\text{racialized}}$};
-    \node at (3.3,-0.3) {$I$};
-    \node at (1.25,2.3) {$P$};
-    
+    \node at (3.5,-0.8) {$I$};
+    \node at (0.7,1.9) {$P$};
+
     % Add description of intersections
-    \node[align=center, font=\small] at (0.6,0) {$O_{\text{racialized}} \cap P$};
-    \node[align=center, font=\small] at (1.9,0) {$I \cap P$};
+    \node[align=center, font=\small] at (0.3,0.7) {$O_{\text{racialized}} \cap P$};
+    \node[align=center, font=\small] at (1.7,0.5) {$I \cap P$};
 \end{tikzpicture}
-\caption{Venn diagram illustrating the relationships between the Out-group ($O_{\text{racialized}}$), Policies ($P$), and In-group ($I$), showing how policies intersect differently with each group.}
+\caption{Venn diagram illustrating the relationships between the Out-group ($O_{\text{racialized}}$), Policies ($P$), and In-group ($I$), with the Elite ($E \subset I$) shown as a small subset within the In-group. Policies intersect differently with each group, primarily extracting from $O_{\text{racialized}}$ to benefit $E$.}
 \label{fig:venn_model}
 \end{figure}
 
@@ -537,84 +607,25 @@ The impact of $P_2$ is applied to an Out-group \textit{already diminished} by $P
 
 Historical policies, such as the Portuguese slave trade and subsequent colonial practices, serve as real-world examples of our model. These policies created and perpetuated disparities between racial groups, institutionalizing racism at a systemic level.
 
-\subsection{Introducing the Elite Class: A Three-Tier Model}
+\subsection{The Three-Tier Dynamics in Detail}
 
-However, the binary In-group/Out-group model, while useful, obscures a crucial dynamic. A more accurate representation requires introducing a third set: the Elite ($E$), the true beneficiaries of systemic oppression. We can now model society as:
-\[
-E \subset I, \quad \text{where} \quad |E| \ll |I|
-\]
-The Elite constitute a small subset of the nominal In-group, yet they are the primary architects and beneficiaries of oppressive policies. The broader In-group ($I \setminus E$)---ordinary members of the dominant racial group---receive psychological and social benefits (what W.E.B.\ Du Bois termed the ``wages of whiteness'') but not the material benefits that accrue to the Elite.
+The three-tier model introduced at the opening of this section---with the foundational inequality $\text{Benefit}(E) \gg \text{Benefit}(I \setminus E) > \text{Benefit}(O_{\text{racialized}})$ and the Predatory Min-Max Function governing it---has several important implications worth elaborating.
 
-\begin{figure}[htbp]
-\centering
-\begin{tikzpicture}[scale=1.3]
-    % Draw the Out-group (large circle on left)
-    \draw[thick, red, fill=red!20] (-3,0) circle (1.8cm);
-    \node[red] at (-3,0) {$O_{\text{racialized}}$};
-    
-    % Draw the In-group (large circle on right)
-    \draw[thick, blue, fill=blue!15] (2,0) circle (2.2cm);
-    \node[blue] at (2,-1.5) {$I$ (In-group)};
-    
-    % Draw the Elite (small circle inside In-group)
-    \draw[thick, green!60!black, fill=green!40] (2,0.5) circle (0.8cm);
-    \node[green!60!black, font=\small] at (2,0.5) {$E$};
-    \node[green!60!black, font=\tiny] at (2,-0.1) {(Elite)};
-    
-    % Draw the non-Elite In-group region label - moved inside circle, away from boundary
-    \node[blue, font=\small] at (3.3,0.8) {$I \setminus E$};
-    \node[blue, font=\tiny] at (3.5,0.4) {(working-class};
-    \node[blue, font=\tiny] at (3.3,0.0) {In-group)};
-    
-    % Arrow annotations showing benefit flow
-    \draw[->, thick, green!60!black] (2,1.8) -- (2,2.5);
-    % "Greatest benefit" moved above arrow
-    \node[green!60!black, font=\small] at (2,2.8) {Greatest benefit};
-    
-    % Psychological benefit arrow - shifted right more
-    \draw[->, thick, blue] (4.0,0) -- (5.3,0);
-    \node[blue, font=\small, align=center] at (6.3,0) {Psychological\\benefit};
-    
-    \draw[->, thick, red] (-3,-2.3) -- (-3,-3);
-    \node[red, font=\small] at (-3,-3.5) {Exploitation};
-\end{tikzpicture}
-\caption{Three-tier model showing Elite ($E$) as small subset of In-group ($I$), with Out-group ($O_{\text{racialized}}$) exploited to benefit Elite while $(I \setminus E)$ receives psychological compensation.}
-\label{fig:elite_model}
-\end{figure}
+The psychological wage $\psi$ is not merely a side effect of the system; it is a \textit{designed feature}. The Elite ($E$) invest in $\psi$ precisely because it is cheaper than material concession: granting $I \setminus E$ racial status, legal privileges over $O_{\text{racialized}}$, and the right to police the racial boundary costs the Elite far less than sharing material wealth. This makes $\psi$ the key variable in the Predatory Min-Max Function's minimization of class resistance (see Figure~\ref{fig:elite_model}).
 
-This leads to a critical insight: the system does not truly serve the In-group; it serves the Elite while using racial division to prevent solidarity between $(I \setminus E)$ and $O_{\text{racialized}}$. Mathematically:
-\[
-\text{Benefit}(E) \gg \text{Benefit}(I \setminus E) > \text{Benefit}(O_{\text{racialized}})
-\]
+The system thus produces a paradox: $I \setminus E$ defends a hierarchy that materially harms them, because the psychological wage creates the \textit{perception} of shared interest with $E$ and the \textit{perception} of threat from $O_{\text{racialized}}$. Both perceptions serve $E$'s extraction objectives.
 
 \section{The Calculus of Control -- The Optimization of Elite Impunity}
 
-To understand systemic racism, we must reject the naive assumption that it is designed to benefit white people as a monolithic group. A rigorous set-theoretic analysis reveals that the system is designed to benefit only a specific subset: the \textbf{Elite ($E \subset I$)}.
+Having established the three-tier model in Section~3---with $\text{Benefit}(E) \gg \text{Benefit}(I \setminus E) > \text{Benefit}(O_{\text{racialized}})$, the psychological wage $\psi$ sustaining the buffer class, and the Predatory Min-Max Function governing the system's optimization---we now trace the \textit{algorithm} of this optimization through history. The historical timeline reveals that the In-group was artificially constructed to solve a specific security flaw. Once the extraction of the Out-group ($O_{\text{racialized}}$) is exhausted, the system inevitably \textbf{cannibalizes} the buffer class it created. We can map this algorithm through six distinct phases of optimization (see Figure~\ref{fig:extraction_zone}).
 
-The broader "In-group" ($I$) is not the true beneficiary; it is merely the \textbf{Security Buffer}. The governing algorithm of the system is a \textbf{Predatory Min-Max Function}:
-
-\begin{enumerate}
-    \item \textbf{Maximize ($Max$):} The extraction of capital, labor, and autonomy from the labor force.
-    \item \textbf{Minimize ($Min$):} The risk of a unified class revolution against the Elite ($E$).
-\end{enumerate}
-
-\[
-\text{Objective:} \quad \frac{\text{Max}(\text{Extraction})}{\text{Min}(\text{Resistance}_{\text{class}})} \rightarrow \text{System Stability}
-\]
-
-The historical timeline reveals that the "In-group" ($I$) was artificially constructed to solve a specific security flaw. Once the extraction of the Out-group ($O$) is exhausted, the system inevitably \textbf{cannibalizes} the buffer class it created. We can map this algorithm through six distinct phases of optimization (see Figure~\ref{fig:extraction_zone}).
-
-\subsection{The Source Code: Portuguese Origins and the Justification of Extraction (1450s)}
-The ideological "source code" for racism was written in Portugal to solve an economic problem. The European Elite faced a dilemma: extracting maximum labor from European peasants was difficult because they shared a religious and cultural identity ($I_{Christendom}$) with the Elite. Pushing them too hard risked triggering the class rebellions common in European history.
-
-To solve this, Prince Henry the Navigator and his chronicler, \textbf{Gomes Eanes de Zurara}, initiated a system update. In the 1450s, Zurara wrote \textit{The Chronicle of the Discovery and Conquest of Guinea}, which invented the concept of "Blackness."
+\subsection{The Source Code: Portuguese Origins (1450s)}
+As detailed in Section 2, the ideological ``source code'' for racism was written in 1450s Portugal. The key insight, rendered in algorithmic terms: the European Elite could not extract unlimited labor from a population that shared their moral community ($I_{\text{Christendom}}$). Zurara's racialization of African peoples (Section 2.2) solved this by creating a new category---a fungible Out-group ($O$) defined outside the moral community entirely.
 
 \begin{itemize}
-    \item \textbf{The Function:} It grouped all disparate African peoples into a single, fungible category ($O$) defined by \textit{lack} (lack of salvation, lack of civilization).
-    \item \textbf{The Utility:} This allowed the Elite to bypass the moral and social constraints of European labor relations. They didn't need to negotiate with this new Out-group; they could extract from them with impunity.
+    \item \textbf{The Function:} Group all disparate African peoples into a single category defined by \textit{lack} (lack of salvation, lack of civilization), bypassing the moral and social constraints of European labor relations.
+    \item \textbf{The License:} When the first enslaved Africans arrived in Virginia in 1619---stolen from the Portuguese slave ship \textit{San Juan Bautista}---the English colonists did not need to write the logic of chattel slavery from scratch. They simply licensed the Portuguese algorithm.
 \end{itemize}
-
-When the first enslaved Africans arrived in Virginia in 1619, they were not just captives; they were already products of this Portuguese system, having been stolen from the Portuguese slave ship \textit{San Juan Bautista}. The English colonists did not need to write the logic of chattel slavery from scratch; they simply licensed the Portuguese algorithm.
 
 \subsection{The Application: Bacon's Rebellion and the Partition of the Poor (1676)}
 In the American colonies, however, the Elite initially failed to implement this code strictly. The "proto-working class" was a mix of European indentured servants ($L_{white}$) and enslaved Africans ($L_{black}$). Because they shared the same oppressive conditions, the Portuguese distinction didn't stop them from seeing each other as allies.
@@ -630,7 +641,7 @@ To prevent a recurrence, the Virginian Elite \textbf{weaponized the Portuguese c
 
 \begin{enumerate}
     \item \textbf{The Partition:} They assigned $L_{white}$ to a new category: "White."
-    \item \textbf{The Bribe:} They gave the poor whites a "psychological wage"---the right to police the Black population, the right to bear arms, and immunity from chattel slavery.
+    \item \textbf{The Bribe:} They gave the poor whites the psychological wage $\psi$ (Section~3)---the right to police the Black population, the right to bear arms, and immunity from chattel slavery.
 \end{enumerate}
 
 This was the masterstroke of the American algorithm: It used "Race" to destroy "Class." It recruited the poor white population to act as the \textbf{Buffer Class}, protecting the Elite from the very people they should have been allied with.
@@ -758,72 +769,13 @@ O_{final} = \text{Everyone} \setminus E
     \label{fig:extraction_zone}
 \end{figure}
 
-\section{Real-World Applications of the Mathematical Model}
+\section{From Diagnosis to Prescription: Policy Implications}
 
-The theoretical framework provided by set theory offers a powerful tool for analyzing systemic racism. To illustrate its practical application, we examine historical examples that highlight the systemic nature of racism, specifically focusing on the Southern Strategy and the practice of redlining in the United States.
+The algorithmic history traced in Section 4 is not merely descriptive---it is \textit{diagnostic}. Each phase of the Elite's optimization (Portuguese racialization $\rightarrow$ Bacon's Rebellion $\rightarrow$ the invention of whiteness $\rightarrow$ the 13th Amendment loophole $\rightarrow$ redlining $\rightarrow$ the War on Drugs $\rightarrow$ cannibalization) reveals a system that adapts its \textit{interface} while preserving its \textit{kernel}: the Predatory Min-Max Function that maximizes extraction while minimizing class resistance.
 
-\subsection{The Southern Strategy}
+If the framework is correct, it does not merely describe racism---it \textit{prescribes} specific interventions by revealing where harm is concentrated and how it operates. This section examines what follows from the model.
 
-The Southern Strategy, employed by the Republican Party under the guidance of strategist Lee Atwater, serves as a poignant example of systemic racism's mechanics. This political strategy was designed to gain support among white voters in the American South by exploiting racial tensions and appealing to anti-Black racism. By utilizing racially coded language and policies, the strategy aimed to subtly but effectively mobilize white voters by capitalizing on existing racial prejudices.
-
-In our mathematical model, we can represent the impact of such a strategy by considering two sets: $B$, the set of all Black individuals, and $W$, the set of all White individuals.
-
-The Southern Strategy's policies and rhetoric predominantly benefited the $W$ set while adversely affecting the $B$ set, creating a stark disparity in political power and social capital. Thus we can model this as:
-\[
-\sum (B \cap P) \gg \sum (W \cap P)
-\]
-This means that the sum of policies that adversely impacted the Black community was much higher than the sum of policies that adversely impacted the White community.
-
-\subsection{Redlining}
-
-Redlining represents a more overt form of systemic racism, where services (such as banking, insurance, and access to quality education and healthcare) were systematically denied to residents in predominantly Black neighborhoods. This practice, sanctioned by government agencies and private sectors alike, entrenched socio-economic disparities along racial lines.
-
-Using the mathematical framework, we can model redlining as follows:
-\[
-B \cap \text{Redlining} \gg W \cap \text{Redlining}
-\]
-This inequality demonstrates that the policy of redlining disproportionately impacted Black communities ($B$) compared to White communities ($W$), reinforcing a system of racial inequality. Visually, through the lens of modified Venn diagrams, the overlap between the redlining policy and the $B$ set is significantly larger than that of the $W$ set, illustrating the targeted nature of this systemic oppression.
-
-\begin{figure}[htbp]
-\centering
-\begin{tikzpicture}[scale=1.2]
-    % Define the circles for B, W, and Redlining
-    \def\circleB{(0,0) circle (1.8cm)}
-    \def\circleW{(3.5,0) circle (1.5cm)}
-    \def\circleRedlining{(1.2,0) circle (2cm)}
-    
-    % Fill the intersections with different shades
-    \begin{scope}[fill opacity=0.3]
-        \fill[red!70] \circleB;
-        \fill[blue!40] \circleW;
-        \fill[orange!60] \circleRedlining;
-    \end{scope}
-    
-    % Draw the circles
-    \draw[thick] \circleB;
-    \draw[thick] \circleW;
-    \draw[thick, dashed] \circleRedlining;
-    
-    % Add labels
-    \node at (-1.2,-0.3) {$B$};
-    \node at (4.5,-0.3) {$W$};
-    \node[font=\small] at (1.2,-2.3) {Redlining Policy};
-    
-    % Highlight the asymmetric intersection sizes
-    \node[align=center, font=\small, text width=2cm] at (0.5,0.8) {Large\\$B \cap$\\Redlining};
-    \node[align=center, font=\small] at (3,0.5) {Small\\$W \cap$\\Redlining};
-\end{tikzpicture}
-\caption{Venn diagram showing the disproportionate impact of redlining policies on Black communities ($B$) versus White communities ($W$), with the intersection $B \cap \text{Redlining}$ being significantly larger than $W \cap \text{Redlining}$.}
-\label{fig:redlining_venn}
-\end{figure}
-
-\subsection{Implications of the Model}
-
-These real-world examples underscore the utility of our mathematical model in dissecting the systemic nature of racism. Policies like the Southern Strategy and redlining are not anomalies but rather components of a broader system that perpetuates racial inequalities. By applying set theory and discrete mathematics, we can quantitatively and visually represent the impacts of such policies, offering a clearer understanding of systemic racism's dynamics.
-
-These examples highlight the importance of a comprehensive contextual analysis. Understanding the full scope of systemic racism requires examining the cumulative effects of multiple policies over time, as well as their interactions within the broader socio-political landscape. This analytical approach can inform more effective strategies for dismantling systemic racism, guiding policymakers, activists, and communities in their efforts to address racial inequalities at their roots.
-
-\subsection{Policy Implications: Individual vs. Systemic Interventions}
+\subsection{Policy Implications: Individual vs.\ Systemic Interventions}
 
 The mathematical framework developed here does not merely describe racism---it \textit{prescribes} specific interventions by revealing where harm is concentrated and how it operates. This framework forces a fundamental shift from individual-focused solutions to systemic policy reform.
 
@@ -900,25 +852,25 @@ However, our set-theoretic analysis reveals something more profound: the convent
     \item This expansion increasingly encompasses members of the former In-group
 \end{enumerate}
 
-The historical trajectory we have traced---from slave patrols through \textit{Dred Scott} (1857), the 13th Amendment loophole (1865), Jim Crow (1900--1965), the Southern Strategy, mass incarceration, and modern rights erosion---demonstrates not a static system of racial oppression but a dynamic one that periodically resets and expands its target population. Each ``reset'' occurs when the previous arrangement becomes untenable: Bacon's Rebellion prompted the invention of rigid racial categories; the Civil Rights Movement prompted the Southern Strategy and coded racism; and the current period of extreme inequality is prompting new expansions of carceral, surveillance, and administrative exclusion systems.
+The algorithmic trajectory traced in Section 4---from Portuguese racialization (1450s) through Bacon's Rebellion (1676), the invention of whiteness (1705), the 13th Amendment loophole (1865), redlining (1934), the War on Drugs (1968), and present-day cannibalization of the In-group---demonstrates not a static system of racial oppression but a dynamic one that periodically resets and expands its target population. Each ``reset'' occurs when the previous arrangement becomes untenable: Bacon's Rebellion prompted the invention of rigid racial categories; \textit{Brown v.\ Board} prompted the Variable Swap of the War on Drugs; and the current period of extreme inequality is prompting the cannibalization phase, in which tools built to oppress $O_{\text{racialized}}$ are deployed against $I \setminus E$.
 
-The constitutional mechanism is particularly insidious: by continuously expanding what constitutes ``crime'' and stripping rights from those convicted, the system can grow the Out-group without ever explicitly naming racial or class categories. The 19 million Americans with felony convictions and 77 million with criminal records represent a permanent underclass---disenfranchised, disarmed, and economically marginalized---that crosses racial lines while still disproportionately affecting Black Americans. This is the ``dangerous class'' that \textit{Dred Scott} sought to maintain through explicit racial exclusion, now maintained through facially neutral criminalization.
+The constitutional mechanism identified in Section 2.6 is particularly insidious: by continuously expanding what constitutes ``crime'' and stripping rights from those convicted via the 13th Amendment's exception clause (Section 4.4), the system can grow the Out-group without ever explicitly naming racial or class categories. The criminalization kernel---$\text{If } \text{Status}(x) = \text{Criminal}(C) \rightarrow \text{Status}(x) \in S$---creates a permanent underclass that crosses racial lines while still disproportionately affecting $O_{\text{racialized}}$.
 
-This pattern suggests we are witnessing another such reset. As economic inequality approaches levels not seen since before the Great Depression, and as automation and globalization eliminate traditional pathways to middle-class stability, the system requires an expanded subjugated class. The mathematical formalization:
+This pattern suggests we are witnessing another such reset. As economic inequality approaches levels not seen since before the Great Depression, and as automation and globalization eliminate traditional pathways to middle-class stability, the system requires an expanded subjugated class. The Predatory Min-Max Function demands new sources of extraction, and the buffer class created in 1705 is no longer exempt. As formalized in Section 4.7:
 \[
-O_{1700} \subset O_{1857} \subset O_{1865} \subset O_{\text{Jim Crow}} \subset O_{1980} \subset O_{1990} \subset O_{\text{present}} \subset O_{\text{future}}
+O_{\text{final}} = \text{Everyone} \setminus E
 \]
-points toward a future where the Out-group continues to grow unless structural intervention occurs.
+This points toward a future where the Out-group continues to grow unless structural intervention disrupts the algorithm.
 
 The incorporation of set theory into our analysis provides more than a quantitative tool; it reveals the \textit{logic} of systemic oppression. Racism is not an aberration or a failure of the American system---it is a \textit{feature} designed to prevent the kind of cross-racial class solidarity that briefly emerged in Bacon's Rebellion and threatened to emerge again during the Civil Rights era.
 
 \section{Conclusion}
 
-Redefining racism to encompass its systemic dimensions and historical roots offers a more comprehensive understanding of the issue, illuminating the pathways through which racial inequalities are perpetuated. More importantly, our set-theoretic analysis reveals the expanding nature of the Out-group and the Elite class that truly benefits from racial division.
+Redefining racism to encompass its systemic dimensions and historical roots offers a more comprehensive understanding of the issue, illuminating the pathways through which racial inequalities are perpetuated. More importantly, the Predatory Min-Max Function formalized in Section 4 reveals that the system's governing logic---maximizing extraction while minimizing class resistance---inevitably drives the expansion of the Out-group toward $O_{\text{final}} = \text{Everyone} \setminus E$.
 
-This framework has significant implications for anti-racist strategy. If racism primarily serves Elite interests by preventing cross-racial solidarity, then combating racism requires not only addressing racial disparities but also building coalitions across racial lines that recognize shared economic interests. The ``wages of whiteness''---the psychological compensation offered to poor whites in exchange for their complicity in racial hierarchy---must be exposed as a poor bargain that leaves them increasingly vulnerable to the same systems of exploitation.
+This framework has significant implications for anti-racist strategy. If racism operates as an Elite optimization algorithm that uses racial division to prevent class solidarity, then combating racism requires not only addressing racial disparities but also building coalitions across racial lines that recognize shared economic interests. The ``wages of whiteness''---the psychological bribe offered to $I \setminus E$ in exchange for policing the buffer (Section 4.3)---must be exposed as a poor bargain that leaves them increasingly vulnerable to the same systems of extraction.
 
-The trajectory we have documented is not inevitable. The expansion of the Out-group can be halted and reversed through:
+The algorithmic trajectory we have documented is not inevitable. The expansion of the Out-group can be halted and reversed through:
 \begin{itemize}
     \item Policies that reduce economic inequality and expand the middle class across racial lines
     \item Criminal justice reform that shrinks rather than expands the carceral state
@@ -927,7 +879,7 @@ The trajectory we have documented is not inevitable. The expansion of the Out-gr
     \item Coalition-building that emphasizes shared interests over racial grievance
 \end{itemize}
 
-The history of American racism, properly understood through our set-theoretic lens, is not merely a story of white supremacy but of Elite supremacy maintained through racial division. As long as ordinary members of the In-group can be convinced that their interests align with the Elite rather than with the Out-group, the system will persist and expand.
+The history of American racism, properly understood through the algorithmic lens developed here, is not merely a story of white supremacy but of Elite supremacy maintained through racial division. As long as ordinary members of $I \setminus E$ can be convinced that their interests align with $E$ rather than with $O_{\text{racialized}}$, the Predatory Min-Max Function will continue to optimize---and the extraction zone will continue to expand.
 
 The battle against systemic racism is thus inseparable from the battle against systemic economic exploitation. By embracing this expanded understanding, scholars, policymakers, and the public can engage more effectively in the fight for justice---recognizing that the liberation of the Out-group and the liberation of the broader In-group from Elite manipulation are ultimately the same struggle.
 
