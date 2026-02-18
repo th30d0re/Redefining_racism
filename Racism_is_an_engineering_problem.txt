@@ -1,0 +1,123 @@
+Welcome back to the deep dive. We're going to try a thought experiment today. And I'll ask you to do something that well, it might feel a little counterintuitive.
+For sure.
+Usually when the topic of racism comes up, the immediate association is emotional. You know, you think of hate, you think of slurs, individual acts of prejudice,
+right? Which is natural. That's the visible part of the iceberg. It's what we see on the news, what we react to.
+Exactly. But the research stack we're covering today asks us to um suspend that instinct. We're look at this fascinating paper called Redefining Racism
+and we're pairing it with some pretty heavy economic research on iterated audits in AI and even a historical analysis that goes all the way back to the 1400s.
+And the premise, I mean, across all these sources, it's pretty radical, but also really clean.
+Racism isn't just an emotion. It's an engineering problem. It's a mathematical formula.
+It's a complete shift from psychology to to architecture.
+Yeah.
+If you treat racism as a feeling, you try to cure it. With empathy, you try to change hearts and minds,
+which is what we usually hear.
+But if you treat it as a design pattern, a set theoretic framework, you realize that empathy doesn't fix a broken algorithm. You have to debug the code.
+And that is our mission today. We're going to look at the invisible math behind oppression,
+trace its uh source code back to the 15th century,
+and see if we can actually use modern AI to dismantle it.
+Yeah. Because usually we hear about AI making things worse. But this Research suggests it might be the only tool powerful enough to see the system clearly.
+So, a lot to cover.
+A lot. But the core idea is simpler than it sounds. It's about sets and subsets.
+Okay, let's start right there. The redefining racism paper.
+Yeah.
+It argues our standard definition is just too vague to solve anything. And they literally write it out as a mathematical inequality.
+They do. They use set theory. So, for those of you rusty on high school math, just picture two circles. You've got the inroup, which we'll call I, okay?
+And the out groupoup, which we'll call O. These are just, you know, categories of people
+in-group and outgroup. Simple enough.
+Then you have a third variable, the policy or P. And P can be anything. It could be a federal law, a corporate hiring practice, a credit score threshold.
+And this is where that whole engineering mindset really kicks in.
+Exactly. The classic view of racism requires the policy to explicitly say we don't like the out group. It requires intent. But the set theoretic definition says ignore the intent. Look at the intersection.
+The inter The formula for systemic racism is just when the sum of the intersection of the outroup and the policy is greater than the intersection of the ingroup and the policy.
+Okay, let's put that in plain English. A policy is racist if it hits the out group harder than the in-group. Mathematically,
+yes,
+even if the policy looks neutral,
+that's the crucial insight. The notation moves the whole conversation from feelings to mechanics. Let's take a hypothetical policy. Uh you must have a fixed permanent address to vote.
+Okay. On paper, that seems neutral. It applies to everyone. Doesn't mention race at all.
+But if you look at the data, the out group might be statistically more likely to be transient or homeless or renting in unstable markets, right?
+So the intersection of no permanent address and outroup is massive. The intersection with the ingroup is small. The machinery filters the out group out.
+So the math says that's a racist policy. Even if the person who wrote it didn't have a single hateful bone in their body, Exactly. It's like a civ. You can say the civ isn't angry at the flower it catches, but it was designed with a mesh size that catches a specific grain.
+And this isn't just a modern idea. I thought one of the most fascinating parts of the research was tracing this design pattern back to its what its patient zero.
+A man named Gomes Dura in the 1450s.
+This part really struck me because it flips the causality completely. We assume people hated Africans so they enslaved them. The hate caused the system.
+But the historical record suggests the opposite. it. Zer was commissioned by the Portuguese monarchy. They had a new economic model. It's a slave trade. It was incredibly profitable. They needed labor.
+But they were also a Christian nation, so they needed a moral justification. You can't just brutalize people.
+So, Zora writes a chronicle. He basically invents the marketing campaign for it.
+Wow.
+He depicts Africans as this monolithic inferior group that needed saving by European civilization. He created the racist idea, the software to justify the racist policy. The hardware,
+the economic need came first. The prejudice was manufactured to make it all palatable.
+Which means trying to fight racism by only fighting prejudice is like trying to stop a factory by critiquing the billboard outside.
+That's a great way to put it.
+The prejudice is just the PR department for the extraction mechanism. And that mechanism, it's a minmax algorithm. It seeks to maximize extraction of labor, capital, whatever, and minimize resistance.
+And this brings us to the second big point in the source. material which is this ingroup illusion because if this is an extraction machine who is it extracting for
+this is where the math gets a little sharper the source argues that the beneficiary isn't actually the whole inroup I mean if you're a white workingclass person struggling with bills this system isn't really serving you financially
+so the source defines a subset the elite or E
+right E is a tiny little circle inside the inroup the elite extracts wealth from from the out groupoup, but they need the rest of the in-group to enforce the system. They need a buffer class.
+Web Dubois called this the psychological wage.
+Yes, the elite basically says to the working-class in-group, look, we won't share the money with you, but we will give you status. We'll make sure you're legally socially superior to the out group.
+It's a divide and conquer algorithm. It prevents the buffer class and the out groupoup from realizing they have similar economic interests.
+It's brutally efficient engineering, but there's a a terrifying trajectory. mention in the research they call it the expanding out group
+meaning the circle of who gets protected keeps shrinking
+this is the slippery slope but quantified look at the timeline in the 1700s the out groupoup is explicitly racial enslaved Africans but then fast forward to 1865
+the 13th amendment
+right which abolishes slavery except as punishment for a crime
+the famous loophole
+it's a trapoor in the code and suddenly the outgroup definition shifts from black to criminal. But then the system starts defining criminal behaviors to match the people they want to extract from. Vagrancy laws, loitering laws,
+and in the modern day, that set just keeps getting wider and wider. It includes drug users, the poor,
+and eventually the math eats the ingroup, too. We now have 19 million Americans with felony convictions. A huge number of them are white. Once you got that felon tag, you fall into the out group.
+You lose voting rights, job prospects. The algorithm doesn't care about your skin color. since you fail that policy check.
+The machine was built for a specific target that it's running on autopilot and consuming everyone.
+That is a haunting thought. So if this is all math, if it's sets and intersections and algorithms, can we use better math to fix it? Because right now all we hear about is AI bias.
+This is the pivot point and the sources are clear that blind algorithms are a disaster. We have to talk about that first,
+right? The headline is always AI is racist.
+They call it signal inflation or technological system. ic discrimination. It's a dense concept, but it's so important. Let's say you're a bank. You want to be colorb blind. So, you remove the race variable from your loan algorithm.
+Sounds fair on the surface. We don't see color.
+But you leave in zip code. You leave in credit history and maybe gap in employment.
+And because of the history we just talked about, redlinining, unequal policing, those variables are heavily correlated with race.
+Precisely. The AI just uses zip code as a proxy for race. It finds the pattern anyway. The input data is an art. of the oppression. So a blind algorithm just reproduces the racism with high definition accuracy.
+So is the solution just to ban AI or is there a way to use this tool for good?
+Well, this is where that paper by Borne Hall and IMUS on iterated audits comes in. This is the deployment phase of our deep dive. They argue we can use AI to detect the sister in ways humans just can't.
+Okay. Walk me through this iterated audit. How is it different from just you know, checking the results.
+A standard check just looks for direct discrimination. Did the AI reject this person because they're black? That's bucket one.
+Okay,
+but the iterated audit adds a second bucket, systemic discrimination.
+What does that look like in practice? Let's stick with the hiring example.
+Okay, so you have a hiring algorithm. A standard audit asks, did the bot reject this resume because of the name on it? If yes, you fix that.
+Simple enough.
+But an iterated audit goes deeper. It asks, are equally qualified people failing because of signals that shouldn't really matter
+signals like what
+let's say the AI is rejecting candidates who have a gap in employment of more than 6 months
+which is a really common filter
+very common but the iterated audit analyzes the intersection of that filter with the out group it might find that the out group has disproportionately more employment gaps maybe due to caring for family or minor incarceration or health issues
+so the AI would flag that it would say hey human this no gaps filter is knocking out 60% of your diverse candidates who are otherwise qualified.
+Exactly. It isolates the variable that's causing the disparity and it quantifies it. It tells you 50% of your rejections are due to this one policy filter that doesn't actually predict job performance.
+That changes the intervention completely. You don't need to send the hiring manager to sensitivity training. You need to change the employment gap requirement.
+You change the policy. The key, you rewrite the equation. The math forces you to stop looking at individual hearts and start looking at the systems parameters. It says, "This filter is creating a disperate impact. Is this filter even necessary? Does a six-month gap mean they're a bad coder? No. Then delete it."
+That is incredibly pragmatic. It removes the whole guilt and shame spiral and just replaces it with debugging.
+It's the only way to solve a structural problem. And what's fascinating is that because AI can process millions of data points, it can find these invisible intersections that a human HR manager would never ever notice.
+So, we use the machine to reveal the machine. We can deploy AI to map the architecture of control in real time. But and this is where the deep dive takes a bit of a turn. This architecture of control we've been describing the minmaxing the asymmetric rules. It doesn't just happen in governments or banks.
+This is the session on PHM pseudohybrid asymmetric monogamy which I'll admit sounds like a mouthful.
+It is a mouthful but it basically describes a toxic relationship dynamic. And the reason we included it is because it proves the um the fractal nature of oppression. The math works at the macro level and the micro level.
+So, how does a bad relationship map onto set theory?
+Well, think about the in-group, the controlling partner, and the out group, the other partner. The controlling partner often claims asymmetric autonomy,
+meaning I have the freedom to do X, but you don't.
+Or even more subtly, my needs are complex and require me to stay out late or spend this money. Your needs are simple and require you to support me.
+And just like Zerara used Christianity or civilization, as a cover. The toxic partner uses an ideological cover.
+Exactly. They might use language from therapy or feminism or even polyamory as a shield. They'll say, "I'm deconstructing ownership so I can't be bound by your rules while simultaneously binding their partner to a strict set of expectations."
+Using the language of liberation to enforce oppression,
+it's the Minmax algorithm again. Maximize extraction of the partner's care and labor. Minimize the risk of them leaving. It really shows this isn't just about race. It's a design pattern of control.
+Wow.
+Whether it's a king in 1450, a bank algorithm today, or a partner in a living room, it relies on asymmetric rules and selective empathy.
+So, pulling this all together then, we've looked at the math, the history of the tech, and and the personal. What's the synthesis here? What do we do with this?
+I think the biggest takeaway is that we need to stop looking for villains and start looking for filters.
+Can you expand on that?
+We waste so much energy trying to find the bad apple, the racist cop, the biased boss. the toxic X. And sure, they exist, but the redefining racism framework shows us that most of the damage is done by the neutral looking policy, the P,
+the credit check,
+the zip code requirement, the previous salary field on a job application,
+all of it. If you want to change your workplace, don't just post a statement about diversity. Run an audit. Look for the intersection. Find the specific rule that is filtering out the people you claim to value, and then delete that rule.
+And realize that if If you don't, that filter is eventually going to come for you.
+That's the expanding out group warning. We often stay silent when rights are stripped from those people because we think we're safe in the ingroup. But the ingroup is an illusion. It's a temporary buffer. If the system is designed to extract, it will eventually extract from you, too.
+It brings us right back to the engineering mindset. You don't beg a broken machine to be nicer. You rebuild it. You fix the code.
+That's a powerful place to land. It makes the problem feel solvable, even if it's massive. makes it concrete
+and that's the first step.
+Well, that is a lot to process, but I think I'll never look at a neutral policy the same way again. I'm just going to be looking for that mathematical intersection
+as we all should.
+Thanks for going on this deep dive with us. We'll catch you on the next one.
