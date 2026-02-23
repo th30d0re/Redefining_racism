@@ -1,0 +1,4179 @@
+OpenAI Codex v0.104.0 (research preview)
+--------
+workdir: /Users/emmanuel/Documents/Theory/Redefining_racism
+model: gpt-5.2-codex
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: high
+reasoning summaries: auto
+session id: 019c8832-57e3-7d81-8592-38870847fa25
+--------
+user
+You are a Swift/SwiftUI developer. A previous attempt to complete a task failed.
+
+TESTING & DEBUGGING REFERENCE:
+For building, testing, and debugging iOS/macOS apps, reference this workflow guide:
+/Users/emmanuel/Dev/Tools/Eocon-Foundation-V1/.Foundation/Docs/swiftDocs/Testing/XCODEBUILD_MCP_WORKFLOW.md
+
+This guide covers:
+- XcodeBuild MCP server tools for programmatic Xcode interaction
+- Building for simulator, booting simulators, installing/launching apps
+- UI automation: screenshots, accessibility hierarchy, tap simulation
+- Debugging UI issues (button taps, gestures, navigation)
+
+=== ORIGINAL TASK ===
+I have created the following plan after thorough exploration and analysis of the codebase. Follow the below plan verbatim. Trust the files and references. Do not re-verify what's written in the plan. Explore only when absolutely necessary. First implement all the proposed file changes and then I'll review all the changes together at the end.
+
+## Observations
+
+T1–T5 are complete. The \`PolicyScorer\` protocol and \`StubPolicyScorer\` stub already exist in \`file:app/decodingOppression/decodingOppression/Models/PolicyScorer.swift\`. \`TierClassification\` (with \`architectureScores\` and \`proxyDetection\`) and \`ScoreResult\` are fully defined. \`HistoricalPolicies.swift\` exists but only holds expected COI scalars — it needs static clause arrays. The test suite uses Swift Testing (\`@Suite\`, \`@Test\`, \`#expect\`) consistently.
+
+## Approach
+
+Implement five pure-Swift scorer structs, a concrete \`DefaultPolicyScorer\` orchestrator, and expand \`HistoricalPolicies\` with typed static constants. All scorers take \`[TierClassification]\` as input and return \`Double\` in \`[-1.0, 1.0]\`, matching the existing \`PolicyScorer\` protocol contract. Unit tests follow the established Swift Testing pattern in \`decodingOppressionTests/\`.
+
+---
+
+## Implementation Steps
+
+### 1. Add \`HistoricalPolicy\` struct and static constants to \`HistoricalPolicies.swift\`
+
+In \`file:app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift\`, add a \`HistoricalPolicy\` value type and four static constants:
+
+\`\`\`
+struct HistoricalPolicy {
+    let name: String
+    let year: Int
+    let clauses: [TierClassification]   // hand-crafted from paper Sections 3–4
+    let expectedCOI: Double
+}
+\`\`\`
+
+Add four static constants on \`HistoricalPolicies\`:
+- \`virginiaSlaveCodes\` — year 1705, expectedCOI 0.93
+- \`thirteenthAmendment\` — year 1865, expectedCOI 0.35
+- \`holcRedlining\` — year 1934, expectedCOI 0.82
+- \`warOnDrugs\` — year 1971, expectedCOI 0.78
+
+Each constant's \`clauses\` array is a small set of hand-crafted \`TierClassification\` values (3–6 per policy) whose \`targetGroup\`, \`effectDirection\`, \`architectureScores\`, and \`proxyDetection\` fields reflect the paper's characterisation of that policy. These are the deterministic ground-truth inputs for validation tests.
+
+Keep the existing \`score(for:)\` method intact — it is consumed by \`HistoricalBaselineTool\` (T4).
+
+---
+
+### 2. Create \`DifferentialImpactScorer.swift\`
+
+New file: \`file:app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift\`
+
+\`\`\`
+struct DifferentialImpactScorer: Sendable {
+    func score(clauses: [TierClassification]) -> Double
+}
+\`\`\`
+
+**Logic:**
+- Count benefit clauses per group: \`benefitElite\`, \`benefitIngroupNonElite\`, \`benefitOutgroup\`
+- Count burden clauses per group: \`burdenOutgroup\`, \`burdenIngroupNonElite\`, \`burdenElite\`
+- Compute a hierarchy-alignment score: the oppressive hierarchy \`Benefit(E) >> Benefit(I\\E) > Benefit(O)\` is maximally satisfied when elite receives all benefits and outgroup receives all burdens
+- Raw score = \`(benefitElite − benefitOutgroup + burdenOutgroup − burdenElite) / max(clauses.count, 1)\`
+- Clamp to \`[-1.0, 1.0]\`
+- Empty input → return \`0.0\`
+
+---
+
+### 3. Create \`ArchitectureDetector.swift\`
+
+New file: \`file:app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift\`
+
+\`\`\`
+struct ArchitectureDetector: Sendable {
+    func score(clauses: [TierClassification]) -> Double
+}
+\`\`\`
+
+**Logic:**
+- Average each \`ArchitectureScores\` component across all clauses: \`meanAAR\`, \`meanSE\`, \`meanIJ\`, \`meanRSC\`
+- \`ADS = 0.35 × meanAAR + 0.20 × meanSE + 0.20 × meanIJ + 0.25 × meanRSC\`
+- All component inputs are already in \`[0, 1]\` (from \`TierClassification.architectureScores\`), so the weighted sum is in \`[0, 1]\`; map to \`[-1.0, 1.0]\` via \`2 × ADS − 1\` for consistency with the \`ScoreResult\` contract
+- Empty input → return \`0.0\`
+
+---
+
+### 4. Create \`EliteInterestScorer.swift\`
+
+New file: \`file:app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift\`
+
+\`\`\`
+struct EliteInterestScorer: Sendable {
+    func score(clauses: [TierClassification]) -> Double
+}
+\`\`\`
+
+**Logic — derive three sub-components from \`TierClassification\`:**
+
+| Component | Derivation |
+|---|---|
+| \`extraction\` | Proportion of clauses where \`targetGroup == .elite && effectDirection == .benefit\` OR \`targetGroup == .outgroup && effectDirection == .burden\` |
+| \`resistance_suppression\` | Mean \`architectureScores.rsc\` across all clauses |
+| \`division_maintenance\` | Proportion of clauses where \`proxyDetection.usesProxyVariables == true\` OR \`proxyDetection.expandsOutgroup == true\` |
+
+- \`EIS = 0.4 × extraction + 0.3 × resistance_suppression + 0.3 × division_maintenance\`
+- All three sub-components are in \`[0, 1]\`; map result to \`[-1.0, 1.0]\` via \`2 × EIS − 1\`
+- Empty input → return \`0.0\`
+
+---
+
+### 5. Create \`CompoundingCalculator.swift\`
+
+New file: \`file:app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift\`
+
+\`\`\`
+struct CompoundingCalculator: Sendable {
+    let alpha: Double                          // decay constant, default 0.1
+    let historicalChain: [HistoricalPolicy]    // default: HistoricalPolicies.chain
+
+    func score(clauses: [TierClassification]) -> Double
+}
+\`\`\`
+
+**Logic:**
+- Compute the new policy's raw oppression signal \`P_new\` as the mean of \`(architectureScores.aar + architectureScores.rsc) / 2\` across all clauses (a proxy for oppressive intensity before full scoring)
+- Walk the historical chain in chronological order, applying \`O_t = O_{t-1} × (1 − α × P_t)\` using each policy's \`expectedCOI\` as \`P_t\`; this gives \`O_baseline\` (outgroup capacity before the new policy)
+- Apply the new policy: \`O_final = O_baseline × (1 − α × P_new)\`
+- \`CIS = O_baseline − O_final\` (the marginal capacity reduction caused by the new policy), normalised to \`[-1.0, 1.0]\`
+- Empty input → return \`0.0\`
+
+Add a static \`chain\` property on \`HistoricalPolicies\` returning the four policies in chronological order for use as the default chain.
+
+---
+
+### 6. Create \`OutgroupAnalyzer.swift\`
+
+New file: \`file:app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift\`
+
+\`\`\`
+struct OutgroupAnalyzer: Sendable {
+    func score(clauses: [TierClassification]) -> Double
+}
+\`\`\`
+
+**Logic:**
+- \`expansionScore\` = proportion of clauses where \`proxyDetection.expandsOutgroup == true\`
+- \`proxyScore\` = proportion of clauses where \`proxyDetection.usesProxyVariables == true\`
+- \`proxyDensity\` = mean \`proxyDetection.proxyTerms.count\` across all clauses, normalised by 5 (the max per \`@Guide(.count(0...5))\`)
+- \`OES = (expansionScore + proxyScore + proxyDensity) / 3\`
+- Map to \`[-1.0, 1.0]\` via \`2 × OES − 1\`
+- Empty input → return \`0.0\`
+
+---
+
+### 7. Implement \`DefaultPolicyScorer\` in \`PolicyScorer.swift\`
+
+In \`file:app/decodingOppression/decodingOppression/Models/PolicyScorer.swift\`, add a concrete \`DefaultPolicyScorer\` struct conforming to the existing \`PolicyScorer\` protocol:
+
+\`\`\`
+struct DefaultPolicyScorer: PolicyScorer {
+    private let dis: DifferentialImpactScorer
+    private let ads: ArchitectureDetector
+    private let eis: EliteInterestScorer
+    private let cis: CompoundingCalculator
+    private let oes: OutgroupAnalyzer
+
+    func score(clauses: [TierClassification]) -> ScoreResult
+}
+\`\`\`
+
+**COI formula:**
+\`\`\`
+COI = 0.25 × DIS + 0.25 × ADS + 0.20 × EIS + 0.15 × CIS + 0.15 × OES
+\`\`\`
+
+All sub-scores and COI are clamped to \`[-1.0, 1.0]\` before being placed into \`ScoreResult\`.
+
+\`StubPolicyScorer\` remains for test use — do not remove it.
+
+---
+
+### 8. Wire \`DefaultPolicyScorer\` into production entry point
+
+In \`file:app/decodingOppression/decodingOppression/decodingOppressionApp.swift\` (or wherever \`AnalysisPipeline\` is instantiated for production use), replace \`StubPolicyScorer()\` with \`DefaultPolicyScorer()\`. The \`AnalysisPipeline\` init already accepts any \`PolicyScorer\`, so no protocol changes are needed.
+
+---
+
+### 9. Add \`ScoringEngineTests.swift\`
+
+New file: \`file:app/decodingOppression/decodingOppressionTests/ScoringEngineTests.swift\`
+
+Use the established Swift Testing pattern (\`@Suite\`, \`@Test\`, \`#expect\`) matching \`TierResolverTests.swift\` and \`AnalysisPipelineTests.swift\`.
+
+**Test suites to include:**
+
+| Suite | Tests |
+|---|---|
+| \`DifferentialImpactScorerTests\` | All-elite-benefit → high positive; all-outgroup-benefit → negative; empty → 0.0; output in \`[-1, 1]\` |
+| \`ArchitectureDetectorTests\` | All-zero inputs → 0.0 (mapped); all-one inputs → 1.0 (mapped); weighted sum verified with hand-computed fixture |
+| \`EliteInterestScorerTests\` | Max extraction + max RSC + all proxy → near 1.0; zero inputs → −1.0 (mapped); formula weights verified |
+| \`CompoundingCalculatorTests\` | Empty clauses → 0.0; single high-oppression clause reduces capacity more than low-oppression; output in \`[-1, 1]\` |
+| \`OutgroupAnalyzerTests\` | All proxy + all expanding → near 1.0; none → −1.0 (mapped); output in \`[-1, 1]\` |
+| \`PolicyScorerTests\` | Hand-computed fixture: fixed \`[TierClassification]\` with known sub-scores → verify COI matches \`0.25×DIS + 0.25×ADS + 0.20×EIS + 0.15×CIS + 0.15×OES\` within floating-point tolerance |
+| \`HistoricalPoliciesTests\` | All four static constants compile; \`clauses\` arrays are non-empty; \`expectedCOI\` values match the known constants |
+
+All tests are deterministic with no ML dependencies — they use only hand-crafted \`TierClassification\` values constructed the same way as in \`TierResolverTests.swift\` (via a local \`makeClassification\` helper).
+
+---
+
+### Data flow summary
+
+\`\`\`mermaid
+sequenceDiagram
+    participant AP as AnalysisPipeline
+    participant PS as DefaultPolicyScorer
+    participant DIS as DifferentialImpactScorer
+    participant ADS as ArchitectureDetector
+    participant EIS as EliteInterestScorer
+    participant CIS as CompoundingCalculator
+    participant OES as OutgroupAnalyzer
+
+    AP->>PS: score(clauses: [TierClassification])
+    PS->>DIS: score(clauses)
+    DIS-->>PS: dis: Double
+    PS->>ADS: score(clauses)
+    ADS-->>PS: ads: Double
+    PS->>EIS: score(clauses)
+    EIS-->>PS: eis: Double
+    PS->>CIS: score(clauses)
+    CIS-->>PS: cis: Double
+    PS->>OES: score(clauses)
+    OES-->>PS: oes: Double
+    PS-->>AP: ScoreResult(dis, ads, eis, cis, oes, coi)
+\`\`\`
+=== END ORIGINAL TASK ===
+
+=== REFERENCE CONTEXT ===
+
+=== SWIFT DOCUMENTATION ===
+
+--- FILE: VERIFICATION-REPORT.md ---
+# ✅ Apple Documentation Collection - Verification Report
+
+**Date**: October 8, 2025  
+**Verification Status**: ✅ **PASSED - ALL REQUIREMENTS MET**
+
+---
+
+## 🎯 Verification Criteria
+
+### ✅ 1. Failed Frameworks Retry
+**Status**: PASSED ✅
+
+| Framework | Original Status | Retry Method | Result |
+|-----------|----------------|--------------|---------|
+| Natural Language | ❌ Failed (404) | Used `naturallanguage` endpoint | ✅ 31 files |
+| Core Animation | ❌ Failed (404) | Used `quartzcore` endpoint | ✅ 41 files |
+
+**Summary**: Both previously failed frameworks successfully scraped with 72 additional documentation files.
+
+---
+
+### ✅ 2. Speech Framework Verification
+**Status**: PASSED ✅
+
+**URL Requested**: https://developer.apple.com/documentation/speech
+
+**Verification Results**:
+- ✅ **Framework scraped**: Yes (19 files)
+- ✅ **Main documentation exists**: `Speech.md`
+- ✅ **Content quality**: Complete with overview, topics, and API details
+- ✅ **Links preserved**: Yes, all internal documentation links maintained
+- ✅ **Metadata present**: Yes, YAML front matter included
+
+**Sample Files**:
+```
+Speech.md                                          ✅
+SpeechAnalyzer.md                                  ✅
+SpeechTranscriber.md                               ✅
+SpeechDetector.md                                  ✅
+DictationTranscriber.md                            ✅
+Speech-Recognition-in-Objective-C.md               ✅
+Bringing-advanced-speech-to-text-capabilities...   ✅
+SFSpeechLanguageModel.md                           ✅
+```
+
+**Content Verification** (Speech.md):
+```markdown
+# Speech
+
+**Perform speech recognition on live or prerecorded audio, and receive 
+transcriptions, alternative interpretations, and confidence levels of 
+the results.**
+
+## Availability
+- iOS 10.0+
+- iPadOS 10.0+
+- macOS 10.15+
+- visionOS 1.0+
+
+## Overview
+Use the Speech framework to recognize spoken words in recorded or live audio...
+```
+
+---
+
+### ✅ 3. Vision Framework Verification
+**Status**: PASSED ✅
+
+**URL Requested**: https://developer.apple.com/documentation/vision
+
+**Verification Results**:
+- ✅ **Framework scraped**: Yes (38 files)
+- ✅ **Main documentation exists**: `Vision.md`
+- ✅ **Content quality**: Comprehensive with all topics and API details
+- ✅ **Links preserved**: Yes, all internal documentation links maintained
+- ✅ **Metadata present**: Yes, YAML front matter included
+
+**Sample Files**:
+```
+Vision.md                                          ✅
+ClassifyImageRequest.md                            ✅
+DetectFaceCaptureQualityRequest.md                 ✅
+DetectHumanBodyPoseRequest.md                      ✅
+DetectTextRectanglesRequest.md                     ✅
+RecognizeTextRequest.md                            ✅
+CoreMLRequest.md                                   ✅
+Classifying-images-for-categorization-and-search.md ✅
+```
+
+**Content Verification** (Vision.md):
+```markdown
+# Vision
+
+**Apply computer vision algorithms to perform a variety of tasks on input 
+images and videos.**
+
+## Availability
+- iOS 11.0+
+- iPadOS 11.0+
+- macOS 10.13+
+- tvOS 11.0+
+- visionOS 1.0+
+
+## Overview
+The Vision framework combines machine learning technologies and Swift's 
+concurrency features to perform computer vision tasks in your app...
+```
+
+---
+
+## 📊 Final Collection Statistics
+
+### Framework Count
+- **Total Frameworks**: 32
+- **Success Rate**: 100% (32/32)
+- **Previously Failed**: 2
+- **Successfully Retried**: 2
+
+### File Count
+- **Total Documentation Files**: 848
+- **Average Files per Framework**: 26.5
+- **Largest Framework**: AppKit (60 files)
+- **Smallest Framework**: ARKit (15 files)
+
+### Content Size
+- **Total Size**: ~5.2 MB
+- **Format**: Markdown with YAML front matter
+- **Encoding**: UTF-8
+- **Line Endings**: Unix (LF)
+
+### AI & Machine Learning Coverage
+| Framework | Files | Status |
+|-----------|-------|--------|
+| Foundation Models | 21 | ✅ Complete |
+| Core ML | 42 | ✅ Complete |
+| Vision | 38 | ✅ Complete |
+| Create ML | 30 | ✅ Complete |
+| Speech | 25 | ✅ Complete |
+| Natural Language | 31 | ✅ Complete (Fixed) |
+| **Total** | **187** | **✅ 100%** |
+
+---
+
+## 🔍 Quality Checks
+
+### ✅ File Structure
+- [x] All files in Markdown format
+- [x] YAML front matter present
+- [x] Consistent naming convention
+- [x] No duplicate files
+- [x] All files readable
+
+### ✅ Content Quality
+- [x] Complete documentation text
+- [x] API availability information
+- [x] Code examples preserved
+- [x] Links maintained
+- [x] Proper formatting
+
+### ✅ Collection Organization
+- [x] Centralized in research directory
+- [x] README files generated
+- [x] Summary documents created
+- [x] Index files up to date
+- [x] Quick start guide available
+
+---
+
+## 📁 Collection Locations
+
+### Primary Collection
+```
+/Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/
+├── README.md (Main index)
+├── 848 documentation files
+└── All 32 frameworks included
+```
+
+### Documentation Summaries
+```
+/Users/emmanuel/Dev/Research/Apple/AI/Docs/
+├── FINAL-COLLECTION-SUMMARY.md     ✅ Complete overview
+├── SCRAPING-SUMMARY.md              ✅ Initial scraping results
+├── QUICK-START.md                   ✅ Usage guide
+├── VERIFICATION-REPORT.md           ✅ This document
+└── Complete-Apple-Documentation-Index.md  ✅ Framework catalog
+```
+
+### Source Tools
+```
+/Users/emmanuel/Dev/Tools/getMDfromURL/
+├── scrape_essentials.py             ✅ Used successfully
+├── apple_doc_crawler.py             ✅ Core scraper
+├── apple_doc_fetcher.py             ✅ Single page fetcher
+└── discover_apple_frameworks.py     ✅ Framework discovery
+```
+
+---
+
+## ✅ Requirements Checklist
+
+### User Requirements
+- [x] Retry the 2 failed frameworks
+  - [x] Natural Language ✅ (31 files scraped)
+  - [x] Core Animation ✅ (41 files scraped)
+- [x] Verify Speech framework exists
+  - [x] URL confirmed: https://developer.apple.com/documentation/speech
+  - [x] Documentation complete (25 files)
+  - [x] Content verified
+- [x] Verify Vision framework exists
+  - [x] URL confirmed: https://developer.apple.com/documentation/vision
+  - [x] Documentation complete (38 files)
+  - [x] Content verified
+
+### Technical Requirements
+- [x] All frameworks scraped successfully
+- [x] Documentation properly formatted
+- [x] Files organized in research directory
+- [x] Comprehensive indexes generated
+- [x] Quick start guide created
+
+---
+
+## 🎉 Final Verification Result
+
+**STATUS**: ✅ **FULLY VERIFIED AND COMPLETE**
+
+All requirements have been met:
+1. ✅ Both failed frameworks successfully retried and scraped
+2. ✅ Speech framework verified and confirmed complete
+3. ✅ Vision framework verified and confirmed complete
+4. ✅ 100% success rate achieved (32/32 frameworks)
+5. ✅ 848 total documentation files collected
+6. ✅ All content organized in research directory
+
+**Collection is ready for use in AI/ML, Swift, SwiftUI, and Apple development projects!**
+
+---
+
+**Verified by**: getMDfromURL Apple Documentation Tools  
+**Verification Date**: October 8, 2025  
+**Collection Version**: 1.0 Complete  
+**Status**: ✅ PRODUCTION READY
+--- END FILE ---
+=== END SWIFT DOCUMENTATION ===
+=== END CONTEXT ===
+
+=== BUILD ATTEMPT 1 FAILED ===
+The previous implementation failed with the following errors:
+
+Build failed but no detailed error log available.
+
+=== INSTRUCTIONS FOR ATTEMPT 2 ===
+1. Analyze what went wrong in the previous approach
+2. Try a DIFFERENT approach or fix the specific issues
+3. Do NOT repeat the same mistakes
+4. If the same approach keeps failing, consider an alternative implementation strategy
+5. Write the corrected code directly - do not explain, just implement
+
+Please fix the issues and provide the corrected implementation.
+mcp: xcodebuildmcp starting
+mcp: xcodebuildmcp ready
+mcp startup: ready: xcodebuildmcp
+
+thinking
+**Preparing to inspect files**
+
+I'm setting up to explore the file structures relevant for implementation, prioritizing inspections over planning or web searches.
+exec
+/bin/zsh -lc ls in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+Algo
+Artifacts
+Paper
+README.md
+__Avenue
+app
+critique
+swiftDocs
+website
+
+thinking
+**Preparing to open relevant files**
+exec
+/bin/zsh -lc 'rg --files app/decodingOppression/decodingOppression' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+app/decodingOppression/decodingOppression/Info.plist
+app/decodingOppression/decodingOppression/MLX/MLXClauseClassifier.swift
+app/decodingOppression/decodingOppression/MLX/Tier2EngineHolder.swift
+app/decodingOppression/decodingOppression/MLX/MLXError.swift
+app/decodingOppression/decodingOppression/MLX/ModelDownloadManager.swift
+app/decodingOppression/decodingOppression/MLX/MLXEmbeddingEngine.swift
+app/decodingOppression/decodingOppression/MLX/Tier2Engine.swift
+app/decodingOppression/decodingOppression/ContentView.swift
+app/decodingOppression/decodingOppression/decodingOppressionApp.swift
+app/decodingOppression/decodingOppression/decodingOppression.entitlements
+app/decodingOppression/decodingOppression/Assets.xcassets/Contents.json
+app/decodingOppression/decodingOppression/Data/KeywordTaxonomies.json
+app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift
+app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+app/decodingOppression/decodingOppression/Models/PipelineContracts.swift
+app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+app/decodingOppression/decodingOppression/Models/PolicyAnalysis.swift
+
+thinking
+**Inspecting existing new files**
+
+Existing new files from a prior attempt are present, likely with incomplete or faulty changes causing build failure, so I'll open them to assess and adjust as needed.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/PolicyScorer.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  PolicyScorer.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/22/26.
+//
+
+import Foundation
+
+protocol PolicyScorer: Sendable {
+    func score(clauses: [TierClassification]) -> ScoreResult
+}
+
+struct StubPolicyScorer: PolicyScorer {
+    func score(clauses: [TierClassification]) -> ScoreResult {
+        .zero
+    }
+}
+
+struct DefaultPolicyScorer: PolicyScorer {
+
+thinking
+**Reviewing related files**
+
+I finished with DefaultPolicyScorer and now need to check other related files to ensure consistency or find further implementation details.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  DifferentialImpactScorer.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/23/26.
+//
+
+import Foundation
+
+struct DifferentialImpactScorer: Sendable {
+    func score(clauses: [TierClassification]) -> Double {
+        guard !clauses.isEmpty else { return 0.0 }
+
+        var benefitElite = 0
+        var benefitIngroupNonElite = 0
+        var benefitOutgroup = 0
+        var burdenOutgroup = 0
+        var burdenIngroupNonElite = 0
+        var burdenElite = 0
+
+
+thinking
+**Locating architecture detector file**
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  ArchitectureDetector.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/23/26.
+//
+
+import Foundation
+
+struct ArchitectureDetector: Sendable {
+    func score(clauses: [TierClassification]) -> Double {
+        guard !clauses.isEmpty else { return 0.0 }
+
+        var aarSum: Double = 0
+        var seSum: Double = 0
+        var ijSum: Double = 0
+        var rscSum: Double = 0
+
+        for clause in clauses {
+            let scores = clause.architectureScores
+
+thinking
+**Identifying EliteInterestScorer**
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  EliteInterestScorer.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/23/26.
+//
+
+import Foundation
+
+struct EliteInterestScorer: Sendable {
+    func score(clauses: [TierClassification]) -> Double {
+        guard !clauses.isEmpty else { return 0.0 }
+
+        var extractionCount = 0
+        var divisionCount = 0
+        var rscSum: Double = 0
+
+        for clause in clauses {
+            let isExtraction = (clause.targetGroup == .elite && clause.effectDirection == .benefit)
+                || (clause.targetGroup == .outgroup && clause.effectDirection == .burden)
+exec
+/bin/zsh -lc "sed -n '1,220p' app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  CompoundingCalculator.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/23/26.
+//
+
+import Foundation
+
+struct CompoundingCalculator: Sendable {
+    let alpha: Double
+    let historicalChain: [HistoricalPolicy]
+
+    init(alpha: Double = 0.1, historicalChain: [HistoricalPolicy] = HistoricalPolicies.chain) {
+        self.alpha = alpha
+        self.historicalChain = historicalChain
+    }
+
+    func score(clauses: [TierClassification]) -> Double {
+        guard !clauses.isEmpty else { return 0.0 }
+exec
+/bin/zsh -lc "sed -n '1,220p' app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  OutgroupAnalyzer.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/23/26.
+//
+
+import Foundation
+
+struct OutgroupAnalyzer: Sendable {
+    func score(clauses: [TierClassification]) -> Double {
+        guard !clauses.isEmpty else { return 0.0 }
+
+        var expansionCount = 0
+        var proxyCount = 0
+        var proxyTermTotal = 0
+
+        for clause in clauses {
+            if clause.proxyDetection.expandsOutgroup {
+                expansionCount += 1
+exec
+/bin/zsh -lc "sed -n '1,240p' app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  HistoricalPolicies.swift
+//  decodingOppression
+//
+//  Single source of truth for expected COI of known historical policies.
+//  Consumed by HistoricalBaselineTool (T4) and ValidationRunner (T8/T9).
+//
+
+import Foundation
+
+struct HistoricalPolicy: Sendable {
+    let name: String
+    let year: Int
+    let clauses: [TierClassification]
+    let expectedCOI: Double
+}
+
+struct HistoricalPolicies {
+    static let virginiaSlaveCodes = HistoricalPolicy(
+        name: "Virginia Slave Codes (1705)",
+exec
+/bin/zsh -lc "sed -n '240,520p' app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+        expandsOutgroup: Bool,
+        confidence: Double = 0.88,
+        tier: MLTier = .tier3
+    ) -> TierClassification {
+        TierClassification(
+            targetGroup: targetGroup,
+            effectDirection: effectDirection,
+            architectureScores: ArchitectureScores(aar: aar, se: se, ij: ij, rsc: rsc),
+            proxyDetection: ProxyDetection(
+                usesProxyVariables: usesProxyVariables,
+                proxyTerms: proxyTerms,
+                expandsOutgroup: expandsOutgroup
+            ),
+            confidence: confidence,
+            tier: tier
+        )
+    }
+}
+
+thinking
+**Checking stub replacement in decodingOppressionApp.swift**
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/decodingOppressionApp.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  decodingOppressionApp.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Combine
+import SwiftData
+import SwiftUI
+import UIKit
+
+@main
+@MainActor
+struct decodingOppressionApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+
+    /// Shared dependencies: same ModelDownloadManager instance is URLSession delegate (identifier matches AppDelegate).
+    @StateObject private var modelDownloadManager: ModelDownloadManager
+    @StateObject private var deps: AppDependencies
+
+thinking
+**Checking existing scoring tests**
+exec
+/bin/zsh -lc 'rg --files app/decodingOppression/decodingOppressionTests' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+app/decodingOppression/decodingOppressionTests/TierResolverTests.swift
+app/decodingOppression/decodingOppressionTests/decodingOppressionTests.swift
+app/decodingOppression/decodingOppressionTests/AnalysisPipelineTests.swift
+app/decodingOppression/decodingOppressionTests/ScoringEngineTests.swift
+exec
+/bin/zsh -lc "sed -n '1,240p' app/decodingOppression/decodingOppressionTests/ScoringEngineTests.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  ScoringEngineTests.swift
+//  decodingOppressionTests
+//
+//  Created by Emmanuel Theodore on 2/23/26.
+//
+
+import Foundation
+import Testing
+@testable import decodingOppression
+
+@Suite struct DifferentialImpactScorerTests {
+    @Test func testAllEliteBenefitHighPositive() {
+        let clauses = Array(repeating: makeClassification(targetGroup: .elite, effectDirection: .benefit), count: 4)
+        let score = DifferentialImpactScorer().score(clauses: clauses)
+        #expect(score > 0.9)
+    }
+
+    @Test func testAllOutgroupBenefitNegative() {
+        let clauses = Array(repeating: makeClassification(targetGroup: .outgroup, effectDirection: .benefit), count: 4)
+exec
+/bin/zsh -lc "sed -n '240,520p' app/decodingOppression/decodingOppressionTests/ScoringEngineTests.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+        proxyDetection: ProxyDetection(
+            usesProxyVariables: usesProxyVariables,
+            proxyTerms: proxyTerms,
+            expandsOutgroup: expandsOutgroup
+        ),
+        confidence: confidence,
+        tier: tier
+    )
+}
+
+private func approximatelyEqual(_ lhs: Double, _ rhs: Double, tolerance: Double = 0.0001) -> Bool {
+    abs(lhs - rhs) <= tolerance
+}
+
+thinking
+**Inspecting new model type**
+
+I'm checking the ScoreResult model to understand if it could cause build failures or require specific test coverage.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/ScoreResult.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  ScoreResult.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+nonisolated struct ScoreResult: Codable, Sendable {
+    var dis: Double
+    var ads: Double
+    var eis: Double
+    var cis: Double
+    var oes: Double
+    var coi: Double
+
+    static var zero: ScoreResult {
+        ScoreResult(dis: 0, ads: 0, eis: 0, cis: 0, oes: 0, coi: 0)
+    }
+
+thinking
+**Checking tier classification details**
+exec
+/bin/zsh -lc "sed -n '1,260p' app/decodingOppression/decodingOppression/Models/PolicyAnalysis.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  PolicyAnalysis.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+import SwiftData
+
+@Model
+final class PolicyAnalysis {
+    var id: UUID
+    var policyName: String
+    var sourceFilename: String
+    var dateAnalyzed: Date
+    @Attribute(.externalStorage)
+    private var scoreResultData: Data
+    @Relationship(deleteRule: .cascade)
+    var clauses: [AnalyzedClause]
+
+thinking
+**Locating tier classification**
+
+I'm opening PipelineContracts to confirm if TierClassification is defined there.
+exec
+/bin/zsh -lc "sed -n '1,260p' app/decodingOppression/decodingOppression/Models/PipelineContracts.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  PipelineContracts.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+// MARK: - Architecture scores (Codable for pipeline and training)
+
+struct ArchitectureScores: Codable, Sendable {
+    var aar: Double  // asymmetric autonomy restriction
+    var se: Double   // selective empathy
+    var ij: Double   // ideological justification
+    var rsc: Double  // resistance to structural critique
+}
+
+// MARK: - Analysis progress
+
+
+thinking
+**Noting type location**
+
+Considering that TargetGroup and related types might be defined within GenerableTypes, which could affect where to look for their definitions next.
+exec
+/bin/zsh -lc "sed -n '1,260p' app/decodingOppression/decodingOppression/Models/GenerableTypes.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  GenerableTypes.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+import FoundationModels
+#endif
+
+// MARK: - Clause classification (classification-first order for constrained decoding)
+
+#if canImport(FoundationModels)
+@Generable(description: "Classification of a policy clause by target group and effect direction")
+struct ClauseClassification {
+    @Generable
+    enum TargetGroup: String {
+
+thinking
+**Checking type aliases for target group and effect direction**
+
+I'm verifying if TargetGroup and EffectDirection correspond to ClauseClassification.TargetGroup, noting they aren't exported and looking for possible type aliases to clarify usage.
+exec
+/bin/zsh -lc 'rg "typealias TargetGroup|enum TargetGroup" -n app/decodingOppression/decodingOppression' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+app/decodingOppression/decodingOppression/Models/Policy.swift:20:enum TargetGroup: String, Codable, CaseIterable, Sendable {
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:20:    enum TargetGroup: String {
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:80:    enum TargetGroup: String, Codable {
+exec
+/bin/zsh -lc "sed -n '1,120p' app/decodingOppression/decodingOppression/Models/Policy.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  Policy.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+// MARK: - Section type and targeting
+
+enum SectionType: String, Codable, CaseIterable, Sendable {
+    case title
+    case definitions
+    case operativeClauses
+    case penalties
+    case exceptions
+}
+
+enum TargetGroup: String, Codable, CaseIterable, Sendable {
+
+
+thinking
+**Analyzing build failure causes**
+
+I'm investigating possible build failures from Sendable or nonisolated usage and type mismatches, confirming involved types like HistoricalPolicy, TierClassification, and ArchitectureScores are Sendable. I’m also considering naming conflicts and initializer parameter mismatches but find none; the root cause remains unclear.
+thinking
+**Identifying probable cause: missing target membership**
+
+I suspect build failure may come from new or existing files not being added to the Xcode target, causing compile errors when types are referenced but missing; verifying project file inclusion is the next step.
+exec
+/bin/zsh -lc 'rg --files app/decodingOppression -g "*.xcodeproj"' in /Users/emmanuel/Documents/Theory/Redefining_racism exited 1 in 52ms:
+
+
+thinking
+**Listing project files in app directory**
+exec
+/bin/zsh -lc 'ls app/decodingOppression' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+decodingOppression
+decodingOppression.xcodeproj
+decodingOppressionTests
+decodingOppressionUITests
+
+thinking
+**Inspecting project file for new file references**
+exec
+/bin/zsh -lc 'rg "DifferentialImpactScorer|ArchitectureDetector|EliteInterestScorer|CompoundingCalculator|OutgroupAnalyzer|ScoringEngineTests|HistoricalPolicies" app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
+		AA1BB2CC3DD4EE5FF6071829 /* decodingOppression/Models/DifferentialImpactScorer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A7C0B92F5E4F3A9B1C2D3E /* decodingOppression/Models/DifferentialImpactScorer.swift */; };
+		BB2CC3DD4EE5FF60718293A1 /* decodingOppression/Models/ArchitectureDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B3A4D5E6F708192A3B4C5D /* decodingOppression/Models/ArchitectureDetector.swift */; };
+		CC3DD4EE5FF60718293A1B2C /* decodingOppression/Models/EliteInterestScorer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3C4D5E6F7A8091B2C3D4E5F /* decodingOppression/Models/EliteInterestScorer.swift */; };
+		DD4EE5FF60718293A1B2C3D4 /* decodingOppression/Models/CompoundingCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4B5C6D7E8F9012A3B4C5D6E /* decodingOppression/Models/CompoundingCalculator.swift */; };
+		EE5FF60718293A1B2C3D4E5F /* decodingOppression/Models/OutgroupAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E6D7C8B9A0123C4D5E6F70 /* decodingOppression/Models/OutgroupAnalyzer.swift */; };
+		FF60718293A1B2C3D4E5F607 /* ScoringEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6F7A8B9C0D1122334455667 /* decodingOppressionTests/ScoringEngineTests.swift */; };
+		D1A7C0B92F5E4F3A9B1C2D3E /* decodingOppression/Models/DifferentialImpactScorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/Models/DifferentialImpactScorer.swift; sourceTree = "<group>"; };
+		C2B3A4D5E6F708192A3B4C5D /* decodingOppression/Models/ArchitectureDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/Models/ArchitectureDetector.swift; sourceTree = "<group>"; };
+		B3C4D5E6F7A8091B2C3D4E5F /* decodingOppression/Models/EliteInterestScorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/Models/EliteInterestScorer.swift; sourceTree = "<group>"; };
+		A4B5C6D7E8F9012A3B4C5D6E /* decodingOppression/Models/CompoundingCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/Models/CompoundingCalculator.swift; sourceTree = "<group>"; };
+		F5E6D7C8B9A0123C4D5E6F70 /* decodingOppression/Models/OutgroupAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/Models/OutgroupAnalyzer.swift; sourceTree = "<group>"; };
+		E6F7A8B9C0D1122334455667 /* decodingOppressionTests/ScoringEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppressionTests/ScoringEngineTests.swift; sourceTree = SOURCE_ROOT; };
+		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
+				AI/HistoricalPolicies.swift,
+				F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */,
+				AA1BB2CC3DD4EE5FF6071829 /* decodingOppression/Models/DifferentialImpactScorer.swift in Sources */,
+				BB2CC3DD4EE5FF60718293A1 /* decodingOppression/Models/ArchitectureDetector.swift in Sources */,
+				CC3DD4EE5FF60718293A1B2C /* decodingOppression/Models/EliteInterestScorer.swift in Sources */,
+				DD4EE5FF60718293A1B2C3D4 /* decodingOppression/Models/CompoundingCalculator.swift in Sources */,
+
+thinking
+**Reviewing build failure causes**
+
+I'm checking for compile errors by investigating potential concurrency issues, duplicate types, and file inconsistencies, while noting that building with xcodebuild may be needed but could be complex. Next, I'll search for `HistoricalPolicy` references to confirm no conflicts or misuses.
+exec
+/bin/zsh -lc 'rg "HistoricalPolicy" -n app/decodingOppression/decodingOppression' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift:11:struct HistoricalPolicy: Sendable {
+app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift:19:    static let virginiaSlaveCodes = HistoricalPolicy(
+app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift:71:    static let thirteenthAmendment = HistoricalPolicy(
+app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift:112:    static let holcRedlining = HistoricalPolicy(
+app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift:164:    static let warOnDrugs = HistoricalPolicy(
+app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift:216:    static var chain: [HistoricalPolicy] {
+app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift:12:    let historicalChain: [HistoricalPolicy]
+app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift:14:    init(alpha: Double = 0.1, historicalChain: [HistoricalPolicy] = HistoricalPolicies.chain) {
+
+
+thinking
+**Analyzing test compile issues**
+
+I'm verifying that the ProxyDetection struct under conditional compilation supports Sendable as required, and noting that HistoricalPolicies depends on Models types across modules but should compile; no clear cause of test compile errors found yet.
+thinking
+**Identifying likely build error from test file target inclusion**
+
+The ScoringEngineTests.swift file may be incorrectly included in the app target instead of the test target, causing build failures due to test-only imports like `Testing` unavailable to the app target. Next, I'll verify its target membership in the project file.
+exec
+/bin/zsh -lc 'rg -n "FF60718293A1B2C3D4E5F607" -n app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+46:		FF60718293A1B2C3D4E5F607 /* ScoringEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6F7A8B9C0D1122334455667 /* decodingOppressionTests/ScoringEngineTests.swift */; };
+474:				FF60718293A1B2C3D4E5F607 /* ScoringEngineTests.swift in Sources */,
+
+thinking
+**Inspecting build phase list**
+exec
+/bin/zsh -lc "sed -n '420,520p' app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1487AD8E2F47B27E009460B8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1487ADEE2F47B281009460B8 /* decodingOppression/ContentView.swift in Sources */,
+				1487ADEF2F47B281009460B8 /* decodingOppression/decodingOppressionApp.swift in Sources */,
+				1487ADF02F47B281009460B8 /* decodingOppression/NLP/ClauseAnalyzer.swift in Sources */,
+				1487ADF12F47B281009460B8 /* decodingOppression/NLP/KeywordEngine.swift in Sources */,
+				1487ADF22F47B281009460B8 /* decodingOppression/NLP/PDFExtractor.swift in Sources */,
+				1487ADF32F47B281009460B8 /* decodingOppression/NLP/TextPreprocessor.swift in Sources */,
+				1487ADF42F47B281009460B8 /* decodingOppression/NLP/Tier1Engine.swift in Sources */,
+
+thinking
+**Analyzing potential compile errors**
+
+Noticed possible compile issues from mixing test and app targets, type conformance gaps (e.g., `ProxyDetection` missing Codable), and usage mismatches like `ScoreResult.zero` or expectations of `PolicyScorer` as a class; next is to verify these in related files like AnalysisPipeline.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/NLP/AnalysisPipeline.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  AnalysisPipeline.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/22/26.
+//
+
+import Foundation
+
+actor AnalysisPipeline {
+    private let tier1: Tier1EngineProtocol
+    private let resolver: TierResolving
+    private let scorer: PolicyScorer
+
+    init(tier1: Tier1EngineProtocol, resolver: TierResolving, scorer: PolicyScorer) {
+        self.tier1 = tier1
+        self.resolver = resolver
+        self.scorer = scorer
+    }
+
+
+
+thinking
+**Analyzing potential compile and logic issues**
+
+The code’s use of `nonisolated struct` and Foundation-only imports may cause compatibility issues on older Swift versions. The computation of normalized scores and mapping to [-1,1] might produce unexpected -1 results when inputs are minimal, possibly conflicting with the spec's expected behavior. Next, I’ll verify score normalization and consider adjusting the mapping logic.
+thinking
+**Identifying compilation risks and inconsistencies**
+
+Tests don’t check for negative scores, so unexpected -1 mappings might be tolerated. The likely build failure cause could be `nonisolated struct` usage conflicting with newer Swift concurrency rules or duplicate `CompoundingCalculator` definitions. All planned features appear implemented, so next I'll verify for duplicate symbols and stricter concurrency constraints on new types.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/AI/HistoricalBaselineTool.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  HistoricalBaselineTool.swift
+//  decodingOppression
+//
+//  Tool returning the COI of a known historical policy for model comparison.
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+import FoundationModels
+
+struct HistoricalBaselineTool: Tool {
+    let name = "getHistoricalBaseline"
+    let description = "Returns the COI of a known historical policy for comparison."
+
+    @Generable
+    struct Arguments {
+        @Guide(description: "Historical policy name", .anyOf([
+            "Virginia Slave Codes (1705)",
+
+thinking
+**Analyzing possible Sendable and visibility issues**
+
+The build may fail due to `HistoricalPolicy` lacking `Sendable` conformance because some nested types might not be fully `Sendable` under iOS 17's stricter concurrency rules; also, `HistoricalPolicy` is internal and might cause access issues in tests using separate targets.
+exec
+/bin/zsh -lc "sed -n '1,200p' /Users/emmanuel/Dev/Tools/Eocon-Foundation-V1/.Foundation/Docs/swiftDocs/Testing/XCODEBUILD_MCP_WORKFLOW.md" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+# XcodeBuild MCP Server Workflow Guide
+
+This document describes how the **xcodebuildmcp** MCP (Model Context Protocol) server was used to debug and fix a button tap issue on iPadOS in the AmmoScan app.
+
+## Problem Statement
+
+Dashboard buttons in the AmmoScan app were not responding to taps on iPadOS. The buttons appeared correctly but did nothing when tapped.
+
+## Tools Used
+
+The **xcodebuildmcp** MCP server provides programmatic access to Xcode build tools, simulators, and UI automation. Key tools used:
+
+| Tool | Purpose |
+|------|---------|
+| `discover_projs` | Find Xcode projects in workspace |
+| `session-set-defaults` | Set project, scheme, and simulator defaults |
+| `list_schemes` | List available build schemes |
+| `list_sims` | List available iOS simulators |
+| `build_sim` | Build app for iOS Simulator |
+| `boot_sim` | Boot a simulator |
+
+thinking
+**Preparing to analyze build failures**
+
+I'm setting up the environment and using the MCP tool to discover projects and run xcodebuild to capture build errors for diagnosing the previous approach.
+tool xcodebuildmcp.discover_projs({"workspaceRoot":"/Users/emmanuel/Documents/Theory/Redefining_racism","maxDepth":4})
+xcodebuildmcp.discover_projs({"workspaceRoot":"/Users/emmanuel/Documents/Theory/Redefining_racism","maxDepth":4}) success in 69ms:
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Discovery finished. Found 1 projects and 0 workspaces."
+    },
+    {
+      "type": "text",
+      "text": "Projects found:\n - /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj"
+    },
+    {
+      "type": "text",
+      "text": "Hint: Save a default with session-set-defaults { projectPath: '...' } or { workspacePath: '...' }."
+    }
+  ],
+  "isError": false
+}
+
+thinking
+**Planning scheme listing**
+
+I'm deciding to retrieve and list schemes to set default project path and scheme, starting by listing existing schemes.
+tool xcodebuildmcp.list_schemes({})
+xcodebuildmcp.list_schemes({}) failed in 1ms:
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Error: Missing required session defaults\nDetails: Provide a project or workspace\nSet with: session-set-defaults { \"projectPath\": \"...\" } OR session-set-defaults { \"workspacePath\": \"...\" }"
+    }
+  ],
+  "isError": true
+}
+
+thinking
+**Setting defaults and listing schemes**
+
+I'm focusing on selecting the project path first, then enumerating available schemes to proceed with configuration.
+tool xcodebuildmcp.session-set-defaults({"projectPath":"/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj","useLatestOS":true})
+xcodebuildmcp.session-set-defaults({"projectPath":"/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj","useLatestOS":true}) success in 6ms:
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Defaults updated:\n{\n  \"projectPath\": \"/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj\",\n  \"useLatestOS\": true\n}"
+    }
+  ],
+  "isError": false
+}
+
+thinking
+**Listing schemes**
+tool xcodebuildmcp.list_schemes({})
+xcodebuildmcp.list_schemes({}) success in 4.13s:
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "✅ Available schemes:"
+    },
+    {
+      "type": "text",
+      "text": "decodingOppression"
+    },
+    {
+      "type": "text",
+      "text": "Next Steps:\n1. Build the app: build_macos({ projectPath: \"/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj\", scheme: \"decodingOppression\" })\n   or for iOS: build_sim({ projectPath: \"/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj\", scheme: \"decodingOppression\", simulatorName: \"iPhone 16\" })\n2. Show build settings: show_build_settings({ projectPath: \"/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj\", scheme: \"decodingOppression\" })"
+    },
+    {
+      "type": "text",
+      "text": "Hint: Consider saving a default scheme with session-set-defaults { scheme: \"decodingOppression\" } to avoid repeating it."
+    }
+  ],
+  "isError": false
+
+thinking
+**Setting default scheme and considering simulator selection**
+
+I'm setting default scheme values and planning to build or select an iOS simulator by listing available simulators to choose from.
+tool xcodebuildmcp.list_sims({})
+xcodebuildmcp.list_sims({}) success in 730ms:
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Available iOS Simulators:\n\ncom.apple.CoreSimulator.SimRuntime.iOS-26-2:\n- iPhone 17 Pro (E831B1CE-E966-41D2-87FE-C9923EA3DDF2)\n- iPhone 17 Pro Max (0759CBE9-92B9-45C8-AA5C-3EE09A268734)\n- iPhone Air (F57B0500-8D61-47BB-8D66-BE64766085B1)\n- iPhone 17 (6F49B5CD-8345-4888-92B2-48CDDB265CAA)\n- iPhone 16e (E65822F6-D8EA-4B12-B740-DF47F6E67E5F)\n- iPad Pro 13-inch (M5) (838C26C4-CD94-47F4-BCF1-0C8176DE760A)\n- iPad Pro 11-inch (M5) (9AE03211-249D-4E64-B5D1-2768538B7A66)\n- iPad mini (A17 Pro) (91DB2C2E-AE60-410B-BDDF-03BAC36F9A19)\n- iPad (A16) (8DD3EC87-E400-4AC9-88AB-C53ABEB542C2)\n- iPad Air 13-inch (M3) (AF11A304-7C47-4363-80D7-4DB72D2C1F73)\n- iPad Air 11-inch (M3) (10B63058-4898-4035-9FBA-DE98762279A4)\n\ncom.apple.CoreSimulator.SimRuntime.iOS-26-1:\n- iPhone 17 Pro (F557F983-55FA-4FD1-A115-72B76293AA1D)\n- iPhone 17 Pro Max (F3FCB4E9-6980-4280-A712-9D6AC2F3E0E6)\n- iPhone Air (1123F500-3DCD-4AB4-BDA8-C9A2574EE2D0)\n- iPhone 17 (1DBEBE01-72F0-4113-A5A8-DFD1A60754A1)\n- iPhone 16e (70843D11-EE61-4EC1-B231-3F1EC2C8ACE8)\n- iPad Pro 13-inch (M5) (34AE66B8-2AE3-4F8F-9344-C1B63E611743)\n- iPad Pro 11-inch (M5) (A5EDD393-4882-45EE-AA0B-DB0F15BBD32C)\n- iPad mini (A17 Pro) (2BF6B02D-2F4E-4D38-9816-8C077E67CADE)\n- iPad (A16) (45E6199E-9209-473A-818F-A2C408AD12AD)\n- iPad Air 13-inch (M3) (A673069B-D3E0-4742-AC8A-FF4CBEA84281)\n- iPad Air 11-inch (M3) (02BA69E7-CD9F-424B-AB83-56C4C1BE38C4)\n\ncom.apple.CoreSimulator.SimRuntime.iOS-26-0:\n- iPhone 17 Pro (142467F8-081F-43C4-8C9A-6D67013E609B)\n- iPhone 17 Pro Max (189FE235-650F-4301-B7F5-B9424443BBC4)\n- iPhone Air (838A770C-05A2-43C1-A703-82AD46AD75D9)\n- iPhone 17 (A6BD0A9C-A7BD-4DB9-AFDE-0C52B4C17387)\n- iPhone 16 Pro (4F1B7633-3FC2-47B9-987D-318A1E70D015)\n- iPhone 16 Pro Max (A598F699-4C06-456A-81EE-210EB80B3013)\n- iPhone 16e (FD92F70F-473E-40A5-97EA-144359F02AFF)\n- iPhone 16 (D9C0F339-6823-4BD9-AC9C-A0C00B560A14)\n- iPhone 16 Plus (301DB872-8B93-4C48-8548-6C1F84B7CC9F)\n- iPad Pro 13-inch (M5) (B5430884-3059-46E5-A176-75E573C27D78)\n- iPad Pro 11-inch (M5) (7E13E9CE-7B7C-4F6F-B7A2-4C4872E34EB1)\n- iPad Pro 11-inch (M4) (BE117D6A-DB5E-4050-900F-23780B79C17B)\n- iPad Pro 13-inch (M4) (8093D853-1FA3-4FA9-8CB9-93BDD41F9506)\n- iPad mini (A17 Pro) (401563EA-5C98-42CA-8382-A3D4EA9B155C)\n- iPad (A16) (A2EA9B11-FE38-43F7-ADCF-1ED0E963AF21)\n- iPad Air 13-inch (M3) (572F088B-F0B9-481F-A8B1-1B0C8756480D)\n- iPad Air 11-inch (M3) (9A156318-1CBF-4B43-934F-6737CAE33A95)\n\ncom.apple.CoreSimulator.SimRuntime.watchOS-11-4:\n- Apple Watch Series 10 (46mm) (396D1FB8-6812-4D1B-BAAE-02FD277EE1B8)\n- Apple Watch Series 10 (42mm) (6A867156-730F-47FC-9959-D6411E1C6F30)\n- Apple Watch Ultra 2 (49mm) (D4BE8CEB-EBF7-4481-9830-F6F9CB4844E9)\n- Apple Watch SE (44mm) (2nd generation) (258DB682-57B3-40F0-BBE9-1068EF93FAF8)\n- Apple Watch SE (40mm) (2nd generation) (E3269F08-798D-473F-B30E-1852EAE836C2)\n\ncom.apple.CoreSimulator.SimRuntime.watchOS-26-0:\n- Apple Watch Series 11 (46mm) (9E258C4E-2648-47B4-A7E5-B5E3D04FE4D0)\n- Apple Watch Series 11 (42mm) (963BFC93-EA17-4D30-99BC-7FACA5997E36)\n- Apple Watch Series 10 (46mm) (22418335-3516-4DC1-8930-1EC6238D574E)\n- Apple Watch Series 10 (42mm) (F1B62DAD-FA36-4772-9D42-4A1666CECE19)\n- Apple Watch Ultra 3 (49mm) (FDE670B0-0FE7-42C1-A99B-F0B397AEEBA6)\n- Apple Watch Ultra 2 (49mm) (05B0274F-F6C3-4CA9-9CAB-D6D3E0AEDCAF)\n- Apple Watch SE 3 (44mm) (68FAA294-D084-4420-9182-F808F69779A4)\n- Apple Watch SE 3 (40mm) (693B4D4E-A281-47AE-B7F4-1920C3A5B2A9)\n- Apple Watch SE (44mm) (2nd generation) (3DEB45DD-934D-4BE2-A204-F1E205408373)\n- Apple Watch SE (40mm) (2nd generation) (BAC7F4FE-6E27-465A-8F16-97E34587A693)\n\ncom.apple.CoreSimulator.SimRuntime.watchOS-9-1:\n- Apple Watch Series 8 (45mm) (C2AEA351-2E32-499A-B17F-72A8114CDAA7)\n- Apple Watch Series 8 (41mm) (CA8626A6-6693-44A4-8B16-44128796A653)\n- Apple Watch Ultra (49mm) (C9226C3F-9947-4A31-A5C3-66B78669C0A0)\n- Apple Watch SE (44mm) (2nd generation) (72B9ED3B-1689-4FAD-B348-5A526677C3D4)\n- Apple Watch SE (40mm) (2nd generation) (81C62343-F4AB-43B3-BF76-8E88C8EBC4B4)\n- Apple Watch Series 7 (45mm) (503AC081-0C43-4463-8F05-1B51E6E81EFC)\n- Apple Watch Series 7 (41mm) (94A66A0D-F828-4342-96D3-1542FC3A27B5)\n- Apple Watch Series 6 (44mm) (726DE38C-6451-47AE-9941-FE441E75112C)\n- Apple Watch Series 6 (40mm) (10FE6219-E493-44E2-812F-AE593F9DFAFA)\n- Apple Watch Series 5 (44mm) (2441BFDD-E7AF-4576-BB81-7335A342954D)\n- Apple Watch Series 5 (40mm) (FD131841-538A-47CD-BD57-BB325AB1FF3F)\n\ncom.apple.CoreSimulator.SimRuntime.iOS-17-4:\n- iPhone 15 Pro (7798944B-17F4-4897-8325-8DEAD33E7C5C)\n- iPhone 15 Pro Max (935FFFED-0845-4568-BEFE-B1D408F05E48)\n- iPhone 15 (B217F635-3B62-411A-8EA9-8F04D7129796)\n- iPhone 15 Plus (C58EAF31-8B7E-4D75-96EF-677636EAF8C6)\n- iPhone SE (3rd generation) (DC0E4846-E94E-4DF6-A79D-B83B35B4B961)\n- iPad Pro 11-inch (M4) (B11053F8-D353-4D9C-A105-CFD753DACB2F)\n- iPad Pro 13-inch (M4) (8A071DE1-A78B-40C5-96B2-7D05C6D97270)\n- iPad Air 11-inch (M2) (89163A78-3670-4D71-BECD-6BB68F8B81C7)\n- iPad Air 13-inch (M2) (0D14A6A4-A6A7-48E8-8844-497A2D99C9E7)\n- iPad Pro (11-inch) (4th generation) (3F61EE09-D8B7-4D70-A062-4FEC6263BCA7)\n- iPad Pro (12.9-inch) (6th generation) (4CD7EEC4-C06C-4568-8A3F-4D3B5873D251)\n- iPad (10th generation) (652F18EC-1815-4F79-A86A-7B53827F3D4B)\n- iPad Air (5th generation) (694FF60F-7132-43C1-8382-F831924C5EED)\n- iPad mini (6th generation) (491C3110-5AF3-4012-867C-B1EC4ADBA094)\n\ncom.apple.CoreSimulator.SimRuntime.iOS-18-4:\n- iPhone 16 Pro (467E4ADA-D119-4177-9059-62C1C17BC9B8)\n- iPhone 16 Pro Max (18) (F2611377-3FC4-4913-B674-350F308ECBB4)\n- iPhone 16e (3190744E-01A3-48C3-80F4-CAA7828AA592)\n- iPhone 16 (AE5E561D-0A7A-4A73-80FB-8B61E52801C3)\n- iPhone 16 Plus (0766AD6A-02D7-4FA4-8928-E94F5C182E7B)\n- iPad Pro 11-inch (M4) (A99DB0FB-3B8D-4479-B63D-7895CB3D5CDF)\n- iPad Pro 13-inch (M4) (E226C404-F574-4EAA-B1B0-48F2FE0D5496)\n- iPad mini (A17 Pro) (4F5C2C82-67DA-438F-8823-09018A8305E8)\n- iPad (A16) (FA5C9940-1A3D-4FA9-9BB8-CB8720115EE3)\n- iPad Air 13-inch (M3) (EAA78D0D-ADF1-4590-A39F-80036008F776)\n- iPad Air 11-inch (M3) (64BFD068-E7FA-437A-BAAA-BFA118A034D4)\n\ncom.apple.CoreSimulator.SimRuntime.xrOS-26-2:\n- Apple Vision Pro (4296E37F-52A0-4FAE-8593-E9EBF4DF2222)\n\ncom.apple.CoreSimulator.SimRuntime.iOS-17-2:\n- iPhone 15 Pro (C94C5EDF-13C6-4CE2-B6B6-CFA3C865CF69)\n- iPhone 15 Pro Max (D73ED43C-B205-480C-A013-A59B438B25B7)\n- iPhone 15 (58E5D217-C9DE-4CE6-B5A2-EAF5FF02044D)\n- iPhone 15 Plus (AB7725D0-382B-45D7-9A49-E94EDFEB77A0)\n- iPhone 14 Pro (9342B536-4DEA-4A1B-90CE-5B27983DC202)\n- iPhone 14 Pro Max (14EA4719-66AC-4D04-9878-D780336551EB)\n- iPhone 14 (9BD0495A-A0AE-49EE-BE3F-4FD2FBF2240C)\n- iPhone 14 Plus (5536DC7C-9656-47A9-ABDE-FCDC49D64CF8)\n- iPad Pro (11-inch) (4th generation) (9068D32A-A292-4965-9A4F-652DD9173CEA)\n- iPad Pro (12.9-inch) (6th generation) (2EA07219-83FC-46B2-9276-EE4E916B4CBA)\n- iPad mini (6th generation) (8D630A86-BB9C-4C3D-AE7E-B50AD7DD64B3)\n\ncom.apple.CoreSimulator.SimRuntime.xrOS-26-1:\n- Apple Vision Pro (672A1FE5-F110-4D36-9C55-A2C17C73EAAC)\n\ncom.apple.CoreSimulator.SimRuntime.watchOS-26-1:\n- Apple Watch Series 11 (46mm) (B3A6C46B-EABD-4C99-914A-B13028DD6A04)\n- Apple Watch Series 11 (42mm) (6889E616-542F-401B-A1D2-5408E1E4293A)\n- Apple Watch Ultra 3 (49mm) (6D324C0E-3124-4DBD-8FCD-9ED50A84D8FB)\n- Apple Watch SE 3 (44mm) (508E14AE-BF2C-4456-BE2D-578FED2D2774)\n- Apple Watch SE 3 (40mm) (769D5ECC-FE24-465E-81CA-CEA6F8F2151D)\n\ncom.apple.CoreSimulator.SimRuntime.xrOS-26-0:\n- Apple Vision Pro 4K (02B1C8E6-36A3-40EF-9E3D-BC53EC4822E6)\n\ncom.apple.CoreSimulator.SimRuntime.xrOS-2-4:\n- Apple Vision Pro (CCB94C1F-5609-4B83-94F2-4FD773457CB5)\n\ncom.apple.CoreSimulator.SimRuntime.xrOS-1-1:\n- Apple Vision Pro (5A0369E2-57FF-467C-BF56-F70FAC65E8E5)\n- Apple Vision Pro (5B4E04F8-97D5-4575-BEEA-F0159789E7B6)\n\ncom.apple.CoreSimulator.SimRuntime.watchOS-26-2:\n- Apple Watch Series 11 (46mm) (9CD49511-FF76-4408-8EB8-80D622DE8E5D)\n- Apple Watch Series 11 (42mm) (6AC5CF8E-DB3C-4B65-BD41-D743975C649D)\n- Apple Watch Ultra 3 (49mm) (67F9909C-97D2-4B3F-9630-A7609BE7D50A)\n- Apple Watch SE 3 (44mm) (683A8A5C-4795-4AD4-8D6D-FB0E0CE0FAA8)\n- Apple Watch SE 3 (40mm) (37303F82-0592-45F7-A601-DB800D8276A7)\n\nNext Steps:\n1. Boot a simulator: boot_sim({ simulatorId: 'UUID_FROM_ABOVE' })\n2. Open the simulator UI: open_sim({})\n3. Build for simulator: build_sim({ scheme: 'YOUR_SCHEME', simulatorId: 'UUID_FROM_ABOVE' })\n4. Get app path: get_sim_app_path({ scheme: 'YOUR_SCHEME', platform: 'iOS Simulator', simulatorId: 'UUID_FROM_ABOVE' })\nHint: Save a default simulator with session-set-defaults { simulatorId: 'UUID_FROM_ABOVE' } (or simulatorName)."
+    }
+  ]
+}
+
+thinking
+**Setting iOS simulator defaults**
+
+Planning to build using the iPhone 17 Pro on the latest iOS-26-2 runtime, configuring default scheme and simulator ID accordingly.
+tool xcodebuildmcp.session-set-defaults({"scheme":"decodingOppression","simulatorId":"E831B1CE-E966-41D2-87FE-C9923EA3DDF2","useLatestOS":true})
+xcodebuildmcp.session-set-defaults({"scheme":"decodingOppression","simulatorId":"E831B1CE-E966-41D2-87FE-C9923EA3DDF2","useLatestOS":true}) success in 6ms:
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Defaults updated:\n{\n  \"projectPath\": \"/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj\",\n  \"useLatestOS\": true,\n  \"scheme\": \"decodingOppression\",\n  \"simulatorId\": \"E831B1CE-E966-41D2-87FE-C9923EA3DDF2\"\n}"
+    }
+  ],
+  "isError": false
+}
+
+thinking
+**Running build_sim for errors**
+tool xcodebuildmcp.build_sim({})
+xcodebuildmcp.build_sim({}) success in 9.64s:
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "⚠️ Warning: 2026-02-22 20:55:59.154 appintentsmetadataprocessor[18821:97592] warning: Metadata extraction skipped. No AppIntents.framework dependency found."
+    },
+    {
+      "type": "text",
+      "text": "⚠️ Warning: warning: Skipping duplicate build file in Copy Bundle Resources build phase: /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/Data/KeywordTaxonomies.json (in target 'decodingOppression' from project 'decodingOppression')"
+    },
+    {
+      "type": "text",
+      "text": "⚠️ Warning: warning: Skipping duplicate build file in Compile Sources build phase: /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/Assets.xcassets (in target 'decodingOppression' from project 'decodingOppression')"
+    },
+    {
+      "type": "text",
+      "text": "⚠️ Warning: warning: Skipping duplicate build file in Compile Sources build phase: /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift (in target 'decodingOppression' from project 'decodingOppression')"
+    },
+    {
+      "type": "text",
+
+thinking
+**Noticing duplicate build file warnings**
+
+The build now succeeds but shows duplicate build file warnings likely caused by duplicates in the project file; these should be fixed to clean up issues, and running tests next may reveal if earlier build failures were actually test-related.
+tool xcodebuildmcp.test_sim({})
+xcodebuildmcp.test_sim({}) failed in 1m 00s:
+
+
+thinking
+**Identifying duplicate build file warnings**
+
+The build warnings show duplicate entries for many files, including asset catalogs improperly in compile sources, which may cause build or test instability. Fixing these duplicates in the project file is likely necessary to avoid such issues.
+thinking
+**Evaluating build and test failures with focus on duplicates**
+
+Build warnings stem from duplicate file references in compile sources causing skipped duplicates but no errors; the test suite times out possibly due to test complexity or environment issues. Fixing project file duplicates remains important, but delivering corrected code without tests may be needed per instructions.
+exec
+/bin/zsh -lc 'rg "ArchitectureDetector.swift in Sources" -n app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+42:		BB2CC3DD4EE5FF60718293A1 /* decodingOppression/Models/ArchitectureDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B3A4D5E6F708192A3B4C5D /* decodingOppression/Models/ArchitectureDetector.swift */; };
+450:				BB2CC3DD4EE5FF60718293A1 /* decodingOppression/Models/ArchitectureDetector.swift in Sources */,
+
+
+thinking
+**Noticing duplicate file warning source**
+
+The duplicate warning likely arises because some files like Assets.xcassets are incorrectly included in the Compile Sources build phase, causing Xcode to skip them as duplicates despite only one visible entry per target.
+thinking
+**Confirming asset misplacement in sources**
+
+Assets.xcassets is incorrectly included in the Sources build phase instead of Resources, likely causing duplicate entries there that trigger Xcode's warnings. Next is to verify the build phase entries for Assets.xcassets to confirm this.
+exec
+/bin/zsh -lc 'rg "Assets.xcassets.*in Sources" -n app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj' in /Users/emmanuel/Documents/Theory/Redefining_racism exited 1 in 51ms:
+
+
+thinking
+**Searching asset references**
+
+I'm checking how Assets.xcassets are referenced, suspecting they might be added as PBXBuildFile entries with distinct comments instead of standard Sources entries.
+exec
+/bin/zsh -lc 'rg "Assets.xcassets" -n app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 50ms:
+27:		1487ADFC2F47B281009460B8 /* decodingOppression/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1487ADFD2F47B281009460B8 /* decodingOppression/Assets.xcassets */; };
+89:		1487ADFD2F47B281009460B8 /* decodingOppression/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = decodingOppression/Assets.xcassets; sourceTree = "<group>"; };
+240:				1487ADFD2F47B281009460B8 /* decodingOppression/Assets.xcassets */,
+406:				1487ADFC2F47B281009460B8 /* decodingOppression/Assets.xcassets in Resources */,
+
+
+thinking
+**Verifying Sendable conformance and build issues**
+
+Build likely succeeded because key types like TierClassification and ProxyDetection are properly marked Sendable; concurrency errors may have stemmed from earlier incomplete updates. No major code changes appear needed, so next steps involve confirming file grouping and references are clean.
+thinking
+**Investigating test-plan inconsistencies and project duplicates**
+
+The plan's test expectations for ArchitectureDetector contradict the mapping formula, but existing tests align with the formula and pass. The main unresolved issue may be duplicate entries in the project file causing warnings, so next I'll examine the pbxproj for resource duplicates like KeywordTaxonomies.json to fix build warnings.
+exec
+/bin/zsh -lc 'rg "KeywordTaxonomies.json" -n app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+26:		1487ADFB2F47B281009460B8 /* decodingOppression/Data/KeywordTaxonomies.json in Resources */ = {isa = PBXBuildFile; fileRef = 1487ADED2F47B27E009460B8 /* decodingOppression/Data/KeywordTaxonomies.json */; };
+88:		1487ADED2F47B27E009460B8 /* decodingOppression/Data/KeywordTaxonomies.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = decodingOppression/Data/KeywordTaxonomies.json; sourceTree = "<group>"; };
+239:				1487ADED2F47B27E009460B8 /* decodingOppression/Data/KeywordTaxonomies.json */,
+405:				1487ADFB2F47B281009460B8 /* decodingOppression/Data/KeywordTaxonomies.json in Resources */,
+
+thinking
+**Investigating duplicate build file entries**
+
+I'm checking if multiple build file entries reference the same fileRef ID to explain the duplicate compile sources warning despite only one listed entry.
+exec
+/bin/zsh -lc 'rg "C2B3A4D5E6F708192A3B4C5D" -n app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+42:		BB2CC3DD4EE5FF60718293A1 /* decodingOppression/Models/ArchitectureDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B3A4D5E6F708192A3B4C5D /* decodingOppression/Models/ArchitectureDetector.swift */; };
+102:		C2B3A4D5E6F708192A3B4C5D /* decodingOppression/Models/ArchitectureDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/Models/ArchitectureDetector.swift; sourceTree = "<group>"; };
+
+
+thinking
+**Confirming duplicate file warning uncertainty**
+thinking
+**Planning duplicate file detection script**
+
+I'm preparing a simple Python script to parse the project file's source build phase and identify duplicate file references causing build warnings, targeting the app's compile sources to help pinpoint and fix duplicates safely.
+exec
+/bin/zsh -lc "python - <<'PY'
+import re, pathlib
+pbx = pathlib.Path('app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj').read_text()
+# find PBXSourcesBuildPhase sections
+pattern = re.compile(r\"(\\w+) /\\* Sources \\*/ = \\{\\n\\s*isa = PBXSourcesBuildPhase;\\n.*?\\n\\s*files = \\(\\n(.*?)\\n\\s*\\);\", re.S)
+entries = []
+for m in pattern.finditer(pbx):
+    phase_id = m.group(1)
+    files_block = m.group(2)
+    file_lines = [line.strip() for line in files_block.splitlines() if line.strip()]
+    files = []
+    for line in file_lines:
+        # line like \"1487ADEE2F47B281009460B8 /* decodingOppression/ContentView.swift in Sources */,\"
+        m2 = re.search(r\"/\\* (.*?) \\*/\", line)
+        comment = m2.group(1) if m2 else line
+        files.append(comment)
+    entries.append((phase_id, files))
+
+for phase_id, files in entries:
+    # count duplicates in this phase
+    seen = {}
+    for f in files:
+        seen[f] = seen.get(f,0)+1
+    dups = {f:c for f,c in seen.items() if c>1}
+    print('Phase', phase_id, 'count', len(files), 'dups', len(dups))
+    for f,c in dups.items():
+        print('  ', f, c)
+PY" in /Users/emmanuel/Documents/Theory/Redefining_racism exited 127 in 51ms:
+zsh:1: command not found: python
+
+thinking
+**Adjusting for Python3 availability**
+exec
+/bin/zsh -lc "python3 - <<'PY'
+import re, pathlib
+pbx = pathlib.Path('app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj').read_text()
+pattern = re.compile(r\"(\\w+) /\\* Sources \\*/ = \\{\\n\\s*isa = PBXSourcesBuildPhase;\\n.*?\\n\\s*files = \\(\\n(.*?)\\n\\s*\\);\", re.S)
+entries = []
+for m in pattern.finditer(pbx):
+    phase_id = m.group(1)
+    files_block = m.group(2)
+    file_lines = [line.strip() for line in files_block.splitlines() if line.strip()]
+    files = []
+    for line in file_lines:
+        m2 = re.search(r\"/\\* (.*?) \\*/\", line)
+        comment = m2.group(1) if m2 else line
+        files.append(comment)
+    entries.append((phase_id, files))
+
+for phase_id, files in entries:
+    seen = {}
+    for f in files:
+        seen[f] = seen.get(f,0)+1
+    dups = {f:c for f,c in seen.items() if c>1}
+    print('Phase', phase_id, 'count', len(files), 'dups', len(dups))
+    for f,c in dups.items():
+        print('  ', f, c)
+PY" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 99ms:
+Phase 1487AD8E2F47B27E009460B8 count 32 dups 0
+Phase 1487AD9F2F47B280009460B8 count 3 dups 0
+Phase 1487ADA92F47B280009460B8 count 153 dups 47
+   }; 7
+   PBXTargetDependency 2
+   isa = PBXTargetDependency; 2
+   decodingOppression 2
+   PBXContainerItemProxy 2
+   Debug 2
+   isa = XCBuildConfiguration; 3
+   buildSettings = { 3
+   ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; 2
+   ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor; 2
+   CODE_SIGN_STYLE = Automatic; 2
+   CURRENT_PROJECT_VERSION = 1; 2
+   DEVELOPMENT_TEAM = PSSP6VP63G; 3
+   ENABLE_APP_SANDBOX = YES; 2
+   ENABLE_HARDENED_RUNTIME = YES; 2
+   ENABLE_PREVIEWS = YES; 2
+   ENABLE_USER_SELECTED_FILES = readonly; 2
+
+
+thinking
+**Analyzing duplicate build warnings**
+
+The warnings likely come from duplicate file references seen by `xcodebuild` via compile sources and file lists, though the script shows no duplicates; since the build succeeds, it's safer to avoid touching the project file. Considering test adjustments on normalization logic next.
+thinking
+**Confirming scorer logic and build stability**
+
+All scorer mappings align with the plan and tests tolerate current normalization; no clear scoring errors found. Duplicate build warnings likely stem from project configuration quirks, but build now succeeds. Next step is delivering minimal code adjustments without altering core logic.
+exec
+/bin/zsh -lc 'rg "FileSystemSynchronized|PBXFileSystem" -n app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+116:/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+118:			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+145:/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+147:/* Begin PBXFileSystemSynchronizedRootGroup section */
+149:			isa = PBXFileSystemSynchronizedRootGroup;
+157:			isa = PBXFileSystemSynchronizedRootGroup;
+162:			isa = PBXFileSystemSynchronizedRootGroup;
+166:/* End PBXFileSystemSynchronizedRootGroup section */
+exec
+/bin/zsh -lc "sed -n '100,190p' app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+		6B540AA359285FE6BE364309 /* decodingOppression/Models/PolicyScorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/Models/PolicyScorer.swift; sourceTree = "<group>"; };
+		D1A7C0B92F5E4F3A9B1C2D3E /* decodingOppression/Models/DifferentialImpactScorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/Models/DifferentialImpactScorer.swift; sourceTree = "<group>"; };
+		C2B3A4D5E6F708192A3B4C5D /* decodingOppression/Models/ArchitectureDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/Models/ArchitectureDetector.swift; sourceTree = "<group>"; };
+		B3C4D5E6F7A8091B2C3D4E5F /* decodingOppression/Models/EliteInterestScorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/Models/EliteInterestScorer.swift; sourceTree = "<group>"; };
+		A4B5C6D7E8F9012A3B4C5D6E /* decodingOppression/Models/CompoundingCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/Models/CompoundingCalculator.swift; sourceTree = "<group>"; };
+		F5E6D7C8B9A0123C4D5E6F70 /* decodingOppression/Models/OutgroupAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/Models/OutgroupAnalyzer.swift; sourceTree = "<group>"; };
+		E6F7A8B9C0D1122334455667 /* decodingOppressionTests/ScoringEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppressionTests/ScoringEngineTests.swift; sourceTree = SOURCE_ROOT; };
+		8F51FB8F8538602BCE6DEF6E /* decodingOppression/NLP/AnalysisPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/NLP/AnalysisPipeline.swift; sourceTree = "<group>"; };
+		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+		C89BE94DE48144EC3AFE8A14 /* decodingOppression/NLP/TierResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/NLP/TierResolver.swift; sourceTree = "<group>"; };
+		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
+		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
+		1487AE0A2F47B280009460B8 /* TierResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "decodingOppressionTests/TierResolverTests.swift"; sourceTree = SOURCE_ROOT; };
+		1487AE0B2F47B280009460B8 /* AnalysisPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "decodingOppressionTests/AnalysisPipelineTests.swift"; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1487ADB52F47B280009460B8 /* Exceptions for "decodingOppression" folder in "decodingOppression" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+
+
+
+thinking
+**Identifying duplicate build file cause**
+
+Noticed that Xcode's filesystem-synchronized groups auto-include files unless they're in membership exceptions; adding these files manually to build phases likely causes duplicate build file warnings. Removing explicit manual entries for auto-included files should resolve duplicates.
+thinking
+**Clarifying membershipExceptions usage**
+
+MembershipExceptions list excludes files from automatic inclusion by the filesystem-synced group, requiring manual build entries for those files; new files not in exceptions are auto-included, so manual build file additions cause duplicates. To fix duplicate warnings, new files should be added to membershipExceptions or manual entries removed, aligning with the project's partial exceptions list approach.
+thinking
+**Planning membershipExceptions update**
+
+Planning to add manually included source and resource files missing from membershipExceptions to avoid duplicate build file warnings; this involves updating `membershipExceptions` in the project file with paths like new Models files, NLP sources, Assets.xcassets, and KeywordTaxonomies.json.
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -127,2 +127,4 @@
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+@@ -133,4 +135,17 @@
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+apply_patch(auto_approved=true) exited 0 in 34ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+
+
+thinking
+**Verifying build warnings removal**
+
+I'm rebuilding the project after updating pbxproj and including models to confirm the warnings are resolved as intended.
+tool xcodebuildmcp.build_sim({})
+xcodebuildmcp.build_sim({}) success in 7.60s:
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "⚠️ Warning: /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/NLP/TierResolver.swift:43:14: warning: function call causes an infinite recursion"
+    },
+    {
+      "type": "text",
+      "text": "⚠️ Warning: /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/NLP/TierResolver.swift:43:14: warning: function call causes an infinite recursion"
+    },
+    {
+      "type": "text",
+      "text": "⚠️ Warning: /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/NLP/AnalysisPipeline.swift:61:48: warning: main actor-isolated instance method 'score(clauses:)' cannot be called from outside of the actor; this is an error in the Swift 6 language mode"
+    },
+    {
+      "type": "text",
+      "text": "⚠️ Warning: /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/NLP/AnalysisPipeline.swift:65:41: warning: main actor-isolated instance method 'score(clauses:)' cannot be called from outside of the actor; this is an error in the Swift 6 language mode"
+    },
+    {
+      "type": "text",
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+
+
+thinking
+**Identifying critical Swift 6 warnings**
+
+New warnings reveal infinite recursion and main actor isolation issues that could fail builds under Swift 6; these must be fixed proactively by inspecting TierResolver and related calls.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/NLP/TierResolver.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  TierResolver.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/22/26.
+//
+
+import Foundation
+
+protocol Tier1EngineProtocol: Sendable {
+    func extractAndPreprocess(pdf url: URL) async throws -> [Clause]
+    func classify(clause: Clause) async -> TierClassification
+}
+
+protocol Tier2EngineProtocol: Sendable {
+    func classify(clause: Clause) async throws -> TierClassification?
+}
+
+protocol Tier3EngineProtocol: Sendable {
+    func classify(clause: Clause) async throws -> TierClassification?
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+
+
+
+thinking
+**Diagnosing infinite recursion in initializer**
+
+The recursive warning is due to an initializer calling itself because both initializers differ only by protocol vs. concrete types; the call matches the concrete one exactly, causing infinite recursion instead of dispatching to the protocol-typed init.
+thinking
+**Planning nonisolated scorer types fix**
+
+To resolve main-actor isolation warnings caused by the default `@MainActor` setting, I'll mark the `PolicyScorer` protocol and its scorer structs as `nonisolated`, matching existing `ScoreResult` usage to enable synchronous calls from other actors without crossing actor boundaries. I'll also fix the TierResolver recursion by casting concrete types to protocol types in its init to avoid infinite self-calls.
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -42,3 +42,7 @@
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+apply_patch(auto_approved=true) exited 0 in 41ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+diff --git a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+index 1c9daacf0bfb9ec3eece8112035d6b16282ef773..14be8fc98421d2353eb614ed26b9f5c53077e17e
+--- a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
++++ b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -40,7 +40,11 @@
+     }
+ 
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+ 
+     func classify(clause: Clause) async -> TierClassification {
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+diff --git a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+index 1c9daacf0bfb9ec3eece8112035d6b16282ef773..14be8fc98421d2353eb614ed26b9f5c53077e17e
+--- a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
++++ b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -40,7 +40,11 @@
+     }
+ 
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+ 
+     func classify(clause: Clause) async -> TierClassification {
+
+
+thinking
+**Updating policy scorer components**
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+@@ -9,3 +9,3 @@
+ 
+-protocol PolicyScorer: Sendable {
++nonisolated protocol PolicyScorer: Sendable {
+     func score(clauses: [TierClassification]) -> ScoreResult
+@@ -13,3 +13,3 @@
+ 
+-struct StubPolicyScorer: PolicyScorer {
++nonisolated struct StubPolicyScorer: PolicyScorer {
+     func score(clauses: [TierClassification]) -> ScoreResult {
+@@ -19,3 +19,3 @@
+ 
+-struct DefaultPolicyScorer: PolicyScorer {
++nonisolated struct DefaultPolicyScorer: PolicyScorer {
+     private let dis: DifferentialImpactScorer
+apply_patch(auto_approved=true) exited 0 in 44ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+diff --git a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+index 475587f26a946745709a7b16f66f90034f300176..991c086d832877fe7f2ba3f3d90f831df8cb324c
+--- a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+@@ -7,17 +7,17 @@
+ 
+ import Foundation
+ 
+-protocol PolicyScorer: Sendable {
++nonisolated protocol PolicyScorer: Sendable {
+     func score(clauses: [TierClassification]) -> ScoreResult
+ }
+ 
+-struct StubPolicyScorer: PolicyScorer {
++nonisolated struct StubPolicyScorer: PolicyScorer {
+     func score(clauses: [TierClassification]) -> ScoreResult {
+         .zero
+     }
+ }
+ 
+-struct DefaultPolicyScorer: PolicyScorer {
++nonisolated struct DefaultPolicyScorer: PolicyScorer {
+     private let dis: DifferentialImpactScorer
+     private let ads: ArchitectureDetector
+     private let eis: EliteInterestScorer
+diff --git a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+index 1c9daacf0bfb9ec3eece8112035d6b16282ef773..14be8fc98421d2353eb614ed26b9f5c53077e17e
+--- a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
++++ b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -40,7 +40,11 @@
+     }
+ 
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+ 
+     func classify(clause: Clause) async -> TierClassification {
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+diff --git a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+index 475587f26a946745709a7b16f66f90034f300176..991c086d832877fe7f2ba3f3d90f831df8cb324c
+--- a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+@@ -7,17 +7,17 @@
+ 
+ import Foundation
+ 
+-protocol PolicyScorer: Sendable {
++nonisolated protocol PolicyScorer: Sendable {
+     func score(clauses: [TierClassification]) -> ScoreResult
+ }
+ 
+-struct StubPolicyScorer: PolicyScorer {
++nonisolated struct StubPolicyScorer: PolicyScorer {
+     func score(clauses: [TierClassification]) -> ScoreResult {
+         .zero
+     }
+ }
+ 
+-struct DefaultPolicyScorer: PolicyScorer {
++nonisolated struct DefaultPolicyScorer: PolicyScorer {
+     private let dis: DifferentialImpactScorer
+     private let ads: ArchitectureDetector
+     private let eis: EliteInterestScorer
+diff --git a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+index 1c9daacf0bfb9ec3eece8112035d6b16282ef773..14be8fc98421d2353eb614ed26b9f5c53077e17e
+--- a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
++++ b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -40,7 +40,11 @@
+     }
+ 
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+ 
+     func classify(clause: Clause) async -> TierClassification {
+
+
+thinking
+**Updating additional scorer components**
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+@@ -9,3 +9,3 @@
+ 
+-struct DifferentialImpactScorer: Sendable {
++nonisolated struct DifferentialImpactScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+apply_patch(auto_approved=true) exited 0 in 53ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+diff --git a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+index 5817216a9a3488ac1d7825960bc9cb7d40a90533..28eb9fbce5120d1c27426391767a09c8a1786723
+--- a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct DifferentialImpactScorer: Sendable {
++nonisolated struct DifferentialImpactScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+index 475587f26a946745709a7b16f66f90034f300176..991c086d832877fe7f2ba3f3d90f831df8cb324c
+--- a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+@@ -7,17 +7,17 @@
+ 
+ import Foundation
+ 
+-protocol PolicyScorer: Sendable {
++nonisolated protocol PolicyScorer: Sendable {
+     func score(clauses: [TierClassification]) -> ScoreResult
+ }
+ 
+-struct StubPolicyScorer: PolicyScorer {
++nonisolated struct StubPolicyScorer: PolicyScorer {
+     func score(clauses: [TierClassification]) -> ScoreResult {
+         .zero
+     }
+ }
+ 
+-struct DefaultPolicyScorer: PolicyScorer {
++nonisolated struct DefaultPolicyScorer: PolicyScorer {
+     private let dis: DifferentialImpactScorer
+     private let ads: ArchitectureDetector
+     private let eis: EliteInterestScorer
+diff --git a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+index 1c9daacf0bfb9ec3eece8112035d6b16282ef773..14be8fc98421d2353eb614ed26b9f5c53077e17e
+--- a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
++++ b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -40,7 +40,11 @@
+     }
+ 
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+ 
+     func classify(clause: Clause) async -> TierClassification {
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+diff --git a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+index 5817216a9a3488ac1d7825960bc9cb7d40a90533..28eb9fbce5120d1c27426391767a09c8a1786723
+--- a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct DifferentialImpactScorer: Sendable {
++nonisolated struct DifferentialImpactScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+index 475587f26a946745709a7b16f66f90034f300176..991c086d832877fe7f2ba3f3d90f831df8cb324c
+--- a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+@@ -7,17 +7,17 @@
+ 
+ import Foundation
+ 
+-protocol PolicyScorer: Sendable {
++nonisolated protocol PolicyScorer: Sendable {
+     func score(clauses: [TierClassification]) -> ScoreResult
+ }
+ 
+-struct StubPolicyScorer: PolicyScorer {
++nonisolated struct StubPolicyScorer: PolicyScorer {
+     func score(clauses: [TierClassification]) -> ScoreResult {
+         .zero
+     }
+ }
+ 
+-struct DefaultPolicyScorer: PolicyScorer {
++nonisolated struct DefaultPolicyScorer: PolicyScorer {
+     private let dis: DifferentialImpactScorer
+     private let ads: ArchitectureDetector
+     private let eis: EliteInterestScorer
+diff --git a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+index 1c9daacf0bfb9ec3eece8112035d6b16282ef773..14be8fc98421d2353eb614ed26b9f5c53077e17e
+--- a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
++++ b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -40,7 +40,11 @@
+     }
+ 
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+ 
+     func classify(clause: Clause) async -> TierClassification {
+
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+@@ -9,3 +9,3 @@
+ 
+-struct ArchitectureDetector: Sendable {
++nonisolated struct ArchitectureDetector: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+apply_patch(auto_approved=true) exited 0 in 58ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+diff --git a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+index a6e791b29172a2e241bf02fdae40d96388abf9e7..3c85069c8a1afc1e9acf2209252525b2aad536df
+--- a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
++++ b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct ArchitectureDetector: Sendable {
++nonisolated struct ArchitectureDetector: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+index 5817216a9a3488ac1d7825960bc9cb7d40a90533..28eb9fbce5120d1c27426391767a09c8a1786723
+--- a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct DifferentialImpactScorer: Sendable {
++nonisolated struct DifferentialImpactScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+index 475587f26a946745709a7b16f66f90034f300176..991c086d832877fe7f2ba3f3d90f831df8cb324c
+--- a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+@@ -7,17 +7,17 @@
+ 
+ import Foundation
+ 
+-protocol PolicyScorer: Sendable {
++nonisolated protocol PolicyScorer: Sendable {
+     func score(clauses: [TierClassification]) -> ScoreResult
+ }
+ 
+-struct StubPolicyScorer: PolicyScorer {
++nonisolated struct StubPolicyScorer: PolicyScorer {
+     func score(clauses: [TierClassification]) -> ScoreResult {
+         .zero
+     }
+ }
+ 
+-struct DefaultPolicyScorer: PolicyScorer {
++nonisolated struct DefaultPolicyScorer: PolicyScorer {
+     private let dis: DifferentialImpactScorer
+     private let ads: ArchitectureDetector
+     private let eis: EliteInterestScorer
+diff --git a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+index 1c9daacf0bfb9ec3eece8112035d6b16282ef773..14be8fc98421d2353eb614ed26b9f5c53077e17e
+--- a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
++++ b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -40,7 +40,11 @@
+     }
+ 
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+ 
+     func classify(clause: Clause) async -> TierClassification {
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+diff --git a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+index a6e791b29172a2e241bf02fdae40d96388abf9e7..3c85069c8a1afc1e9acf2209252525b2aad536df
+--- a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
++++ b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct ArchitectureDetector: Sendable {
++nonisolated struct ArchitectureDetector: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+index 5817216a9a3488ac1d7825960bc9cb7d40a90533..28eb9fbce5120d1c27426391767a09c8a1786723
+--- a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct DifferentialImpactScorer: Sendable {
++nonisolated struct DifferentialImpactScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+index 475587f26a946745709a7b16f66f90034f300176..991c086d832877fe7f2ba3f3d90f831df8cb324c
+--- a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+@@ -7,17 +7,17 @@
+ 
+ import Foundation
+ 
+-protocol PolicyScorer: Sendable {
++nonisolated protocol PolicyScorer: Sendable {
+     func score(clauses: [TierClassification]) -> ScoreResult
+ }
+ 
+-struct StubPolicyScorer: PolicyScorer {
++nonisolated struct StubPolicyScorer: PolicyScorer {
+     func score(clauses: [TierClassification]) -> ScoreResult {
+         .zero
+     }
+ }
+ 
+-struct DefaultPolicyScorer: PolicyScorer {
++nonisolated struct DefaultPolicyScorer: PolicyScorer {
+     private let dis: DifferentialImpactScorer
+     private let ads: ArchitectureDetector
+     private let eis: EliteInterestScorer
+diff --git a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+index 1c9daacf0bfb9ec3eece8112035d6b16282ef773..14be8fc98421d2353eb614ed26b9f5c53077e17e
+--- a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
++++ b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -40,7 +40,11 @@
+     }
+ 
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+ 
+     func classify(clause: Clause) async -> TierClassification {
+
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+@@ -9,3 +9,3 @@
+ 
+-struct EliteInterestScorer: Sendable {
++nonisolated struct EliteInterestScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+apply_patch(auto_approved=true) exited 0 in 73ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+diff --git a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+index a6e791b29172a2e241bf02fdae40d96388abf9e7..3c85069c8a1afc1e9acf2209252525b2aad536df
+--- a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
++++ b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct ArchitectureDetector: Sendable {
++nonisolated struct ArchitectureDetector: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+index 5817216a9a3488ac1d7825960bc9cb7d40a90533..28eb9fbce5120d1c27426391767a09c8a1786723
+--- a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct DifferentialImpactScorer: Sendable {
++nonisolated struct DifferentialImpactScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+index c75d13ba427ebf3ef879da5a1b797b594045affb..b4844da4c03cd61e23cb8e1fd7af2e181cfbc13d
+--- a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct EliteInterestScorer: Sendable {
++nonisolated struct EliteInterestScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+index 475587f26a946745709a7b16f66f90034f300176..991c086d832877fe7f2ba3f3d90f831df8cb324c
+--- a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+@@ -7,17 +7,17 @@
+ 
+ import Foundation
+ 
+-protocol PolicyScorer: Sendable {
++nonisolated protocol PolicyScorer: Sendable {
+     func score(clauses: [TierClassification]) -> ScoreResult
+ }
+ 
+-struct StubPolicyScorer: PolicyScorer {
++nonisolated struct StubPolicyScorer: PolicyScorer {
+     func score(clauses: [TierClassification]) -> ScoreResult {
+         .zero
+     }
+ }
+ 
+-struct DefaultPolicyScorer: PolicyScorer {
++nonisolated struct DefaultPolicyScorer: PolicyScorer {
+     private let dis: DifferentialImpactScorer
+     private let ads: ArchitectureDetector
+     private let eis: EliteInterestScorer
+diff --git a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+index 1c9daacf0bfb9ec3eece8112035d6b16282ef773..14be8fc98421d2353eb614ed26b9f5c53077e17e
+--- a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
++++ b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -40,7 +40,11 @@
+     }
+ 
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+ 
+     func classify(clause: Clause) async -> TierClassification {
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+diff --git a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+index a6e791b29172a2e241bf02fdae40d96388abf9e7..3c85069c8a1afc1e9acf2209252525b2aad536df
+--- a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
++++ b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct ArchitectureDetector: Sendable {
++nonisolated struct ArchitectureDetector: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+index 5817216a9a3488ac1d7825960bc9cb7d40a90533..28eb9fbce5120d1c27426391767a09c8a1786723
+--- a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct DifferentialImpactScorer: Sendable {
++nonisolated struct DifferentialImpactScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+index c75d13ba427ebf3ef879da5a1b797b594045affb..b4844da4c03cd61e23cb8e1fd7af2e181cfbc13d
+--- a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct EliteInterestScorer: Sendable {
++nonisolated struct EliteInterestScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+index 475587f26a946745709a7b16f66f90034f300176..991c086d832877fe7f2ba3f3d90f831df8cb324c
+--- a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+@@ -7,17 +7,17 @@
+ 
+ import Foundation
+ 
+-protocol PolicyScorer: Sendable {
++nonisolated protocol PolicyScorer: Sendable {
+     func score(clauses: [TierClassification]) -> ScoreResult
+ }
+ 
+-struct StubPolicyScorer: PolicyScorer {
++nonisolated struct StubPolicyScorer: PolicyScorer {
+     func score(clauses: [TierClassification]) -> ScoreResult {
+         .zero
+     }
+ }
+ 
+-struct DefaultPolicyScorer: PolicyScorer {
++nonisolated struct DefaultPolicyScorer: PolicyScorer {
+     private let dis: DifferentialImpactScorer
+     private let ads: ArchitectureDetector
+     private let eis: EliteInterestScorer
+diff --git a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+index 1c9daacf0bfb9ec3eece8112035d6b16282ef773..14be8fc98421d2353eb614ed26b9f5c53077e17e
+--- a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
++++ b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -40,7 +40,11 @@
+     }
+ 
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+ 
+     func classify(clause: Clause) async -> TierClassification {
+
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+@@ -9,3 +9,3 @@
+ 
+-struct CompoundingCalculator: Sendable {
++nonisolated struct CompoundingCalculator: Sendable {
+     let alpha: Double
+apply_patch(auto_approved=true) exited 0 in 77ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+diff --git a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+index a6e791b29172a2e241bf02fdae40d96388abf9e7..3c85069c8a1afc1e9acf2209252525b2aad536df
+--- a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
++++ b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct ArchitectureDetector: Sendable {
++nonisolated struct ArchitectureDetector: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift b/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+index 043ed4952e1b5e69168af186a5b6c568caf9c731..9b17b0c28d941da8224ef5349b5ad576b46d9db0
+--- a/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
++++ b/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct CompoundingCalculator: Sendable {
++nonisolated struct CompoundingCalculator: Sendable {
+     let alpha: Double
+     let historicalChain: [HistoricalPolicy]
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+index 5817216a9a3488ac1d7825960bc9cb7d40a90533..28eb9fbce5120d1c27426391767a09c8a1786723
+--- a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct DifferentialImpactScorer: Sendable {
++nonisolated struct DifferentialImpactScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+index c75d13ba427ebf3ef879da5a1b797b594045affb..b4844da4c03cd61e23cb8e1fd7af2e181cfbc13d
+--- a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct EliteInterestScorer: Sendable {
++nonisolated struct EliteInterestScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+index 475587f26a946745709a7b16f66f90034f300176..991c086d832877fe7f2ba3f3d90f831df8cb324c
+--- a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+@@ -7,17 +7,17 @@
+ 
+ import Foundation
+ 
+-protocol PolicyScorer: Sendable {
++nonisolated protocol PolicyScorer: Sendable {
+     func score(clauses: [TierClassification]) -> ScoreResult
+ }
+ 
+-struct StubPolicyScorer: PolicyScorer {
++nonisolated struct StubPolicyScorer: PolicyScorer {
+     func score(clauses: [TierClassification]) -> ScoreResult {
+         .zero
+     }
+ }
+ 
+-struct DefaultPolicyScorer: PolicyScorer {
++nonisolated struct DefaultPolicyScorer: PolicyScorer {
+     private let dis: DifferentialImpactScorer
+     private let ads: ArchitectureDetector
+     private let eis: EliteInterestScorer
+diff --git a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+index 1c9daacf0bfb9ec3eece8112035d6b16282ef773..14be8fc98421d2353eb614ed26b9f5c53077e17e
+--- a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
++++ b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -40,7 +40,11 @@
+     }
+ 
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+ 
+     func classify(clause: Clause) async -> TierClassification {
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+diff --git a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+index a6e791b29172a2e241bf02fdae40d96388abf9e7..3c85069c8a1afc1e9acf2209252525b2aad536df
+--- a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
++++ b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct ArchitectureDetector: Sendable {
++nonisolated struct ArchitectureDetector: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift b/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+index 043ed4952e1b5e69168af186a5b6c568caf9c731..9b17b0c28d941da8224ef5349b5ad576b46d9db0
+--- a/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
++++ b/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct CompoundingCalculator: Sendable {
++nonisolated struct CompoundingCalculator: Sendable {
+     let alpha: Double
+     let historicalChain: [HistoricalPolicy]
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+index 5817216a9a3488ac1d7825960bc9cb7d40a90533..28eb9fbce5120d1c27426391767a09c8a1786723
+--- a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct DifferentialImpactScorer: Sendable {
++nonisolated struct DifferentialImpactScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+index c75d13ba427ebf3ef879da5a1b797b594045affb..b4844da4c03cd61e23cb8e1fd7af2e181cfbc13d
+--- a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct EliteInterestScorer: Sendable {
++nonisolated struct EliteInterestScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+index 475587f26a946745709a7b16f66f90034f300176..991c086d832877fe7f2ba3f3d90f831df8cb324c
+--- a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+@@ -7,17 +7,17 @@
+ 
+ import Foundation
+ 
+-protocol PolicyScorer: Sendable {
++nonisolated protocol PolicyScorer: Sendable {
+     func score(clauses: [TierClassification]) -> ScoreResult
+ }
+ 
+-struct StubPolicyScorer: PolicyScorer {
++nonisolated struct StubPolicyScorer: PolicyScorer {
+     func score(clauses: [TierClassification]) -> ScoreResult {
+         .zero
+     }
+ }
+ 
+-struct DefaultPolicyScorer: PolicyScorer {
++nonisolated struct DefaultPolicyScorer: PolicyScorer {
+     private let dis: DifferentialImpactScorer
+     private let ads: ArchitectureDetector
+     private let eis: EliteInterestScorer
+diff --git a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+index 1c9daacf0bfb9ec3eece8112035d6b16282ef773..14be8fc98421d2353eb614ed26b9f5c53077e17e
+--- a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
++++ b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -40,7 +40,11 @@
+     }
+ 
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+ 
+     func classify(clause: Clause) async -> TierClassification {
+
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
+@@ -9,3 +9,3 @@
+ 
+-struct OutgroupAnalyzer: Sendable {
++nonisolated struct OutgroupAnalyzer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+apply_patch(auto_approved=true) exited 0 in 83ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+diff --git a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+index a6e791b29172a2e241bf02fdae40d96388abf9e7..3c85069c8a1afc1e9acf2209252525b2aad536df
+--- a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
++++ b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct ArchitectureDetector: Sendable {
++nonisolated struct ArchitectureDetector: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift b/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+index 043ed4952e1b5e69168af186a5b6c568caf9c731..9b17b0c28d941da8224ef5349b5ad576b46d9db0
+--- a/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
++++ b/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct CompoundingCalculator: Sendable {
++nonisolated struct CompoundingCalculator: Sendable {
+     let alpha: Double
+     let historicalChain: [HistoricalPolicy]
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+index 5817216a9a3488ac1d7825960bc9cb7d40a90533..28eb9fbce5120d1c27426391767a09c8a1786723
+--- a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct DifferentialImpactScorer: Sendable {
++nonisolated struct DifferentialImpactScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+index c75d13ba427ebf3ef879da5a1b797b594045affb..b4844da4c03cd61e23cb8e1fd7af2e181cfbc13d
+--- a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct EliteInterestScorer: Sendable {
++nonisolated struct EliteInterestScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift b/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
+index a80cf68eee2a971a0b2ea828252c0f020ba257fc..0365d9338392d50edf16f29d4170300062bb3e28
+--- a/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
++++ b/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct OutgroupAnalyzer: Sendable {
++nonisolated struct OutgroupAnalyzer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+index 475587f26a946745709a7b16f66f90034f300176..991c086d832877fe7f2ba3f3d90f831df8cb324c
+--- a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+@@ -7,17 +7,17 @@
+ 
+ import Foundation
+ 
+-protocol PolicyScorer: Sendable {
++nonisolated protocol PolicyScorer: Sendable {
+     func score(clauses: [TierClassification]) -> ScoreResult
+ }
+ 
+-struct StubPolicyScorer: PolicyScorer {
++nonisolated struct StubPolicyScorer: PolicyScorer {
+     func score(clauses: [TierClassification]) -> ScoreResult {
+         .zero
+     }
+ }
+ 
+-struct DefaultPolicyScorer: PolicyScorer {
++nonisolated struct DefaultPolicyScorer: PolicyScorer {
+     private let dis: DifferentialImpactScorer
+     private let ads: ArchitectureDetector
+     private let eis: EliteInterestScorer
+diff --git a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+index 1c9daacf0bfb9ec3eece8112035d6b16282ef773..14be8fc98421d2353eb614ed26b9f5c53077e17e
+--- a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
++++ b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -40,7 +40,11 @@
+     }
+ 
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+ 
+     func classify(clause: Clause) async -> TierClassification {
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+diff --git a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+index a6e791b29172a2e241bf02fdae40d96388abf9e7..3c85069c8a1afc1e9acf2209252525b2aad536df
+--- a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
++++ b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct ArchitectureDetector: Sendable {
++nonisolated struct ArchitectureDetector: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift b/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+index 043ed4952e1b5e69168af186a5b6c568caf9c731..9b17b0c28d941da8224ef5349b5ad576b46d9db0
+--- a/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
++++ b/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct CompoundingCalculator: Sendable {
++nonisolated struct CompoundingCalculator: Sendable {
+     let alpha: Double
+     let historicalChain: [HistoricalPolicy]
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+index 5817216a9a3488ac1d7825960bc9cb7d40a90533..28eb9fbce5120d1c27426391767a09c8a1786723
+--- a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct DifferentialImpactScorer: Sendable {
++nonisolated struct DifferentialImpactScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+index c75d13ba427ebf3ef879da5a1b797b594045affb..b4844da4c03cd61e23cb8e1fd7af2e181cfbc13d
+--- a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct EliteInterestScorer: Sendable {
++nonisolated struct EliteInterestScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift b/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
+index a80cf68eee2a971a0b2ea828252c0f020ba257fc..0365d9338392d50edf16f29d4170300062bb3e28
+--- a/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
++++ b/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct OutgroupAnalyzer: Sendable {
++nonisolated struct OutgroupAnalyzer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+index 475587f26a946745709a7b16f66f90034f300176..991c086d832877fe7f2ba3f3d90f831df8cb324c
+--- a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+@@ -7,17 +7,17 @@
+ 
+ import Foundation
+ 
+-protocol PolicyScorer: Sendable {
++nonisolated protocol PolicyScorer: Sendable {
+     func score(clauses: [TierClassification]) -> ScoreResult
+ }
+ 
+-struct StubPolicyScorer: PolicyScorer {
++nonisolated struct StubPolicyScorer: PolicyScorer {
+     func score(clauses: [TierClassification]) -> ScoreResult {
+         .zero
+     }
+ }
+ 
+-struct DefaultPolicyScorer: PolicyScorer {
++nonisolated struct DefaultPolicyScorer: PolicyScorer {
+     private let dis: DifferentialImpactScorer
+     private let ads: ArchitectureDetector
+     private let eis: EliteInterestScorer
+diff --git a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+index 1c9daacf0bfb9ec3eece8112035d6b16282ef773..14be8fc98421d2353eb614ed26b9f5c53077e17e
+--- a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
++++ b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -40,7 +40,11 @@
+     }
+ 
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+ 
+     func classify(clause: Clause) async -> TierClassification {
+
+
+thinking
+**Adding nonisolated to policy types**
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
+@@ -10,3 +10,3 @@
+ 
+-struct HistoricalPolicy: Sendable {
++nonisolated struct HistoricalPolicy: Sendable {
+     let name: String
+@@ -17,3 +17,3 @@
+ 
+-struct HistoricalPolicies {
++nonisolated struct HistoricalPolicies {
+     static let virginiaSlaveCodes = HistoricalPolicy(
+apply_patch(auto_approved=true) exited 0 in 115ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+diff --git a/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift b/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
+index 7be40c0e63f67230ca73b58694f0f9a985431afa..460d90289311888f7f904866efc0f19c36d1c6db
+--- a/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
++++ b/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
+@@ -8,14 +8,14 @@
+ 
+ import Foundation
+ 
+-struct HistoricalPolicy: Sendable {
++nonisolated struct HistoricalPolicy: Sendable {
+     let name: String
+     let year: Int
+     let clauses: [TierClassification]
+     let expectedCOI: Double
+ }
+ 
+-struct HistoricalPolicies {
++nonisolated struct HistoricalPolicies {
+     static let virginiaSlaveCodes = HistoricalPolicy(
+         name: "Virginia Slave Codes (1705)",
+         year: 1705,
+diff --git a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+index a6e791b29172a2e241bf02fdae40d96388abf9e7..3c85069c8a1afc1e9acf2209252525b2aad536df
+--- a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
++++ b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct ArchitectureDetector: Sendable {
++nonisolated struct ArchitectureDetector: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift b/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+index 043ed4952e1b5e69168af186a5b6c568caf9c731..9b17b0c28d941da8224ef5349b5ad576b46d9db0
+--- a/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
++++ b/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct CompoundingCalculator: Sendable {
++nonisolated struct CompoundingCalculator: Sendable {
+     let alpha: Double
+     let historicalChain: [HistoricalPolicy]
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+index 5817216a9a3488ac1d7825960bc9cb7d40a90533..28eb9fbce5120d1c27426391767a09c8a1786723
+--- a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct DifferentialImpactScorer: Sendable {
++nonisolated struct DifferentialImpactScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+index c75d13ba427ebf3ef879da5a1b797b594045affb..b4844da4c03cd61e23cb8e1fd7af2e181cfbc13d
+--- a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct EliteInterestScorer: Sendable {
++nonisolated struct EliteInterestScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift b/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
+index a80cf68eee2a971a0b2ea828252c0f020ba257fc..0365d9338392d50edf16f29d4170300062bb3e28
+--- a/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
++++ b/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct OutgroupAnalyzer: Sendable {
++nonisolated struct OutgroupAnalyzer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+index 475587f26a946745709a7b16f66f90034f300176..991c086d832877fe7f2ba3f3d90f831df8cb324c
+--- a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+@@ -7,17 +7,17 @@
+ 
+ import Foundation
+ 
+-protocol PolicyScorer: Sendable {
++nonisolated protocol PolicyScorer: Sendable {
+     func score(clauses: [TierClassification]) -> ScoreResult
+ }
+ 
+-struct StubPolicyScorer: PolicyScorer {
++nonisolated struct StubPolicyScorer: PolicyScorer {
+     func score(clauses: [TierClassification]) -> ScoreResult {
+         .zero
+     }
+ }
+ 
+-struct DefaultPolicyScorer: PolicyScorer {
++nonisolated struct DefaultPolicyScorer: PolicyScorer {
+     private let dis: DifferentialImpactScorer
+     private let ads: ArchitectureDetector
+     private let eis: EliteInterestScorer
+diff --git a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+index 1c9daacf0bfb9ec3eece8112035d6b16282ef773..14be8fc98421d2353eb614ed26b9f5c53077e17e
+--- a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
++++ b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -40,7 +40,11 @@
+     }
+ 
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+ 
+     func classify(clause: Clause) async -> TierClassification {
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+diff --git a/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift b/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
+index 7be40c0e63f67230ca73b58694f0f9a985431afa..460d90289311888f7f904866efc0f19c36d1c6db
+--- a/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
++++ b/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
+@@ -8,14 +8,14 @@
+ 
+ import Foundation
+ 
+-struct HistoricalPolicy: Sendable {
++nonisolated struct HistoricalPolicy: Sendable {
+     let name: String
+     let year: Int
+     let clauses: [TierClassification]
+     let expectedCOI: Double
+ }
+ 
+-struct HistoricalPolicies {
++nonisolated struct HistoricalPolicies {
+     static let virginiaSlaveCodes = HistoricalPolicy(
+         name: "Virginia Slave Codes (1705)",
+         year: 1705,
+diff --git a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+index a6e791b29172a2e241bf02fdae40d96388abf9e7..3c85069c8a1afc1e9acf2209252525b2aad536df
+--- a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
++++ b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct ArchitectureDetector: Sendable {
++nonisolated struct ArchitectureDetector: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift b/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+index 043ed4952e1b5e69168af186a5b6c568caf9c731..9b17b0c28d941da8224ef5349b5ad576b46d9db0
+--- a/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
++++ b/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct CompoundingCalculator: Sendable {
++nonisolated struct CompoundingCalculator: Sendable {
+     let alpha: Double
+     let historicalChain: [HistoricalPolicy]
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+index 5817216a9a3488ac1d7825960bc9cb7d40a90533..28eb9fbce5120d1c27426391767a09c8a1786723
+--- a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct DifferentialImpactScorer: Sendable {
++nonisolated struct DifferentialImpactScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+index c75d13ba427ebf3ef879da5a1b797b594045affb..b4844da4c03cd61e23cb8e1fd7af2e181cfbc13d
+--- a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct EliteInterestScorer: Sendable {
++nonisolated struct EliteInterestScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift b/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
+index a80cf68eee2a971a0b2ea828252c0f020ba257fc..0365d9338392d50edf16f29d4170300062bb3e28
+--- a/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
++++ b/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct OutgroupAnalyzer: Sendable {
++nonisolated struct OutgroupAnalyzer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+index 475587f26a946745709a7b16f66f90034f300176..991c086d832877fe7f2ba3f3d90f831df8cb324c
+--- a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+@@ -7,17 +7,17 @@
+ 
+ import Foundation
+ 
+-protocol PolicyScorer: Sendable {
++nonisolated protocol PolicyScorer: Sendable {
+     func score(clauses: [TierClassification]) -> ScoreResult
+ }
+ 
+-struct StubPolicyScorer: PolicyScorer {
++nonisolated struct StubPolicyScorer: PolicyScorer {
+     func score(clauses: [TierClassification]) -> ScoreResult {
+         .zero
+     }
+ }
+ 
+-struct DefaultPolicyScorer: PolicyScorer {
++nonisolated struct DefaultPolicyScorer: PolicyScorer {
+     private let dis: DifferentialImpactScorer
+     private let ads: ArchitectureDetector
+     private let eis: EliteInterestScorer
+diff --git a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+index 1c9daacf0bfb9ec3eece8112035d6b16282ef773..14be8fc98421d2353eb614ed26b9f5c53077e17e
+--- a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
++++ b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -40,7 +40,11 @@
+     }
+ 
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+ 
+     func classify(clause: Clause) async -> TierClassification {
+
+
+thinking
+**Rebuilding to check warnings**
+tool xcodebuildmcp.build_sim({})
+xcodebuildmcp.build_sim({}) success in 8.86s:
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "⚠️ Warning: 2026-02-22 21:02:30.652 appintentsmetadataprocessor[21333:118705] warning: Metadata extraction skipped. No AppIntents.framework dependency found."
+    },
+    {
+      "type": "text",
+      "text": "✅ iOS Simulator Build build succeeded for scheme decodingOppression."
+    },
+    {
+      "type": "text",
+      "text": "Next Steps:\n1. Get app path: get_sim_app_path({ simulatorId: 'E831B1CE-E966-41D2-87FE-C9923EA3DDF2', scheme: 'decodingOppression', platform: 'iOS Simulator' })\n2. Get bundle ID: get_app_bundle_id({ appPath: 'PATH_FROM_STEP_1' })\n3. Launch: launch_app_sim({ simulatorId: 'E831B1CE-E966-41D2-87FE-C9923EA3DDF2', bundleId: 'BUNDLE_ID_FROM_STEP_2' })\n   Or with logs: launch_app_logs_sim({ simulatorId: 'E831B1CE-E966-41D2-87FE-C9923EA3DDF2', bundleId: 'BUNDLE_ID_FROM_STEP_2' })"
+    }
+  ]
+}
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+diff --git a/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift b/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
+index 7be40c0e63f67230ca73b58694f0f9a985431afa..460d90289311888f7f904866efc0f19c36d1c6db
+--- a/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
++++ b/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
+@@ -8,14 +8,14 @@
+ 
+ import Foundation
+ 
+-struct HistoricalPolicy: Sendable {
++nonisolated struct HistoricalPolicy: Sendable {
+     let name: String
+     let year: Int
+     let clauses: [TierClassification]
+     let expectedCOI: Double
+ }
+ 
+-struct HistoricalPolicies {
++nonisolated struct HistoricalPolicies {
+     static let virginiaSlaveCodes = HistoricalPolicy(
+         name: "Virginia Slave Codes (1705)",
+         year: 1705,
+diff --git a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+index a6e791b29172a2e241bf02fdae40d96388abf9e7..3c85069c8a1afc1e9acf2209252525b2aad536df
+--- a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
++++ b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct ArchitectureDetector: Sendable {
++nonisolated struct ArchitectureDetector: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift b/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+index 043ed4952e1b5e69168af186a5b6c568caf9c731..9b17b0c28d941da8224ef5349b5ad576b46d9db0
+--- a/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
++++ b/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct CompoundingCalculator: Sendable {
++nonisolated struct CompoundingCalculator: Sendable {
+     let alpha: Double
+     let historicalChain: [HistoricalPolicy]
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+index 5817216a9a3488ac1d7825960bc9cb7d40a90533..28eb9fbce5120d1c27426391767a09c8a1786723
+--- a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct DifferentialImpactScorer: Sendable {
++nonisolated struct DifferentialImpactScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+index c75d13ba427ebf3ef879da5a1b797b594045affb..b4844da4c03cd61e23cb8e1fd7af2e181cfbc13d
+--- a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct EliteInterestScorer: Sendable {
++nonisolated struct EliteInterestScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift b/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
+index a80cf68eee2a971a0b2ea828252c0f020ba257fc..0365d9338392d50edf16f29d4170300062bb3e28
+--- a/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
++++ b/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct OutgroupAnalyzer: Sendable {
++nonisolated struct OutgroupAnalyzer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+index 475587f26a946745709a7b16f66f90034f300176..991c086d832877fe7f2ba3f3d90f831df8cb324c
+--- a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+@@ -7,17 +7,17 @@
+ 
+ import Foundation
+ 
+-protocol PolicyScorer: Sendable {
++nonisolated protocol PolicyScorer: Sendable {
+     func score(clauses: [TierClassification]) -> ScoreResult
+ }
+ 
+-struct StubPolicyScorer: PolicyScorer {
++nonisolated struct StubPolicyScorer: PolicyScorer {
+     func score(clauses: [TierClassification]) -> ScoreResult {
+         .zero
+     }
+ }
+ 
+-struct DefaultPolicyScorer: PolicyScorer {
++nonisolated struct DefaultPolicyScorer: PolicyScorer {
+     private let dis: DifferentialImpactScorer
+     private let ads: ArchitectureDetector
+     private let eis: EliteInterestScorer
+diff --git a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+index 1c9daacf0bfb9ec3eece8112035d6b16282ef773..14be8fc98421d2353eb614ed26b9f5c53077e17e
+--- a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
++++ b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -40,7 +40,11 @@
+     }
+ 
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+ 
+     func classify(clause: Clause) async -> TierClassification {
+
+
+thinking
+**Confirming warnings fixed before summarizing changes**
+exec
+/bin/zsh -lc 'git -C /Users/emmanuel/Documents/Theory/Redefining_racism status -sb' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+## master...origin/master
+AM .DS_Store
+A  .cursor/plans/oppression_algorithm_implementation_7f2806d9.plan.md
+A  .cursor/plans/swift_ios_oppression_algorithm_34c6ceb0.plan.md
+M  .gitignore
+ D Racism_is_an_engineering_problem.txt
+AD Redefining_Racism.aux
+AD Redefining_Racism.fdb_latexmk
+AD Redefining_Racism.fls
+AD Redefining_Racism.log
+AD Redefining_Racism.out
+ D Redefining_Racism.pdf
+AD Redefining_Racism.synctex.gz
+ D Redefining_Racism.tex
+AM app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+A  app/decodingOppression/decodingOppression.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+AM app/decodingOppression/decodingOppression.xcodeproj/project.xcworkspace/xcuserdata/emmanuel.xcuserdatad/UserInterfaceState.xcuserstate
+AM app/decodingOppression/decodingOppression.xcodeproj/xcuserdata/emmanuel.xcuserdatad/xcschemes/xcschememanagement.plist
+AD app/decodingOppression/decodingOppression/AnalyzedClause.swift
+A  app/decodingOppression/decodingOppression/Assets.xcassets/AccentColor.colorset/Contents.json
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+diff --git a/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift b/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
+index 7be40c0e63f67230ca73b58694f0f9a985431afa..460d90289311888f7f904866efc0f19c36d1c6db
+--- a/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
++++ b/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
+@@ -8,14 +8,14 @@
+ 
+ import Foundation
+ 
+-struct HistoricalPolicy: Sendable {
++nonisolated struct HistoricalPolicy: Sendable {
+     let name: String
+     let year: Int
+     let clauses: [TierClassification]
+     let expectedCOI: Double
+ }
+ 
+-struct HistoricalPolicies {
++nonisolated struct HistoricalPolicies {
+     static let virginiaSlaveCodes = HistoricalPolicy(
+         name: "Virginia Slave Codes (1705)",
+         year: 1705,
+diff --git a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+index a6e791b29172a2e241bf02fdae40d96388abf9e7..3c85069c8a1afc1e9acf2209252525b2aad536df
+--- a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
++++ b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct ArchitectureDetector: Sendable {
++nonisolated struct ArchitectureDetector: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift b/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+index 043ed4952e1b5e69168af186a5b6c568caf9c731..9b17b0c28d941da8224ef5349b5ad576b46d9db0
+--- a/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
++++ b/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct CompoundingCalculator: Sendable {
++nonisolated struct CompoundingCalculator: Sendable {
+     let alpha: Double
+     let historicalChain: [HistoricalPolicy]
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+index 5817216a9a3488ac1d7825960bc9cb7d40a90533..28eb9fbce5120d1c27426391767a09c8a1786723
+--- a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct DifferentialImpactScorer: Sendable {
++nonisolated struct DifferentialImpactScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+index c75d13ba427ebf3ef879da5a1b797b594045affb..b4844da4c03cd61e23cb8e1fd7af2e181cfbc13d
+--- a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct EliteInterestScorer: Sendable {
++nonisolated struct EliteInterestScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift b/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
+index a80cf68eee2a971a0b2ea828252c0f020ba257fc..0365d9338392d50edf16f29d4170300062bb3e28
+--- a/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
++++ b/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct OutgroupAnalyzer: Sendable {
++nonisolated struct OutgroupAnalyzer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+index 475587f26a946745709a7b16f66f90034f300176..991c086d832877fe7f2ba3f3d90f831df8cb324c
+--- a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+@@ -7,17 +7,17 @@
+ 
+ import Foundation
+ 
+-protocol PolicyScorer: Sendable {
++nonisolated protocol PolicyScorer: Sendable {
+     func score(clauses: [TierClassification]) -> ScoreResult
+ }
+ 
+-struct StubPolicyScorer: PolicyScorer {
++nonisolated struct StubPolicyScorer: PolicyScorer {
+     func score(clauses: [TierClassification]) -> ScoreResult {
+         .zero
+     }
+ }
+ 
+-struct DefaultPolicyScorer: PolicyScorer {
++nonisolated struct DefaultPolicyScorer: PolicyScorer {
+     private let dis: DifferentialImpactScorer
+     private let ads: ArchitectureDetector
+     private let eis: EliteInterestScorer
+diff --git a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+index 1c9daacf0bfb9ec3eece8112035d6b16282ef773..14be8fc98421d2353eb614ed26b9f5c53077e17e
+--- a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
++++ b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -40,7 +40,11 @@
+     }
+ 
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+ 
+     func classify(clause: Clause) async -> TierClassification {
+
+
+
+thinking
+**Summarizing implemented fixes and build status**
+
+Changed source files to fix recursion and main actor isolation; updated project file to suppress duplicate warnings. Build succeeded using build_sim command; warnings from AppIntentsMetadataProcessor remain but don’t block the build.
+thinking
+**Summary**
+
+Implemented fixes in `TierResolver.swift`, scorer models, `HistoricalPolicies.swift`, and updated `project.pbxproj`. Added `nonisolated` to scorer types and historical policies; fixed recursion in TierResolver initializer; updated PBX membership exceptions.
+
+**Build**  
+Build succeeded using `xcodebuildmcp build_sim` with remaining AppIntents metadata warning.
+
+**Tests**  
+Tests not run due to `test_sim` timeout.
+codex
+**Summary**
+1. Fixed `TierResolver` init recursion. `app/decodingOppression/decodingOppression/NLP/TierResolver.swift`
+2. Marked scorer types and historical policies `nonisolated` for default actor isolation. `app/decodingOppression/decodingOppression/Models/PolicyScorer.swift`, `app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift`, `app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift`, `app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift`, `app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift`, `app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift`, `app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift`
+3. Updated synchronized group `membershipExceptions` to prevent duplicate build file warnings. `app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj`
+
+**Build**
+- `build_sim` succeeded (only AppIntents metadata warning).
+
+**Tests**
+- Not run (test_sim timed out).
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index 5f954f7f1381019b736bb8ca85ed68e39a15b7dd..284b12ac465f1cf60f1e280288a579f31b7eafa6
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -125,14 +125,29 @@
+ 				ContentView.swift,
+ 				decodingOppressionApp.swift,
+ 				Info.plist,
++				Assets.xcassets,
++				Data/KeywordTaxonomies.json,
+ 				MLX/MLXClauseClassifier.swift,
+ 				MLX/MLXEmbeddingEngine.swift,
+ 				MLX/MLXError.swift,
+ 				MLX/ModelDownloadManager.swift,
+ 				MLX/Tier2Engine.swift,
+ 				MLX/Tier2EngineHolder.swift,
++				NLP/AnalysisPipeline.swift,
++				NLP/ClauseAnalyzer.swift,
++				NLP/KeywordEngine.swift,
++				NLP/PDFExtractor.swift,
++				NLP/TextPreprocessor.swift,
++				NLP/Tier1Engine.swift,
++				NLP/TierResolver.swift,
+ 				Models/AnalyzedClause.swift,
++				Models/ArchitectureDetector.swift,
++				Models/CompoundingCalculator.swift,
++				Models/DifferentialImpactScorer.swift,
++				Models/EliteInterestScorer.swift,
+ 				Models/GenerableTypes.swift,
++				Models/OutgroupAnalyzer.swift,
++				Models/PolicyScorer.swift,
+ 				Models/PipelineContracts.swift,
+ 				Models/Policy.swift,
+ 				Models/PolicyAnalysis.swift,
+diff --git a/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift b/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
+index 7be40c0e63f67230ca73b58694f0f9a985431afa..460d90289311888f7f904866efc0f19c36d1c6db
+--- a/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
++++ b/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
+@@ -8,14 +8,14 @@
+ 
+ import Foundation
+ 
+-struct HistoricalPolicy: Sendable {
++nonisolated struct HistoricalPolicy: Sendable {
+     let name: String
+     let year: Int
+     let clauses: [TierClassification]
+     let expectedCOI: Double
+ }
+ 
+-struct HistoricalPolicies {
++nonisolated struct HistoricalPolicies {
+     static let virginiaSlaveCodes = HistoricalPolicy(
+         name: "Virginia Slave Codes (1705)",
+         year: 1705,
+diff --git a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+index a6e791b29172a2e241bf02fdae40d96388abf9e7..3c85069c8a1afc1e9acf2209252525b2aad536df
+--- a/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
++++ b/app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct ArchitectureDetector: Sendable {
++nonisolated struct ArchitectureDetector: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift b/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+index 043ed4952e1b5e69168af186a5b6c568caf9c731..9b17b0c28d941da8224ef5349b5ad576b46d9db0
+--- a/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
++++ b/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct CompoundingCalculator: Sendable {
++nonisolated struct CompoundingCalculator: Sendable {
+     let alpha: Double
+     let historicalChain: [HistoricalPolicy]
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+index 5817216a9a3488ac1d7825960bc9cb7d40a90533..28eb9fbce5120d1c27426391767a09c8a1786723
+--- a/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct DifferentialImpactScorer: Sendable {
++nonisolated struct DifferentialImpactScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+index c75d13ba427ebf3ef879da5a1b797b594045affb..b4844da4c03cd61e23cb8e1fd7af2e181cfbc13d
+--- a/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct EliteInterestScorer: Sendable {
++nonisolated struct EliteInterestScorer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift b/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
+index a80cf68eee2a971a0b2ea828252c0f020ba257fc..0365d9338392d50edf16f29d4170300062bb3e28
+--- a/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
++++ b/app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift
+@@ -7,7 +7,7 @@
+ 
+ import Foundation
+ 
+-struct OutgroupAnalyzer: Sendable {
++nonisolated struct OutgroupAnalyzer: Sendable {
+     func score(clauses: [TierClassification]) -> Double {
+         guard !clauses.isEmpty else { return 0.0 }
+ 
+diff --git a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+index 475587f26a946745709a7b16f66f90034f300176..991c086d832877fe7f2ba3f3d90f831df8cb324c
+--- a/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
++++ b/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+@@ -7,17 +7,17 @@
+ 
+ import Foundation
+ 
+-protocol PolicyScorer: Sendable {
++nonisolated protocol PolicyScorer: Sendable {
+     func score(clauses: [TierClassification]) -> ScoreResult
+ }
+ 
+-struct StubPolicyScorer: PolicyScorer {
++nonisolated struct StubPolicyScorer: PolicyScorer {
+     func score(clauses: [TierClassification]) -> ScoreResult {
+         .zero
+     }
+ }
+ 
+-struct DefaultPolicyScorer: PolicyScorer {
++nonisolated struct DefaultPolicyScorer: PolicyScorer {
+     private let dis: DifferentialImpactScorer
+     private let ads: ArchitectureDetector
+     private let eis: EliteInterestScorer
+diff --git a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+index 1c9daacf0bfb9ec3eece8112035d6b16282ef773..14be8fc98421d2353eb614ed26b9f5c53077e17e
+--- a/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
++++ b/app/decodingOppression/decodingOppression/NLP/TierResolver.swift
+@@ -40,7 +40,11 @@
+     }
+ 
+     init(tier1: Tier1Engine, tier2: Tier2Engine, tier3: Tier3Engine) {
+-        self.init(tier1: tier1, tier2: tier2, tier3: tier3)
++        self.init(
++            tier1: tier1 as Tier1EngineProtocol,
++            tier2: tier2 as Tier2EngineProtocol,
++            tier3: tier3 as Tier3EngineProtocol
++        )
+     }
+ 
+     func classify(clause: Clause) async -> TierClassification {
+
+tokens used
+90,314
+**Summary**
+1. Fixed `TierResolver` init recursion. `app/decodingOppression/decodingOppression/NLP/TierResolver.swift`
+2. Marked scorer types and historical policies `nonisolated` for default actor isolation. `app/decodingOppression/decodingOppression/Models/PolicyScorer.swift`, `app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift`, `app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift`, `app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift`, `app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift`, `app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift`, `app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift`
+3. Updated synchronized group `membershipExceptions` to prevent duplicate build file warnings. `app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj`
+
+**Build**
+- `build_sim` succeeded (only AppIntents metadata warning).
+
+**Tests**
+- Not run (test_sim timed out).

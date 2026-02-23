@@ -1,0 +1,2981 @@
+You are a Swift/SwiftUI developer. Your task is to implement the following requirements.
+
+IMPORTANT INSTRUCTIONS:
+1. Write clean, production-ready Swift code
+2. Follow Apple's Swift API Design Guidelines
+3. Use SwiftUI for UI components where appropriate
+4. Include proper error handling
+5. The code must compile without errors
+6. After writing code, the build will be verified automatically
+7. If the build fails, you will receive error feedback and should try a DIFFERENT approach
+
+TESTING & DEBUGGING REFERENCE:
+For building, testing, and debugging iOS/macOS apps, reference this workflow guide:
+/Users/emmanuel/Dev/Tools/Eocon-Foundation-V1/.Foundation/Docs/swiftDocs/Testing/XCODEBUILD_MCP_WORKFLOW.md
+
+This guide covers:
+- XcodeBuild MCP server tools for programmatic Xcode interaction
+- Building for simulator, booting simulators, installing/launching apps
+- UI automation: screenshots, accessibility hierarchy, tap simulation
+- Debugging UI issues (button taps, gestures, navigation)
+
+=== TASK/REQUIREMENTS ===
+I have the following verification comments after thorough review and exploration of the codebase. Implement the comments by following the instructions in the comments verbatim.
+
+---
+## Comment 1: PBX build settings pin SWIFT_VERSION to 5.0, incompatible with async/await and Swift Testing used throughout.
+
+Open \`app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj\` and update \`SWIFT_VERSION\` to a modern value (e.g., \`5.10\`) for the app, unit test, and UI test build configurations. Ensure toolchain matches the selected Swift version so async/await and Swift Testing compile.
+
+### Referred Files
+- /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+---
+## Comment 2: Unit test target lacks source entries, so new TierResolver/AnalysisPipeline tests will not compile or run.
+
+Edit \`app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj\` to add \`decodingOppressionTests/TierResolverTests.swift\` and \`decodingOppressionTests/AnalysisPipelineTests.swift\` to the \`decodingOppressionTests\` target’s PBXSourcesBuildPhase. Verify the test files appear under the test target in Xcode and can be run via \`xcodebuild test\`.
+
+### Referred Files
+- /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+- /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppressionTests/TierResolverTests.swift
+- /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppressionTests/AnalysisPipelineTests.swift
+---
+=== END TASK ===
+
+
+=== REFERENCE CONTEXT ===
+Use the following documentation and context as reference:
+
+=== SWIFT DOCUMENTATION ===
+
+--- FILE: Adding-Tests-to-Your-Xcode-Project.md ---
+# Adding Tests to Your Xcode Project
+
+This comprehensive guide covers how to add and configure tests in your Xcode project, including both XCTest and Swift Testing frameworks.
+
+## Overview
+
+Testing is a crucial part of software development that helps ensure your code works correctly and continues to work as you make changes. Xcode provides powerful testing tools that integrate seamlessly with your development workflow.
+
+## Creating Test Targets
+
+### Adding a Test Target
+
+1. **Open your Xcode project**
+2. **Select your project** in the navigator
+3. **Click the "+" button** at the bottom of the target list
+4. **Choose "Unit Testing Bundle"** from the template list
+5. **Configure the target**:
+   - **Product Name**: Choose a descriptive name (e.g., "MyAppTests")
+   - **Target to be Tested**: Select your main app target
+   - **Language**: Choose Swift or Objective-C
+   - **Use Core Data**: Check if your app uses Core Data
+
+### Test Target Configuration
+
+```swift
+// Package.swift example for Swift Package
+let package = Package(
+    name: "MyPackage",
+    products: [
+        .library(name: "MyPackage", targets: ["MyPackage"]),
+    ],
+    targets: [
+        .target(name: "MyPackage"),
+        .testTarget(
+            name: "MyPackageTests",
+            dependencies: ["MyPackage"]
+        ),
+    ]
+)
+```
+
+## Test Types
+
+### Unit Tests
+
+Unit tests verify that individual components of your app work correctly in isolation.
+
+```swift
+import XCTest
+@testable import MyApp
+
+class UserManagerTests: XCTestCase {
+    var userManager: UserManager!
+    
+    override func setUp() {
+        super.setUp()
+        userManager = UserManager()
+    }
+    
+    override func tearDown() {
+        userManager = nil
+        super.tearDown()
+    }
+    
+    func testUserCreation() {
+        // Test user creation logic
+        let user = userManager.createUser(name: "John", email: "john@example.com")
+        XCTAssertNotNil(user)
+        XCTAssertEqual(user.name, "John")
+    }
+}
+```
+
+### Swift Testing Unit Tests
+
+```swift
+import Testing
+@testable import MyApp
+
+struct UserManagerTests {
+    let userManager = UserManager()
+    
+    @Test func userCreation() {
+        let user = userManager.createUser(name: "John", email: "john@example.com")
+        #expect(user != nil)
+        #expect(user?.name == "John")
+    }
+}
+```
+
+### UI Tests
+
+UI tests verify that your app's user interface works correctly by simulating user interactions.
+
+```swift
+import XCTest
+
+class MyAppUITests: XCTestCase {
+    var app: XCUIApplication!
+    
+    override func setUp() {
+        super.setUp()
+        continueAfterFailure = false
+        app = XCUIApplication()
+        app.launch()
+    }
+    
+    func testLoginFlow() {
+        // Test the login flow
+        let emailTextField = app.textFields["email"]
+        emailTextField.tap()
+        emailTextField.typeText("user@example.com")
+        
+        let passwordTextField = app.secureTextFields["password"]
+        passwordTextField.tap()
+        passwordTextField.typeText("password123")
+        
+        let loginButton = app.buttons["login"]
+        loginButton.tap()
+        
+        // Verify login success
+        XCTAssertTrue(app.staticTexts["Welcome"].exists)
+    }
+}
+```
+
+## Test Organization
+
+### File Structure
+
+Organize your tests logically:
+
+```
+MyAppTests/
+├── UnitTests/
+│   ├── Models/
+│   │   ├── UserTests.swift
+│   │   └── ProductTests.swift
+│   ├── Services/
+│   │   ├── NetworkServiceTests.swift
+│   │   └── DataServiceTests.swift
+│   └── ViewModels/
+│       └── HomeViewModelTests.swift
+├── UITests/
+│   ├── LoginFlowTests.swift
+│   ├── NavigationTests.swift
+│   └── SettingsTests.swift
+└── TestUtilities/
+    ├── MockData.swift
+    └── TestHelpers.swift
+```
+
+### Test Classes and Suites
+
+#### XCTest Organization
+
+```swift
+class AuthenticationTests: XCTestCase {
+    // Authentication-related tests
+}
+
+class DataModelTests: XCTestCase {
+    // Data model tests
+}
+
+class NetworkTests: XCTestCase {
+    // Network-related tests
+}
+```
+
+#### Swift Testing Organization
+
+```swift
+struct AuthenticationTests {
+    @Test func login() { }
+    @Test func logout() { }
+    @Test func passwordReset() { }
+}
+
+struct DataModelTests {
+    @Test func userCreation() { }
+    @Test func userValidation() { }
+}
+
+@Suite(.tags(.network))
+struct NetworkTests {
+    @Test func apiCall() { }
+    @Test func errorHandling() { }
+}
+```
+
+## Test Configuration
+
+### Build Settings
+
+Configure your test target's build settings:
+
+1. **Deployment Target**: Match your app's deployment target
+2. **Swift Version**: Use the same Swift version as your app
+3. **Code Signing**: Configure for your development team
+4. **Bundle Identifier**: Use a unique identifier (e.g., `com.yourcompany.MyAppTests`)
+
+### Scheme Configuration
+
+1. **Edit Scheme**: Product > Scheme > Edit Scheme
+2. **Test Action**: Configure test settings
+3. **Arguments**: Add launch arguments if needed
+4. **Environment Variables**: Set up test environment
+
+```swift
+// Example of using launch arguments in tests
+func testWithLaunchArguments() {
+    let app = XCUIApplication()
+    app.launchArguments = ["--uitesting", "--reset-data"]
+    app.launch()
+    
+    // Test with specific configuration
+}
+```
+
+## Test Data and Mocking
+
+### Test Data Setup
+
+```swift
+struct TestData {
+    static let sampleUser = User(
+        id: "123",
+        name: "Test User",
+        email: "test@example.com"
+    )
+    
+    static let sampleProducts = [
+        Product(id: "1", name: "Product 1", price: 9.99),
+        Product(id: "2", name: "Product 2", price: 19.99)
+    ]
+}
+```
+
+### Mock Objects
+
+```swift
+class MockNetworkService: NetworkServiceProtocol {
+    var shouldSucceed = true
+    var mockData: Data?
+    var mockError: Error?
+    
+    func fetchData(completion: @escaping (Result<Data, Error>) -> Void) {
+        if shouldSucceed {
+            completion(.success(mockData ?? Data()))
+        } else {
+            completion(.failure(mockError ?? NetworkError.unknown))
+        }
+    }
+}
+
+// Using mocks in tests
+func testDataFetching() {
+    let mockService = MockNetworkService()
+    mockService.shouldSucceed = true
+    mockService.mockData = "test data".data(using: .utf8)
+    
+    let viewModel = MyViewModel(networkService: mockService)
+    // Test with mock
+}
+```
+
+## Async Testing
+
+### XCTest Async Testing
+
+```swift
+func testAsyncOperation() async throws {
+    let expectation = XCTestExpectation(description: "Async operation")
+    
+    Task {
+        let result = await performAsyncOperation()
+        XCTAssertNotNil(result)
+        expectation.fulfill()
+    }
+    
+    await fulfillment(of: [expectation], timeout: 5.0)
+}
+```
+
+### Swift Testing Async
+
+```swift
+@Test func asyncOperation() async throws {
+    let result = try await performAsyncOperation()
+    #expect(result != nil)
+}
+```
+
+## Performance Testing
+
+### XCTest Performance Tests
+
+```swift
+func testPerformance() {
+    measure(metrics: [XCTClockMetric(), XCTMemoryMetric()]) {
+        // Code to measure
+        let array = Array(0..<1000000)
+        let sorted = array.sorted()
+    }
+}
+```
+
+### Custom Performance Metrics
+
+```swift
+func testCustomPerformance() {
+    measure(metrics: [XCTClockMetric()]) {
+        // Measure specific operation
+        let result = expensiveOperation()
+        XCTAssertNotNil(result)
+    }
+}
+```
+
+## Test Coverage
+
+### Enabling Code Coverage
+
+1. **Edit Scheme**: Product > Scheme > Edit Scheme
+2. **Test Action**: Check "Gather coverage data"
+3. **Run Tests**: Execute your test suite
+4. **View Coverage**: Report Navigator > Coverage
+
+### Coverage Analysis
+
+```swift
+// Example of testing edge cases for better coverage
+func testEdgeCases() {
+    // Test with empty input
+    let emptyResult = processData([])
+    XCTAssertTrue(emptyResult.isEmpty)
+    
+    // Test with nil input
+    let nilResult = processData(nil)
+    XCTAssertNil(nilResult)
+    
+    // Test with maximum values
+    let maxResult = processData(Array(repeating: 1, count: 10000))
+    XCTAssertNotNil(maxResult)
+}
+```
+
+## Continuous Integration
+
+### Xcode Cloud
+
+Configure tests for Xcode Cloud:
+
+1. **Create Workflow**: Add test action
+2. **Configure Environment**: Set up test environment
+3. **Add Test Plans**: Include test plans in workflow
+4. **Monitor Results**: View test results in Xcode Cloud
+
+### Command Line Testing
+
+```bash
+# Run all tests
+xcodebuild test -scheme MyApp -destination 'platform=iOS Simulator,name=iPhone 15'
+
+# Run specific test class
+xcodebuild test -scheme MyApp -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:MyAppTests/UserManagerTests
+
+# Run with coverage
+xcodebuild test -scheme MyApp -destination 'platform=iOS Simulator,name=iPhone 15' -enableCodeCoverage YES
+```
+
+## Best Practices
+
+### Test Naming
+
+- **Descriptive Names**: Use clear, descriptive test names
+- **Consistent Format**: Follow a consistent naming convention
+- **Include Context**: Include what you're testing and expected outcome
+
+```swift
+// Good test names
+func testUserCreationWithValidData() { }
+func testUserCreationWithInvalidEmailThrowsError() { }
+func testUserDeletionRemovesUserFromDatabase() { }
+
+// Swift Testing
+@Test func userCreationWithValidData() { }
+@Test func userCreationWithInvalidEmailThrowsError() { }
+@Test func userDeletionRemovesUserFromDatabase() { }
+```
+
+### Test Structure
+
+Follow the Arrange-Act-Assert pattern:
+
+```swift
+func testUserValidation() {
+    // Arrange
+    let validEmail = "user@example.com"
+    let validPassword = "SecurePassword123"
+    
+    // Act
+    let isValid = UserValidator.validate(email: validEmail, password: validPassword)
+    
+    // Assert
+    XCTAssertTrue(isValid)
+}
+```
+
+### Test Independence
+
+```swift
+class IndependentTests: XCTestCase {
+    override func setUp() {
+        super.setUp()
+        // Set up fresh state for each test
+        UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier!)
+    }
+    
+    override func tearDown() {
+        // Clean up after each test
+        super.tearDown()
+    }
+}
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Tests Not Running**
+   - Check target membership
+   - Verify build settings
+   - Ensure proper imports
+
+2. **Import Errors**
+   - Use `@testable import` for internal types
+   - Check module names
+   - Verify target dependencies
+
+3. **UI Test Failures**
+   - Check element accessibility
+   - Verify timing issues
+   - Use proper waits
+
+### Debugging Tests
+
+```swift
+func testWithDebugging() {
+    print("Starting test...")
+    
+    // Add breakpoints
+    let result = performOperation()
+    
+    print("Result: \(result)")
+    XCTAssertNotNil(result)
+}
+```
+
+## Migration from XCTest to Swift Testing
+
+### Gradual Migration
+
+You can run both XCTest and Swift Testing side by side:
+
+```swift
+// Keep existing XCTest
+class LegacyTests: XCTestCase {
+    func testLegacyFunctionality() { }
+}
+
+// Add new Swift Testing
+struct NewTests {
+    @Test func newFunctionality() { }
+}
+```
+
+### Converting Tests
+
+```swift
+// XCTest
+func testUserCreation() {
+    let user = User(name: "John")
+    XCTAssertEqual(user.name, "John")
+}
+
+// Swift Testing
+@Test func userCreation() {
+    let user = User(name: "John")
+    #expect(user.name == "John")
+}
+```
+
+## References
+
+- [Apple Developer Documentation - Adding Tests](https://developer.apple.com/documentation/xcode/adding-tests-to-your-xcode-project)
+- [XCTest Framework Documentation](https://developer.apple.com/documentation/xctest)
+- [Swift Testing GitHub Repository](https://github.com/swiftlang/swift-testing)
+- [WWDC Testing Sessions](https://developer.apple.com/videos/wwdc2024)
+
+---
+
+*This comprehensive guide covers all aspects of adding and configuring tests in your Xcode project, from basic setup to advanced testing strategies.*
+--- END FILE ---
+
+--- FILE: README.md ---
+# Swift Testing
+
+<!--
+This source file is part of the Swift.org open source project
+
+Copyright (c) 2024 Apple Inc. and the Swift project authors
+Licensed under Apache License v2.0 with Runtime Library Exception
+
+See https://swift.org/LICENSE.txt for license information
+See https://swift.org/CONTRIBUTORS.txt for Swift project authors
+-->
+
+Swift Testing is a package with expressive and intuitive APIs that make testing
+your Swift code a breeze.
+
+[![CI status badge for main branch using main toolchain](https://github.com/swiftlang/swift-testing/actions/workflows/main_using_main.yml/badge.svg?branch=main&event=push)](https://github.com/swiftlang/swift-testing/actions/workflows/main_using_main.yml)
+[![CI status badge for main branch using 6.2 toolchain](https://github.com/swiftlang/swift-testing/actions/workflows/main_using_release.yml/badge.svg?branch=main&event=push)](https://github.com/swiftlang/swift-testing/actions/workflows/main_using_release.yml)
+
+## Feature overview
+
+### Clear, expressive API
+
+Swift Testing has a clear and expressive API built using macros, so you can
+declare complex behaviors with a small amount of code. The `#expect` API uses
+Swift expressions and operators, and captures the evaluated values so you can
+quickly understand what went wrong when a test fails.
+
+```swift
+import Testing
+
+@Test func helloWorld() {
+  let greeting = "Hello, world!"
+  #expect(greeting == "Hello") // Expectation failed: (greeting → "Hello, world!") == "Hello"
+}
+```
+
+### Custom test behaviors
+
+You can customize the behavior of tests or test suites using traits specified in
+your code. Traits can describe the runtime conditions for a test, like which
+device a test should run on, or limit a test to certain operating system
+versions. Traits can also help you use continuous integration effectively by
+specifying execution time limits for your tests.
+
+```swift
+@Test(.enabled(if: AppFeatures.isCommentingEnabled))
+func videoCommenting() async throws {
+    let video = try #require(await videoLibrary.video(named: "A Beach"))
+    #expect(video.comments.contains("So picturesque!"))
+}
+```
+
+### Easy and flexible organization
+
+Swift Testing provides many ways to keep your tests organized. Structure
+related tests using a hierarchy of groups and subgroups. Apply tags to flexibly
+manage, edit, and run tests with common characteristics across your test suite,
+like tests that target a specific device or use a specific module. You can also
+give tests a descriptive name so you know what they’re doing at a glance.
+
+```swift
+@Test("Check video metadata",
+      .tags(.metadata))
+func videoMetadata() {
+    let video = Video(fileName: "By the Lake.mov")
+    let expectedMetadata = Metadata(duration: .seconds(90))
+    #expect(video.metadata == expectedMetadata)
+}
+```
+
+### Scalable coverage and execution
+
+Parameterized tests help you run the same test over a sequence of values so you
+can write less code. And all tests integrate seamlessly with Swift Concurrency
+and run in parallel by default.
+
+```swift
+@Test("Continents mentioned in videos", arguments: [
+    "A Beach",
+    "By the Lake",
+    "Camping in the Woods"
+])
+func mentionedContinents(videoName: String) async throws {
+    let videoLibrary = try await VideoLibrary()
+    let video = try #require(await videoLibrary.video(named: videoName))
+    #expect(video.mentionedContinents.count <= 3)
+}
+```
+
+### Cross-platform support
+
+Swift Testing is included in officially-supported Swift toolchains, including
+those for Apple platforms, Linux, and Windows. To use the library, import the
+`Testing` module:
+
+```swift
+import Testing
+```
+
+You don't need to declare a package dependency to use Swift Testing. It's
+developed as open source and discussed on the
+[Swift Forums](https://forums.swift.org/c/development/swift-testing/103)
+so the very best ideas, from anywhere, can help shape the future of testing in
+Swift.
+
+The table below describes the current level of support that Swift Testing has
+for various platforms:
+
+| **Platform** | **Support Status** |
+|-|-|
+| Apple platforms | Supported |
+| Linux | Supported |
+| Windows | Supported |
+| FreeBSD, OpenBSD | Experimental |
+| Wasm | Experimental |
+| Android | Experimental |
+
+### Works with XCTest
+
+If you already have tests written using XCTest, you can run them side-by-side
+with newer tests written using Swift Testing. This helps you migrate tests
+incrementally, at your own pace.
+
+## Documentation
+
+Detailed documentation for Swift Testing can be found on the
+[Swift Package Index](https://swiftpackageindex.com/swiftlang/swift-testing/main/documentation/testing).
+There, you can delve into comprehensive guides, tutorials, and API references to
+make the most out of this package. Swift Testing is included with the Swift 6
+toolchain and Xcode 16.  You do not need to add it as a package dependency to
+your Swift package or Xcode project.
+
+> [!IMPORTANT]
+> Swift Testing depends on upcoming language and compiler features. If you are
+> building Swift Testing from source, be aware that the main branch of this
+> repository requires a recent **main-branch development snapshot** toolchain.
+
+Other documentation resources for this project can be found in the
+[README](https://github.com/swiftlang/swift-testing/blob/main/Documentation/README.md) 
+of the `Documentation/` subdirectory.
+--- END FILE ---
+
+--- FILE: Fix-failures_faster-with-xcode-test-reports.md ---
+Sonu: Hi, my name is Sonu, and I am a human interface designer working on Xcode. And I am thrilled to give you a tour of the new Test Report in Xcode 15. The test report is where you go to view results for test runs that happen locally, in Xcode Cloud, or on another machine. test runs range from a single test you're running while working on a piece of code to an entire suite with thousands of tests running in CI. The test report organizes your test results in a way that helps you understand the health of your project, identify problem areas, and ultimately fix failures faster. Before we start exploring the new test report, I'd like to take a step back and define some key terms and concepts related to testing in Xcode. It's useful to understand the organizing concepts behind the structure of your tests. After I run through the basics, we will take a look at the test report and explore how it can help you. Let's begin with test methods. Test methods are the individual tests or methods which validate your source code and produce test results. Next, there are test classes. Test classes are groups of test methods and are usually grouped based on the area that's being tested. After that, there are test bundles. Test bundles are composed of one or more test classes. Each bundle houses a single type of test, either Unit or UI. Unit tests help verify a single piece of code, generally a function. Unit tests are short, simple, and run very quickly. UI tests observe the user-facing behavior of your app. These tests make sure your app truly does what you expect it to. For our purposes, let's say, our test bundle contains UI tests. And at the highest level, there are test plans. Test plans contain one or more test bundles, which means a test plan can contain both Unit and UI tests. And with Test plans, you can set up configurations to efficiently run your tests under several conditions. Configurations are an important aspect of test plans. Configurations tell Xcode how to set up the runtime environment for your tests. For example, you can test your app in varying Languages and Locations, so you can be sure your app works in every part of the world. You can test with code coverage, so you can keep track of the quality and coverage of your code as you continue to develop. You can even set up your tests to run many times. This ensures all elements of your app are reliably working, regardless if it's the first or hundredth time a user has used it. Alongside configurations, there are run destinations. Run destinations are the devices where your tests run. When running tests in Xcode's IDE, you can select a single run destination. With Xcode Cloud and xcodebuild command, your tests can have multiple run destinations. So now that we've covered the basics, let's see how tests, configurations, and run destinations work together. Let's say, we are using the same test plan as I spelled out before. Lately, I've been working on supporting many languages in my app. So to make sure my app is working as expected, I've created configurations for the languages I want to support, the first being English. And on top of that, let's say I'm running this test plan on three run destinations. The test plan runs on each device once with a configuration enabled. And each method will exit with a test result status, either passed, failed, skipped, or expected failure. For my app, I've also been working on supporting a few more languages, and I've made test plan configurations for each language. This means, Xcode runs the full test plan once for each configuration and run destination, resulting in a whole matrix filled with results. Zooming in, a result is produced for every test method, configuration, and run destination combination. This individual instance is called a test method run.
+
+Test runs range from a single test you're running while working on a piece of code to an entire suite with thousands of tests running multiple configurations on multiple destinations, similar to my previous example. The new test report gives you tools to help you understand your test run, regardless of the number of tests. To do that, the new test report provides a high level summary of your test run, so you can see the big picture before digging into the details. It highlights important patterns, so you quickly know where to start investigating. It gives you a single place to see test activity, failure information, screenshots, and more. And lastly, we've improved our UI test debugging tools, giving you richer failure information. Okay, so we've covered a ton of concepts around testing and the benefits of the test report. Now let's see it in action. I've been working on a new feature for my iOS app, Backyard Birds. Similar to my previous example, I am doing work to make Backyard Birds available in many languages. As I've been adding support for more languages, I've been testing locally and in Xcode Cloud to make sure I'm not breaking anything. Let's take a look at some of my CI runs. I have a workflow set in Xcode Cloud to automatically run a handful of unit tests when I open a pull request. In the Build Overview, I can quickly understand what started my workflow, what code changes were built, and the workflow this build came from. I can also find out how my actions performed in this build. And oof, some of my tests have failed. Let's check them out.
+
+When checking out the test action, I come across the new test report. Specifically, I find the test summary. The test summary gives me an overall understanding of what happened in this test run.
+
+I can quickly understand my testing environment. I can also explore any notable patterns found in my test results using Insights. Insights are the patterns Xcode found while analyzing my results across all configurations and run destinations. It groups results based on certain criteria. Today, we have two types of Insights: Common Failure Patterns and Longest Test Runs. The Common Failure Pattern insight groups tests based on similar failure messages, while “Longest Test Runs” clues you in on which tests in your test bundles are taking longer than the others. Within the test section, I can understand how my tests performed during this run. I can also get more details about my test plan. I can understand what special traits my test plan has, like test repetitions or performance metrics. When testing with many run destinations and configurations, it can be hard to understand how each run performed. With this heat map, I can quickly digest how my tests did on each device and configuration. And the colors and test result counts help me understand how this run did when compared to the others. And if I have any test failures, I have quick access to them on the test summary. If a particular failure message catches my attention, I can use this section to start investigating. Speaking of attention-grabbing failures, when I was checking out the insights earlier, the first insight stuck out to me. It mentions I have three tests which failed with a similar failure message. Let's find out why these tests failed. After choosing a specific insight, I can use this view to learn more about it. I can find the failure message found in all of the tests, and I can see the tests that failed. Additionally, I can understand which configurations and run destinations produced these unit test failures. And with this information, I can get a signal as to why these tests failed with very similar failure messages. To keep investigating, let's check out one of the test method runs. After choosing a test method run, I find the test details view for testGardenSupplies(). The test details view creates a dedicated space to focus on the results of a single test method. This is where I can find test details and failure information, so I can start debugging. I can use the header to get full context of what happened across all configurations and run destinations. And in the runs view, I can explore how this method performed on each configuration and run destination. I can also find the failure message and call stack for the selected test method run. The failure message and call stack are valuable tools for debugging. They are the key pieces that help identify the source of the failure. The call stack also gives me entry points back into my source code, where I can continue investigating the failure. Alongside my unit tests, I've been running a slew of UI tests locally to make sure Backyard Birds meets customer expectations and performs as it should across different platforms and devices. Let's review a local test run from earlier. For this test run, I can still use the test summary to understand what happened. I have environment details at the top, Insights, and then the test section at the bottom. This first failure in the test section caught my attention. The failure message suggests that the test was unable to locate one of the buttons. Let's check it out. After choosing a failure, I find the test details view for testClickTabsAfterSearch(). Since I am looking at a UI test, navigating to the test details lands me on the Activities tab. The test report has a ton of awesome new features to help me understand and resolve my failures. The activities tab contains three major sections: Test activity, automation explorer, and the scrubber.
+
+The test activity lays out my test in a timeline format, where the top-most row is the start of the test, and the bottom row is the end, and each row in between is an event which took place in the test. There is the automation explorer. This is where I can find moments of video playback related to the selected test activity. This allows me to see a full replay of my test. And lastly, there is the scrubber, which a linear representation of my test run. I can use the scrubber to locate test events, like taps, swipes, and clicks. The scrubber even highlights when the device-under-test changes orientation. And the failure icon above the scrubber notes where in the test the failure occurred. I can use these indicators to quickly find interesting moments in the test run and ensure interactions in my app are working as expected. With these new pieces, the test report has a test debugging experience that is interactive. Let's check out how it can help me solve this error. Clicking on an event in the activities pane updates the automation explorer with the corresponding frame from video playback, so I can visually understand what's happening at each moment of the test. It also moves the scrubber to the right spot, so I have context as to where events are taking place in relation to the full test run. When I'm debugging failures, I like to see the moments leading up to the failure.
+
+I can watch my test run to see if anything unexpected happened that could have caused the error. After watching the video playback, everything seems good.
+
+Based on this failure message, it seems the “Account” button wasn't found in the UI. The automation explorer shows me what was happening on the device when the failure occurred. The “Account” button is visible and has a bounding box over it. Clicking on the bounding box gives me more information about this specific UI element. Here is where I can find identifier and hierarchy information related to this element. Based on the information I have here, it seems like I labeled the “Account” button incorrectly within my app. From here, I can navigate to my project source and fix the error. The new Test Report made it very easy for me to understand my test run. Within a few moments, I was able to find which tests failed, find a solution, and fix the failure. Failures can happen locally and in CI, and it's best practice to test in both places. So I am happy to say the test report is available in Xcode & Xcode Cloud. So time is precious, y'all. The new features added to the test report will help you quickly understand your test run, identify problem areas, and ultimately, fix failures faster. Thank you so much for tuning in, and I hope you enjoy the rest of WWDC
+--- END FILE ---
+
+--- FILE: Record-replay-and-review-UI-automation-with-xcode.md ---
+Hey, I’m Max, and I’m an engineer on the Xcode team. There are so many awesome features and experiences inside of Xcode, it can be overwhelming. For example, did you know it’s possible to watch your app run on dozens of devices, languages, and configurations with one click? And on top of that, you can get a full quality video recording of every single run. Well, that’s totally possible with the power of UI automation in Xcode. Let's take a look at how that works. First, we’ll cover an overview of UI automation. Then we’ll prepare your app, record your interactions as automation code, replay the automation across several devices and languages, and finally, watch video recordings of the results and see a report about whether each run passed or failed.
+
+Let’s start with an overview of how UI automation works.
+
+Inside Xcode, we have two testing frameworks: Swift Testing and XCTest. Both frameworks are capable of quickly testing your app and your source code in many configurations.
+
+When you import XCTest, a framework called XCUIAutomation is automatically included. XCUIAutomation can be used to automate your app and interact with it like a person does. These frameworks work together to provide a complete app testing suite, and if you ask me, I think that’s pretty sweet.
+
+A complete app testing suite is usually comprised of both unit and UI automation tests. Unit tests test your app’s logic and models, and with Swift testing, it’s possible to run tests on frameworks and Swift packages that don’t even have a user interface.
+
+Meanwhile, UI automation tests validate your app’s user experience, as well as its integration with Apple hardware and the behavior of common workflows.
+
+Generally, your test suite will have more unit tests than UI tests, and you want to aim for full coverage of your code. But UI automation tests let you see how your app looks, behaves, and integrates with the rest of the operating system. There are so many benefits to doing this.
+
+For example, you can test your app as a person would with gestures like taps, swipes and clicks. You can understand how your app is perceived by people who use assistive technologies like VoiceOver, Voice Control, and Dynamic Type.
+
+You can view your app running on all of the languages and regions that it supports and focus on languages that have large effects on the look of your app, like languages with longer strings and languages with a right-to-left layout. You can test your app’s integration with Apple hardware features, like the Action button, camera button, Apple TV remote, and Apple Watch’s Digital Crown. And finally, you can test your app’s launch performance, which is a key metric in understanding how quickly people can get started using your app. To set up a UI automation workflow, there are three key phases: record, replay, and review.
+
+First, record your interactions like taps, swipes, and hardware button presses, then watch Xcode automatically write those as code. Then, replay your interactions across multiple devices, languages, regions, and device orientations, both on your devices and in Xcode Cloud. Finally, review videos and results of your app running in all of those configurations and see which ones passed and which ones failed.
+
+UI automation is supported on all Apple platforms: iOS, iPadOS, macOS, watchOS, tvOS, and visionOS (Designed for iPad). The same automation can even run on multiple platforms. So it’s possible to build an automation once and run it on all your supported devices. That means you can see how your app runs on Mac, iPhone and Vision Pro with one click and no code changes. Let’s briefly go over how UI automation works.
+
+UI automation interacts with your app as a person does using gestures and hardware events. Automation runs completely independently from your app, so your app models and data are not directly accessible.
+
+UI automation tells the operating system which gestures to perform, then synchronously waits for them to complete one at a time.
+
+These actions include launching your app, interacting with buttons and navigation, setting system state like Dark Mode, and even setting a simulated location for the device if you wanted to. At Apple, accessibility is one of our core values. Apple’s assistive technologies make sure that everyone can use your app regardless of any physical, visual, audible or motor impairment. We work really hard to ensure that most of these technologies work with your app by default, with no work needed from you as a developer. That said, adding additional support can enrich your app’s experience and make it even easier to automate. The thing is, accessibility is the underlying framework that powers UI automation. Having a great accessibility experience means you get a great UI automation experience too.
+
+Accessibility provides information directly to UI automation, such as element types, labels, values and frames but what accessibility sees is not necessarily one-to-one with what you see as a person.
+
+Let’s take a look at an example. On this screen, the Great Barrier Reef button is visible in the UI but accessibility can see even more than that. Sure, accessibility can see the elements type and label and expose them to UI automation but the identifier property is also exposed. The accessibility identifier can be used to describe any element on screen uniquely, relative to all the elements around it. The identifier is not designed to be localized, so you can use it to refer to the same UI element in any language or device.
+
+For checkboxes and other stateful elements, a value property can be used. This reveals the element’s current state to both accessibility and UI automation.
+
+To learn way more about accessibility, check out “Build accessible apps with SwiftUI and UIKit” from WWDC23, or “SwiftUI Accessibility: Beyond the basics” from WWDC21.
+
+Now that we’ve explored how a UI automation works with accessibility, let’s prepare your app automation.
+
+First, we’ll add accessibility identifiers. Then we’ll do a quick review of your app’s accessibility. And finally, we’ll add a new UI testing target to get ready to record our interactions as code. Before we dive in, it's worth noting that your app already fully supports UI automation and UI recording out of the box with no work needed from you as a developer. The steps we’re about to cover are not required but they can lead to better and higher-quality results. Adding accessibility identifiers can be done in your view code written in SwiftUI, UIKit or AppKit. Accessibility identifiers are the best way to uniquely identify any element in your app for automation. It’s a good idea to add accessibility identifiers to elements with localized strings or dynamic content. That includes content found in any of your data models or content that’s downloaded from the internet.
+
+Good identifiers are unique within your entire app, descriptive enough to detail the element that they are on, and static, not reacting to changes in content.
+
+While titles and descriptions might change, good identifiers always describe the contents of the element they are attached to. That way, we can be sure my lovely landmarks stick around forever.
+
+In SwiftUI, you can add the accessibilityIdentifier modifier to any UI element. It will be recognized as long as your view and its parent views are not hidden from accessibility.
+
+It’s a good idea to make identifiers specific to an instance of a view, especially for views that are used many times in your app. In this example, we use the landmark’s id property to make the identifier unique for each one.
+
+In UIKit, the accessibilityIdentifier property can be set on any UIView as long as the view is an accessibility element. Most UI views, like controls, text and images, are accessibility elements by default so usually no work is needed to do this.
+
+Properties like accessibilityLabel, accessibilityTraits and accessibilityValue are useful to assistive technologies like VoiceOver and are also useful to UI automation.
+
+However, the accessibilityIdentifier property is not read out loud by VoiceOver and is not exposed to anyone using your app. This makes it a useful way to provide information that is only useful to automation, like the index of a table cell or the symbol name of an image. I can even have the coding assistant in Xcode add accessibility identifiers for me. For example, I can write, “Add accessibility identifiers to the relevant parts of this view”, and it will just happen. The coding assistant even knows how to use the id property on a landmark to make each identifier completely unique. Pretty cool. Reviewing your app’s overall accessibility behavior is a good idea before starting UI recording. It’s like flossing before going to the dentist. You’re going to know exactly how well you’ve been doing soon. This will just give you a good preview of it. Xcode ships with an app called Accessibility Inspector, which lets you find, diagnose and fix accessibility issues. The Inspector can be launched from the Xcode top-level menu under Open Developer Tool. It can also be launched from Spotlight.
+
+Accessibility Inspector can list the accessibility values for any view in your app on any platform. Simply select the platform you wish to inspect, then click the Element inspector and interact with the UI element you want to learn about on that platform. A list of element properties will be displayed. Some of them, like the ones in the Basic section, are really useful to UI automation. For views that are lacking information, you may want to change your app’s source code and add some. You can find out details about each property by clicking a property’s name. The popover will tell you exactly which property to set, provide documentation about it and more.
+
+You can learn even more about accessibility features with our sample code project, “Delivering an exceptional accessibility experience.” This project provides some great code examples for an app that uses many accessibility features and is really friendly to UI automation. Also, check out the article, “Performing accessibility testing for your app” to learn about ways to check your app’s accessibility using a bunch of different assistive technologies. Once we’re ready to start automating, we need to add a new UI testing target to have somewhere to put our automation code.
+
+In the project settings view in Xcode, add a new target with the “plus” button below the targets list.
+
+Then select UI Testing Bundle from the popover.
+
+Once you click Finish, a new UI test folder and template will be added to your project.
+
+The template has some simple tests to help you get started. Okay, now we’re ready to magically record all of our interactions as Swift code. Let’s use iOS Simulator and Xcode for this. A few years ago, my mom and sister went on a month-long trip to Australia without me, and I’m pretty bummed I didn’t get to go with them. Lucky for me, there's an app for that. I can use the Landmarks sample project from this year’s WWDC to plan a vacation of my own. I’ll record some interactions that plan my trip so I can ensure that workflow doesn’t break in future versions of the app. When I open the UI test source file for the first time, a popover will appear telling me how I can start a UI recording. Now, I’ll start a UI recording using the button in the sidebar, and Xcode will automatically build and relaunch my app in Simulator.
+
+Now that my app is launched, I'll go to the collections view.
+
+As I interact with the app, the code representing my interactions is recorded in the source editor. I’ll tap the Plus button to add a new collection to start planning my own trip to Australia. Now I’ll tap the Edit button to rename the trip, and I can rename the trip “Max’s Australian Adventure”.
+
+Xcode will keep my test up-to-date as I keep typing.
+
+Now I'll edit the collection of landmarks.
+
+Just add some Australian landmarks like the Great Barrier Reef and Uluru and tap the check mark.
+
+Once I go back to the collections view, I can see that my collection has been added with some Australian landmarks included.
+
+You can stop UI recording with the Stop Run button in Xcode. After you finish recording, there are a few things you might want to do to make sure you got the automation you wanted. First, review the recorded code. Then add validations using XCTest APIs to ensure your app is behaving as you expected it to. And finally, explore other automation APIs that can make your test even more powerful.
+
+Let’s review the UI queries that were recorded and see if I want to make any adjustments.
+
+Every line of recorded code will have multiple options to address each UI element, and which one you choose depends on your goals. You can click the dropdown on each line of source code to see the choices.
+
+Quick hint, choosing the right one will help you board your plane to Australia faster.
+
+We have a few recommendations to help you select from the options.
+
+For views that have localized strings, like text elements or buttons, we recommend choosing an accessibility identifier if there is one. UI recording tries to use the identifier by default if one exists.
+
+For views that are deeply nested, like text in scroll views, we recommend choosing the shortest possible query. This will help your automation stay resilient as your app changes.
+
+Lastly, for dynamic content that is downloaded from the internet or content that changes frequently, like timestamps or the temperature, we recommend using a more generic query or an accessibility identifier if one is present.
+
+In this example, we don’t even use an identifier or any string at all, and we always just refer to the first piece of text.
+
+Okay, now it's time to make a selection. I’ll click the line of source code I want to edit to see the options. All of these queries uniquely identify the element you interacted with, so there's really no wrong choice. It’s just about choosing how you want to store a reference to this piece of UI for the future. I’ll select the textFields.firstMatch option to make sure the text field is always tapped in my test no matter what it’s called. Double click any of the dropdowns to store this result in your source code. Now let's quickly rerun my automation to see if it recorded my actions correctly. I'll click the test diamond to run it. While we might be testing your app, we aren't trying to test your patience. The automation replay runs really fast.
+
+The collection gets quickly created with the correct name, the locations get added, and the automation passes. Awesome.  That was way faster than a 19-hour flight. Now we can add validations to the code to check the expected behavior. In this example, I’ll validate that the Great Barrier landmark was added to my collection.
+
+I can call methods like waitForExistence to have my automation wait for an element to appear before moving on. I can also call the more generic method, wait(for:toEqual:) to validate that any property on an XCUIElement matches the expected result.
+
+I can pair both of these methods with XCTAssert statements from XCTest to fail the test if these methods return false.
+
+Now, let me go back to my code and quickly add a waitForExistence on the name of my collection to make sure it’s always there in future runs.
+
+Now is a good time to explore other automation APIs to make your code even more powerful.
+
+It can be useful to use the setup instance method of an XCTestCase to make sure the device is in the same state in future runs. I can call APIs like orientation, appearance or even simulate a location to get my device into the correct state before a run starts.
+
+Before launching my app, I can use properties like launchArguments and launchEnvironment to have my app use those parameters when the launch method is called.
+
+If your app supports a custom URL scheme, you can open it to a matching URL directly using the XCUIApplication open method.
+
+There’s even a global version, which opens a URL using the device’s default app for it.
+
+Lastly, it’s possible to perform an accessibility audit of your app inside a UI test. There’s a great session on that called “Perform accessibility audits for your app” from WWDC23. Now that we’ve recorded our interactions and set up our automation, let’s configure the tests to replay in multiple configurations, both at-desk and in the cloud. It's really useful to add your test to a new or existing test plan. Test plans let you include or exclude individual tests, set system settings for where and how your tests run, and manage test properties like timeouts, repetitions, parallelization, execution order and more.
+
+Test plans are also associated with a scheme, which lets you pair a test plan with specific build settings.
+
+You can learn a lot more about this with the article, “Improving code assessment by organizing tests into test plans” in our developer documentation.
+
+In your test plan, you can add or remove tests on the first screen or switch to the Configurations tab to make changes to how the test will run.
+
+I can set up multiple configurations to run my app in multiple languages.
+
+Typically, each locale exists as a separate configuration in your test plan.
+
+You can have settings that are focused for a specific locale configuration or other settings that are shared across all of them.
+
+It can be helpful to include configurations for languages with longer strings, like German, or right-to-left languages, like Arabic and Hebrew.
+
+There are even UI automation-focused settings in the Configurations tab.
+
+These include whether to capture a video or screenshots during the run and whether any media will be kept afterwards.
+
+By default, videos and screenshots are only kept for failing runs, to let you review any issues. If you want to keep them for all runs, even runs that pass, select "On, and keep all". This setting would let you keep video recordings for other purposes, like documentation, tutorials or marketing. There are so many other great settings to explore in the Configurations tab. To learn more about them, check out “Author fast and reliable tests for Xcode Cloud” from WWDC22.
+
+Xcode Cloud is a service built into Xcode that’s also available in App Store Connect. It can help you build your app, run tests, upload to the App Store and so much more. All of that happens in the cloud without you using any of you or your team’s devices. I think you’ll find that when it comes to Xcode Cloud, it’s all sun and games. For the Landmarks app, we’ve configured an Xcode Cloud workflow that runs all of the UI automations I just wrote, using the test plan I just created. This plan will run the same way in the cloud as it was run on my simulator, on any number of devices and configurations like English, Arabic, Hebrew, and German on iPhone and iPad.
+
+You can view a history of your Xcode Cloud runs from within Xcode or in the Xcode Cloud section of App Store Connect. There, you can see an overview of build information, logs, failure descriptions and more.
+
+Using Xcode Cloud, my entire team can see a history of my runs and download results and video recordings from them. They can do that even if I’m literally in the clouds, and by that I mean on my flight to Sydney.
+
+There’s so much more to learn about Xcode Cloud. For more advanced configurations, check out “Create practical workflows in Xcode Cloud” from WWDC23. Now that we’ve run our recorded tests using a test plan in multiple configurations, we can review the results and the video recordings using the test report. The Xcode test report has some great tools to help you view, understand and diagnose your test results. It looks like one of our runs failed from the automation I just ran. Guess I can’t pack my bags for Australia just yet.
+
+To navigate to my failing test, I’ll click the Test button, then I’ll double click the failing run to see a video recording and a description of what just happened.
+
+I can see all of the runs in this test in the runs drop-down. This lets me quickly switch between video recordings of my test running in different configurations, like different languages. Also, fun fact, I can download the video by using a secondary click and choosing Save.
+
+I’ll press Play to start video playback.
+
+As the video plays, dots showing UI interactions are overlayed on top of the video. These actions are also represented in the timeline below as dots.
+
+Looks like there will be a bit of time before my failure, so let’s skip ahead. I’ll jump straight to the failure moment using the failure diamond on the timeline.
+
+I see a failure message, but it’s hard to say what went wrong. The message says we’re looking for a button called Max’s Australian Adventure. Let’s see what was actually present at the point of failure.
+
+At the moment of failure, I see an overlay of all of the UI elements that were present right on top of the video recording.
+
+If I click any of these, I get code recommendations for ways I can address this element in my automation code. I can even hit Show All to see alternative examples and find one that works for me.
+
+I think I see what's wrong. We were expecting a button, but there’s no button here. It's just text. Let me fix that really quick.
+
+I’ll select the sample I want and secondary click to copy it.
+
+Then, I can click View Source to go directly to my tests and paste the new line of code over my existing one.
+
+Now, I can replace the temporary XCUIApplication variable with the app variable for my UI recording, and I’m good to go.
+
+Great, now this should run as expected. Let me click the test diamond to watch the test rerun.
+
+This time, I’ll run the test in Arabic to see that the same automation works even when my app is running in a right-to-left layout.
+
+The automation quickly creates my collection and renames it just as it does in English.
+
+Pretty cool.
+
+Looks like the automation passed. Time to finish this up and go on the trip of a lifetime. Maybe my mom and sister can come along to show me around. There’s so much more we can do with the Xcode test report. Luckily, the session “Fix failures faster with Xcode test reports” from WWDC23 really goes in depth and covers it all. It’s amazing how UI automation, accessibility, localization, Xcode Cloud and the test report all work together to increase the quality of your app and make it easier to use for everyone around the world. Bringing these technologies together into a single flow has been such a joy, and I can’t wait to see how it’s used by developers.
+
+You can learn more about unit testing and Swift testing in the talk “Meet Swift Testing” from WWDC24. If you have additional questions or feedback, you can find us in the Developer Forums. Thanks for following along, and I’ll see you in Australia.
+
+## Accessibility Identifiers and UI Testing (07:52 - 17:13)
+
+```swift
+// 07:52 - Adding accessibility identifiers in SwiftUI
+import SwiftUI
+
+struct LandmarkDetailView: View {
+    let landmark: Landmark
+    var body: some View {
+        VStack {
+            Image(landmark.backgroundImageName)
+                .accessibilityIdentifier("LandmarkImage-\(landmark.id)")
+
+            Text(landmark.description)
+                .accessibilityIdentifier("LandmarkDescription-\(landmark.id)")
+        }
+    }
+}
+```
+
+```swift
+// 08:19 - Adding accessibility identifiers in UIKit
+import UIKit
+
+struct LandmarksListViewController: UIViewController {
+    let landmarks: [Landmark] = [landmarkGreatBarrier, landmarkCairo]
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        for landmark in landmarks {
+            let button = UIButton(type: .custom)
+            setupButtonView()
+
+            button.accessibilityIdentifier = "LandmarkButton-\(landmark.id)"
+
+            view.addSubview(button)
+        }
+    }
+}
+```
+
+```swift
+// 13:54 - Best practice: Prefer accessibility identifiers over localized strings
+// Example SwiftUI view
+struct CollectionDetailDisplayView: View {
+    var body: some View {
+        ScrollView {
+            Text(collection.name)
+                .font(.caption)
+                .accessibilityIdentifier("Collection-\(collection.id)")
+        }
+    }
+}
+
+// Example of a worse XCUIElementQuery
+XCUIApplication().staticTexts["Max's Australian Adventure"]
+
+// Example of a better XCUIElementQuery
+XCUIApplication().staticTexts["Collection-1"]
+```
+
+```swift
+// 14:09 - Best practice: Keep queries as concise as possible
+// Example SwiftUI view
+struct CollectionDetailDisplayView: View {
+    var body: some View {
+        ScrollView {
+            Text(collection.name)
+                .font(.caption)
+                .accessibilityIdentifier("Collection-\(collection.id)")
+        }
+    }
+}
+
+// Example of a worse XCUIElementQuery
+XCUIApplication().scrollViews.staticTexts["Collection-1"]
+
+// Example of a better XCUIElementQuery
+XCUIApplication().staticTexts["Collection-1"]
+```
+
+```swift
+// 14:21 - Best practice: Prefer generic queries for dynamic content
+// Example SwiftUI view
+struct CollectionDetailDisplayView: View {
+    var body: some View {
+        ScrollView {
+            Text(collection.name)
+                .font(.caption)
+                .accessibilityIdentifier("Collection-\(collection.id)")
+        }
+    }
+}
+
+// Example of a worse XCUIElementQuery
+XCUIApplication().staticTexts["Max's Australian Adventure"]
+
+// Example of a better XCUIElementQuery
+XCUIApplication().staticTexts.firstMatch
+```
+
+```swift
+// 15:49 - Add validations to a test case
+import XCTest
+
+class LandmarksUITests: XCTestCase {
+
+    func testGreatBarrierAddedToFavorites() {
+        let app = XCUIApplication()
+        app.launch()
+        app.cells["Landmark-186"].tap()
+        XCTAssertTrue(
+            app.staticTexts["Landmark-186"].waitForExistence(timeout: 10.0),
+            "Great Barrier exists"
+        )
+        let favoriteButton = app.buttons["Favorite"]
+        favoriteButton.tap()
+        XCTAssertTrue(
+            favoriteButton.wait(for: .value, toEqual: true, timeout: 10.0),
+            "Great Barrier is a favorite"
+        )
+    }
+}
+```
+
+```swift
+// 16:36 - Set up your device for test execution
+import XCTest
+import CoreLocation
+
+class LandmarksUITests: XCTestCase {
+
+    override func setUp() {
+        continueAfterFailure = false
+        XCUIDevice.shared.orientation = .portrait
+        XCUIDevice.shared.appearance = .light
+
+        let simulatedLocation = CLLocation(latitude: 28.3114, longitude: -81.5535)
+        XCUIDevice.shared.location = XCUILocation(location: simulatedLocation)
+    }
+}
+```
+
+```swift
+// 16:54 - Launch your app with environment variables and arguments
+import XCTest
+
+class LandmarksUITests: XCTestCase {
+
+    func testLaunchWithDefaultCollection() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-ClearFavoritesOnLaunch"]
+        app.launchEnvironment = ["DefaultCollectionName": "Australia 🐨🐠"]
+        app.launch()
+
+        app.tabBars.buttons["Collections"].tap()
+        XCTAssertTrue(app.buttons["Australia 🐨🐠"].waitForExistence(timeout: 10.0))
+    }
+}
+```
+
+```swift
+// 17:04 - Launch your app using custom URL schemes
+import XCTest
+
+class LandmarksUITests: XCTestCase {
+
+    func testOpenGreatBarrier() {
+        let app = XCUIApplication()
+        let customURL = URL(string: "landmarks://great-barrier")!
+        app.open(customURL)
+
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10.0))
+        XCTAssertTrue(app.staticTexts["Great Barrier Reef"].waitForExistence(timeout: 10.0))
+    }
+}
+```
+
+```swift
+// 17:12 - Launch your app using custom URL schemes and the system default app
+import XCTest
+
+class LandmarksUITests: XCTestCase {
+
+    func testOpenGreatBarrier() {
+        let app = XCUIApplication()
+        let customURL = URL(string: "landmarks://great-barrier")!
+        XCUIDevice.shared.system.open(customURL)
+
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10.0))
+        XCTAssertTrue(app.staticTexts["Great Barrier Reef"].waitForExistence(timeout: 10.0))
+    }
+}
+```
+
+```swift
+// 17:13 - Perform an accessibility audit during an automation
+import XCTest
+
+class LandmarksUITests: XCTestCase {
+
+    func testPerformAccessibilityAudit() throws {
+        let app = XCUIApplication()
+        try app.performAccessibilityAudit()
+    }
+}
+```
+--- END FILE ---
+
+--- FILE: Mixing-Languages-in-an-Xcode-project.md ---
+# Mixing Languages in an Xcode project
+
+**Use C++ APIs in Swift – and Swift APIs in C++ – in a single framework target, and consume the framework’s APIs in a separate app target.**
+
+## Availability
+
+- **macOS** 14.0+
+- **Xcode** 15.0+
+
+
+## Overview
+
+
+> **NOTE**: This sample code project is associated with WWDC 2023 session 10172: [https://developer.apple.com/wwdc23/10172](https://developer.apple.com/wwdc23/10172).
+
+
+
+### Configure the sample code project
+
+Before you run the sample code project in Xcode, ensure you’re using macOS 14.0 or later.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/MixingLanguagesInAnXcodeProject](https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/MixingLanguagesInAnXcodeProject)*
+--- END FILE ---
+
+--- FILE: Mixing-Languages-in-an-Xcode-project.md ---
+# Mixing Languages in an Xcode project
+
+**Use C++ APIs in Swift – and Swift APIs in C++ – in a single framework target, and consume the framework’s APIs in a separate app target.**
+
+## Availability
+
+- **macOS** 14.0+
+- **Xcode** 15.0+
+
+
+## Overview
+
+
+> **NOTE**: This sample code project is associated with WWDC 2023 session 10172: [https://developer.apple.com/wwdc23/10172](https://developer.apple.com/wwdc23/10172).
+
+
+
+### Configure the sample code project
+
+Before you run the sample code project in Xcode, ensure you’re using macOS 14.0 or later.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/MixingLanguagesInAnXcodeProject](https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/MixingLanguagesInAnXcodeProject)*
+--- END FILE ---
+
+--- FILE: DefiningTests.md ---
+# Defining test functions
+
+<!--
+This source file is part of the Swift.org open source project
+
+Copyright (c) 2023 Apple Inc. and the Swift project authors
+Licensed under Apache License v2.0 with Runtime Library Exception
+
+See https://swift.org/LICENSE.txt for license information
+See https://swift.org/CONTRIBUTORS.txt for Swift project authors
+-->
+
+Define a test function to validate that code is working correctly.
+
+## Overview
+
+Defining a test function for a Swift package or project is straightforward.
+
+### Import the testing library
+
+To import the testing library, add the following to the Swift source file that
+contains the test:
+
+```swift
+import Testing
+```
+
+- Note: Only import the testing library into a test target or library meant for
+  test targets. Importing the testing library into a target intended for
+  distribution such as an application, app library, or executable target isn't
+  supported or recommended. Test functions aren't stripped from binaries when
+  building for release, so logic and fixtures of a test may be visible to anyone
+  who inspects a build product that contains a test function.
+
+### Declare a test function
+
+To declare a test function, write a Swift function declaration that doesn't
+take any arguments, then prefix its name with the `@Test` attribute:
+
+```swift
+@Test func foodTruckExists() {
+  // Test logic goes here.
+}
+```
+
+This test function can be present at file scope or within a type. A type
+containing test functions is automatically a _test suite_ and can be optionally
+annotated with the `@Suite` attribute. For more information about suites, see
+<doc:OrganizingTests>.
+
+Note that, while this function is a valid test function, it doesn't actually
+perform any action or test any code. To check for expected values and outcomes
+in test functions, add [expectations](doc:Expectations) to the test function.
+
+### Customize a test's name
+
+To customize a test function's name as presented in an IDE or at the command
+line, supply a string literal as an argument to the `@Test` attribute:
+
+```swift
+@Test("Food truck exists") func foodTruckExists() { ... }
+```
+
+To further customize the appearance and behavior of a test function, use
+[traits](doc:Traits) such as ``Trait/tags(_:)``.
+
+### Write concurrent or throwing tests
+
+As with other Swift functions, test functions can be marked `async` and `throws`
+to annotate them as concurrent or throwing, respectively. If a test is only safe
+to run in the main actor's execution context (that is, from the main thread of
+the process), it can be annotated `@MainActor`:
+
+```swift
+@Test @MainActor func foodTruckExists() async throws { ... }
+```
+
+### Limit the availability of a test
+
+If a test function can only run on newer versions of an operating system or of
+the Swift language, use the `@available` attribute when declaring it. Use the
+`message` argument of the `@available` attribute to specify a message to log if
+a test is unable to run due to limited availability:
+
+```swift
+@available(macOS 11.0, *)
+@available(swift, introduced: 8.0, message: "Requires Swift 8.0 features to run")
+@Test func foodTruckExists() { ... }
+```
+--- END FILE ---
+
+--- FILE: MigratingFromXCTest.md ---
+# Migrating a test from XCTest
+
+<!--
+This source file is part of the Swift.org open source project
+
+Copyright (c) 2023-2024 Apple Inc. and the Swift project authors
+Licensed under Apache License v2.0 with Runtime Library Exception
+
+See https://swift.org/LICENSE.txt for license information
+See https://swift.org/CONTRIBUTORS.txt for Swift project authors
+-->
+
+<!-- NOTE: The voice of this document is directed at the second person ("you")
+because it provides instructions the reader must follow directly. -->
+
+Migrate an existing test method or test class written using XCTest.
+
+## Overview
+
+The testing library provides much of the same functionality of XCTest, but uses
+its own syntax to declare test functions and types. Here, you'll learn how to
+convert XCTest-based content to use the testing library instead.
+
+### Import the testing library
+
+XCTest and the testing library are available from different modules. Instead of 
+importing the XCTest module, import the Testing module:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    import XCTest
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    import Testing
+    ```
+  }
+}
+
+A single source file can contain tests written with XCTest as well as other 
+tests written with the testing library. Import both XCTest and Testing if a 
+source file contains mixed test content.
+
+### Convert test classes
+
+XCTest groups related sets of test methods in test classes: classes that inherit
+from the [`XCTestCase`](https://developer.apple.com/documentation/xctest/xctestcase)
+class provided by the [XCTest](https://developer.apple.com/documentation/xctest) framework. The testing library doesn't require
+that test functions be instance members of types. Instead, they can be _free_ or
+_global_ functions, or can be `static` or `class` members of a type.
+
+If you want to group your test functions together, you can do so by placing them
+in a Swift type. The testing library refers to such a type as a _suite_. These
+types do _not_ need to be classes, and they don't inherit from `XCTestCase`.
+
+To convert a subclass of `XCTestCase` to a suite, remove the `XCTestCase`
+conformance. It's also generally recommended that a Swift structure or actor be
+used instead of a class because it allows the Swift compiler to better-enforce
+concurrency safety:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    class FoodTruckTests: XCTestCase {
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    struct FoodTruckTests {
+      ...
+    }
+    ```
+  }
+}
+
+For more information about suites and how to declare and customize them, see
+<doc:OrganizingTests>.
+
+### Convert setup and teardown functions
+
+In XCTest, code can be scheduled to run before and after a test using the
+[`setUp()`](https://developer.apple.com/documentation/xctest/xctest/3856481-setup)
+and [`tearDown()`](https://developer.apple.com/documentation/xctest/xctest/3856482-teardown)
+family of functions. When writing tests using the testing library, implement
+`init()` and/or `deinit` instead:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    class FoodTruckTests: XCTestCase {
+      var batteryLevel: NSNumber!
+      override func setUp() async throws {
+        batteryLevel = 100
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    struct FoodTruckTests {
+      var batteryLevel: NSNumber
+      init() async throws {
+        batteryLevel = 100
+      }
+      ...
+    }
+    ```
+  }
+}
+
+The use of `async` and `throws` is optional. If teardown is needed, declare your
+test suite as a class or as an actor rather than as a structure and implement
+`deinit`:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    class FoodTruckTests: XCTestCase {
+      var batteryLevel: NSNumber!
+      override func setUp() async throws {
+        batteryLevel = 100
+      }
+      override func tearDown() {
+        batteryLevel = 0 // drain the battery
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    final class FoodTruckTests {
+      var batteryLevel: NSNumber
+      init() async throws {
+        batteryLevel = 100
+      }
+      deinit {
+        batteryLevel = 0 // drain the battery
+      }
+      ...
+    }
+    ```
+  }
+}
+
+<!--
+- Bug: `deinit` cannot be asynchronous or throwing, unlike `tearDown()`.
+  ((103616215)[rdar://103616215])
+-->
+
+### Convert test methods
+
+The testing library represents individual tests as functions, similar to how
+they are represented in XCTest. However, the syntax for declaring a test
+function is different. In XCTest, a test method must be a member of a test class
+and its name must start with `test`. The testing library doesn't require a test
+function to have any particular name. Instead, it identifies a test function by
+the presence of the `@Test` attribute:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    class FoodTruckTests: XCTestCase {
+      func testEngineWorks() { ... }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    struct FoodTruckTests {
+      @Test func engineWorks() { ... }
+      ...
+    }
+    ```
+  }
+}
+
+As with XCTest, the testing library allows test functions to be marked `async`,
+`throws`, or `async`-`throws`, and to be isolated to a global actor (for example, by using the
+`@MainActor` attribute.)
+
+- Note: XCTest runs synchronous test methods on the main actor by default, while
+  the testing library runs all test functions on an arbitrary task. If a test
+  function must run on the main thread, isolate it to the main actor with
+  `@MainActor`, or run the thread-sensitive code inside a call to
+  [`MainActor.run(resultType:body:)`](https://developer.apple.com/documentation/swift/mainactor/run(resulttype:body:)).
+
+For more information about test functions and how to declare and customize them,
+see <doc:DefiningTests>.
+
+### Check for expected values and outcomes 
+
+XCTest uses a family of approximately 40 functions to assert test requirements.
+These functions are collectively referred to as
+[`XCTAssert()`](https://developer.apple.com/documentation/xctest/1500669-xctassert).
+The testing library has two replacements, ``expect(_:_:sourceLocation:)`` and
+``require(_:_:sourceLocation:)-5l63q``. They both behave similarly to
+`XCTAssert()` except that ``require(_:_:sourceLocation:)-5l63q`` throws an
+error if its condition isn't met:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testEngineWorks() throws {
+      let engine = FoodTruck.shared.engine
+      XCTAssertNotNil(engine.parts.first)
+      XCTAssertGreaterThan(engine.batteryLevel, 0)
+      try engine.start()
+      XCTAssertTrue(engine.isRunning)
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func engineWorks() throws {
+      let engine = FoodTruck.shared.engine
+      try #require(engine.parts.first != nil)
+      #expect(engine.batteryLevel > 0)
+      try engine.start()
+      #expect(engine.isRunning)
+    }
+    ```
+  }
+}
+
+### Check for optional values
+
+XCTest also has a function, [`XCTUnwrap()`](https://developer.apple.com/documentation/xctest/3380195-xctunwrap),
+that tests if an optional value is `nil` and throws an error if it is. When
+using the testing library, you can use ``require(_:_:sourceLocation:)-6w9oo``
+with optional expressions to unwrap them:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testEngineWorks() throws {
+      let engine = FoodTruck.shared.engine
+      let part = try XCTUnwrap(engine.parts.first)
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func engineWorks() throws {
+      let engine = FoodTruck.shared.engine
+      let part = try #require(engine.parts.first)
+      ...
+    }
+    ```
+  }
+}
+
+### Record issues
+
+XCTest has a function, [`XCTFail()`](https://developer.apple.com/documentation/xctest/1500970-xctfail),
+that causes a test to fail immediately and unconditionally. This function is
+useful when the syntax of the language prevents the use of an `XCTAssert()`
+function. To record an unconditional issue using the testing library, use the
+``Issue/record(_:severity:sourceLocation:)`` function:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testEngineWorks() {
+      let engine = FoodTruck.shared.engine
+      guard case .electric = engine else {
+        XCTFail("Engine is not electric")
+        return
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func engineWorks() {
+      let engine = FoodTruck.shared.engine
+      guard case .electric = engine else {
+        Issue.record("Engine is not electric")
+        return
+      }
+      ...
+    }
+    ```
+  }
+}
+
+The following table includes a list of the various `XCTAssert()` functions and
+their equivalents in the testing library:
+
+| XCTest | Swift Testing |
+|-|-|
+| `XCTAssert(x)`, `XCTAssertTrue(x)` | `#expect(x)` |
+| `XCTAssertFalse(x)` | `#expect(!x)` |
+| `XCTAssertNil(x)` | `#expect(x == nil)` |
+| `XCTAssertNotNil(x)` | `#expect(x != nil)` |
+| `XCTAssertEqual(x, y)` | `#expect(x == y)` |
+| `XCTAssertNotEqual(x, y)` | `#expect(x != y)` |
+| `XCTAssertIdentical(x, y)` | `#expect(x === y)` |
+| `XCTAssertNotIdentical(x, y)` | `#expect(x !== y)` |
+| `XCTAssertGreaterThan(x, y)` | `#expect(x > y)` |
+| `XCTAssertGreaterThanOrEqual(x, y)` | `#expect(x >= y)` |
+| `XCTAssertLessThanOrEqual(x, y)` | `#expect(x <= y)` |
+| `XCTAssertLessThan(x, y)` | `#expect(x < y)` |
+| `XCTAssertThrowsError(try f())` | `#expect(throws: (any Error).self) { try f() }` |
+| `XCTAssertThrowsError(try f()) { error in … }` | `let error = #expect(throws: (any Error).self) { try f() }` |
+| `XCTAssertNoThrow(try f())` | `#expect(throws: Never.self) { try f() }` |
+| `try XCTUnwrap(x)` | `try #require(x)` |
+| `XCTFail("…")` | `Issue.record("…")` |
+
+The testing library doesn’t provide an equivalent of
+[`XCTAssertEqual(_:_:accuracy:_:file:line:)`](https://developer.apple.com/documentation/xctest/3551607-xctassertequal).
+To compare two numeric values within a specified accuracy, 
+use `isApproximatelyEqual()` from [swift-numerics](https://github.com/apple/swift-numerics).
+
+### Continue or halt after test failures
+
+An instance of an `XCTestCase` subclass can set its
+[`continueAfterFailure`](https://developer.apple.com/documentation/xctest/xctestcase/1496260-continueafterfailure)
+property to `false` to cause a test to stop running after a failure occurs.
+XCTest stops an affected test by throwing an Objective-C exception at the
+time the failure occurs.
+
+- Note: `continueAfterFailure` isn't fully supported when using the
+  [swift-corelibs-xctest](https://github.com/swiftlang/swift-corelibs-xctest)
+  library on non-Apple platforms.
+
+The behavior of an exception thrown through a Swift stack frame is undefined. If
+an exception is thrown through an `async` Swift function, it typically causes
+the process to terminate abnormally, preventing other tests from running.
+
+The testing library doesn't use exceptions to stop test functions. Instead, use
+the ``require(_:_:sourceLocation:)-5l63q`` macro, which throws a Swift error on
+failure:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testTruck() async {
+      continueAfterFailure = false
+      XCTAssertTrue(FoodTruck.shared.isLicensed)
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func truck() throws {
+      try #require(FoodTruck.shared.isLicensed)
+      ...
+    }
+    ```
+  }
+}
+
+When using either `continueAfterFailure` or
+``require(_:_:sourceLocation:)-5l63q``, other tests will continue to run after
+the failed test method or test function.
+
+### Validate asynchronous behaviors
+
+XCTest has a class, [`XCTestExpectation`](https://developer.apple.com/documentation/xctest/xctestexpectation),
+that represents some asynchronous condition. You create an instance of
+this class (or a subclass like [`XCTKeyPathExpectation`](https://developer.apple.com/documentation/xctest/xctkeypathexpectation))
+using an initializer or a convenience method on `XCTestCase`. When the condition
+represented by an expectation occurs, the developer _fulfills_ the expectation.
+Concurrently, the developer _waits for_ the expectation to be fulfilled using an
+instance of [`XCTWaiter`](https://developer.apple.com/documentation/xctest/xctwaiter)
+or using a convenience method on `XCTestCase`.
+
+Wherever possible, prefer to use Swift concurrency to validate asynchronous
+conditions. For example, if it's necessary to determine the result of an
+asynchronous Swift function, it can be awaited with `await`. For a function that
+takes a completion handler but which doesn't use `await`, a Swift
+[continuation](https://developer.apple.com/documentation/swift/withcheckedcontinuation(isolation:function:_:))
+can be used to convert the call into an `async`-compatible one.
+
+Some tests, especially those that test asynchronously-delivered events, cannot
+be readily converted to use Swift concurrency. The testing library offers
+functionality called _confirmations_ which can be used to implement these tests.
+Instances of ``Confirmation`` are created and used within the scope of the
+functions ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-5mqz2``
+and ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-l3il``.
+
+Confirmations function similarly to the expectations API of XCTest, however,
+they don't block or suspend the caller while waiting for a condition to be
+fulfilled. Instead, the requirement is expected to be _confirmed_ (the
+equivalent of _fulfilling_ an expectation) before `confirmation()` returns, and
+records an issue otherwise:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testTruckEvents() async {
+      let soldFood = expectation(description: "…")
+      FoodTruck.shared.eventHandler = { event in
+        if case .soldFood = event {
+          soldFood.fulfill()
+        }
+      }
+      await Customer().buy(.soup)
+      await fulfillment(of: [soldFood])
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func truckEvents() async {
+      await confirmation("…") { soldFood in
+        FoodTruck.shared.eventHandler = { event in
+          if case .soldFood = event {
+            soldFood()
+          }
+        }
+        await Customer().buy(.soup)
+      }
+      ...
+    }
+    ```
+  }
+}
+
+By default, `XCTestExpectation` expects to be fulfilled exactly once, and will
+record an issue in the current test if it is not fulfilled or if it is fulfilled
+more than once. `Confirmation` behaves the same way and expects to be confirmed
+exactly once by default. You can configure the number of times an expectation
+should be fulfilled by setting its [`expectedFulfillmentCount`](https://developer.apple.com/documentation/xctest/xctestexpectation/2806572-expectedfulfillmentcount)
+property, and you can pass a value for the `expectedCount` argument of
+``confirmation(_:expectedCount:isolation:sourceLocation:_:)-5mqz2`` for the same
+purpose.
+
+`XCTestExpectation` has a property, [`assertForOverFulfill`](https://developer.apple.com/documentation/xctest/xctestexpectation/2806575-assertforoverfulfill),
+which when set to `false` allows an expectation to be fulfilled more times than
+expected without causing a test failure. When using a confirmation, you can pass
+a range to ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-l3il`` as
+its expected count to indicate that it must be confirmed _at least_ some number
+of times:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testRegularCustomerOrders() async {
+      let soldFood = expectation(description: "…")
+      soldFood.expectedFulfillmentCount = 10
+      soldFood.assertForOverFulfill = false
+      FoodTruck.shared.eventHandler = { event in
+        if case .soldFood = event {
+          soldFood.fulfill()
+        }
+      }
+      for customer in regularCustomers() {
+        await customer.buy(customer.regularOrder)
+      }
+      await fulfillment(of: [soldFood])
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func regularCustomerOrders() async {
+      await confirmation(
+        "…",
+        expectedCount: 10...
+      ) { soldFood in
+        FoodTruck.shared.eventHandler = { event in
+          if case .soldFood = event {
+            soldFood()
+          }
+        }
+        for customer in regularCustomers() {
+          await customer.buy(customer.regularOrder)
+        }
+      }
+      ...
+    }
+    ```
+  }
+}
+
+Any range expression with a lower bound (that is, whose type conforms to
+both [`RangeExpression<Int>`](https://developer.apple.com/documentation/swift/rangeexpression)
+and [`Sequence<Int>`](https://developer.apple.com/documentation/swift/sequence))
+can be used with ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-l3il``.
+You must specify a lower bound for the number of confirmations because, without
+one, the testing library cannot tell if an issue should be recorded when there
+have been zero confirmations. 
+
+### Control whether a test runs
+
+When using XCTest, the [`XCTSkip`](https://developer.apple.com/documentation/xctest/xctskip)
+error type can be thrown to bypass the remainder of a test function. As well,
+the [`XCTSkipIf()`](https://developer.apple.com/documentation/xctest/3521325-xctskipif)
+and [`XCTSkipUnless()`](https://developer.apple.com/documentation/xctest/3521326-xctskipunless)
+functions can be used to conditionalize the same action. The testing library
+allows developers to skip a test function or an entire test suite before it
+starts running using the ``ConditionTrait`` trait type. Annotate a test suite or
+test function with an instance of this trait type to control whether it runs:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    class FoodTruckTests: XCTestCase {
+      func testArepasAreTasty() throws {
+        try XCTSkipIf(CashRegister.isEmpty)
+        try XCTSkipUnless(FoodTruck.sells(.arepas))
+        ...
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Suite(.disabled(if: CashRegister.isEmpty))
+    struct FoodTruckTests {
+      @Test(.enabled(if: FoodTruck.sells(.arepas)))
+      func arepasAreTasty() {
+        ...
+      }
+      ...
+    }
+    ```
+  }
+}
+
+<!-- TODO: document Test.cancel() and Test.Case.cancel() here, and update
+     relevant links to use proper DocC symbol references.
+
+If a test has already started running and you determine it cannot complete and
+should end early without failing, use `Test/cancel(_:sourceLocation:)` instead
+of [`XCTSkip`](https://developer.apple.com/documentation/xctest/xctskip) to
+cancel the task associated with the current test:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testCashRegister() throws {
+      let cashRegister = CashRegister()
+      let drawer = cashRegister.open()
+      if drawer.isEmpty {
+        throw XCTSkip("Cash register is empty")
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func cashRegister() throws {
+      let cashRegister = CashRegister()
+      let drawer = cashRegister.open()
+      if drawer.isEmpty {
+        try Test.cancel("Cash register is empty")
+      }
+      ...
+    }
+    ```
+  }
+}
+
+If the test is parameterized and you only want to cancel the current test case
+rather than the entire test, use `Test/Case/cancel(_:sourceLocation:)`.
+-->
+
+### Annotate known issues
+
+A test may have a known issue that sometimes or always prevents it from passing.
+When written using XCTest, such tests can call
+[`XCTExpectFailure(_:options:failingBlock:)`](https://developer.apple.com/documentation/xctest/3727246-xctexpectfailure)
+to tell XCTest and its infrastructure that the issue shouldn't cause the test
+to fail. The testing library has an equivalent function with synchronous and
+asynchronous variants:
+
+- ``withKnownIssue(_:isIntermittent:sourceLocation:_:)``
+- ``withKnownIssue(_:isIntermittent:isolation:sourceLocation:_:)``
+
+This function can be used to annotate a section of a test as having a known
+issue:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testGrillWorks() async {
+      XCTExpectFailure("Grill is out of fuel") {
+        try FoodTruck.shared.grill.start()
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func grillWorks() async {
+      withKnownIssue("Grill is out of fuel") {
+        try FoodTruck.shared.grill.start()
+      }
+      ...
+    }
+    ```
+  }
+}
+
+- Note: The XCTest function [`XCTExpectFailure(_:options:)`](https://developer.apple.com/documentation/xctest/3727245-xctexpectfailure),
+  which doesn't take a closure and which affects the remainder of the test,
+  doesn't have a direct equivalent in the testing library. To mark an entire
+  test as having a known issue, wrap its body in a call to `withKnownIssue()`. 
+
+If a test may fail intermittently, the call to
+`XCTExpectFailure(_:options:failingBlock:)` can be marked _non-strict_. When
+using the testing library, specify that the known issue is _intermittent_
+instead:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testGrillWorks() async {
+      XCTExpectFailure(
+        "Grill may need fuel",
+        options: .nonStrict()
+      ) {
+        try FoodTruck.shared.grill.start()
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func grillWorks() async {
+      withKnownIssue(
+        "Grill may need fuel", 
+        isIntermittent: true
+      ) {
+        try FoodTruck.shared.grill.start()
+      }
+      ...
+    }
+    ```
+  }
+}
+
+Additional options can be specified when calling `XCTExpectFailure()`:
+
+- [`isEnabled`](https://developer.apple.com/documentation/xctest/xctexpectedfailure/options/3726085-isenabled)
+  can be set to `false` to skip known-issue matching (for instance, if a
+  particular issue only occurs under certain conditions)
+- [`issueMatcher`](https://developer.apple.com/documentation/xctest/xctexpectedfailure/options/3726086-issuematcher)
+  can be set to a closure to allow marking only certain issues as known and to
+  allow other issues to be recorded as test failures
+
+The testing library includes overloads of `withKnownIssue()` that take
+additional arguments with similar behavior:
+
+- ``withKnownIssue(_:isIntermittent:sourceLocation:_:when:matching:)``
+- ``withKnownIssue(_:isIntermittent:isolation:sourceLocation:_:when:matching:)``
+
+To conditionally enable known-issue matching or to match only certain kinds
+of issues:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testGrillWorks() async {
+      let options = XCTExpectedFailure.Options()
+      options.isEnabled = FoodTruck.shared.hasGrill
+      options.issueMatcher = { issue in
+        issue.type == thrownError
+      }
+      XCTExpectFailure(
+        "Grill is out of fuel",
+        options: options
+      ) {
+        try FoodTruck.shared.grill.start()
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func grillWorks() async {
+      withKnownIssue("Grill is out of fuel") {
+        try FoodTruck.shared.grill.start()
+      } when: {
+        FoodTruck.shared.hasGrill
+      } matching: { issue in
+        issue.error != nil 
+      }
+      ...
+    }
+    ```
+  }
+}
+
+### Run tests sequentially
+
+By default, the testing library runs all tests in a suite in parallel. The
+default behavior of XCTest is to run each test in a suite sequentially. If your
+tests use shared state such as global variables, you may see unexpected
+behavior including unreliable test outcomes when you run tests in parallel.
+
+Annotate your test suite with ``Trait/serialized`` to run tests within that
+suite serially:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    class RefrigeratorTests : XCTestCase {
+      func testLightComesOn() throws {
+        try FoodTruck.shared.refrigerator.openDoor()
+        XCTAssertEqual(FoodTruck.shared.refrigerator.lightState, .on)
+      }
+      
+      func testLightGoesOut() throws {
+        try FoodTruck.shared.refrigerator.openDoor()
+        try FoodTruck.shared.refrigerator.closeDoor()
+        XCTAssertEqual(FoodTruck.shared.refrigerator.lightState, .off)
+      }
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Suite(.serialized)
+    class RefrigeratorTests {
+      @Test func lightComesOn() throws {
+        try FoodTruck.shared.refrigerator.openDoor()
+        #expect(FoodTruck.shared.refrigerator.lightState == .on)
+      }
+      
+      @Test func lightGoesOut() throws {
+        try FoodTruck.shared.refrigerator.openDoor()
+        try FoodTruck.shared.refrigerator.closeDoor()
+        #expect(FoodTruck.shared.refrigerator.lightState == .off)
+      }
+    }
+    ```
+  }
+}
+
+For more information, see <doc:Parallelization>.
+
+### Attach values
+
+In XCTest, you can create an instance of [`XCTAttachment`](https://developer.apple.com/documentation/xctest/xctattachment)
+representing arbitrary data, files, property lists, encodable objects, images,
+and other types of information that would be useful to have available if a test
+fails. Swift Testing has an ``Attachment`` type that serves much the same
+purpose.
+
+To attach a value from a test to the output of a test run, that value must
+conform to the ``Attachable`` protocol. The testing library provides default
+conformances for various standard library and Foundation types.
+
+If you want to attach a value of another type, and that type already conforms to
+[`Encodable`](https://developer.apple.com/documentation/swift/encodable) or to
+[`NSSecureCoding`](https://developer.apple.com/documentation/foundation/nssecurecoding),
+the testing library automatically provides a default implementation when you
+import Foundation:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    import Foundation
+
+    class Tortilla: NSSecureCoding { /* ... */ }
+
+    func testTortillaIntegrity() async {
+      let tortilla = Tortilla(diameter: .large)
+      ...
+      let attachment = XCTAttachment(
+        archivableObject: tortilla
+      )
+      self.add(attachment)
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    import Foundation
+
+    struct Tortilla: Codable, Attachable { /* ... */ }
+
+    @Test func tortillaIntegrity() async {
+      let tortilla = Tortilla(diameter: .large)
+      ...
+      Attachment.record(tortilla)
+    }
+    ```
+  }
+}
+
+If you have a type that does not (or cannot) conform to `Encodable` or
+`NSSecureCoding`, or if you want fine-grained control over how it is serialized
+when attaching it to a test, you can provide your own implementation of
+``Attachable/withUnsafeBytes(for:_:)``.
+
+<!-- NOTE: not discussing attaching to activities here since there is not yet an
+equivalent interface in Swift Testing. -->
+
+## See Also
+
+- <doc:DefiningTests>
+- <doc:OrganizingTests>
+- <doc:Expectations>
+- <doc:known-issues>
+--- END FILE ---
+
+--- FILE: testing-asynchronous-code.md ---
+# Testing asynchronous code
+
+<!--
+This source file is part of the Swift.org open source project
+
+Copyright (c) 2024 Apple Inc. and the Swift project authors
+Licensed under Apache License v2.0 with Runtime Library Exception
+
+See https://swift.org/LICENSE.txt for license information
+See https://swift.org/CONTRIBUTORS.txt for Swift project authors
+-->
+
+Validate whether your code causes expected events to happen.
+
+## Overview
+
+The testing library integrates with Swift concurrency, meaning that in many
+situations you can test asynchronous code using standard Swift
+features.  Mark your test function as `async` and, in the function
+body, `await` any asynchronous interactions:
+
+```swift
+@Test func priceLookupYieldsExpectedValue() async {
+  let mozarellaPrice = await unitPrice(for: .mozarella)
+  #expect(mozarellaPrice == 3)
+}
+```
+
+In more complex situations you can use ``Confirmation`` to discover whether an
+expected event happens.
+
+### Confirm that an event happens
+
+Call ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-5mqz2`` in your
+asynchronous test function to create a `Confirmation` for the expected event. In
+the trailing closure parameter, call the code under test. Swift Testing passes a
+`Confirmation` as the parameter to the closure, which you call as a function in
+the event handler for the code under test when the event you're testing for
+occurs:
+
+```swift
+@Test("OrderCalculator successfully calculates subtotal for no pizzas")
+func subtotalForNoPizzas() async {
+  let calculator = OrderCalculator()
+  await confirmation() { confirmation in
+    calculator.successHandler = { _ in confirmation() }
+    _ = await calculator.subtotal(for: PizzaToppings(bases: []))
+  }
+}
+```
+
+If you expect the event to happen more than once, set the
+`expectedCount` parameter to the number of expected occurrences. The
+test passes if the number of occurrences during the test matches the
+expected count, and fails otherwise.
+
+You can also pass a range to ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-l3il``
+if the exact number of times the event occurs may change over time or is random:
+
+```swift
+@Test("Customers bought sandwiches")
+func boughtSandwiches() async {
+  await confirmation(expectedCount: 0 ..< 1000) { boughtSandwich in
+    var foodTruck = FoodTruck()
+    foodTruck.orderHandler = { order in
+      if order.contains(.sandwich) {
+        boughtSandwich()
+      }
+    }
+    await FoodTruck.operate()
+  }
+}
+```
+
+In this example, there may be zero customers or up to (but not including) 1,000
+customers who order sandwiches. Any [range expression](https://developer.apple.com/documentation/swift/rangeexpression)
+which includes an explicit lower bound can be used:
+
+| Range Expression | Usage |
+|-|-|
+| `1...` | If an event must occur _at least_ once |
+| `5...` | If an event must occur _at least_ five times |
+| `1 ... 5` | If an event must occur at least once, but not more than five times |
+| `0 ..< 100` | If an event may or may not occur, but _must not_ occur more than 99 times |
+
+### Confirm that an event doesn't happen
+
+To validate that a particular event doesn't occur during a test,
+create a `Confirmation` with an expected count of `0`:
+
+```swift
+@Test func orderCalculatorEncountersNoErrors() async {
+  let calculator = OrderCalculator()
+  await confirmation(expectedCount: 0) { confirmation in
+    calculator.errorHandler = { _ in confirmation() }
+    calculator.subtotal(for: PizzaToppings(bases: []))
+  }
+}
+```
+--- END FILE ---
+
+--- FILE: swift-testing-apple-developer-documentation.md ---
+---
+title: Swift Testing | Apple Developer Documentation
+source_url: https://developer.apple.com/documentation/testing
+scraped_date: '2025-10-25T17:53:01.926805Z'
+extraction_method: Chrome DevTools MCP Server
+content_length: 2541
+filename: swift-testing-apple-developer-documentation.md
+---
+
+# Swift Testing | Apple Developer Documentation
+
+Framework
+Swift Testing
+Create and run tests for your Swift packages and Xcode projects.
+Swift 6.0+
+Xcode 16.0+
+Overview
+
+With Swift Testing you leverage powerful and expressive capabilities of the Swift programming language to develop tests with more confidence and less code. The library integrates seamlessly with Swift Package Manager testing workflow, supports flexible test organization, customizable metadata, and scalable test execution.
+
+Define test functions almost anywhere with a single attribute.
+
+Group related tests into hierarchies using Swift's type system.
+
+Integrate seamlessly with Swift concurrency.
+
+Parameterize test functions across wide ranges of inputs.
+
+Enable tests dynamically depending on runtime conditions.
+
+Parallelize tests in-process.
+
+Categorize tests using tags.
+
+Associate bugs directly with the tests that verify their fixes or reproduce their problems.
+
+Related videos
+Meet Swift Testing
+Go further with Swift Testing
+Topics
+Essentials
+Defining test functions
+Define a test function to validate that code is working correctly.
+Organizing test functions with suite types
+Organize tests into test suites.
+Migrating a test from XCTest
+Migrate an existing test method or test class written using XCTest.
+macro Test(String?, any TestTrait...)
+Declare a test.
+struct Test
+A type representing a test or suite.
+macro Suite(String?, any SuiteTrait...)
+Declare a test suite.
+Test parameterization
+Implementing parameterized tests
+Specify different input parameters to generate multiple test cases from a test function.
+macro Test<C>(String?, any TestTrait..., arguments: C)
+Declare a test parameterized over a collection of values.
+macro Test<C1, C2>(String?, any TestTrait..., arguments: C1, C2)
+Declare a test parameterized over two collections of values.
+macro Test<C1, C2>(String?, any TestTrait..., arguments: Zip2Sequence<C1, C2>)
+Declare a test parameterized over two zipped collections of values.
+protocol CustomTestArgumentEncodable
+A protocol for customizing how arguments passed to parameterized tests are encoded, which is used to match against when running specific arguments.
+struct Case
+A single test case from a parameterized Test.
+Behavior validation
+Expectations and confirmations
+Check for expected values, outcomes, and asynchronous events in tests.
+Known issues
+Mark issues as known when running tests.
+Test customization
+Traits
+Annotate test functions and suites, and customize their behavior.
+Data collection
+Attachments
+Attach values to tests to help diagnose issues and gather feedback.
+--- END FILE ---
+
+--- FILE: migrating-a-test-from-xctest-apple-developer-documentation.md ---
+---
+title: Migrating a test from XCTest | Apple Developer Documentation
+source_url: https://developer.apple.com/documentation/testing/migratingfromxctest
+scraped_date: '2025-10-25T17:53:01.925657Z'
+extraction_method: Chrome DevTools MCP Server
+content_length: 20059
+filename: migrating-a-test-from-xctest-apple-developer-documentation.md
+---
+
+# Migrating a test from XCTest | Apple Developer Documentation
+
+Swift Testing
+Migrating a test from XCTest
+Article
+Migrating a test from XCTest
+Migrate an existing test method or test class written using XCTest.
+Overview
+
+The testing library provides much of the same functionality of XCTest, but uses its own syntax to declare test functions and types. Here, you'll learn how to convert XCTest-based content to use the testing library instead.
+
+Import the testing library
+
+XCTest and the testing library are available from different modules. Instead of importing the XCTest module, import the Testing module:
+
+// Before
+import XCTest
+
+// After
+import Testing
+
+
+A single source file can contain tests written with XCTest as well as other tests written with the testing library. Import both XCTest and Testing if a source file contains mixed test content.
+
+Convert test classes
+
+XCTest groups related sets of test methods in test classes: classes that inherit from the XCTestCase class provided by the XCTest framework. The testing library doesn't require that test functions be instance members of types. Instead, they can be free or global functions, or can be static or class members of a type.
+
+If you want to group your test functions together, you can do so by placing them in a Swift type. The testing library refers to such a type as a suite. These types do not need to be classes, and they don't inherit from XCTestCase.
+
+To convert a subclass of XCTestCase to a suite, remove the XCTestCase conformance. It's also generally recommended that a Swift structure or actor be used instead of a class because it allows the Swift compiler to better-enforce concurrency safety:
+
+// Before
+class FoodTruckTests: XCTestCase {
+  ...
+}
+
+// After
+struct FoodTruckTests {
+  ...
+}
+
+
+For more information about suites and how to declare and customize them, see Organizing test functions with suite types.
+
+Convert setup and teardown functions
+
+In XCTest, code can be scheduled to run before and after a test using the setUp() and tearDown() family of functions. When writing tests using the testing library, implement init() and/or deinit instead:
+
+// Before
+class FoodTruckTests: XCTestCase {
+  var batteryLevel: NSNumber!
+  override func setUp() async throws {
+    batteryLevel = 100
+  }
+  ...
+}
+
+// After
+struct FoodTruckTests {
+  var batteryLevel: NSNumber
+  init() async throws {
+    batteryLevel = 100
+  }
+  ...
+}
+
+
+The use of async and throws is optional. If teardown is needed, declare your test suite as a class or as an actor rather than as a structure and implement deinit:
+
+// Before
+class FoodTruckTests: XCTestCase {
+  var batteryLevel: NSNumber!
+  override func setUp() async throws {
+    batteryLevel = 100
+  }
+  override func tearDown() {
+    batteryLevel = 0 // drain the battery
+  }
+  ...
+}
+
+// After
+final class FoodTruckTests {
+  var batteryLevel: NSNumber
+  init() async throws {
+    batteryLevel = 100
+  }
+  deinit {
+    batteryLevel = 0 // drain the battery
+  }
+  ...
+}
+
+Convert test methods
+
+The testing library represents individual tests as functions, similar to how they are represented in XCTest. However, the syntax for declaring a test function is different. In XCTest, a test method must be a member of a test class and its name must start with test. The testing library doesn't require a test function to have any particular name. Instead, it identifies a test function by the presence of the @Test attribute:
+
+// Before
+class FoodTruckTests: XCTestCase {
+  func testEngineWorks() { ... }
+  ...
+}
+
+// After
+struct FoodTruckTests {
+  @Test func engineWorks() { ... }
+  ...
+}
+
+
+As with XCTest, the testing library allows test functions to be marked async, throws, or async-throws, and to be isolated to a global actor (for example, by using the @MainActor attribute.)
+
+Note
+
+XCTest runs synchronous test methods on the main actor by default, while the testing library runs all test functions on an arbitrary task. If a test function must run on the main thread, isolate it to the main actor with @MainActor, or run the thread-sensitive code inside a call to MainActor.run(resultType:body:).
+
+For more information about test functions and how to declare and customize them, see Defining test functions.
+
+Check for expected values and outcomes
+
+XCTest uses a family of approximately 40 functions to assert test requirements. These functions are collectively referred to as XCTAssert(). The testing library has two replacements, expect(_:_:sourceLocation:) and require(_:_:sourceLocation:). They both behave similarly to XCTAssert() except that require(_:_:sourceLocation:) throws an error if its condition isn't met:
+
+// Before
+func testEngineWorks() throws {
+  let engine = FoodTruck.shared.engine
+  XCTAssertNotNil(engine.parts.first)
+  XCTAssertGreaterThan(engine.batteryLevel, 0)
+  try engine.start()
+  XCTAssertTrue(engine.isRunning)
+}
+
+// After
+@Test func engineWorks() throws {
+  let engine = FoodTruck.shared.engine
+  try #require(engine.parts.first != nil)
+  #expect(engine.batteryLevel > 0)
+  try engine.start()
+  #expect(engine.isRunning)
+}
+
+Check for optional values
+
+XCTest also has a function, XCTUnwrap(), that tests if an optional value is nil and throws an error if it is. When using the testing library, you can use require(_:_:sourceLocation:) with optional expressions to unwrap them:
+
+// Before
+func testEngineWorks() throws {
+  let engine = FoodTruck.shared.engine
+  let part = try XCTUnwrap(engine.parts.first)
+  ...
+}
+
+// After
+@Test func engineWorks() throws {
+  let engine = FoodTruck.shared.engine
+  let part = try #require(engine.parts.first)
+  ...
+}
+
+Record issues
+
+XCTest has a function, XCTFail(), that causes a test to fail immediately and unconditionally. This function is useful when the syntax of the language prevents the use of an XCTAssert() function. To record an unconditional issue using the testing library, use the record(_:sourceLocation:) function:
+
+// Before
+func testEngineWorks() {
+  let engine = FoodTruck.shared.engine
+  guard case .electric = engine else {
+    XCTFail("Engine is not electric")
+    return
+  }
+  ...
+}
+
+// After
+@Test func engineWorks() {
+  let engine = FoodTruck.shared.engine
+  guard case .electric = engine else {
+    Issue.record("Engine is not electric")
+    return
+  }
+  ...
+}
+
+
+The following table includes a list of the various XCTAssert() functions and their equivalents in the testing library:
+
+XCTest
+
+	
+
+Swift Testing
+
+
+
+
+XCTAssert(x), XCTAssertTrue(x)
+
+	
+
+#expect(x)
+
+
+
+
+XCTAssertFalse(x)
+
+	
+
+#expect(!x)
+
+
+
+
+XCTAssertNil(x)
+
+	
+
+#expect(x == nil)
+
+
+
+
+XCTAssertNotNil(x)
+
+	
+
+#expect(x != nil)
+
+
+
+
+XCTAssertEqual(x, y)
+
+	
+
+#expect(x == y)
+
+
+
+
+XCTAssertNotEqual(x, y)
+
+	
+
+#expect(x != y)
+
+
+
+
+XCTAssertIdentical(x, y)
+
+	
+
+#expect(x === y)
+
+
+
+
+XCTAssertNotIdentical(x, y)
+
+	
+
+#expect(x !== y)
+
+
+
+
+XCTAssertGreaterThan(x, y)
+
+	
+
+#expect(x > y)
+
+
+
+
+XCTAssertGreaterThanOrEqual(x, y)
+
+	
+
+#expect(x >= y)
+
+
+
+
+XCTAssertLessThanOrEqual(x, y)
+
+	
+
+#expect(x <= y)
+
+
+
+
+XCTAssertLessThan(x, y)
+
+	
+
+#expect(x < y)
+
+
+
+
+XCTAssertThrowsError(try f())
+
+	
+
+#expect(throws: (any Error).self) { try f() }
+
+
+
+
+XCTAssertThrowsError(try f()) { error in … }
+
+	
+
+let error = #expect(throws: (any Error).self) { try f() }
+
+
+
+
+XCTAssertNoThrow(try f())
+
+	
+
+#expect(throws: Never.self) { try f() }
+
+
+
+
+try XCTUnwrap(x)
+
+	
+
+try #require(x)
+
+
+
+
+XCTFail("…")
+
+	
+
+Issue.record("…")
+
+The testing library doesn't provide an equivalent of XCTAssertEqual(_:_:accuracy:_:file:line:). To compare two numeric values within a specified accuracy, use isApproximatelyEqual() from swift-numerics.
+
+Continue or halt after test failures
+
+An instance of an XCTestCase subclass can set its continueAfterFailure property to false to cause a test to stop running after a failure occurs. XCTest stops an affected test by throwing an Objective-C exception at the time the failure occurs.
+
+Note
+
+continueAfterFailure isn't fully supported when using the swift-corelibs-xctest library on non-Apple platforms.
+
+The behavior of an exception thrown through a Swift stack frame is undefined. If an exception is thrown through an async Swift function, it typically causes the process to terminate abnormally, preventing other tests from running.
+
+The testing library doesn't use exceptions to stop test functions. Instead, use the require(_:_:sourceLocation:) macro, which throws a Swift error on failure:
+
+// Before
+func testTruck() async {
+  continueAfterFailure = false
+  XCTAssertTrue(FoodTruck.shared.isLicensed)
+  ...
+}
+
+// After
+@Test func truck() throws {
+  try #require(FoodTruck.shared.isLicensed)
+  ...
+}
+
+
+When using either continueAfterFailure or require(_:_:sourceLocation:), other tests will continue to run after the failed test method or test function.
+
+Validate asynchronous behaviors
+
+XCTest has a class, XCTestExpectation, that represents some asynchronous condition. You create an instance of this class (or a subclass like XCTKeyPathExpectation) using an initializer or a convenience method on XCTestCase. When the condition represented by an expectation occurs, the developer fulfills the expectation. Concurrently, the developer waits for the expectation to be fulfilled using an instance of XCTWaiter or using a convenience method on XCTestCase.
+
+Wherever possible, prefer to use Swift concurrency to validate asynchronous conditions. For example, if it's necessary to determine the result of an asynchronous Swift function, it can be awaited with await. For a function that takes a completion handler but which doesn't use await, a Swift continuation can be used to convert the call into an async-compatible one.
+
+Some tests, especially those that test asynchronously-delivered events, cannot be readily converted to use Swift concurrency. The testing library offers functionality called confirmations which can be used to implement these tests. Instances of Confirmation are created and used within the scope of the functions confirmation(_:expectedCount:isolation:sourceLocation:_:) and confirmation(_:expectedCount:isolation:sourceLocation:_:).
+
+Confirmations function similarly to the expectations API of XCTest, however, they don't block or suspend the caller while waiting for a condition to be fulfilled. Instead, the requirement is expected to be confirmed (the equivalent of fulfilling an expectation) before confirmation() returns, and records an issue otherwise:
+
+// Before
+func testTruckEvents() async {
+  let soldFood = expectation(description: "…")
+  FoodTruck.shared.eventHandler = { event in
+    if case .soldFood = event {
+      soldFood.fulfill()
+    }
+  }
+  await Customer().buy(.soup)
+  await fulfillment(of: [soldFood])
+  ...
+}
+
+// After
+@Test func truckEvents() async {
+  await confirmation("…") { soldFood in
+    FoodTruck.shared.eventHandler = { event in
+      if case .soldFood = event {
+        soldFood()
+      }
+    }
+    await Customer().buy(.soup)
+  }
+  ...
+}
+
+
+By default, XCTestExpectation expects to be fulfilled exactly once, and will record an issue in the current test if it is not fulfilled or if it is fulfilled more than once. Confirmation behaves the same way and expects to be confirmed exactly once by default. You can configure the number of times an expectation should be fulfilled by setting its expectedFulfillmentCount property, and you can pass a value for the expectedCount argument of confirmation(_:expectedCount:isolation:sourceLocation:_:) for the same purpose.
+
+XCTestExpectation has a property, assertForOverFulfill, which when set to false allows an expectation to be fulfilled more times than expected without causing a test failure. When using a confirmation, you can pass a range to confirmation(_:expectedCount:isolation:sourceLocation:_:) as its expected count to indicate that it must be confirmed at least some number of times:
+
+// Before
+func testRegularCustomerOrders() async {
+  let soldFood = expectation(description: "…")
+  soldFood.expectedFulfillmentCount = 10
+  soldFood.assertForOverFulfill = false
+  FoodTruck.shared.eventHandler = { event in
+    if case .soldFood = event {
+      soldFood.fulfill()
+    }
+  }
+  for customer in regularCustomers() {
+    await customer.buy(customer.regularOrder)
+  }
+  await fulfillment(of: [soldFood])
+  ...
+}
+
+// After
+@Test func regularCustomerOrders() async {
+  await confirmation(
+    "…",
+    expectedCount: 10...
+  ) { soldFood in
+    FoodTruck.shared.eventHandler = { event in
+      if case .soldFood = event {
+        soldFood()
+      }
+    }
+    for customer in regularCustomers() {
+      await customer.buy(customer.regularOrder)
+    }
+  }
+  ...
+}
+
+
+Any range expression with a lower bound (that is, whose type conforms to both RangeExpression<Int> and Sequence<Int>) can be used with confirmation(_:expectedCount:isolation:sourceLocation:_:). You must specify a lower bound for the number of confirmations because, without one, the testing library cannot tell if an issue should be recorded when there have been zero confirmations.
+
+Control whether a test runs
+
+When using XCTest, the XCTSkip error type can be thrown to bypass the remainder of a test function. As well, the XCTSkipIf() and XCTSkipUnless() functions can be used to conditionalize the same action. The testing library allows developers to skip a test function or an entire test suite before it starts running using the ConditionTrait trait type. Annotate a test suite or test function with an instance of this trait type to control whether it runs:
+
+// Before
+class FoodTruckTests: XCTestCase {
+  func testArepasAreTasty() throws {
+    try XCTSkipIf(CashRegister.isEmpty)
+    try XCTSkipUnless(FoodTruck.sells(.arepas))
+    ...
+  }
+  ...
+}
+
+// After
+@Suite(.disabled(if: CashRegister.isEmpty))
+struct FoodTruckTests {
+  @Test(.enabled(if: FoodTruck.sells(.arepas)))
+  func arepasAreTasty() {
+    ...
+  }
+  ...
+}
+
+Annotate known issues
+
+A test may have a known issue that sometimes or always prevents it from passing. When written using XCTest, such tests can call XCTExpectFailure(_:options:failingBlock:) to tell XCTest and its infrastructure that the issue shouldn't cause the test to fail. The testing library has an equivalent function with synchronous and asynchronous variants:
+
+withKnownIssue(_:isIntermittent:sourceLocation:_:)
+
+withKnownIssue(_:isIntermittent:isolation:sourceLocation:_:)
+
+This function can be used to annotate a section of a test as having a known issue:
+
+// Before
+func testGrillWorks() async {
+  XCTExpectFailure("Grill is out of fuel") {
+    try FoodTruck.shared.grill.start()
+  }
+  ...
+}
+
+// After
+@Test func grillWorks() async {
+  withKnownIssue("Grill is out of fuel") {
+    try FoodTruck.shared.grill.start()
+  }
+  ...
+}
+
+
+Note
+
+The XCTest function XCTExpectFailure(_:options:), which doesn't take a closure and which affects the remainder of the test, doesn't have a direct equivalent in the testing library. To mark an entire test as having a known issue, wrap its body in a call to withKnownIssue().
+
+If a test may fail intermittently, the call to XCTExpectFailure(_:options:failingBlock:) can be marked non-strict. When using the testing library, specify that the known issue is intermittent instead:
+
+// Before
+func testGrillWorks() async {
+  XCTExpectFailure(
+    "Grill may need fuel",
+    options: .nonStrict()
+  ) {
+    try FoodTruck.shared.grill.start()
+  }
+  ...
+}
+
+// After
+@Test func grillWorks() async {
+  withKnownIssue(
+    "Grill may need fuel", 
+    isIntermittent: true
+  ) {
+    try FoodTruck.shared.grill.start()
+  }
+  ...
+}
+
+
+Additional options can be specified when calling XCTExpectFailure():
+
+isEnabled can be set to false to skip known-issue matching (for instance, if a particular issue only occurs under certain conditions)
+
+issueMatcher can be set to a closure to allow marking only certain issues as known and to allow other issues to be recorded as test failures
+
+The testing library includes overloads of withKnownIssue() that take additional arguments with similar behavior:
+
+withKnownIssue(_:isIntermittent:sourceLocation:_:when:matching:)
+
+withKnownIssue(_:isIntermittent:isolation:sourceLocation:_:when:matching:)
+
+To conditionally enable known-issue matching or to match only certain kinds of issues:
+
+// Before
+func testGrillWorks() async {
+  let options = XCTExpectedFailure.Options()
+  options.isEnabled = FoodTruck.shared.hasGrill
+  options.issueMatcher = { issue in
+    issue.type == thrownError
+  }
+  XCTExpectFailure(
+    "Grill is out of fuel",
+    options: options
+  ) {
+    try FoodTruck.shared.grill.start()
+  }
+  ...
+}
+
+// After
+@Test func grillWorks() async {
+  withKnownIssue("Grill is out of fuel") {
+    try FoodTruck.shared.grill.start()
+  } when: {
+    FoodTruck.shared.hasGrill
+  } matching: { issue in
+    issue.error != nil 
+  }
+  ...
+}
+
+Run tests sequentially
+
+By default, the testing library runs all tests in a suite in parallel. The default behavior of XCTest is to run each test in a suite sequentially. If your tests use shared state such as global variables, you may see unexpected behavior including unreliable test outcomes when you run tests in parallel.
+
+Annotate your test suite with serialized to run tests within that suite serially:
+
+// Before
+class RefrigeratorTests : XCTestCase {
+  func testLightComesOn() throws {
+    try FoodTruck.shared.refrigerator.openDoor()
+    XCTAssertEqual(FoodTruck.shared.refrigerator.lightState, .on)
+  }
+  
+  func testLightGoesOut() throws {
+    try FoodTruck.shared.refrigerator.openDoor()
+    try FoodTruck.shared.refrigerator.closeDoor()
+    XCTAssertEqual(FoodTruck.shared.refrigerator.lightState, .off)
+  }
+}
+
+// After
+@Suite(.serialized)
+class RefrigeratorTests {
+  @Test func lightComesOn() throws {
+    try FoodTruck.shared.refrigerator.openDoor()
+    #expect(FoodTruck.shared.refrigerator.lightState == .on)
+  }
+  
+  @Test func lightGoesOut() throws {
+    try FoodTruck.shared.refrigerator.openDoor()
+    try FoodTruck.shared.refrigerator.closeDoor()
+    #expect(FoodTruck.shared.refrigerator.lightState == .off)
+  }
+}
+
+
+For more information, see Running tests serially or in parallel.
+
+Attach values
+
+In XCTest, you can create an instance of XCTAttachment representing arbitrary data, files, property lists, encodable objects, images, and other types of information that would be useful to have available if a test fails. Swift Testing has an Attachment type that serves much the same purpose.
+
+To attach a value from a test to the output of a test run, that value must conform to the Attachable protocol. The testing library provides default conformances for various standard library and Foundation types.
+
+If you want to attach a value of another type, and that type already conforms to Encodable or to NSSecureCoding, the testing library automatically provides a default implementation when you import Foundation:
+
+// Before
+import Foundation
+
+
+class Tortilla: NSSecureCoding { /* ... */ }
+
+
+func testTortillaIntegrity() async {
+  let tortilla = Tortilla(diameter: .large)
+  ...
+  let attachment = XCTAttachment(
+    archivableObject: tortilla
+  )
+  self.add(attachment)
+}
+
+// After
+import Foundation
+
+
+struct Tortilla: Codable, Attachable { /* ... */ }
+
+
+@Test func tortillaIntegrity() async {
+  let tortilla = Tortilla(diameter: .large)
+  ...
+  Attachment.record(tortilla)
+}
+
+
+If you have a type that does not (or cannot) conform to Encodable or NSSecureCoding, or if you want fine-grained control over how it is serialized when attaching it to a test, you can provide your own implementation of withUnsafeBytes(for:_:).
+
+See Also
+Related Documentation
+Defining test functions
+Define a test function to validate that code is working correctly.
+Organizing test functions with suite types
+Organize tests into test suites.
+Expectations and confirmations
+Check for expected values, outcomes, and asynchronous events in tests.
+Known issues
+Mark issues as known when running tests.
+Essentials
+Defining test functions
+Define a test function to validate that code is working correctly.
+Organizing test functions with suite types
+Organize tests into test suites.
+macro Test(String?, any TestTrait...)
+Declare a test.
+struct Test
+A type representing a test or suite.
+macro Suite(String?, any SuiteTrait...)
+Declare a test suite.
+--- END FILE ---
+=== END SWIFT DOCUMENTATION ===
+=== END CONTEXT ===
+
+
+Please implement the requirements above. Write the code directly - do not explain, just write the implementation.

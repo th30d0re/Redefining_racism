@@ -1,0 +1,324 @@
+I'll analyze the codebase and implement the requirements sequentially across all three phases.
+
+✔ List directory app
+   └ 7 files found
+
+✔  $ find /Users/emmanuel/Documents/Theory/Redefining_racism/app -type f -name "*.swift" | grep -E
+    "(TrainingModels|HistoricalPolicies|ValidationRunner)" | head -20
+    └ 4 lines...
+
+✔ Read app/decodingOppression/decodingOppression/Models/TrainingModels.swift
+   └ 85 lines read
+
+✔ Read app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
+   └ 263 lines read
+
+✔ Read app/decodingOppression/decodingOppression/AI/ValidationRunner.swift
+   └ 35 lines read
+
+✔  $ find /Users/emmanuel/Documents/Theory/Redefining_racism/app -type f -name
+    "PolicyAnalysisSession.swift" -o -name "TrainingDataStore.swift" -o -name
+    "TrainingManager.swift"
+    └ 4 lines...
+
+✔ Read app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+   └ 157 lines read
+
+✔ Read app/decodingOppression/decodingOppression/Data/TrainingDataStore.swift
+   └ 104 lines read
+
+Now I'll create the training data files and update PolicyAnalysisSession to support GenerationOptions.
+
+✔ Create app/decodingOppression/decodingOppression/Data/historical_clauses.jsonl (+31)
+
+✔ Create app/decodingOppression/decodingOppression/Data/validation_clauses.jsonl (+11)
+
+Now update PolicyAnalysisSession to accept GenerationOptions:
+
+✔ Edit app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift (+6 -6)
+   ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
+   │ 14     private let academicFramingPrefix = "You are an academic policy analyst. Provide      │
+   │        precise, evidence-based analysis of each clause for research."                        │
+   │ 15     private let retryCharacterLimit = 500                                                 │
+   │ 16                                                                                           │
+   │ 17  -  func classifyClause(_ clause: Clause) async throws -> ClauseClassification {          │
+   │ 17  +  func classifyClause(_ clause: Clause, options: GenerationOptions? = nil) async throws │
+   │         -> ClauseClassification {                                                            │
+   │ 18         try await runWithRetry(clause: clause) { session, text in                         │
+   │ 19  -          let response = try await session.respond(to: text, generating:                │
+   │        ClauseClassification.self)                                                            │
+   │ 19  +          let response = try await session.respond(to: text, generating:                │
+   │        ClauseClassification.self, options: options                                           │
+   │ 20             return response.content                                                       │
+   │ 21         }                                                                                 │
+   │ 22     }                                                                                     │
+   │ 21         }                                                                                 │
+   │ 22     }                                                                                     │
+   │ 23                                                                                           │
+   │ 24  -  func detectArchitecture(_ clause: Clause) async throws -> ArchitectureDetection {     │
+   │ 24  +  func detectArchitecture(_ clause: Clause, options: GenerationOptions? = nil) async    │
+   │        throws -> ArchitectureDetection {                                                     │
+   │ 25         try await runWithRetry(clause: clause) { session, text in                         │
+   │ 26  -          let response = try await session.respond(to: text, generating:                │
+   │        ArchitectureDetection.self)                                                           │
+   │ 26  +          let response = try await session.respond(to: text, generating:                │
+   │        ArchitectureDetection.self, options: options                                          │
+   │ 27             return response.content                                                       │
+   │ 28         }                                                                                 │
+   │ 29     }                                                                                     │
+   │ 28         }                                                                                 │
+   │ 29     }                                                                                     │
+   │ 30                                                                                           │
+   │ 31  -  func detectProxy(_ clause: Clause) async throws -> ProxyDetection {                   │
+   │ 31  +  func detectProxy(_ clause: Clause, options: GenerationOptions? = nil) async throws -> │
+   │         ProxyDetection {                                                                     │
+   │ 32         try await runWithRetry(clause: clause) { session, text in                         │
+   │ 33  -          let response = try await session.respond(to: text, generating:                │
+   │        ProxyDetection.self)                                                                  │
+   │ 33  +          let response = try await session.respond(to: text, generating:                │
+   │        ProxyDetection.self, options: options                                                 │
+   │ 34             return response.content                                                       │
+   │ 35         }                                                                                 │
+   │ 36     }                                                                                     │
+   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+
+✔ Edit app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift (+3 -3)
+   ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
+   │ 132     #else                                                                                │
+   │ 133                                                                                          │
+   │ 134     actor PolicyAnalysisSession {                                                        │
+   │ 135  -      func classifyClause(_ clause: Clause) async throws -> ClauseClassification {     │
+   │ 135  +      func classifyClause(_ clause: Clause, options: GenerationOptions? = nil) async   │
+   │         throws -> ClauseClassification {                                                     │
+   │ 136             throw Tier3Error.unavailable                                                 │
+   │ 137         }                                                                                │
+   │ 138                                                                                          │
+   │ 139  -      func detectArchitecture(_ clause: Clause) async throws -> ArchitectureDetection  │
+   │         {                                                                                    │
+   │ 139  +      func detectArchitecture(_ clause: Clause, options: GenerationOptions? = nil)     │
+   │         async throws -> ArchitectureDetection {                                              │
+   │ 140             throw Tier3Error.unavailable                                                 │
+   │ 141         }                                                                                │
+   │ 142                                                                                          │
+   │ 140             throw Tier3Error.unavailable                                                 │
+   │ 141         }                                                                                │
+   │ 142                                                                                          │
+   │ 143  -      func detectProxy(_ clause: Clause) async throws -> ProxyDetection {              │
+   │ 143  +      func detectProxy(_ clause: Clause, options: GenerationOptions? = nil) async      │
+   │         throws -> ProxyDetection {                                                           │
+   │ 144             throw Tier3Error.unavailable                                                 │
+   │ 145         }                                                                                │
+   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+
+Now create the test file. First, let me check the test directory structure:
+
+✔ $ find /Users/emmanuel/Documents/Theory/Redefining_racism/app -type d -name "*Test*" | head -5
+    └ 3 lines...
+
+✔  $ ls -la /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppre
+    ssionTests/
+    └ 8 lines...
+
+✔ Read app/decodingOppression/decodingOppressionTests/AnalysisPipelineTests.swift:1-30
+   └ 34 lines read
+
+✔ Create app/decodingOppression/decodingOppressionTests/HistoricalPolicyValidationTests.swift
+    (+130)
+
+Now I need to check the project.pbxproj file to register the JSONL files in the build phases:
+
+✔ $ find /Users/emmanuel/Documents/Theory/Redefining_racism/app -name "project.pbxproj" | head -1
+    └ 2 lines...
+
+✔  $ grep -n "KeywordTaxonomies.json" /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodi
+    ngOppression/decodingOppression.xcodeproj/project.pbxproj | head -5
+    └ 6 lines...
+
+✔ $ python3 << 'EOFPYTHON'
+    import re
+
+    pbxproj_path = "/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/
+    decodingOppression.xcodeproj/project.pbxproj"...
+    └ 30 lines...
+
+✔ $ python3 << 'EOFPYTHON'
+    import re
+
+    pbxproj_path = "/Users/Emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/
+    decodingOppression.xcodeproj/project.pbxproj"...
+    └ 25 lines...
+
+✔  $ grep "1487ADED2F47B27E009460B8" /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodin
+    gOppression/decodingOppression.xcodeproj/project.pbxproj | head -1
+    └ 2 lines...
+
+✔ $ python3 << 'EOFPYTHON'
+    base = "1487ADED2F47B27E009460B8"
+    base_int = int(base, 16)
+
+    id1_file_ref = format(base_int + 1, '024X')...
+    └ 16 lines...
+
+Now I'll update the pbxproj to add the files. Let me view the structure first:
+
+✔  $ grep -A 5 "decodingOppression/Data/KeywordTaxonomies.json \*/" /Users/emmanuel/Documents/Theor
+    y/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj | head
+    -20
+    └ 21 lines...
+
+✔ $ python3 << 'EOFPYTHON'
+    import re
+
+    pbxproj_path = "/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/
+    decodingOppression.xcodeproj/project.pbxproj"...
+    └ 76 lines...
+
+Now add the validation_clauses.jsonl to the test target as well:
+
+✔ $ python3 << 'EOFPYTHON'
+    import re
+
+    pbxproj_path = "/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/
+    decodingOppression.xcodeproj/project.pbxproj"...
+    └ 58 lines...
+
+✔ $ python3 << 'EOFPYTHON'
+    import re
+
+    pbxproj_path = "/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/
+    decodingOppression.xcodeproj/project.pbxproj"...
+    └ 46 lines...
+
+Now add the test file to the project.pbxproj:
+
+✔ $ python3 << 'EOFPYTHON'
+    import re
+
+    pbxproj_path = "/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/
+    decodingOppression.xcodeproj/project.pbxproj"...
+    └ 71 lines...
+
+Now let's verify the build by attempting to compile:
+
+✔ $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression && xcodebuild
+    -scheme decodingOppression -configuration Debug -showBuildSettings 2>&1 | grep -E
+    "BUILD_DIR|PRODUCT_NAME" | head -5
+    └ 6 lines...
+
+✔  $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression && xcodebuild
+    build -scheme decodingOppression -configuration Debug 2>&1 | tail -50
+    └ 51 lines...
+
+The respond method doesn't accept optional options. Let me check the actual API:
+
+✔  $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression && grep -A 3
+    "func respond" decodingOppression/AI/PolicyAnalysisSession.swift
+    └ 1 line...
+
+Let me fix the PolicyAnalysisSession to properly handle the optional options parameter by providing a default when nil:
+
+✔ Edit app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift (+21 -6)
+   ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
+   │ 16                                                                                           │
+   │ 17     func classifyClause(_ clause: Clause, options: GenerationOptions? = nil) async throws │
+   │         -> ClauseClassification {                                                            │
+   │ 18         try await runWithRetry(clause: clause) { session, text in                         │
+   │ 19  -          let response = try await session.respond(to: text, generating:                │
+   │        ClauseClassification.self, options: options)                                          │
+   │ 20  -          return response.content                                                       │
+   │ 19  +          if let opts = options {                                                       │
+   │ 20  +              let response = try await session.respond(to: text, generating:            │
+   │        ClauseClassification.self, options: opts)                                             │
+   │ 21  +              return response.content                                                   │
+   │ 22  +          } else {                                                                      │
+   │ 23  +              let response = try await session.respond(to: text, generating:            │
+   │        ClauseClassification.self)                                                            │
+   │ 24  +              return response.content                                                   │
+   │ 25  +          }                                                                             │
+   │ 26         }                                                                                 │
+   │ 27     }                                                                                     │
+   │ 28                                                                                           │
+   │ 29     func detectArchitecture(_ clause: Clause, options: GenerationOptions? = nil) async    │
+   │        throws -> ArchitectureDetection {                                                     │
+   │ 30         try await runWithRetry(clause: clause) { session, text in                         │
+   │ 26  -          let response = try await session.respond(to: text, generating:                │
+   │        ArchitectureDetection.self, options: options)                                         │
+   │ 27  -          return response.content                                                       │
+   │ 31  +          if let opts = options {                                                       │
+   │ 32  +              let response = try await session.respond(to: text, generating:            │
+   │        ArchitectureDetection.self, options: opts)                                            │
+   │ 33  +              return response.content                                                   │
+   │ 34  +          } else {                                                                      │
+   │ 35  +              let response = try await session.respond(to: text, generating:            │
+   │        ArchitectureDetection.self)                                                           │
+   │ 36  +              return response.content                                                   │
+   │ 37  +          }                                                                             │
+   │ 38         }                                                                                 │
+   │ 39     }                                                                                     │
+   │ 40                                                                                           │
+   │ 40                                                                                           │
+   │ 41     func detectProxy(_ clause: Clause, options: GenerationOptions? = nil) async throws -> │
+   │         ProxyDetection {                                                                     │
+   │ 42         try await runWithRetry(clause: clause) { session, text in                         │
+   │ 33  -          let response = try await session.respond(to: text, generating:                │
+   │        ProxyDetection.self, options: options)                                                │
+   │ 34  -          return response.content                                                       │
+   │ ──────────────────────────────────────────────────────────────────────────────────────────── │
+   │ 43  +          if let opts = options {                                                       │
+   │ 44  +              let response = try await session.respond(to: text, generating:            │
+   │        ProxyDetection.self, options: opts)                                                   │
+   │ 45  +              return response.content                                                   │
+   │ 46  +          } else {                                                                      │
+   │ 47  +              let response = try await session.respond(to: text, generating:            │
+   │        ProxyDetection.self)                                                                  │
+   │ 48  +              return response.content                                                   │
+   │ 49  +          }                                                                             │
+   │ 50         }                                                                                 │
+   │ 51     }                                                                                     │
+   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+
+✔  $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression && xcodebuild
+    build -scheme decodingOppression -configuration Debug 2>&1 | tail -30
+    └ 29 lines...
+
+Perfect! Now build the test target to verify the test file compiles:
+
+✔ $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression && xcodebuild
+    build-for-testing -scheme decodingOppression -configuration Debug 2>&1 | tail -50
+    └ 45 lines...
+
+There are duplicate build files in the pbxproj. Let me clean that up:
+
+✔ $ python3 << 'EOFPYTHON'
+    import re
+
+    pbxproj_path = "/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/
+    decodingOppression.xcodeproj/project.pbxproj"...
+    └ 31 lines...
+
+✔ $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression && xcodebuild
+    build-for-testing -scheme decodingOppression -configuration Debug 2>&1 | tail -30
+    └ 30 lines...
+
+Let me check the full build error:
+
+✔ $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression && xcodebuild
+    build-for-testing -scheme decodingOppression -configuration Debug 2>&1 | grep -A 10 "error:"
+    └ 21 lines...
+
+ValidationRunner needs to conditionally compile. Let me check the file:
+
+✔ Read app/decodingOppression/decodingOppression/AI/ValidationRunner.swift:1-10
+   └ 15 lines read
+
+The file is already conditionally compiled. Let me check what's failing:
+
+✔  $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression && xcodebuild
+    build -scheme decodingOppression -configuration Debug -showBuildSettings 2>&1 | grep -E "OS_" |
+    head -3
+    └ 4 lines...
+
+
+Model call failed: {"message":"Sorry, you have exceeded your Copilot token usage. Please review our [Terms of Service](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).","code":"rate_limited"} (Request ID: DBAF:2DFCDD:2A27BE4:2EBCE9F:699CBA9C)
+
+Execution failed: 429 Sorry, you have exceeded your Copilot token usage. Please review our [Terms of Service](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).

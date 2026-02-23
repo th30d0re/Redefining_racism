@@ -1,0 +1,1504 @@
+OpenAI Codex v0.104.0 (research preview)
+--------
+workdir: /Users/emmanuel/Documents/Theory/Redefining_racism
+model: gpt-5.2-codex
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: high
+reasoning summaries: auto
+session id: 019c874e-3755-7b60-907f-3706ed0b56ae
+--------
+user
+You are a Swift/SwiftUI developer. A previous attempt to complete a task failed.
+
+TESTING & DEBUGGING REFERENCE:
+For building, testing, and debugging iOS/macOS apps, reference this workflow guide:
+/Users/emmanuel/Dev/Tools/Eocon-Foundation-V1/.Foundation/Docs/swiftDocs/Testing/XCODEBUILD_MCP_WORKFLOW.md
+
+This guide covers:
+- XcodeBuild MCP server tools for programmatic Xcode interaction
+- Building for simulator, booting simulators, installing/launching apps
+- UI automation: screenshots, accessibility hierarchy, tap simulation
+- Debugging UI issues (button taps, gestures, navigation)
+
+=== ORIGINAL TASK ===
+I have created the following plan after thorough exploration and analysis of the codebase. Follow the below plan verbatim. Trust the files and references. Do not re-verify what's written in the plan. Explore only when absolutely necessary. First implement all the proposed file changes and then I'll review all the changes together at the end.
+
+## Observations
+
+\`GenerableTypes.swift\` already defines all three \`@Generable\` structs (\`ClauseClassification\`, \`ArchitectureDetection\`, \`ProxyDetection\`) gated behind \`#if canImport(FoundationModels)\`. \`PipelineContracts.swift\` has \`TierClassification\` and \`AnalysisProgress\`. \`Tier1Engine\` and \`Tier2Engine\` are both \`actor\` types returning \`TierClassification?\`. No \`AI/\` folder, \`Tier3Engine\`, \`PolicyAnalysisSession\`, \`HistoricalBaselineTool\`, or \`HistoricalPolicies\` exist yet.
+
+## Approach
+
+Create a new \`AI/\` group inside the Xcode target with five focused files: \`Tier3Error\`, \`HistoricalPolicies\`, \`HistoricalBaselineTool\`, \`PolicyAnalysisSession\`, and \`Tier3Engine\`. Each file is gated behind \`#if canImport(FoundationModels)\` with a stub fallback, mirroring the pattern already used in \`GenerableTypes.swift\`. \`Tier3Engine\` mirrors the \`Tier2Engine\` public actor interface so \`TierResolver\` (T5) can consume both symmetrically.
+
+---
+
+## Implementation Steps
+
+### 1. Create \`AI/Tier3Error.swift\`
+
+Add a new file at \`file:app/decodingOppression/decodingOppression/AI/Tier3Error.swift\`.
+
+Define an \`enum Tier3Error: Error\` with cases:
+- \`.unavailable\` — Foundation Models not available on this device/configuration
+- \`.safetyGuardrail\` — prompt was rejected by the safety system (caught internally, never surfaced to callers)
+- \`.contextWindowExceeded\` — \`exceededContextWindowSize\` persisted even after condensed-text retry
+- \`.sessionFailed(Error)\` — wraps any other \`LanguageModelSession\` error for internal logging
+
+---
+
+### 2. Create \`AI/HistoricalPolicies.swift\`
+
+Add \`file:app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift\`.
+
+Define a \`struct HistoricalPolicies\` with a \`static func score(for policyName: String) -> Double\` that returns the expected COI for each of the four ground-truth policies:
+
+| Policy | Expected COI |
+|---|---|
+| Virginia Slave Codes (1705) | 0.93 |
+| 13th Amendment (1865) | 0.35 |
+| HOLC Redlining (1934) | 0.82 |
+| War on Drugs (1971) | 0.78 |
+
+Return \`0.0\` for unrecognised names. This struct is the single source of truth consumed by both \`HistoricalBaselineTool\` (T4) and the \`ValidationRunner\` (T8/T9).
+
+---
+
+### 3. Create \`AI/HistoricalBaselineTool.swift\`
+
+Add \`file:app/decodingOppression/decodingOppression/AI/HistoricalBaselineTool.swift\`.
+
+Gate the entire file behind \`#if canImport(FoundationModels)\`.
+
+Define \`struct HistoricalBaselineTool: Tool\`:
+- \`let name = \"getHistoricalBaseline\"\`
+- \`let description\` — one sentence explaining the tool returns the COI of a known historical policy for comparison
+- Nested \`@Generable struct Arguments\` with a single \`policyName: String\` property annotated with \`@Guide(.anyOf([...]))\` constraining it to the four valid policy names (matching the keys in \`HistoricalPolicies\`)
+- \`func call(arguments: Arguments) async throws -> String\` — delegates to \`HistoricalPolicies.score(for: arguments.policyName)\` and returns a human-readable string such as \`\"Historical COI for Virginia Slave Codes: 0.93\"\`
+
+---
+
+### 4. Create \`AI/PolicyAnalysisSession.swift\`
+
+Add \`file:app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift\`.
+
+Gate the entire implementation behind \`#if canImport(FoundationModels)\`.
+
+Define \`actor PolicyAnalysisSession\`:
+
+**Academic framing prefix** — a \`private let academicFramingPrefix: String\` constant (~15 tokens) that frames every session as an academic policy-analysis task. This is injected as the \`instructions:\` parameter of every \`LanguageModelSession\` init.
+
+**\`classifyClause(_ clause: Clause) async throws -> ClauseClassification\`**
+- Creates a fresh \`LanguageModelSession(instructions: academicFramingPrefix, tools: [HistoricalBaselineTool()])\` on every call (one session per clause, per the 4k token constraint)
+- Calls \`session.respond(to: clause.text, generating: ClauseClassification.self)\`
+- Catches \`LanguageModelSession.GenerationError.exceededContextWindowSize\` → truncates \`clause.text\` to its first ~500 characters and retries once with a new session; if the retry also throws \`exceededContextWindowSize\`, rethrows as \`Tier3Error.contextWindowExceeded\`
+- Catches safety guardrail errors (the specific \`LanguageModelError\` case for content policy rejection) → logs the clause ID internally and rethrows as \`Tier3Error.safetyGuardrail\`
+
+**\`detectArchitecture(_ clause: Clause) async throws -> ArchitectureDetection\`**
+- Same session-creation and error-handling pattern as \`classifyClause\`
+- Calls \`session.respond(to: clause.text, generating: ArchitectureDetection.self)\`
+
+**\`detectProxy(_ clause: Clause) async throws -> ProxyDetection\`**
+- Same pattern; calls \`session.respond(to: clause.text, generating: ProxyDetection.self)\`
+
+**\`streamArchitecture(_ clause: Clause) -> AsyncThrowingStream<ArchitectureDetection.PartiallyGenerated, Error>\`**
+- Creates a fresh session and calls \`session.streamResponse(to: clause.text, generating: ArchitectureDetection.self)\`
+- Yields each \`PartiallyGenerated\` value so the UI can update property-by-property (AAR → SE → IJ → RSC) as the model generates them
+- Catches safety guardrail and context-window errors with the same handling as above
+
+---
+
+### 5. Create \`AI/Tier3Engine.swift\`
+
+Add \`file:app/decodingOppression/decodingOppression/AI/Tier3Engine.swift\`.
+
+Gate the full implementation behind \`#if canImport(FoundationModels)\`. Provide a stub \`#else\` block that mirrors \`Tier2Engine\`'s simulator stub pattern (all methods throw \`Tier3Error.unavailable\`).
+
+Define \`public actor Tier3Engine\`:
+
+**Availability check** — a \`private func checkAvailability() throws\` that inspects \`SystemLanguageModel.default.availability\` and handles all cases:
+
+\`\`\`
+.available                          → proceed
+.unavailable(.deviceNotEligible)    → throw Tier3Error.unavailable (device cannot run Apple Intelligence)
+.unavailable(.appleIntelligenceNotEnabled) → throw Tier3Error.unavailable (user must enable in Settings)
+.unavailable(.modelNotReady)        → throw Tier3Error.unavailable (model still downloading)
+.unavailable(_)                     → throw Tier3Error.unavailable (unknown reason)
+\`\`\`
+
+**\`public func isAvailable() -> Bool\`** — returns \`true\` only when \`SystemLanguageModel.default.availability == .available\`
+
+**\`public func classify(clause: Clause) async throws -> TierClassification?\`**
+- Calls \`checkAvailability()\`; returns \`nil\` on \`Tier3Error.unavailable\` (not a throw — mirrors \`Tier2Engine.classify\` returning \`nil\` when the model is not downloaded)
+- Uses \`async let\` to run \`session.classifyClause\`, \`session.detectArchitecture\`, and \`session.detectProxy\` concurrently
+- Maps the three \`@Generable\` results into a \`TierClassification\`:
+  - \`ClauseClassification.TargetGroup\` → \`TargetGroup\` (same case names, direct mapping)
+  - \`ClauseClassification.EffectDirection\` → \`EffectDirection\` (same case names)
+  - \`ArchitectureDetection\` → \`ArchitectureScores\` (rename fields: \`asymmetricAutonomyRestriction\` → \`aar\`, \`selectiveEmpathy\` → \`se\`, \`ideologicalJustification\` → \`ij\`, \`resistanceToStructuralCritique\` → \`rsc\`)
+  - \`ProxyDetection\` passes through directly (same field names as \`PipelineContracts.ProxyDetection\`)
+  - \`confidence\` from \`ClauseClassification.confidence\`
+  - \`tier: .tier3\`
+- Catches \`Tier3Error.safetyGuardrail\` → logs internally (e.g. \`print(\"[Tier3] Safety guardrail triggered for clause \\(clause.id)\")\`) and returns \`nil\` so the caller silently routes to Tier 2
+
+**\`public func streamClassify(clause: Clause) -> AsyncThrowingStream<ArchitectureDetection.PartiallyGenerated, Error>\`**
+- Delegates to \`session.streamArchitecture(clause)\` for progressive UI updates
+
+---
+
+### 6. Register new files in the Xcode project
+
+Open \`file:app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj\` and add all five new \`AI/\` Swift files to:
+- The \`PBXFileReference\` section (one entry per file)
+- The \`PBXGroup\` for the \`decodingOppression\` target (create a new \`AI\` child group)
+- The \`PBXSourcesBuildPhase\` compile sources list for the \`decodingOppression\` target
+
+This ensures Xcode compiles the new files as part of the app target.
+
+---
+
+### Data flow summary
+
+\`\`\`mermaid
+sequenceDiagram
+    participant Caller as TierResolver (T5)
+    participant T3 as Tier3Engine
+    participant PAS as PolicyAnalysisSession
+    participant FM as LanguageModelSession
+    participant HBT as HistoricalBaselineTool
+    participant HP as HistoricalPolicies
+
+    Caller->>T3: classify(clause)
+    T3->>T3: checkAvailability()
+    alt unavailable
+        T3-->>Caller: nil
+    else available
+        par
+            T3->>PAS: classifyClause(clause)
+            PAS->>FM: respond(to:, generating: ClauseClassification)
+            FM-->>PAS: ClauseClassification
+        and
+            T3->>PAS: detectArchitecture(clause)
+            PAS->>FM: respond(to:, generating: ArchitectureDetection)
+            FM-->>PAS: ArchitectureDetection
+        and
+            T3->>PAS: detectProxy(clause)
+            PAS->>FM: respond(to:, generating: ProxyDetection)
+            FM-->>PAS: ProxyDetection
+        end
+        Note over FM,HBT: Model may invoke tool callback
+        FM->>HBT: call(arguments: policyName)
+        HBT->>HP: score(for: policyName)
+        HP-->>HBT: Double
+        HBT-->>FM: \"Historical COI for …: 0.93\"
+        T3->>T3: map → TierClassification(.tier3)
+        T3-->>Caller: TierClassification
+    end
+\`\`\`
+=== END ORIGINAL TASK ===
+
+=== REFERENCE CONTEXT ===
+
+=== SWIFT DOCUMENTATION ===
+
+--- FILE: generating-content-and-performing-tasks.md ---
+# Generating content and performing tasks with Foundation Models
+
+**Enhance the experience in your app by prompting an on-device large language model.**
+
+
+## Overview
+
+The Foundation Models framework lets you tap into the on-device large models at the core of Apple Intelligence. You can enhance your app by using generative models to create content or perform tasks. The framework supports language understanding and generation based on model capabilities.
+
+For design guidance, see Human Interface Guidelines > Technologies > [https://developer.apple.com/design/human-interface-guidelines/generative-ai](https://developer.apple.com/design/human-interface-guidelines/generative-ai).
+
+
+## Understand model capabilities
+
+When considering features for your app, it helps to know what the on-device language model can do. The on-device model supports text generation and understanding that you can use to:
+
+The on-device language model may not be suitable for handling all requests, like:
+
+The model can complete complex generative tasks when you use guided generation or tool calling. For more on handling complex tasks, or tasks that require extensive world-knowledge, see [doc://com.apple.foundationmodels/documentation/FoundationModels/generating-swift-data-structures-with-guided-generation](https://developer.apple.com/documentation/FoundationModels/generating-swift-data-structures-with-guided-generation) and [doc://com.apple.foundationmodels/documentation/FoundationModels/expanding-generation-with-tool-calling](https://developer.apple.com/documentation/FoundationModels/expanding-generation-with-tool-calling).
+
+
+## Check for availability
+
+Before you use the on-device model in your app, check that the model is available by creating an instance of [doc://com.apple.foundationmodels/documentation/FoundationModels/SystemLanguageModel](https://developer.apple.com/documentation/FoundationModels/SystemLanguageModel) with the [doc://com.apple.foundationmodels/documentation/FoundationModels/SystemLanguageModel/default](https://developer.apple.com/documentation/FoundationModels/SystemLanguageModel/default) property.
+
+Model availability depends on device factors like:
+
+- The device must support Apple Intelligence.
+
+- The device must have Apple Intelligence turned on in Settings.
+
+
+> **NOTE**: It can take some time for the model to download and become available when a person turns on Apple Intelligence.
+
+
+Always verify model availability first, and plan for a fallback experience in case the model is unavailable.
+
+```swift
+struct GenerativeView: View {
+    // Create a reference to the system language model.
+    private var model = SystemLanguageModel.default
+
+    var body: some View {
+        switch model.availability {
+        case .available:
+            // Show your intelligence UI.
+        case .unavailable(.deviceNotEligible):
+            // Show an alternative UI.
+        case .unavailable(.appleIntelligenceNotEnabled):
+            // Ask the person to turn on Apple Intelligence.
+        case .unavailable(.modelNotReady):
+            // The model isn't ready because it's downloading or because of other system reasons.
+        case .unavailable(let other):
+            // The model is unavailable for an unknown reason.
+        }
+    }
+}
+```
+
+
+## Create a session
+
+After confirming that the model is available, create a [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession) object to call the model. For a single-turn interaction, create a new session each time you call the model:
+
+```swift
+// Create a session with the system model.
+let session = LanguageModelSession()
+```
+
+For a multiturn interaction — where the model retains some knowledge of what it produced — reuse the same session each time you call the model.
+
+
+## Provide a prompt to the model
+
+A [doc://com.apple.foundationmodels/documentation/FoundationModels/Prompt](https://developer.apple.com/documentation/FoundationModels/Prompt) is an input that the model responds to. Prompt engineering is the art of designing high-quality prompts so that the model generates a best possible response for the request you make. A prompt can be as short as “hello”, or as long as multiple paragraphs. The process of designing a prompt involves a lot of exploration to discover the best prompt, and involves optimizing prompt length and writing style.
+
+When thinking about the prompt you want to use in your app, consider using conversational language in the form of a question or command. For example, “What’s a good month to visit Paris?” or “Generate a food truck menu.”
+
+Write prompts that focus on a single and specific task, like “Write a profile for the dog breed Siberian Husky”. When a prompt is long and complicated, the model takes longer to respond, and may respond in unpredictable ways. If you have a complex generation task in mind, break the task down into a series of specific prompts.
+
+You can refine your prompt by telling the model exactly how much content it should generate. A prompt like, “Write a profile for the dog breed Siberian Husky” often takes a long time to process as the model generates a full multi-paragraph essay. If you specify “using three sentences”, it speeds up processing and generates a concise summary. Use phrases like “in a single sentence” or “in a few words” to shorten the generation time and produce shorter text.
+
+```swift
+// Generate a longer response for a specific command.
+let simple = "Write me a story about pears."
+
+// Quickly generate a concise response.
+let quick = "Write the profile for the dog breed Siberian Husky using three sentences."
+```
+
+
+## Provide instructions to the model
+
+[doc://com.apple.foundationmodels/documentation/FoundationModels/Instructions](https://developer.apple.com/documentation/FoundationModels/Instructions) help steer the model in a way that fits the use case of your app. The model obeys prompts at a lower priority than the instructions you provide. When you provide instructions to the model, consider specifying details like:
+
+- What the model’s role is; for example, “You are a mentor,” or “You are a movie critic”.
+
+- What the model should do, like “Help the person extract calendar events,” or “Help the person by recommending search suggestions”.
+
+- What the style preferences are, like “Respond as briefly as possible”.
+
+- What the possible safety measures are, like “Respond with ‘I can’t help with that’ if you’re asked to do something dangerous”.
+
+Use content you trust in instructions because the model follows them more closely than the prompt itself. When you initialize a session with instructions, it affects all prompts the model responds to in that session. Instructions can also include example responses to help steer the model. When you add examples to your prompt, you provide the model with a template that shows the model what a good response looks like.
+
+
+## Generate a response
+
+To call the model with a prompt, call [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/respond(to:options:)-b2re](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/respond(to:options:)-b2re) on your session. The response call is asynchronous because it may take a few seconds for the on-device foundation model to generate the response.
+
+```swift
+let instructions = """
+    Suggest five related topics. Keep them concise (three to seven words) and make sure they \
+    build naturally from the person's topic.
+    """
+
+let session = LanguageModelSession(instructions: instructions)
+
+let prompt = "Making homemade bread"
+let response = try await session.respond(to: prompt)
+```
+
+
+> **NOTE**: A session can only handle a single request at a time, and causes a runtime error if you call it again before the previous request finishes. Check [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/isResponding](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/isResponding) to verify the session is done processing the previous request before sending a new one.
+
+
+Instead of working with raw string output from the model, the framework offers guided generation to generate a custom Swift data structure you define. For more information about guided generation, see [doc://com.apple.foundationmodels/documentation/FoundationModels/generating-swift-data-structures-with-guided-generation](https://developer.apple.com/documentation/FoundationModels/generating-swift-data-structures-with-guided-generation).
+
+When you make a request to the model, you can provide custom tools to help the model complete the request. If the model determines that a [doc://com.apple.foundationmodels/documentation/FoundationModels/Tool](https://developer.apple.com/documentation/FoundationModels/Tool) can assist with the request, the framework calls your [doc://com.apple.foundationmodels/documentation/FoundationModels/Tool](https://developer.apple.com/documentation/FoundationModels/Tool) to perform additional actions like retrieving content from your local database. For more information about tool calling, see [doc://com.apple.foundationmodels/documentation/FoundationModels/expanding-generation-with-tool-calling](https://developer.apple.com/documentation/FoundationModels/expanding-generation-with-tool-calling)
+
+
+## Consider context size limits per session
+
+The *context window size* is a limit on how much data the model can process for a session instance. A token is a chunk of text the model processes, and the system model supports up to 4,096 tokens. A single token corresponds to three or four characters in languages like English, Spanish, or German, and one token per character in languages like Japanese, Chinese, or Korean. In a single session, the sum of all tokens in the instructions, all prompts, and all outputs count toward the context window size.
+
+If your session processes a large amount of tokens that exceed the context window, the framework throws the error [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/GenerationError/exceededContextWindowSize(_:)](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/GenerationError/exceededContextWindowSize(_:)). When you encounter the error, start a new session and try shortening your prompts. If you need to process a large amount of data that won’t fit in a single context window limit, break your data into smaller chunks, process each chunk in a separate session, and then combine the results.
+
+
+## Tune generation options and optimize performance
+
+To get the best results for your prompt, experiment with different generation options. [doc://com.apple.foundationmodels/documentation/FoundationModels/GenerationOptions](https://developer.apple.com/documentation/FoundationModels/GenerationOptions) affects the runtime parameters of the model, and you can customize them for every request you make.
+
+```swift
+// Customize the temperature to increase creativity.
+let options = GenerationOptions(temperature: 2.0)
+
+let session = LanguageModelSession()
+
+let prompt = "Write me a story about coffee."
+let response = try await session.respond(
+    to: prompt,
+    options: options
+)
+```
+
+When you test apps that use the framework, use Xcode Instruments to understand more about the requests you make, like the time it takes to perform a request. When you make a request, you can access the [doc://com.apple.foundationmodels/documentation/FoundationModels/Transcript](https://developer.apple.com/documentation/FoundationModels/Transcript) entries that describe the actions the model takes during your [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession).
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.foundationmodels/documentation/FoundationModels/generating-content-and-performing-tasks-with-foundation-models](https://developer.apple.com/documentation/com.apple.foundationmodels/documentation/FoundationModels/generating-content-and-performing-tasks-with-foundation-models)*
+--- END FILE ---
+
+--- FILE: FINAL-COLLECTION-SUMMARY.md ---
+# 🎉 Complete Apple Documentation Collection - Final Summary
+
+**Date**: October 8, 2025  
+**Status**: ✅ **100% SUCCESS - ALL FRAMEWORKS SCRAPED!**
+
+---
+
+## 🏆 Mission Accomplished!
+
+Successfully scraped **ALL 32 FRAMEWORKS** including the two that initially failed!
+
+### 📊 Final Statistics
+
+- **Total Frameworks**: 32 (100% success!)
+- **Total Documentation Files**: 848 Markdown files
+- **Success Rate**: 100% 🎉
+- **Collection Location**: `/Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/`
+- **Total Content Size**: ~5.2 MB
+
+---
+
+## ✅ All 32 Frameworks Successfully Scraped
+
+### AI & Machine Learning (6 frameworks) ✅
+1. ✅ **Foundation Models** (21 files) - Apple's AI foundation models
+2. ✅ **Core ML** (42 files) - On-device machine learning
+3. ✅ **Vision** (38 files) - Computer vision & image analysis
+4. ✅ **Create ML** (30 files) - ML model training
+5. ✅ **Speech** (25 files) - Speech recognition & synthesis
+6. ✅ **Natural Language** (31 files) - NLP & text analysis ⭐ **FIXED!**
+
+### Swift & SwiftUI (2 frameworks) ✅
+7. ✅ **Swift** (27 files) - Swift language documentation
+8. ✅ **SwiftUI** (57 files) - Modern declarative UI
+
+### Core Apple Frameworks (3 frameworks) ✅
+9. ✅ **Foundation** (60 files) - Essential data types
+10. ✅ **UIKit** (46 files) - iOS UI framework
+11. ✅ **AppKit** (60 files) - macOS UI framework
+
+### Graphics & Media (6 frameworks) ✅
+12. ✅ **Metal** (42 files) - Low-level graphics API
+13. ✅ **AVFoundation** (50 files) - Audio/video processing
+14. ✅ **Core Graphics** (40 files) - 2D graphics
+15. ✅ **Core Animation** (41 files) - Animation framework ⭐ **FIXED!**
+16. ✅ **ARKit** (15 files) - Augmented reality
+17. ✅ **RealityKit** (30 files) - 3D rendering for AR
+
+### System & Security (2 frameworks) ✅
+18. ✅ **Security** (30 files) - Cryptography & secure storage
+19. ✅ **Network** (30 files) - Modern networking
+
+### App Services (5 frameworks) ✅
+20. ✅ **CloudKit** (30 files) - Cloud data storage
+21. ✅ **HealthKit** (25 files) - Health & fitness data
+22. ✅ **StoreKit** (25 files) - In-app purchases
+23. ✅ **WatchKit** (30 files) - Apple Watch apps
+24. ✅ **WidgetKit** (20 files) - Home screen widgets
+
+### Data & Storage (1 framework) ✅
+25. ✅ **Core Data** (40 files) - Object persistence
+
+### System Integration (1 framework) ✅
+26. ✅ **Intents** (25 files) - Siri integration
+
+### Game Development (2 frameworks) ✅
+27. ✅ **SpriteKit** (30 files) - 2D game engine
+28. ✅ **SceneKit** (30 files) - 3D game engine
+
+### Development Tools (1 framework) ✅
+29. ✅ **XCTest** (30 files) - Unit testing
+
+### Hardware & Sensors (3 frameworks) ✅
+30. ✅ **Core Motion** (25 files) - Motion & sensor data
+31. ✅ **Core Bluetooth** (25 files) - Bluetooth LE
+32. ✅ **Core Location** (25 files) - Location services
+
+---
+
+## 🔧 How We Fixed the Failed Frameworks
+
+### Problem 1: Natural Language (Failed as "natural")
+**Solution**: Used the full framework name `naturallanguage` instead of `natural`
+```bash
+python3 apple_doc_crawler.py "naturallanguage" -m 30 -d 0.5
+```
+**Result**: ✅ 31 files successfully scraped!
+
+### Problem 2: Core Animation (Failed as "coreanimation")
+**Solution**: Used the original framework name `quartzcore` instead of `coreanimation`
+```bash
+python3 apple_doc_crawler.py "quartzcore" -m 40 -d 0.5
+```
+**Result**: ✅ 41 files successfully scraped!
+
+---
+
+## 📈 Collection Growth
+
+| Metric | Before Retry | After Retry | Improvement |
+|--------|-------------|-------------|-------------|
+| Frameworks | 30/32 | 32/32 | +2 frameworks |
+| Success Rate | 93.8% | 100% | +6.2% |
+| Total Files | 802 | 848 | +46 files |
+| Content Size | ~4.6 MB | ~5.2 MB | +0.6 MB |
+
+---
+
+## 🎯 Verified Documentation
+
+### Speech Framework ✅
+- **Files**: 19 documentation files
+- **URL**: https://developer.apple.com/documentation/speech
+- **Content**: Speech recognition, synthesis, analysis
+- **Location**: `/Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/`
+
+### Vision Framework ✅
+- **Files**: 38 documentation files
+- **URL**: https://developer.apple.com/documentation/vision
+- **Content**: Computer vision, image analysis, object detection
+- **Location**: `/Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/`
+
+---
+
+## 📁 Complete Collection Structure
+
+```
+/Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/
+├── README.md                                  # Main index
+├── 848 Framework Documentation Files          # All scraped content
+│
+├── AI & Machine Learning (6 frameworks, 187 files)
+│   ├── Foundation Models (21 files)
+│   ├── Core ML (42 files)
+│   ├── Vision (38 files)
+│   ├── Create ML (30 files)
+│   ├── Speech (25 files)
+│   └── Natural Language (31 files) ⭐ NEW
+│
+├── Swift & SwiftUI (2 frameworks, 84 files)
+│   ├── Swift (27 files)
+│   └── SwiftUI (57 files)
+│
+├── Core Frameworks (3 frameworks, 166 files)
+│   ├── Foundation (60 files)
+│   ├── UIKit (46 files)
+│   └── AppKit (60 files)
+│
+├── Graphics & Media (6 frameworks, 226 files)
+│   ├── Metal (42 files)
+│   ├── AVFoundation (50 files)
+│   ├── Core Graphics (40 files)
+│   ├── Core Animation (41 files) ⭐ NEW
+│   ├── ARKit (15 files)
+│   └── RealityKit (30 files)
+│
+└── ... (15 more frameworks, 185 files)
+```
+
+---
+
+## 🚀 Quick Start Commands
+
+### Navigate to Collection
+```bash
+cd /Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection
+```
+
+### Search for AI/ML Content
+```bash
+# Core ML
+grep -r "MLModel" . --include="*.md" | head -20
+
+# Vision
+grep -r "VNImageRequest" . --include="*.md" | head -20
+
+# Natural Language (NEW!)
+grep -r "NLTagger\|Natural Language" . --include="*.md" | head -20
+
+# Speech
+grep -r "SFSpeechRecognizer\|Speech" . --include="*.md" | head -20
+```
+
+### Search for Graphics & Animation
+```bash
+# Core Animation (NEW!)
+grep -r "CALayer\|CAAnimation" . --include="*.md" | head -20
+
+# Metal
+grep -r "MTL\|Metal" . --include="*.md" | head -20
+
+# ARKit
+grep -r "ARKit\|ARSession" . --include="*.md" | head -20
+```
+
+### Search for Swift/SwiftUI
+```bash
+# SwiftUI
+grep -r "@State\|@Binding" . --include="*.md" | head -20
+
+# Swift language features
+grep -r "async\|await" . --include="*.md" | head -20
+```
+
+---
+
+## 📊 Coverage by Category
+
+| Category | Frameworks | Files | Percentage |
+|----------|-----------|-------|-----------|
+| AI & Machine Learning | 6 | 187 | 22% |
+| Swift & SwiftUI | 2 | 84 | 10% |
+| Core Frameworks | 3 | 166 | 20% |
+| Graphics & Media | 6 | 226 | 27% |
+| System & Security | 2 | 60 | 7% |
+| App Services | 5 | 130 | 15% |
+| Other | 8 | 95 | 11% |
+| **Total** | **32** | **848** | **100%** |
+
+---
+
+## 🎓 What You Can Do Now
+
+### 1. AI/ML Development
+- **Foundation Models**: Build AI-powered apps with Apple's LLMs
+- **Core ML**: Integrate machine learning models
+- **Vision**: Add computer vision capabilities
+- **Natural Language**: Process and analyze text
+- **Speech**: Add voice recognition and synthesis
+
+### 2. UI Development
+- **SwiftUI**: Build modern, declarative interfaces
+- **UIKit**: iOS app development
+- **AppKit**: macOS app development
+- **Core Animation**: Create smooth animations
+
+### 3. Graphics & Gaming
+- **Metal**: GPU programming and compute
+- **ARKit/RealityKit**: Augmented reality experiences
+- **SpriteKit/SceneKit**: 2D/3D game development
+
+### 4. System Integration
+- **CloudKit**: Sync data across devices
+- **HealthKit**: Health and fitness apps
+- **Intents/Siri**: Voice integration
+- **Core Location**: Location-based features
+
+---
+
+## 🔄 Keep Your Documentation Updated
+
+To get the latest documentation in the future:
+
+```bash
+# Navigate to tools directory
+cd /Users/emmanuel/Dev/Tools/getMDfromURL
+
+# Re-run the essentials scraper
+python3 scrape_essentials.py
+
+# Add the newly fixed frameworks
+python3 apple_doc_crawler.py "naturallanguage" -m 30
+python3 apple_doc_crawler.py "quartzcore" -m 40
+
+# Copy to research directory
+rsync -av output/apple-docs-*/ /Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/
+```
+
+---
+
+## 📚 Additional Resources
+
+- **Quick Start Guide**: `/Users/emmanuel/Dev/Research/Apple/AI/Docs/QUICK-START.md`
+- **Scraping Summary**: `/Users/emmanuel/Dev/Research/Apple/AI/Docs/SCRAPING-SUMMARY.md`
+- **Collection README**: `/Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/README.md`
+- **Tools Location**: `/Users/emmanuel/Dev/Tools/getMDfromURL`
+
+---
+
+## 🎉 Summary
+
+**You now have the most comprehensive Apple documentation collection possible!**
+
+- ✅ All 32 essential frameworks
+- ✅ 848 documentation files
+- ✅ 100% success rate
+- ✅ Fully searchable and offline
+- ✅ Perfect for AI/ML, Swift, SwiftUI, and all Apple development
+
+**Ready for any Apple development project! 🚀**
+
+---
+
+**Generated**: October 8, 2025  
+**Status**: ✅ COMPLETE COLLECTION - 100% SUCCESS!  
+**Total**: 32 frameworks, 848 files, ~5.2 MB
+--- END FILE ---
+=== END SWIFT DOCUMENTATION ===
+=== END CONTEXT ===
+
+=== BUILD ATTEMPT 3 FAILED ===
+The previous implementation failed with the following errors:
+
+Build failed but no detailed error log available.
+
+=== INSTRUCTIONS FOR ATTEMPT 4 ===
+1. Analyze what went wrong in the previous approach
+2. Try a DIFFERENT approach or fix the specific issues
+3. Do NOT repeat the same mistakes
+4. If the same approach keeps failing, consider an alternative implementation strategy
+5. Write the corrected code directly - do not explain, just implement
+
+Please fix the issues and provide the corrected implementation.
+mcp: xcodebuildmcp starting
+mcp: xcodebuildmcp ready
+mcp startup: ready: xcodebuildmcp
+
+thinking
+**Accessing AGENTS file contents**
+
+I'm retrieving the full text of the AGENTS file to understand the instructions it contains before proceeding.
+exec
+/bin/zsh -lc ls in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+Algo
+Artifacts
+README.md
+Racism_is_an_engineering_problem.txt
+Redefining_Racism.aux
+Redefining_Racism.fdb_latexmk
+Redefining_Racism.fls
+Redefining_Racism.log
+Redefining_Racism.out
+Redefining_Racism.pdf
+Redefining_Racism.synctex.gz
+Redefining_Racism.tex
+__Avenue
+app
+critique
+swiftDocs
+venn_diagram_1.png
+venn_diagram_2.png
+website
+exec
+/bin/zsh -lc "rg --files -g 'AGENTS.md'" in /Users/emmanuel/Documents/Theory/Redefining_racism exited 1 in 52ms:
+
+
+thinking
+**Investigating agent presence**
+
+I'm checking the root and hidden directories for agent definitions to locate user-specified instructions.
+exec
+/bin/zsh -lc 'find .. -name AGENTS.md -maxdepth 4' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 53ms:
+
+
+thinking
+**Scanning for existing type definitions**
+
+I'll search for types like Clause and TierClassification to understand their fields and map them accurately.
+exec
+/bin/zsh -lc 'rg -n "struct Tier2Engine|actor Tier2Engine|Tier2Engine" app/decodingOppression/decodingOppression' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 50ms:
+app/decodingOppression/decodingOppression/MLX/Tier2EngineHolder.swift:2://  Tier2EngineHolder.swift
+app/decodingOppression/decodingOppression/MLX/Tier2EngineHolder.swift:5://  Deprecated: use Tier2Engine directly via AppDependencies.
+app/decodingOppression/decodingOppression/MLX/Tier2EngineHolder.swift:10:@available(*, deprecated, message: "Use Tier2Engine directly.")
+app/decodingOppression/decodingOppression/MLX/Tier2EngineHolder.swift:12:final class Tier2EngineHolder: ObservableObject {
+app/decodingOppression/decodingOppression/MLX/Tier2EngineHolder.swift:13:    private let engine: Tier2Engine
+app/decodingOppression/decodingOppression/MLX/Tier2EngineHolder.swift:16:        self.engine = Tier2Engine(downloadManager: downloadManager)
+app/decodingOppression/decodingOppression/MLX/Tier2Engine.swift:2://  Tier2Engine.swift
+app/decodingOppression/decodingOppression/MLX/Tier2Engine.swift:10:public actor Tier2Engine {
+app/decodingOppression/decodingOppression/NLP/ClauseClassificationPipeline.swift:12:    private let tier2Engine: Tier2Engine
+app/decodingOppression/decodingOppression/NLP/ClauseClassificationPipeline.swift:14:    init(tier2Engine: Tier2Engine) throws {
+app/decodingOppression/decodingOppression/decodingOppressionApp.swift:52:// MARK: - Shared ModelDownloadManager + Tier2Engine for pipeline/view-model
+app/decodingOppression/decodingOppression/decodingOppressionApp.swift:69:    let tier2Engine: Tier2Engine
+app/decodingOppression/decodingOppression/decodingOppressionApp.swift:75:        tier2Engine = Tier2Engine(downloadManager: modelDownloadManager)
+app/decodingOppression/decodingOppression/AI/Tier3Engine.swift:5://  Facade mirroring Tier2Engine; gates Foundation Models classification behind availability.
+
+thinking
+**Noticing existing AI engine file**
+
+Found an existing AI/Tier3Engine.swift likely from a prior attempt, so I’ll inspect it to decide whether to fix or replace it per the current plan.
+exec
+/bin/zsh -lc "sed -n '1,220p' app/decodingOppression/decodingOppression/MLX/Tier2Engine.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  Tier2Engine.swift
+//  decodingOppression
+//
+//  Facade mirroring Tier1Engine; gates MLX embedding and classifier behind download state.
+//
+
+import Foundation
+
+public actor Tier2Engine {
+    private let embeddingEngine: MLXEmbeddingEngine
+    private let classifier: MLXClauseClassifier
+    private let downloadManager: ModelDownloadManager
+
+    public init(downloadManager: ModelDownloadManager) {
+        self.downloadManager = downloadManager
+        self.embeddingEngine = MLXEmbeddingEngine()
+        self.classifier = MLXClauseClassifier(downloadManager: downloadManager)
+    }
+
+
+thinking
+**Reviewing existing engine implementation**
+
+I'm inspecting the current Tier3Engine code to understand why the previous attempt failed and to inform the next fix or improvement.
+exec
+/bin/zsh -lc "sed -n '1,240p' app/decodingOppression/decodingOppression/AI/Tier3Engine.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 53ms:
+//
+//  Tier3Engine.swift
+//  decodingOppression
+//
+//  Facade mirroring Tier2Engine; gates Foundation Models classification behind availability.
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+import FoundationModels
+
+public actor Tier3Engine {
+    private let session = PolicyAnalysisSession()
+
+    private func checkAvailability() throws {
+        switch SystemLanguageModel.default.availability {
+        case .available:
+            return
+        case .unavailable(let reason):
+
+thinking
+**Inspecting additional AI files**
+
+I'm planning to review other AI-related files beyond the initial Tier3 engine to gather more context for the implementation.
+exec
+/bin/zsh -lc 'ls app/decodingOppression/decodingOppression/AI' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+HistoricalBaselineTool.swift
+HistoricalPolicies.swift
+PolicyAnalysisSession.swift
+Tier3Engine.swift
+Tier3Error.swift
+
+thinking
+**Inspecting existing files for errors**
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/AI/Tier3Error.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  Tier3Error.swift
+//  decodingOppression
+//
+//  Errors for Tier3 (Foundation Models) classification path.
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+
+enum Tier3Error: Error {
+    /// Foundation Models not available on this device/configuration.
+    case unavailable
+    /// Prompt was rejected by the safety system (caught internally, never surfaced to callers).
+    case safetyGuardrail
+    /// exceededContextWindowSize persisted even after condensed-text retry.
+    case contextWindowExceeded
+    /// Wraps any other LanguageModelSession error for internal logging.
+    case sessionFailed(Error)
+
+thinking
+**Noting Tier3Error duplication**
+
+Tier3Error is defined identically in both files, which is redundant but acceptable for now; next, I'll verify if PolicyAnalysisSession and related checks are similarly handled.
+exec
+/bin/zsh -lc "sed -n '1,260p' app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 53ms:
+//
+//  HistoricalPolicies.swift
+//  decodingOppression
+//
+//  Single source of truth for expected COI of known historical policies.
+//  Consumed by HistoricalBaselineTool (T4) and ValidationRunner (T8/T9).
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+
+struct HistoricalPolicies {
+    /// Returns the expected COI (0-1) for a known historical policy name; 0.0 for unrecognised names.
+    static func score(for policyName: String) -> Double {
+        switch policyName {
+        case "Virginia Slave Codes (1705)": return 0.93
+        case "13th Amendment (1865)": return 0.35
+        case "HOLC Redlining (1934)": return 0.82
+        case "War on Drugs (1971)": return 0.78
+
+thinking
+**Moving to next tool**
+exec
+/bin/zsh -lc "sed -n '1,260p' app/decodingOppression/decodingOppression/AI/HistoricalBaselineTool.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  HistoricalBaselineTool.swift
+//  decodingOppression
+//
+//  Tool returning the COI of a known historical policy for model comparison.
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+import FoundationModels
+
+struct HistoricalBaselineTool: Tool {
+    let name = "getHistoricalBaseline"
+    let description = "Returns the COI of a known historical policy for comparison."
+
+    @Generable
+    struct Arguments {
+        @Guide(description: "Historical policy name", .anyOf([
+            "Virginia Slave Codes (1705)",
+exec
+/bin/zsh -lc "sed -n '1,340p' app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  PolicyAnalysisSession.swift
+//  decodingOppression
+//
+//  One session per clause (4k token constraint); academic framing and tool injection.
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+import FoundationModels
+
+actor PolicyAnalysisSession {
+    private let academicFramingPrefix = "You are an academic policy analyst. Provide precise, evidence-based analysis of each clause for research."
+    private let retryCharacterLimit = 500
+
+    func classifyClause(_ clause: Clause) async throws -> ClauseClassification {
+        try await runWithRetry(clause: clause) { session, text in
+            let response = try await session.respond(to: text, generating: ClauseClassification.self)
+            return response.content
+
+thinking
+**Investigating build failure causes**
+
+I'm checking GenerableTypes.swift for issues like incorrect or inconsistent type names that might cause the build to fail.
+exec
+/bin/zsh -lc "sed -n '1,260p' app/decodingOppression/decodingOppression/GenerableTypes.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism exited 1 in 53ms:
+sed: app/decodingOppression/decodingOppression/GenerableTypes.swift: No such file or directory
+
+thinking
+**Locating target with ripgrep**
+exec
+/bin/zsh -lc "rg --files -g 'GenerableTypes.swift' app/decodingOppression/decodingOppression" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift
+exec
+/bin/zsh -lc "sed -n '1,260p' app/decodingOppression/decodingOppression/Models/GenerableTypes.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  GenerableTypes.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+import FoundationModels
+#endif
+
+// MARK: - Clause classification (classification-first order for constrained decoding)
+
+#if canImport(FoundationModels)
+@Generable(description: "Classification of a policy clause by target group and effect direction")
+struct ClauseClassification {
+    @Generable
+    enum TargetGroup: String {
+
+thinking
+**Inspecting pipeline contract definitions**
+exec
+/bin/zsh -lc "sed -n '1,240p' app/decodingOppression/decodingOppression/Models/PipelineContracts.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  PipelineContracts.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+// MARK: - Architecture scores (Codable for pipeline and training)
+
+struct ArchitectureScores: Codable {
+    var aar: Double  // asymmetric autonomy restriction
+    var se: Double   // selective empathy
+    var ij: Double   // ideological justification
+    var rsc: Double  // resistance to structural critique
+}
+
+// MARK: - Analysis progress
+
+
+thinking
+**Searching for related definitions**
+exec
+/bin/zsh -lc 'rg -n "enum TargetGroup|struct TargetGroup|enum EffectDirection|EffectDirection" app/decodingOppression/decodingOppression' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:20:    enum TargetGroup: String {
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:28:    enum EffectDirection: String {
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:39:    var effectDirection: EffectDirection
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:80:    enum TargetGroup: String, Codable {
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:87:    enum EffectDirection: String, Codable {
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:95:    var effectDirection: EffectDirection
+app/decodingOppression/decodingOppression/MLX/MLXClauseClassifier.swift:64:        var effectDirection: EffectDirection = .neutral
+app/decodingOppression/decodingOppression/AI/Tier3Engine.swift:60:            let effectDirection: EffectDirection
+app/decodingOppression/decodingOppression/Models/Policy.swift:20:enum TargetGroup: String, Codable, CaseIterable {
+app/decodingOppression/decodingOppression/Models/Policy.swift:27:enum EffectDirection: String, Codable, CaseIterable {
+app/decodingOppression/decodingOppression/Models/Policy.swift:53:    var effectDirection: EffectDirection?
+app/decodingOppression/decodingOppression/NLP/ClauseAnalyzer.swift:21:        let effectDirection = resolveEffectDirection(using: vector)
+app/decodingOppression/decodingOppression/NLP/ClauseAnalyzer.swift:63:    private func resolveEffectDirection(using vector: KeywordFeatureVector) -> EffectDirection {
+app/decodingOppression/decodingOppression/Models/PipelineContracts.swift:32:    var effectDirection: EffectDirection
+app/decodingOppression/decodingOppression/Models/AnalyzedClause.swift:17:    var effectDirection: EffectDirection
+app/decodingOppression/decodingOppression/Models/AnalyzedClause.swift:28:        effectDirection: EffectDirection,
+
+thinking
+**Verifying error types in FoundationModels**
+
+I'm checking whether LanguageModelSession.GenerationError or LanguageModelError is the correct type for handling guardrailViolation and refusal errors, since references to the former may cause build failures due to missing or incorrect types. Next, I'll search the repo and docs for instances of guardrailViolation to confirm the valid error enums.
+exec
+/bin/zsh -lc 'rg -n "guardrailViolation|refusal|LanguageModelError|GenerationError" app/decodingOppression/decodingOppression' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:66:        } catch let error as LanguageModelSession.GenerationError {
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:72:                } catch let retryError as LanguageModelSession.GenerationError {
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:76:                    case .guardrailViolation, .refusal:
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:85:            case .guardrailViolation, .refusal:
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:102:        } catch let error as LanguageModelSession.GenerationError {
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:108:                } catch let retryError as LanguageModelSession.GenerationError {
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:112:                    case .guardrailViolation, .refusal:
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:121:            case .guardrailViolation, .refusal:
+
+thinking
+**Searching local docs for error types**
+
+I'm checking the local FoundationModels docs for precise error types like GenerationError or guardrailViolation to fix build errors caused by incorrect error handling.
+exec
+/bin/zsh -lc 'rg -n "GenerationError|guardrail|refusal|LanguageModelError" swiftDocs | head -200' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 53ms:
+swiftDocs/generating-content-and-performing-tasks.md:136:If your session processes a large amount of tokens that exceed the context window, the framework throws the error [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/GenerationError/exceededContextWindowSize(_:)](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/GenerationError/exceededContextWindowSize(_:)). When you encounter the error, start a new session and try shortening your prompts. If you need to process a large amount of data that won’t fit in a single context window limit, break your data into smaller chunks, process each chunk in a separate session, and then combine the results.
+swiftDocs/FoundationModels/Meet_the_Foundation_Models_framework.md:451:These errors might include guardrail violation, unsupported language, or context window exceeded. To provide the best user experience, you should handle them appropriately, and the deep-dive video will teach you more about them. That’s it for multi-turn stateful sessions! We learned how to create a session and use it, as well as how our model keeps track of your context. Now that you’ve seen all the cool features of the framework, let’s talk about developer tooling and experience. To start, you can go to any Swift file in your project and use the new playground macro to prompt the model.
+swiftDocs/FoundationModels/Deep_dive_into_Foundation_Models_Framework.md:49:} catch LanguageModelSession.GenerationError.exceededContextWindowSize {
+swiftDocs/FoundationModels/Deep_dive_into_Foundation_Models_Framework.md:69:} catch LanguageModelSession.GenerationError.exceededContextWindowSize {
+swiftDocs/FoundationModels/Deep_dive_into_Foundation_Models_Framework.md:145:} catch LanguageModelSession.GenerationError.unsupportedLanguageOrLocale {
+swiftDocs/Custom/MapKit/Code-along-with-the-foundation-models-framework.md:435:Okay, we've covered a lot today from basic text generation to guided generation, streaming, tool calling, and performance optimizations, but there's still more to explore. We didn't have time to cover some advanced topics such as training custom model adapters, dynamic runtime schemas, or diving into guardrails and error handling. To learn more about these topics, I highly recommend watching other WWDC25 videos on the Foundation Models Framework.
+swiftDocs/Custom/MODEL_CHAT_ARCHITECTURE.md:87:    // Handle simple greetings to avoid safety guardrails
+swiftDocs/Custom/MODEL_CHAT_ARCHITECTURE.md:130:**Safety Guardrails**: Foundation Models have built-in safety guardrails that can reject certain prompts. When triggered:
+swiftDocs/Custom/MODEL_CHAT_ARCHITECTURE.md:136:**Simple Greeting Bypass**: To avoid false positives on safety guardrails, simple greetings like "hi" and "hello" are intercepted and return canned responses.
+swiftDocs/Custom/MODEL_CHAT_ARCHITECTURE.md:638:When Foundation Models fail (safety guardrails, unavailable, etc.):
+swiftDocs/AI-ML/FoundationModels/Support-languages-and-locales-with-Foundation-Models.md:67:When you call [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/respond(to:options:)](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/respond(to:options:)) on a [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession), the Foundation Models framework checks the language or languages of the input prompt text, and whether your prompt asks the model to respond in any specific language or languages. If the model detects a language it doesn’t support, the session throws [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/GenerationError/unsupportedLanguageOrLocale(_:)](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/GenerationError/unsupportedLanguageOrLocale(_:)). Handle the error by communicating to the person using your app that a language in their request is unsupported.
+swiftDocs/AI-ML/FoundationModels/Support-languages-and-locales-with-Foundation-Models.md:78:> **IMPORTANT**: Guardrails for model input and output safety are only for supported languages and locales. If a prompt contains sensitive content in an unsupported language, which typically is a short phrase mixed-in with text in a supported language, it might not throw a [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/GenerationError/unsupportedLanguageOrLocale(_:)](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/GenerationError/unsupportedLanguageOrLocale(_:)) error. If unsupported-language detection fails, the guardrails may also fail to flag that short, unsupported content. For more on guardrails, see [doc://com.apple.foundationmodels/documentation/FoundationModels/improving-the-safety-of-generative-model-output](https://developer.apple.com/documentation/FoundationModels/improving-the-safety-of-generative-model-output).
+swiftDocs/AI-ML/FoundationModels/Generating-content-and-performing-tasks-with-Foundation-Models.md:136:If your session processes a large amount of tokens that exceed the context window, the framework throws the error [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/GenerationError/exceededContextWindowSize(_:)](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/GenerationError/exceededContextWindowSize(_:)). When you encounter the error, start a new session and try shortening your prompts. If you need to process a large amount of data that won’t fit in a single context window limit, break your data into smaller chunks, process each chunk in a separate session, and then combine the results.
+swiftDocs/Complete-Collection/Improving-the-safety-of-generative-model-output.md:21:## Handle guardrail errors
+swiftDocs/Complete-Collection/Improving-the-safety-of-generative-model-output.md:23:When you send a prompt to the model, [doc://com.apple.foundationmodels/documentation/FoundationModels/SystemLanguageModel/Guardrails](https://developer.apple.com/documentation/FoundationModels/SystemLanguageModel/Guardrails) check the input prompt and the model’s output. If either fails the guardrail’s safety check, the model session throws a [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/GenerationError/guardrailViolation(_:)](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/GenerationError/guardrailViolation(_:)) error:
+swiftDocs/Complete-Collection/Improving-the-safety-of-generative-model-output.md:31:} catch LanguageModelSession.GenerationError.guardrailViolation {
+swiftDocs/Complete-Collection/Improving-the-safety-of-generative-model-output.md:36:If you encounter a guardrail violation error for any built-in prompt in your app, experiment with re-phrasing the prompt to determine which phrases are activating the guardrails, and avoid those phrases. If the error is thrown in response to a prompt created by someone using your app, give people a clear message that explains the issue. For example, you might say “Sorry, this feature isn’t designed to handle that kind of input” and offer people the opportunity to try a different prompt.
+swiftDocs/Complete-Collection/Improving-the-safety-of-generative-model-output.md:39:## Handle model refusals
+swiftDocs/Complete-Collection/Improving-the-safety-of-generative-model-output.md:41:The on-device language model may not be suitable for handling all requests and may refuse requests for a topic. When you generate a string response, and the model refuses a request, it generates a message that begins with a refusal like “Sorry, I can’t help with”.
+swiftDocs/Complete-Collection/Improving-the-safety-of-generative-model-output.md:43:Design your app experience with refusal messages in mind and present the message to the person using your app. You might not be able to programmatically determine whether a string response is a normal response or a refusal, so design the experience to anticipate both. If it’s critical to determine whether the response is a refusal message, initialize a new [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession) and prompt the model to classify whether the string is a refusal.
+
+
+thinking
+**Clarifying enum pattern matching with associated values**
+
+The enum case with an associated value requires explicit binding (e.g., using `_` or `let`) in pattern matching; simply using `case .exceededContextWindowSize:` without binding causes a compile error.
+thinking
+**Confirming need for associated value patterns**
+
+The error likely comes from missing associated value bindings, so I'll verify the exact signatures for cases like `.exceededContextWindowSize` and `.guardrailViolation` by checking their definitions to adjust the pattern matching accordingly.
+exec
+/bin/zsh -lc 'rg -n "GenerationError" swiftDocs/Complete-Collection/LanguageModelSession.GenerationError.md swiftDocs/Complete-Collection/LanguageModelSession.md swiftDocs/AI-ML/FoundationModels/LanguageModelSession.GenerationError.md 2>/dev/null' in /Users/emmanuel/Documents/Theory/Redefining_racism exited 2 in 51ms:
+swiftDocs/Complete-Collection/LanguageModelSession.md:28:The framework records each call to the model in a [doc://com.apple.foundationmodels/documentation/FoundationModels/Transcript](https://developer.apple.com/documentation/FoundationModels/Transcript) that includes all prompts and responses. If your session exceeds the available context size, it throws [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/GenerationError/exceededContextWindowSize(_:)](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/GenerationError/exceededContextWindowSize(_:)).
+swiftDocs/Complete-Collection/LanguageModelSession.md:77:- [LanguageModelSession.GenerationError](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/generationerror) — An error that may occur while generating a response.
+
+thinking
+**Searching for GenerationError file**
+exec
+/bin/zsh -lc "rg --files -g '*GenerationError*' swiftDocs/Complete-Collection swiftDocs/AI-ML/FoundationModels swiftDocs/FoundationModels" in /Users/emmanuel/Documents/Theory/Redefining_racism exited 1 in 51ms:
+
+
+thinking
+**Checking documentation for sample code**
+exec
+/bin/zsh -lc "sed -n '1,120p' swiftDocs/Complete-Collection/Improving-the-safety-of-generative-model-output.md" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+# Improving the safety of generative model output
+
+**Create generative experiences that appropriately handle sensitive inputs and respect people.**
+
+
+## Overview
+
+Generative AI models have powerful creativity, but with this creativity comes the risk of unintended or unexpected results. For any generative AI feature, safety needs to be an essential part of your design.
+
+The Foundation Models framework has two base layers of safety, where the framework uses:
+
+- An on-device language model that has training to handle sensitive topics with care.
+
+- *Guardrails* that aim to block harmful or sensitive content, such as self-harm, violence, and adult materials, from both model input and output.
+
+Because safety risks are often contextual, some harms might bypass both built-in framework safety layers. It’s vital to design additional safety layers specific to your app. When developing your feature, decide what’s acceptable or might be harmful in your generative AI feature, based on your app’s use case, cultural context, and audience.
+
+For more information on designing generative AI experiences responsibly, see Human Interface Guidelines > Foundations > [https://developer.apple.com/design/human-interface-guidelines/generative-ai](https://developer.apple.com/design/human-interface-guidelines/generative-ai).
+
+
+
+
+thinking
+**Clarifying catch vs switch pattern matching**
+
+Catch clauses allow matching error cases without specifying associated values, unlike switch where associated values require explicit patterns or wildcards. This explains why `catch LanguageModelSession.GenerationError.guardrailViolation` works even if the case has associated values, but in switch `case .guardrailViolation, .refusal:` must handle associated values explicitly with wildcards.
+thinking
+**Adjusting switch patterns and verifying error types**
+
+Switch cases with associated values require explicit wildcards, so patterns like `.guardrailViolation(_), .refusal(_, _)` are needed, and cases with differing associated counts can’t share a single case. Also verifying that `session.respond` throws `LanguageModelSession.GenerationError` as expected and checking if its response includes a `content` property by reviewing the related documentation next.
+exec
+/bin/zsh -lc "rg -n \"respond\\(to: .*generating\" -g '*.md' swiftDocs | head -200" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+swiftDocs/FoundationModels/Meet_the_Foundation_Models_framework.md:404:let response = try await session.respond(to: ..., generating: Result.self)
+swiftDocs/FoundationModels/Meet_the_Foundation_Models_framework.md:424:let response = try await session.respond(to: ..., generating: Top3ActionEmotionResult.self)
+swiftDocs/FoundationModels/Deep_dive_into_Foundation_Models_Framework.md:297:session.respond(to: "Generate a fun NPC", generating: NPC.self)
+swiftDocs/Complete-Collection/Generating-Swift-data-structures-with-guided-generation.md:24:let response = try await session.respond(to: prompt, generating: Float.self)
+swiftDocs/Complete-Collection/Improving-the-safety-of-generative-model-output.md:106:let response = try await session.respond(to: prompt, generating: Breakfast.self)
+swiftDocs/AI-ML/FoundationModels/Generating-Swift-data-structures-with-guided-generation.md:24:let response = try await session.respond(to: prompt, generating: Float.self)
+swiftDocs/AI-ML/FoundationModels/Improving-the-safety-of-generative-model-output.md:106:let response = try await session.respond(to: prompt, generating: Breakfast.self)
+exec
+/bin/zsh -lc "sed -n '350,450p' swiftDocs/FoundationModels/Meet_the_Foundation_Models_framework.md" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+One more important thing to know is that while the model is producing output, its `isResponding` property will become `true`. You may need to observe this property and make sure not to submit another prompt until the model finishes responding.
+
+```swift
+import SwiftUI
+import FoundationModels
+
+struct HaikuView: View {
+
+    @State
+    private var session = LanguageModelSession()
+
+    @State
+    private var haiku: String?
+
+    var body: some View {
+        if let haiku {
+            Text(haiku)
+        }
+        Button("Go!") {
+            Task {
+
+thinking
+**Checking response content usage**
+
+I'm verifying whether `response.content` is the correct property for accessing string response data per the Generating-Swift-data-structures documentation.
+exec
+/bin/zsh -lc "sed -n '1,120p' swiftDocs/Complete-Collection/Generating-Swift-data-structures-with-guided-generation.md" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+# Generating Swift data structures with guided generation
+
+**Create robust apps by describing output you want programmatically.**
+
+
+## Overview
+
+When you perform a request, the model returns a raw string in its natural language format. Raw strings require you to manually parse the details you want. Instead of working with raw strings, the framework provides guided generation, which gives strong guarantees that the response is in a format you expect.
+
+To use guided generation, describe the output you want as a new Swift type. When you make a request to the model, include your custom type and the framework performs the work necessary to fill in and return an object with the parameters filled in for you. The framework uses constrained sampling when generating output, which defines the rules on what the model can generate. Constrained sampling prevents the model from producing malformed output and provides you with results as a type you define.
+
+For more information about creating a session and prompting the model, see [doc://com.apple.foundationmodels/documentation/FoundationModels/generating-content-and-performing-tasks-with-foundation-models](https://developer.apple.com/documentation/FoundationModels/generating-content-and-performing-tasks-with-foundation-models).
+
+
+## Conform your data type to Generable
+
+To conform your type to [doc://com.apple.foundationmodels/documentation/FoundationModels/Generable](https://developer.apple.com/documentation/FoundationModels/Generable), describe the type and the parameters to guide the response of the model. The framework supports generating content with basic Swift types like `Bool`, `Int`, `Float`, `Double`, `Decimal`, and `Array`. For example, if you only want the model to return a numeric result, call [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/respond(to:generating:includeSchemaInPrompt:options:)-13kji](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/respond(to:generating:includeSchemaInPrompt:options:)-13kji) using the type `Float`:
+
+```swift
+let prompt = "How many tablespoons are in a cup?"
+
+thinking
+**Clarifying response return types**
+
+Noticing that some examples use `respond` returning the generated type directly (like `Float` or `Breakfast`), while others access `.content` on the response, indicating a wrapper type; this mismatch likely causes the compile error with `ClauseClassification`. I'll verify the exact return type of `respond` for the model used to correct how `response` is accessed.
+exec
+/bin/zsh -lc "rg -n \"GeneratedResponse|content\\)\\.content|response\\.content\" -g '*.md' swiftDocs/FoundationModels swiftDocs/AI-ML/FoundationModels swiftDocs/Complete-Collection | head -200" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+swiftDocs/FoundationModels/Meet_the_Foundation_Models_framework.md:87:print(response.content)
+swiftDocs/FoundationModels/Meet_the_Foundation_Models_framework.md:294:print(response.content)
+swiftDocs/FoundationModels/Deep_dive_into_Foundation_Models_Framework.md:21:  return response.content
+swiftDocs/FoundationModels/Deep_dive_into_Foundation_Models_Framework.md:190:  return response.content
+swiftDocs/FoundationModels/Deep_dive_into_Foundation_Models_Framework.md:396:let generatedContent = response.content
+swiftDocs/AI-ML/FoundationModels/Improving-the-safety-of-generative-model-output.md:159:    if verifyText(response.content) { 
+swiftDocs/Complete-Collection/Improving-the-safety-of-generative-model-output.md:159:    if verifyText(response.content) { 
+
+thinking
+**Checking guided generation doc**
+exec
+/bin/zsh -lc "sed -n '360,440p' swiftDocs/FoundationModels/Deep_dive_into_Foundation_Models_Framework.md" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+      schema: DynamicGenerationSchema(
+        arrayOf: DynamicGenerationSchema(referenceTo: customType)
+      )
+    )
+    properties.append(property)
+  }
+  
+  var root: DynamicGenerationSchema {
+    DynamicGenerationSchema(
+      name: name,
+      properties: properties
+    )
+  }
+}
+
+var riddleBuilder = LevelObjectCreator(name: "Riddle")
+riddleBuilder.addStringProperty(name: "question")
+riddleBuilder.addArrayProperty(name: "answers", customType: "Answer")
+
+var answerBuilder = LevelObjectCreator(name: "Answer")
+
+thinking
+**Verifying presence of response.content in generable**
+exec
+/bin/zsh -lc 'rg -n "generating:.*" -n swiftDocs/FoundationModels/Deep_dive_into_Foundation_Models_Framework.md | head -40' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+187:  let response = try await session.respond(generating: NPC.self) {
+297:session.respond(to: "Generate a fun NPC", generating: NPC.self)
+exec
+/bin/zsh -lc "sed -n '150,230p' swiftDocs/FoundationModels/Deep_dive_into_Foundation_Models_Framework.md" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+guard supportedLanguages.contains(Locale.current.language) else {
+  // Show message
+  return
+}
+```
+
+And there's also an API to check whether the model supports a certain language. For example to checkout if the user's current language is supported, and to show a disclaimer when it's not. So that's an overview of sessions. You can prompt it, which will store the history in the transcript. And you can optionally set the sampling parameter, to control the randomness of the session’s output. But let’s get fancier! When the player walks around, we can generate NPCs, Non Playable Characters, again using Foundation Models. However, this time, we want more complicated output. Instead of just plain text, we’d like a name and a coffee order from the NPC. Generable can help us here.
+
+It can be a challenge to get structured output from a Large Language Model. You could prompt it with the specific fields you expect, and have some parsing code to extract that. But this is hard to maintain, and very fragile, it might not always give the valid keys, which would make the whole method fail.
+
+Luckily, Foundation Models has a much better API, called Generable.
+
+On your struct, you can apply the @Generable macro. So, what is Generable and is that even a word? Well, yes, it is.
+
+```swift
+@Generable
+struct NPC {
+  let name: String
+  let coffeeOrder: String
+}
+
+thinking
+**Clarifying error case pattern matching**
+
+I've identified likely pattern matching errors with associated values in `LanguageModelSession.GenerationError` cases, so I'll refactor switch cases to use wildcards for associated values to fix compile errors. I'll also verify `streamResponse` yields and adapt accessing `.content` accordingly.
+exec
+/bin/zsh -lc "rg -n \"streamResponse\" -g '*.md' swiftDocs/FoundationModels swiftDocs/AI-ML/FoundationModels swiftDocs/Complete-Collection | head -200" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 50ms:
+swiftDocs/FoundationModels/Meet_the_Foundation_Models_framework.md:144:The partially generated type comes into play when you call the `streamResponse` method on your session.
+swiftDocs/FoundationModels/Meet_the_Foundation_Models_framework.md:149:let stream = session.streamResponse(
+swiftDocs/FoundationModels/Meet_the_Foundation_Models_framework.md:184:                    let stream = session.streamResponse(
+swiftDocs/FoundationModels/Meet_the_Foundation_Models_framework.md:323:Now that you have initialized a session, let's talk about multi-turn interactions! When using the respond or streamResponse methods we talked about earlier. Each interaction with the model is retained as context in a transcript, so the model will be able to refer to and understand past multi-turn interactions within a single session. For example, here the model is able to understand when we say "do another one", that we're referring back to writing a haiku.
+swiftDocs/AI-ML/FoundationModels/LanguageModelSession.md:62:- [streamResponse(to:options:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/streamresponse(to:options:)) — Produces a response stream to a prompt.
+swiftDocs/AI-ML/FoundationModels/LanguageModelSession.md:63:- [streamResponse(to:generating:includeSchemaInPrompt:options:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/streamresponse(to:generating:includeschemainprompt:options:)) — Produces a response stream to a prompt and schema.
+swiftDocs/AI-ML/FoundationModels/LanguageModelSession.md:64:- [streamResponse(to:schema:includeSchemaInPrompt:options:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/streamresponse(to:schema:includeschemainprompt:options:)) — Produces a response stream to a prompt and schema.
+swiftDocs/AI-ML/FoundationModels/LanguageModelSession.md:65:- [streamResponse(options:prompt:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/streamresponse(options:prompt:)) — Produces a response stream to a prompt.
+swiftDocs/AI-ML/FoundationModels/LanguageModelSession.md:66:- [streamResponse(generating:includeSchemaInPrompt:options:prompt:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/streamresponse(generating:includeschemainprompt:options:prompt:)) — Produces a response stream for a type.
+swiftDocs/AI-ML/FoundationModels/LanguageModelSession.md:67:- [streamResponse(schema:includeSchemaInPrompt:options:prompt:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/streamresponse(schema:includeschemainprompt:options:prompt:)) — Produces a response stream to a prompt and schema.
+swiftDocs/Complete-Collection/LanguageModelSession.md:62:- [streamResponse(to:options:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/streamresponse(to:options:)) — Produces a response stream to a prompt.
+swiftDocs/Complete-Collection/LanguageModelSession.md:63:- [streamResponse(to:generating:includeSchemaInPrompt:options:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/streamresponse(to:generating:includeschemainprompt:options:)) — Produces a response stream to a prompt and schema.
+swiftDocs/Complete-Collection/LanguageModelSession.md:64:- [streamResponse(to:schema:includeSchemaInPrompt:options:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/streamresponse(to:schema:includeschemainprompt:options:)) — Produces a response stream to a prompt and schema.
+swiftDocs/Complete-Collection/LanguageModelSession.md:65:- [streamResponse(options:prompt:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/streamresponse(options:prompt:)) — Produces a response stream to a prompt.
+swiftDocs/Complete-Collection/LanguageModelSession.md:66:- [streamResponse(generating:includeSchemaInPrompt:options:prompt:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/streamresponse(generating:includeschemainprompt:options:prompt:)) — Produces a response stream for a type.
+swiftDocs/Complete-Collection/LanguageModelSession.md:67:- [streamResponse(schema:includeSchemaInPrompt:options:prompt:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/streamresponse(schema:includeschemainprompt:options:prompt:)) — Produces a response stream to a prompt and schema.
+exec
+/bin/zsh -lc "sed -n '120,210p' swiftDocs/FoundationModels/Meet_the_Foundation_Models_framework.md" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+
+As deltas are produced, the responsibility for accumulating them usually falls on the developer.
+
+You append each delta as they come in. And the response grows as you do.
+
+But it gets tricky when the result has structure. If you want to show the greeting string after each delta, you have to parse it out of the accumulation, and that’s not trivial, especially for complicated structures. Delta streaming just isn’t the right formula when working with structured output.
+
+And as you’ve learned, structured output is at the very core of the FoundationModels framework, which is why we’ve developed a different approach. Instead of raw deltas, we stream snapshots.
+
+As the model produces deltas, the framework transforms them into snapshots. Snapshots represent partially generated responses. Their properties are all optional. And they get filled in as the model produces more of the response.
+
+Snapshots are a robust and convenient representation for streaming structured output.
+
+You're already familiar with the @Generable macro, and as it turns out, it's also where the definitions for partially generated types come from. If you expand the macro, you'll discover it produces a type named `PartiallyGenerated`. It is effectively a mirror of the outer structure, except every property is optional.
+
+```swift
+// PartiallyGenerated types
+
+@Generable struct Itinerary {
+    var name: String
+
+
+thinking
+**Analyzing stream method and session usage issues**
+
+Noticed partial streaming yields raw partials without .content, so compile failures may stem from incorrect pattern matching. Confirmed streaming methods lack explicit availability checks per plan but flagged potential mismatch in session lifecycle: Tier3Engine holds a single PolicyAnalysisSession actor instance, while plan suggests fresh sessions per call—though this likely isn't causing build failure. Also suspect build problems from `Tier3Error` enum visibility or conditional compilation misalignment.
+thinking
+**Investigating conditional compilation and project inclusion**
+
+Reviewed multiple conditional imports with proper stubs for missing modules and consistent attribute usage in guides, so likely not causing build errors. Noted `HistoricalBaselineTool` is gated correctly and stubbed as needed. Considering project file inclusion might cause unresolved reference errors despite files being in repo, so next step is verifying Xcode project includes all necessary source files.
+exec
+/bin/zsh -lc 'rg -n "Tier3Engine.swift|HistoricalBaselineTool.swift|PolicyAnalysisSession.swift|HistoricalPolicies.swift|Tier3Error.swift" app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+36:		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
+37:		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
+38:		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
+39:		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
+40:		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+87:		3F905F1B71EC4592BA52F524 /* Tier3Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Error.swift; sourceTree = "<group>"; };
+88:		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
+89:		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
+90:		34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyAnalysisSession.swift; sourceTree = "<group>"; };
+91:		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+98:				AI/HistoricalBaselineTool.swift,
+99:				AI/HistoricalPolicies.swift,
+100:				AI/PolicyAnalysisSession.swift,
+101:				AI/Tier3Engine.swift,
+102:				AI/Tier3Error.swift,
+211:				3F905F1B71EC4592BA52F524 /* Tier3Error.swift */,
+212:				F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */,
+213:				DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */,
+214:				34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */,
+215:				C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */,
+
+
+thinking
+**Identifying compile errors in async actor calls**
+
+I spot a likely compile error in pattern matching for an associated-value enum that needs `(_)` patterns added. The actor method calls using `await` with synchronous returns are correct because actor methods require `await` even if non-async, so `await` usage is valid here. I'll fix the enum pattern matching to resolve compile errors.
+thinking
+**Clarifying enum pattern matching and error handling**
+
+The main fix is updating enum case patterns to explicitly include underscores for associated values (e.g., `.exceededContextWindowSize(_)`) to resolve compile errors. Switching to separate explicit `catch` clauses for specific errors may simplify error handling and avoid complex switches.
+exec
+/bin/zsh -lc 'rg -n "struct Clause|class Clause" app/decodingOppression/decodingOppression/Models' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 605ms:
+app/decodingOppression/decodingOppression/Models/Policy.swift:48:struct Clause: Identifiable, Codable {
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:18:struct ClauseClassification {
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:79:struct ClauseClassification: Codable {
+exec
+/bin/zsh -lc "sed -n '1,140p' app/decodingOppression/decodingOppression/Models/Policy.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  Policy.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+// MARK: - Section type and targeting
+
+enum SectionType: String, Codable, CaseIterable {
+    case title
+    case definitions
+    case operativeClauses
+    case penalties
+    case exceptions
+}
+
+enum TargetGroup: String, Codable, CaseIterable {
+
+
+thinking
+**Analyzing actor concurrency constraints**
+
+Observing that concurrent `async let` calls on the same `PolicyAnalysisSession` actor serialize due to actor isolation, which may block intended concurrency; considering avoiding actor use for this session to enable true parallelism.
+thinking
+**Confirming pattern-match fixes and concurrency trade-offs**
+
+Identified that incorrect pattern matching on error cases likely causes compile errors; plan to fix `PolicyAnalysisSession` switch statements accordingly while accepting actor serialization limits for concurrency. Also noting minor discrepancies like missing `checkAvailability` calls and verifying `HistoricalBaselineTool` usage, but these don’t block compilation.
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+@@ -67,3 +67,3 @@
+             switch error {
+-            case .exceededContextWindowSize:
++            case .exceededContextWindowSize(_):
+                 let truncated = String(clause.text.prefix(retryCharacterLimit))
+@@ -73,5 +73,5 @@
+                     switch retryError {
+-                    case .exceededContextWindowSize:
++                    case .exceededContextWindowSize(_):
+                         throw Tier3Error.contextWindowExceeded
+-                    case .guardrailViolation, .refusal:
++                    case .guardrailViolation(_), .refusal(_, _):
+                         logSafetyGuardrail(for: clause.id)
+@@ -84,3 +84,3 @@
+                 }
+-            case .guardrailViolation, .refusal:
++            case .guardrailViolation(_), .refusal(_, _):
+                 logSafetyGuardrail(for: clause.id)
+@@ -103,3 +103,3 @@
+             switch error {
+-            case .exceededContextWindowSize:
++            case .exceededContextWindowSize(_):
+                 let truncated = String(clause.text.prefix(retryCharacterLimit))
+@@ -109,5 +109,5 @@
+                     switch retryError {
+-                    case .exceededContextWindowSize:
++                    case .exceededContextWindowSize(_):
+                         throw Tier3Error.contextWindowExceeded
+-                    case .guardrailViolation, .refusal:
++                    case .guardrailViolation(_), .refusal(_, _):
+                         logSafetyGuardrail(for: clause.id)
+@@ -120,3 +120,3 @@
+                 }
+-            case .guardrailViolation, .refusal:
++            case .guardrailViolation(_), .refusal(_, _):
+                 logSafetyGuardrail(for: clause.id)
+apply_patch(auto_approved=true) exited 0 in 30ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+file update:
+diff --git a/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift b/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+index eb13615dbaf75319e34004c105d623d899505730..821e784cd888dfcc58823f2d8dcf9aeea3f6a244
+--- a/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
++++ b/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+@@ -65,15 +65,15 @@
+             return try await body(makeSession(), clause.text)
+         } catch let error as LanguageModelSession.GenerationError {
+             switch error {
+-            case .exceededContextWindowSize:
++            case .exceededContextWindowSize(_):
+                 let truncated = String(clause.text.prefix(retryCharacterLimit))
+                 do {
+                     return try await body(makeSession(), truncated)
+                 } catch let retryError as LanguageModelSession.GenerationError {
+                     switch retryError {
+-                    case .exceededContextWindowSize:
++                    case .exceededContextWindowSize(_):
+                         throw Tier3Error.contextWindowExceeded
+-                    case .guardrailViolation, .refusal:
++                    case .guardrailViolation(_), .refusal(_, _):
+                         logSafetyGuardrail(for: clause.id)
+                         throw Tier3Error.safetyGuardrail
+                     default:
+@@ -82,7 +82,7 @@
+                 } catch {
+                     throw Tier3Error.sessionFailed(error)
+                 }
+-            case .guardrailViolation, .refusal:
++            case .guardrailViolation(_), .refusal(_, _):
+                 logSafetyGuardrail(for: clause.id)
+                 throw Tier3Error.safetyGuardrail
+             default:
+@@ -101,15 +101,15 @@
+             try await body(makeSession(), clause.text)
+         } catch let error as LanguageModelSession.GenerationError {
+             switch error {
+-            case .exceededContextWindowSize:
++            case .exceededContextWindowSize(_):
+                 let truncated = String(clause.text.prefix(retryCharacterLimit))
+                 do {
+                     try await body(makeSession(), truncated)
+                 } catch let retryError as LanguageModelSession.GenerationError {
+                     switch retryError {
+-                    case .exceededContextWindowSize:
++                    case .exceededContextWindowSize(_):
+                         throw Tier3Error.contextWindowExceeded
+-                    case .guardrailViolation, .refusal:
++                    case .guardrailViolation(_), .refusal(_, _):
+                         logSafetyGuardrail(for: clause.id)
+                         throw Tier3Error.safetyGuardrail
+                     default:
+@@ -118,7 +118,7 @@
+                 } catch {
+                     throw Tier3Error.sessionFailed(error)
+                 }
+-            case .guardrailViolation, .refusal:
++            case .guardrailViolation(_), .refusal(_, _):
+                 logSafetyGuardrail(for: clause.id)
+                 throw Tier3Error.safetyGuardrail
+             default:
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift b/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+index eb13615dbaf75319e34004c105d623d899505730..821e784cd888dfcc58823f2d8dcf9aeea3f6a244
+--- a/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
++++ b/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+@@ -65,15 +65,15 @@
+             return try await body(makeSession(), clause.text)
+         } catch let error as LanguageModelSession.GenerationError {
+             switch error {
+-            case .exceededContextWindowSize:
++            case .exceededContextWindowSize(_):
+                 let truncated = String(clause.text.prefix(retryCharacterLimit))
+                 do {
+                     return try await body(makeSession(), truncated)
+                 } catch let retryError as LanguageModelSession.GenerationError {
+                     switch retryError {
+-                    case .exceededContextWindowSize:
++                    case .exceededContextWindowSize(_):
+                         throw Tier3Error.contextWindowExceeded
+-                    case .guardrailViolation, .refusal:
++                    case .guardrailViolation(_), .refusal(_, _):
+                         logSafetyGuardrail(for: clause.id)
+                         throw Tier3Error.safetyGuardrail
+                     default:
+@@ -82,7 +82,7 @@
+                 } catch {
+                     throw Tier3Error.sessionFailed(error)
+                 }
+-            case .guardrailViolation, .refusal:
++            case .guardrailViolation(_), .refusal(_, _):
+                 logSafetyGuardrail(for: clause.id)
+                 throw Tier3Error.safetyGuardrail
+             default:
+@@ -101,15 +101,15 @@
+             try await body(makeSession(), clause.text)
+         } catch let error as LanguageModelSession.GenerationError {
+             switch error {
+-            case .exceededContextWindowSize:
++            case .exceededContextWindowSize(_):
+                 let truncated = String(clause.text.prefix(retryCharacterLimit))
+                 do {
+                     try await body(makeSession(), truncated)
+                 } catch let retryError as LanguageModelSession.GenerationError {
+                     switch retryError {
+-                    case .exceededContextWindowSize:
++                    case .exceededContextWindowSize(_):
+                         throw Tier3Error.contextWindowExceeded
+-                    case .guardrailViolation, .refusal:
++                    case .guardrailViolation(_), .refusal(_, _):
+                         logSafetyGuardrail(for: clause.id)
+                         throw Tier3Error.safetyGuardrail
+                     default:
+@@ -118,7 +118,7 @@
+                 } catch {
+                     throw Tier3Error.sessionFailed(error)
+                 }
+-            case .guardrailViolation, .refusal:
++            case .guardrailViolation(_), .refusal(_, _):
+                 logSafetyGuardrail(for: clause.id)
+                 throw Tier3Error.safetyGuardrail
+             default:
+
+ERROR: You've hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/codex/settings/usage to purchase more credits or try again at 5:35 PM.
+tokens used
+77,963

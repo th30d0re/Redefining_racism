@@ -1,0 +1,85 @@
+I'll start by examining the Tier3Engine.swift file to understand the current implementation and the issues mentioned in the comments.
+
+✔ List directory app/decodingOppression/decodingOppression/AI
+   └ 11 files found
+
+✔ Read app/decodingOppression/decodingOppression/AI/Tier3Engine.swift
+   └ 151 lines read
+
+Now let me check the Tier3Error.swift to understand the error types:
+
+✔ Read app/decodingOppression/decodingOppression/AI/Tier3Error.swift
+   └ 41 lines read
+
+Now let me check the PolicyAnalysisSession to understand the session methods:
+
+✔ Read app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+   └ 162 lines read
+
+Perfect! Now I understand the issue. Looking at the comments and the current code:
+
+**Comment 1**: The `streamClassify` method needs to call `checkAvailability()` BEFORE creating the stream. Currently it's inside the `AsyncThrowingStream` closure. Also, the stream should return an empty stream on unavailability instead of finishing normally.
+
+**Comment 2**: The `classify` method already has error handling for `contextWindowExceeded` and `sessionFailed`, but the comment says to extend it to catch these errors and return `nil` for fallback. Looking at the code, it already does this (lines 86-92), but let me verify the logic is correct according to the instructions.
+
+Let me analyze the actual issues:
+
+1. In `streamClassify`: The `checkAvailability()` is called inside the Task, which means it's not happening before the stream is created. The instruction says "call `checkAvailability()` before creating the stream". Currently the availability check happens inside the continuation, but the stream itself is created first.
+
+2. The implementation looks correct otherwise - it catches the errors and finishes the stream appropriately.
+
+Let me review more carefully and make the fix:
+
+✔ Edit app/decodingOppression/decodingOppression/AI/Tier3Engine.swift (+9 -11)
+   ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
+   │  93     }                                                                                    │
+   │  94                                                                                          │
+   │  95     public func streamClassify(clause: Clause) ->                                        │
+   │         AsyncThrowingStream<ArchitectureDetection.PartiallyGenerated, Error> {               │
+   │  96  -      AsyncThrowingStream { continuation in                                            │
+   │  97  -          Task {                                                                       │
+   │  98  -              do {                                                                     │
+   │  99  -                  try checkAvailability()                                              │
+   │ 100  -              } catch Tier3Error.unavailable {                                         │
+   │ 101  -                  continuation.finish()                                                │
+   │ 102  -                  return                                                               │
+   │ 103  -              } catch {                                                                │
+   │ 104  -                  continuation.finish(throwing: error)                                 │
+   │ 105  -                  return                                                               │
+   │ 106  -                                                                                       │
+   │  96  +      do {                                                                             │
+   │  97  +          try checkAvailability()                                                      │
+   │  98  +      } catch Tier3Error.unavailable {                                                 │
+   │  99  +          return AsyncThrowingStream { $0.finish() }                                   │
+   │ 100  +      } catch {                                                                        │
+   │ 101  +          return AsyncThrowingStream { $0.finish(throwing: error) }                    │
+   │ 102  +      }                                                                                │
+   │ 103                                                                                          │
+   │ 104  +      return AsyncThrowingStream { continuation in                                     │
+   │ 105  +          Task {                                                                       │
+   │ 106                 do {                                                                     │
+   │ 107                     let stream = await session.streamArchitecture(clause)                │
+   │ 108                     for try await partial in stream {                                    │
+   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+
+Now let me verify the file looks correct:
+
+✔ Read app/decodingOppression/decodingOppression/AI/Tier3Engine.swift
+   └ 149 lines read
+
+Perfect! The implementation now correctly addresses both comments:
+
+**Comment 1 - streamClassify**: 
+- ✅ Calls `checkAvailability()` BEFORE creating the stream (lines 96-102)
+- ✅ Returns an empty stream when it throws `Tier3Error.unavailable` (line 99)
+- ✅ Wraps the streaming loop in a `do/catch` that catches `Tier3Error.safetyGuardrail` (line 112) and `Tier3Error.contextWindowExceeded` (line 115)
+- ✅ Logs and finishes the stream without surfacing errors to callers
+
+**Comment 2 - classify**:
+- ✅ Already has `try checkAvailability()` before the main operations (line 41)
+- ✅ Catches `Tier3Error.contextWindowExceeded` (line 86) and returns `nil` 
+- ✅ Catches `Tier3Error.sessionFailed` (line 89) and returns `nil`
+- ✅ This allows callers to fall back to lower tiers instead of propagating the error
+
+The changes are minimal and surgical, following the instruction comments verbatim. The code now properly handles availability checks upfront in the streaming path and gracefully degrades errors to nil returns in the classify path for fallback support.
+

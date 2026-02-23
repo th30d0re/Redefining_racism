@@ -1,0 +1,1736 @@
+You are a Swift/SwiftUI developer. Your task is to implement the following requirements.
+
+IMPORTANT INSTRUCTIONS:
+1. Write clean, production-ready Swift code
+2. Follow Apple's Swift API Design Guidelines
+3. Use SwiftUI for UI components where appropriate
+4. Include proper error handling
+5. The code must compile without errors
+6. After writing code, the build will be verified automatically
+7. If the build fails, you will receive error feedback and should try a DIFFERENT approach
+
+TESTING & DEBUGGING REFERENCE:
+For building, testing, and debugging iOS/macOS apps, reference this workflow guide:
+/Users/emmanuel/Dev/Tools/Eocon-Foundation-V1/.Foundation/Docs/swiftDocs/Testing/XCODEBUILD_MCP_WORKFLOW.md
+
+This guide covers:
+- XcodeBuild MCP server tools for programmatic Xcode interaction
+- Building for simulator, booting simulators, installing/launching apps
+- UI automation: screenshots, accessibility hierarchy, tap simulation
+- Debugging UI issues (button taps, gestures, navigation)
+
+=== TASK/REQUIREMENTS ===
+I have the following verification comments after thorough review and exploration of the codebase. Implement the comments by following the instructions in the comments verbatim.
+
+---
+## Comment 1: ValidationRunner rescales COI to 0–1, miscomputing deltas vs HistoricalPolicies expected COI.
+
+Update \`ValidationRunner.run\` in \`decodingOppression/AI/ValidationRunner.swift\` to assign \`result.coi\` directly to \`actualCOI\` without remapping, preserving the existing 0–1 scale used by \`HistoricalPolicies.expectedCOI\`.
+
+### Referred Files
+- /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/AI/ValidationRunner.swift
+- /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift
+- /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
+---
+## Comment 2: TrainingManager simulates training with random losses and ignores config/data, misaligning with LoRA training intent.
+
+Replace the simulated loop in \`TrainingManager.train\`/\`resume\` with the real MLX LoRA training workflow: load the base model, build prompt/completion pairs from \`TrainingDataStore\` clauses, run epochs applying \`LoRAConfig\` (epochs, learningRate, rank, alpha), write checkpoints per epoch and final adapter files, and use \`checkpointURL\` on resume. Remove random loss placeholders and surface real train/validation losses in \`TrainingProgress\`.
+
+### Referred Files
+- /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/MLX/TrainingManager.swift
+---
+## Comment 3: TrainingDataViewModel doesn’t flag unsaved edits, allowing silent data loss on navigation/export.
+
+Set \`hasUnsavedChanges = true\` whenever \`editingClause\` is mutated (e.g., via the TextEditor, Pickers, Sliders, Toggle, TextField) and when selection changes with pending edits. Ensure \`saveEditing\` resets \`hasUnsavedChanges\` to match the store. This keeps the warning dot/alert accurate and prevents navigation/export without surfacing unsaved edits.
+
+### Referred Files
+- /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/ViewModels/TrainingDataViewModel.swift
+- /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/Views/TrainingDataView.swift
+---
+=== END TASK ===
+
+
+=== REFERENCE CONTEXT ===
+Use the following documentation and context as reference:
+
+=== SWIFT DOCUMENTATION ===
+
+--- FILE: MLTrainingSession.md ---
+# MLTrainingSession
+
+**The current state of a model’s asynchronous training session.**
+
+## Availability
+
+- **iOS** 15.0+
+- **iPadOS** 15.0+
+- **Mac Catalyst** 15.0+
+- **macOS** 11.0+
+- **tvOS** 16.0+
+- **visionOS** 1.0+
+
+
+## Topics
+
+### Checking a training session’s progress
+
+- [phase](https://developer.apple.com/documentation/createml/mltrainingsession/phase) — The training session’s current state.
+- [MLPhase](https://developer.apple.com/documentation/createml/mlphase) — The possible states of a training session.
+- [iteration](https://developer.apple.com/documentation/createml/mltrainingsession/iteration) — The iteration number of a training session’s phase.
+- [checkpoints](https://developer.apple.com/documentation/createml/mltrainingsession/checkpoints) — An array of checkpoints the training session has created so far.
+### Removing checkpoints
+
+- [removeCheckpoints(_:)](https://developer.apple.com/documentation/createml/mltrainingsession/removecheckpoints(_:)) — Removes the checkpoints that satisfy your closure from the training session.
+### Reusing features from a previous session
+
+- [reuseExtractedFeatures(from:)](https://developer.apple.com/documentation/createml/mltrainingsession/reuseextractedfeatures(from:)) — Uses the features another session has already extracted from its dataset.
+### Inspecting a session
+
+- [date](https://developer.apple.com/documentation/createml/mltrainingsession/date) — The time when you created this training session.
+- [parameters](https://developer.apple.com/documentation/createml/mltrainingsession/parameters) — The parameters you used to create the training session.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML/MLTrainingSession](https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML/MLTrainingSession)*
+--- END FILE ---
+
+--- FILE: MLCheckpoint.md ---
+# MLCheckpoint
+
+**The state of a model’s asynchronous training session at a specific point in time during the feature extraction or training phase.**
+
+## Availability
+
+- **iOS** 15.0+
+- **iPadOS** 15.0+
+- **Mac Catalyst** 15.0+
+- **macOS** 11.0+
+- **tvOS** 16.0+
+- **visionOS** 1.0+
+
+
+## Topics
+
+### Inspecting a checkpoint
+
+- [phase](https://developer.apple.com/documentation/createml/mlcheckpoint/phase) — The training session’s phase when it created the checkpoint.
+- [iteration](https://developer.apple.com/documentation/createml/mlcheckpoint/iteration) — The iteration number of a training session’s phase when it created the checkpoint.
+- [date](https://developer.apple.com/documentation/createml/mlcheckpoint/date) — The time when the training session created the checkpoint.
+- [url](https://developer.apple.com/documentation/createml/mlcheckpoint/url) — The location of the checkpoint in the file system.
+### Assessing a checkpoint
+
+- [metrics](https://developer.apple.com/documentation/createml/mlcheckpoint/metrics) — Measurements of the model’s performance at the time the session saved the checkpoint.
+- [MLProgress.Metric](https://developer.apple.com/documentation/createml/mlprogress/metric) — Metrics you use to evaluate a model’s performance during a training session.
+### Encoding and decoding a checkpoint
+
+- [encode(to:)](https://developer.apple.com/documentation/createml/mlcheckpoint/encode(to:)) — Encodes the checkpoint into the encoder.
+- [init(from:)](https://developer.apple.com/documentation/createml/mlcheckpoint/init(from:)) — Creates a new checkpoint by decoding from the decoder.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML/MLCheckpoint](https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML/MLCheckpoint)*
+--- END FILE ---
+
+--- FILE: MLTrainingSessionParameters.md ---
+# MLTrainingSessionParameters
+
+**The configuration settings for a training session.**
+
+## Availability
+
+- **iOS** 15.0+
+- **iPadOS** 15.0+
+- **Mac Catalyst** 15.0+
+- **macOS** 11.0+
+- **tvOS** 16.0+
+- **visionOS** 1.0+
+
+
+## Topics
+
+### Creating a session’s parameters
+
+- [init(sessionDirectory:reportInterval:checkpointInterval:iterations:)](https://developer.apple.com/documentation/createml/mltrainingsessionparameters/init(sessiondirectory:reportinterval:checkpointinterval:iterations:)) — Creates a set of parameters for a training session.
+### Configuring the session’s parameters
+
+- [sessionDirectory](https://developer.apple.com/documentation/createml/mltrainingsessionparameters/sessiondirectory) — The location in the file system where the session stores its progress.
+- [reportInterval](https://developer.apple.com/documentation/createml/mltrainingsessionparameters/reportinterval) — The number of iterations the session completes before it reports its progress.
+- [checkpointInterval](https://developer.apple.com/documentation/createml/mltrainingsessionparameters/checkpointinterval) — The number of iterations the session completes before it saves a checkpoint.
+- [iterations](https://developer.apple.com/documentation/createml/mltrainingsessionparameters/iterations) — The maximum number of iterations for the training session.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML/MLTrainingSessionParameters](https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML/MLTrainingSessionParameters)*
+--- END FILE ---
+
+--- FILE: Create-ML.md ---
+# Create ML
+
+**Create machine learning models for use in your app.**
+
+## Availability
+
+- **iOS** 15.0+
+- **iPadOS** 15.0+
+- **Mac Catalyst** 15.0+
+- **macOS** 10.14+
+- **tvOS** 16.0+
+- **visionOS** 1.0+
+
+
+## Overview
+
+Use Create ML with familiar tools like Swift and macOS playgrounds to create and train custom machine learning models on your Mac. You can train models to perform tasks like recognizing images, extracting meaning from text, or finding relationships between numerical values.
+
+![Image](create-ml-1)
+
+You train a model to recognize patterns by showing it representative samples. For example, you can train a model to recognize dogs by showing it lots of images of different dogs. After you’ve trained the model, you test it out on data it hasn’t seen before, and evaluate how well it performed the task. When the model is performing well enough, you’re ready to integrate it into your app using [doc://com.apple.documentation/documentation/CoreML](https://developer.apple.com/documentation/CoreML).
+
+![Image](create-ml-2)
+
+Create ML leverages the machine learning infrastructure built in to Apple products like Photos and Siri. This means your image classification and natural language models are smaller and take much less time to train.
+
+## Topics
+
+### Image models
+
+- [Creating an Image Classifier Model](https://developer.apple.com/documentation/createml/creating-an-image-classifier-model) — Train a machine learning model to classify images, and add it to your Core ML app.
+- [MLImageClassifier](https://developer.apple.com/documentation/createml/mlimageclassifier) — A model you train to classify images.
+- [MLObjectDetector](https://developer.apple.com/documentation/createml/mlobjectdetector) — A model you train to classify one or more objects within an image.
+- [MLHandPoseClassifier](https://developer.apple.com/documentation/createml/mlhandposeclassifier) — A task that creates a hand pose classification model by training with images of people’s hands that you provide.
+### Video models
+
+- [Creating an Action Classifier Model](https://developer.apple.com/documentation/createml/creating-an-action-classifier-model) — Train a machine learning model to recognize a person’s body movements.
+- [Detecting human actions in a live video feed](https://developer.apple.com/documentation/CreateML/detecting-human-actions-in-a-live-video-feed) — Identify body movements by sending a person’s pose data from a series of video frames to an action-classification model.
+- [MLActionClassifier](https://developer.apple.com/documentation/createml/mlactionclassifier) — A model you train with videos to classify a person’s body movements.
+- [MLHandActionClassifier](https://developer.apple.com/documentation/createml/mlhandactionclassifier) — A task that creates a hand action classification model by training with videos of people’s hand movements that you provide.
+- [MLStyleTransfer](https://developer.apple.com/documentation/createml/mlstyletransfer) — A model you train to apply an image’s style to other images or videos.
+### Text models
+
+- [Creating a text classifier model](https://developer.apple.com/documentation/createml/creating-a-text-classifier-model) — Train a machine learning model to classify natural language text.
+- [Creating a word tagger model](https://developer.apple.com/documentation/NaturalLanguage/creating-a-word-tagger-model) — Train a machine learning model to tag individual words in natural language text.
+- [MLTextClassifier](https://developer.apple.com/documentation/createml/mltextclassifier) — A model you train to classify natural language text.
+- [MLWordTagger](https://developer.apple.com/documentation/createml/mlwordtagger) — A word-tagging model you train to classify natural language text at the word level.
+- [MLGazetteer](https://developer.apple.com/documentation/createml/mlgazetteer) — A collection of terms and their labels, which augments a tagger that analyzes natural language text.
+- [MLWordEmbedding](https://developer.apple.com/documentation/createml/mlwordembedding) — A map of strings in a vector space that enable your app to find similar strings by looking at a string’s neighbors.
+### Sound models
+
+- [MLSoundClassifier](https://developer.apple.com/documentation/createml/mlsoundclassifier) — A machine learning model you train with audio files to recognize and identify sounds on a device.
+### Motion models
+
+- [MLActivityClassifier](https://developer.apple.com/documentation/createml/mlactivityclassifier) — A model you train to classify motion sensor data.
+### Tabular models
+
+- [Creating a model from tabular data](https://developer.apple.com/documentation/CreateML/creating-a-model-from-tabular-data) — Train a machine learning model by using Core ML to import and manage tabular data.
+- [MLClassifier](https://developer.apple.com/documentation/createml/mlclassifier) — A model you train to classify data into discrete categories.
+- [MLRegressor](https://developer.apple.com/documentation/createml/mlregressor) — A model you train to estimate continuous values.
+- [MLRecommender](https://developer.apple.com/documentation/createml/mlrecommender) — A model you train to make recommendations based on item similarity, grouping, and, optionally, item ratings.
+### Tabular data
+
+- [MLDataTable](https://developer.apple.com/documentation/createml/mldatatable) — A table of data for training or evaluating a machine learning model.
+- [MLDataValue](https://developer.apple.com/documentation/createml/mldatavalue) — The value of a cell in a data table.
+- [Data visualizations](https://developer.apple.com/documentation/createml/data-visualizations) — Render images of data tables and columns in a playground.
+### Model accuracy
+
+- [Improving Your Model’s Accuracy](https://developer.apple.com/documentation/createml/improving-your-model-s-accuracy) — Use metrics to tune the performance of your machine learning model.
+- [MLClassifierMetrics](https://developer.apple.com/documentation/createml/mlclassifiermetrics) — Metrics you use to evaluate a classifier’s performance.
+- [MLRegressorMetrics](https://developer.apple.com/documentation/createml/mlregressormetrics) — Metrics you use to evaluate a regressor’s performance.
+- [MLWordTaggerMetrics](https://developer.apple.com/documentation/createml/mlwordtaggermetrics) — Metrics you use to evaluate a word tagger’s performance.
+- [MLRecommenderMetrics](https://developer.apple.com/documentation/createml/mlrecommendermetrics) — Metrics you use to evaluate a recommender’s performance.
+- [MLObjectDetectorMetrics](https://developer.apple.com/documentation/createml/mlobjectdetectormetrics) — Metrics you use to evaluate an object detector’s performance.
+### Model training Control
+
+- [MLJob](https://developer.apple.com/documentation/createml/mljob) — The representation of a model’s asynchronous training session you use to monitor the session’s progress or terminate its execution.
+- [MLTrainingSession](https://developer.apple.com/documentation/createml/mltrainingsession) — The current state of a model’s asynchronous training session.
+- [MLTrainingSessionParameters](https://developer.apple.com/documentation/createml/mltrainingsessionparameters) — The configuration settings for a training session.
+- [MLCheckpoint](https://developer.apple.com/documentation/createml/mlcheckpoint) — The state of a model’s asynchronous training session at a specific point in time during the feature extraction or training phase.
+### Supporting types
+
+- [MLCreateError](https://developer.apple.com/documentation/createml/mlcreateerror) — The errors Create ML throws while performing various operations, such as training models, making predictions, writing models to a file system, and so on.
+- [MLModelMetadata](https://developer.apple.com/documentation/createml/mlmodelmetadata) — Information about a model that’s stored in a Core ML model file.
+- [MLSplitStrategy](https://developer.apple.com/documentation/createml/mlsplitstrategy) — Data partitioning approaches, typically for creating a validation dataset from a training dataset.
+### Articles
+
+- [Data visualizations](https://developer.apple.com/documentation/createml/create-ml-utilties) — Render images of data tables and columns in a playground.
+- [Detecting human actions in a live video feed](https://developer.apple.com/documentation/createml/detecting-human-actions-in-a-live-video-feed) — Identify body movements by sending a person’s pose data from a series of video frames to an action-classification model.
+- [Gathering Training Videos for an Action Classifier](https://developer.apple.com/documentation/createml/recording-or-choosing-training-videos) — Collect quality example videos that effectively train action classifiers.
+### Functions
+
+- [show(_:)](https://developer.apple.com/documentation/createml/show(_:)) — Generates a streaming visualization of the untyped column.
+- [show(_:_:)](https://developer.apple.com/documentation/createml/show(_:_:)) — Generates a streaming plot visualization of the two untyped columns.
+### Enumerations
+
+- [MLBoundingBoxAnchor](https://developer.apple.com/documentation/createml/mlboundingboxanchor) — A location within a bounding box that an annotation’s coordinates use as their reference point.
+- [MLBoundingBoxCoordinatesOrigin](https://developer.apple.com/documentation/createml/mlboundingboxcoordinatesorigin) — The location within an image that an annotation’s coordinates use as their origin.
+- [MLBoundingBoxUnits](https://developer.apple.com/documentation/createml/mlboundingboxunits) — The units a bounding box annotation uses to define its position and size.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML](https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML)*
+--- END FILE ---
+
+--- FILE: MLTrainingSession.md ---
+# MLTrainingSession
+
+**The current state of a model’s asynchronous training session.**
+
+## Availability
+
+- **iOS** 15.0+
+- **iPadOS** 15.0+
+- **Mac Catalyst** 15.0+
+- **macOS** 11.0+
+- **tvOS** 16.0+
+- **visionOS** 1.0+
+
+
+## Topics
+
+### Checking a training session’s progress
+
+- [phase](https://developer.apple.com/documentation/createml/mltrainingsession/phase) — The training session’s current state.
+- [MLPhase](https://developer.apple.com/documentation/createml/mlphase) — The possible states of a training session.
+- [iteration](https://developer.apple.com/documentation/createml/mltrainingsession/iteration) — The iteration number of a training session’s phase.
+- [checkpoints](https://developer.apple.com/documentation/createml/mltrainingsession/checkpoints) — An array of checkpoints the training session has created so far.
+### Removing checkpoints
+
+- [removeCheckpoints(_:)](https://developer.apple.com/documentation/createml/mltrainingsession/removecheckpoints(_:)) — Removes the checkpoints that satisfy your closure from the training session.
+### Reusing features from a previous session
+
+- [reuseExtractedFeatures(from:)](https://developer.apple.com/documentation/createml/mltrainingsession/reuseextractedfeatures(from:)) — Uses the features another session has already extracted from its dataset.
+### Inspecting a session
+
+- [date](https://developer.apple.com/documentation/createml/mltrainingsession/date) — The time when you created this training session.
+- [parameters](https://developer.apple.com/documentation/createml/mltrainingsession/parameters) — The parameters you used to create the training session.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML/MLTrainingSession](https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML/MLTrainingSession)*
+--- END FILE ---
+
+--- FILE: MLCheckpoint.md ---
+# MLCheckpoint
+
+**The state of a model’s asynchronous training session at a specific point in time during the feature extraction or training phase.**
+
+## Availability
+
+- **iOS** 15.0+
+- **iPadOS** 15.0+
+- **Mac Catalyst** 15.0+
+- **macOS** 11.0+
+- **tvOS** 16.0+
+- **visionOS** 1.0+
+
+
+## Topics
+
+### Inspecting a checkpoint
+
+- [phase](https://developer.apple.com/documentation/createml/mlcheckpoint/phase) — The training session’s phase when it created the checkpoint.
+- [iteration](https://developer.apple.com/documentation/createml/mlcheckpoint/iteration) — The iteration number of a training session’s phase when it created the checkpoint.
+- [date](https://developer.apple.com/documentation/createml/mlcheckpoint/date) — The time when the training session created the checkpoint.
+- [url](https://developer.apple.com/documentation/createml/mlcheckpoint/url) — The location of the checkpoint in the file system.
+### Assessing a checkpoint
+
+- [metrics](https://developer.apple.com/documentation/createml/mlcheckpoint/metrics) — Measurements of the model’s performance at the time the session saved the checkpoint.
+- [MLProgress.Metric](https://developer.apple.com/documentation/createml/mlprogress/metric) — Metrics you use to evaluate a model’s performance during a training session.
+### Encoding and decoding a checkpoint
+
+- [encode(to:)](https://developer.apple.com/documentation/createml/mlcheckpoint/encode(to:)) — Encodes the checkpoint into the encoder.
+- [init(from:)](https://developer.apple.com/documentation/createml/mlcheckpoint/init(from:)) — Creates a new checkpoint by decoding from the decoder.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML/MLCheckpoint](https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML/MLCheckpoint)*
+--- END FILE ---
+
+--- FILE: MLTrainingSessionParameters.md ---
+# MLTrainingSessionParameters
+
+**The configuration settings for a training session.**
+
+## Availability
+
+- **iOS** 15.0+
+- **iPadOS** 15.0+
+- **Mac Catalyst** 15.0+
+- **macOS** 11.0+
+- **tvOS** 16.0+
+- **visionOS** 1.0+
+
+
+## Topics
+
+### Creating a session’s parameters
+
+- [init(sessionDirectory:reportInterval:checkpointInterval:iterations:)](https://developer.apple.com/documentation/createml/mltrainingsessionparameters/init(sessiondirectory:reportinterval:checkpointinterval:iterations:)) — Creates a set of parameters for a training session.
+### Configuring the session’s parameters
+
+- [sessionDirectory](https://developer.apple.com/documentation/createml/mltrainingsessionparameters/sessiondirectory) — The location in the file system where the session stores its progress.
+- [reportInterval](https://developer.apple.com/documentation/createml/mltrainingsessionparameters/reportinterval) — The number of iterations the session completes before it reports its progress.
+- [checkpointInterval](https://developer.apple.com/documentation/createml/mltrainingsessionparameters/checkpointinterval) — The number of iterations the session completes before it saves a checkpoint.
+- [iterations](https://developer.apple.com/documentation/createml/mltrainingsessionparameters/iterations) — The maximum number of iterations for the training session.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML/MLTrainingSessionParameters](https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML/MLTrainingSessionParameters)*
+--- END FILE ---
+
+--- FILE: Create-ML.md ---
+# Create ML
+
+**Create machine learning models for use in your app.**
+
+## Availability
+
+- **iOS** 15.0+
+- **iPadOS** 15.0+
+- **Mac Catalyst** 15.0+
+- **macOS** 10.14+
+- **tvOS** 16.0+
+- **visionOS** 1.0+
+
+
+## Overview
+
+Use Create ML with familiar tools like Swift and macOS playgrounds to create and train custom machine learning models on your Mac. You can train models to perform tasks like recognizing images, extracting meaning from text, or finding relationships between numerical values.
+
+![Image](create-ml-1)
+
+You train a model to recognize patterns by showing it representative samples. For example, you can train a model to recognize dogs by showing it lots of images of different dogs. After you’ve trained the model, you test it out on data it hasn’t seen before, and evaluate how well it performed the task. When the model is performing well enough, you’re ready to integrate it into your app using [doc://com.apple.documentation/documentation/CoreML](https://developer.apple.com/documentation/CoreML).
+
+![Image](create-ml-2)
+
+Create ML leverages the machine learning infrastructure built in to Apple products like Photos and Siri. This means your image classification and natural language models are smaller and take much less time to train.
+
+## Topics
+
+### Image models
+
+- [Creating an Image Classifier Model](https://developer.apple.com/documentation/createml/creating-an-image-classifier-model) — Train a machine learning model to classify images, and add it to your Core ML app.
+- [MLImageClassifier](https://developer.apple.com/documentation/createml/mlimageclassifier) — A model you train to classify images.
+- [MLObjectDetector](https://developer.apple.com/documentation/createml/mlobjectdetector) — A model you train to classify one or more objects within an image.
+- [MLHandPoseClassifier](https://developer.apple.com/documentation/createml/mlhandposeclassifier) — A task that creates a hand pose classification model by training with images of people’s hands that you provide.
+### Video models
+
+- [Creating an Action Classifier Model](https://developer.apple.com/documentation/createml/creating-an-action-classifier-model) — Train a machine learning model to recognize a person’s body movements.
+- [Detecting human actions in a live video feed](https://developer.apple.com/documentation/CreateML/detecting-human-actions-in-a-live-video-feed) — Identify body movements by sending a person’s pose data from a series of video frames to an action-classification model.
+- [MLActionClassifier](https://developer.apple.com/documentation/createml/mlactionclassifier) — A model you train with videos to classify a person’s body movements.
+- [MLHandActionClassifier](https://developer.apple.com/documentation/createml/mlhandactionclassifier) — A task that creates a hand action classification model by training with videos of people’s hand movements that you provide.
+- [MLStyleTransfer](https://developer.apple.com/documentation/createml/mlstyletransfer) — A model you train to apply an image’s style to other images or videos.
+### Text models
+
+- [Creating a text classifier model](https://developer.apple.com/documentation/createml/creating-a-text-classifier-model) — Train a machine learning model to classify natural language text.
+- [Creating a word tagger model](https://developer.apple.com/documentation/NaturalLanguage/creating-a-word-tagger-model) — Train a machine learning model to tag individual words in natural language text.
+- [MLTextClassifier](https://developer.apple.com/documentation/createml/mltextclassifier) — A model you train to classify natural language text.
+- [MLWordTagger](https://developer.apple.com/documentation/createml/mlwordtagger) — A word-tagging model you train to classify natural language text at the word level.
+- [MLGazetteer](https://developer.apple.com/documentation/createml/mlgazetteer) — A collection of terms and their labels, which augments a tagger that analyzes natural language text.
+- [MLWordEmbedding](https://developer.apple.com/documentation/createml/mlwordembedding) — A map of strings in a vector space that enable your app to find similar strings by looking at a string’s neighbors.
+### Sound models
+
+- [MLSoundClassifier](https://developer.apple.com/documentation/createml/mlsoundclassifier) — A machine learning model you train with audio files to recognize and identify sounds on a device.
+### Motion models
+
+- [MLActivityClassifier](https://developer.apple.com/documentation/createml/mlactivityclassifier) — A model you train to classify motion sensor data.
+### Tabular models
+
+- [Creating a model from tabular data](https://developer.apple.com/documentation/CreateML/creating-a-model-from-tabular-data) — Train a machine learning model by using Core ML to import and manage tabular data.
+- [MLClassifier](https://developer.apple.com/documentation/createml/mlclassifier) — A model you train to classify data into discrete categories.
+- [MLRegressor](https://developer.apple.com/documentation/createml/mlregressor) — A model you train to estimate continuous values.
+- [MLRecommender](https://developer.apple.com/documentation/createml/mlrecommender) — A model you train to make recommendations based on item similarity, grouping, and, optionally, item ratings.
+### Tabular data
+
+- [MLDataTable](https://developer.apple.com/documentation/createml/mldatatable) — A table of data for training or evaluating a machine learning model.
+- [MLDataValue](https://developer.apple.com/documentation/createml/mldatavalue) — The value of a cell in a data table.
+- [Data visualizations](https://developer.apple.com/documentation/createml/data-visualizations) — Render images of data tables and columns in a playground.
+### Model accuracy
+
+- [Improving Your Model’s Accuracy](https://developer.apple.com/documentation/createml/improving-your-model-s-accuracy) — Use metrics to tune the performance of your machine learning model.
+- [MLClassifierMetrics](https://developer.apple.com/documentation/createml/mlclassifiermetrics) — Metrics you use to evaluate a classifier’s performance.
+- [MLRegressorMetrics](https://developer.apple.com/documentation/createml/mlregressormetrics) — Metrics you use to evaluate a regressor’s performance.
+- [MLWordTaggerMetrics](https://developer.apple.com/documentation/createml/mlwordtaggermetrics) — Metrics you use to evaluate a word tagger’s performance.
+- [MLRecommenderMetrics](https://developer.apple.com/documentation/createml/mlrecommendermetrics) — Metrics you use to evaluate a recommender’s performance.
+- [MLObjectDetectorMetrics](https://developer.apple.com/documentation/createml/mlobjectdetectormetrics) — Metrics you use to evaluate an object detector’s performance.
+### Model training Control
+
+- [MLJob](https://developer.apple.com/documentation/createml/mljob) — The representation of a model’s asynchronous training session you use to monitor the session’s progress or terminate its execution.
+- [MLTrainingSession](https://developer.apple.com/documentation/createml/mltrainingsession) — The current state of a model’s asynchronous training session.
+- [MLTrainingSessionParameters](https://developer.apple.com/documentation/createml/mltrainingsessionparameters) — The configuration settings for a training session.
+- [MLCheckpoint](https://developer.apple.com/documentation/createml/mlcheckpoint) — The state of a model’s asynchronous training session at a specific point in time during the feature extraction or training phase.
+### Supporting types
+
+- [MLCreateError](https://developer.apple.com/documentation/createml/mlcreateerror) — The errors Create ML throws while performing various operations, such as training models, making predictions, writing models to a file system, and so on.
+- [MLModelMetadata](https://developer.apple.com/documentation/createml/mlmodelmetadata) — Information about a model that’s stored in a Core ML model file.
+- [MLSplitStrategy](https://developer.apple.com/documentation/createml/mlsplitstrategy) — Data partitioning approaches, typically for creating a validation dataset from a training dataset.
+### Articles
+
+- [Data visualizations](https://developer.apple.com/documentation/createml/create-ml-utilties) — Render images of data tables and columns in a playground.
+- [Detecting human actions in a live video feed](https://developer.apple.com/documentation/createml/detecting-human-actions-in-a-live-video-feed) — Identify body movements by sending a person’s pose data from a series of video frames to an action-classification model.
+- [Gathering Training Videos for an Action Classifier](https://developer.apple.com/documentation/createml/recording-or-choosing-training-videos) — Collect quality example videos that effectively train action classifiers.
+### Functions
+
+- [show(_:)](https://developer.apple.com/documentation/createml/show(_:)) — Generates a streaming visualization of the untyped column.
+- [show(_:_:)](https://developer.apple.com/documentation/createml/show(_:_:)) — Generates a streaming plot visualization of the two untyped columns.
+### Enumerations
+
+- [MLBoundingBoxAnchor](https://developer.apple.com/documentation/createml/mlboundingboxanchor) — A location within a bounding box that an annotation’s coordinates use as their reference point.
+- [MLBoundingBoxCoordinatesOrigin](https://developer.apple.com/documentation/createml/mlboundingboxcoordinatesorigin) — The location within an image that an annotation’s coordinates use as their origin.
+- [MLBoundingBoxUnits](https://developer.apple.com/documentation/createml/mlboundingboxunits) — The units a bounding box annotation uses to define its position and size.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML](https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML)*
+--- END FILE ---
+
+--- FILE: Discover_machine_learning_and_AI_frameworks_on_Apple_plaforms.md ---
+Hi there, I’m Jaimin Upadhyay, an engineering manager on the On-Device Machine Learning team at Apple. Today, I would like to talk about how you can make use of Apple Intelligence and machine learning in your apps and personal projects. Whether you are an app developer ready to tap into Apple Intelligence through UI components or directly in code, an ML engineer converting and optimizing models for on-device deployment, or an AI enthusiast exploring the frontier of what is possible on your Mac, we have the tools for you. I’ll walk you through a high level overview of these tools, highlight the latest additions, and point you to resources to learn more along the way. We will start with an overview of the intelligence built into the operating system and its relationship with your app. Next, we will explore how you can programmatically tap into this intelligence through our system frameworks. We will then talk about how Apple’s tools and APIs can help you optimize and deploy any machine learning model for on-device execution. And we will finish up by discussing how you can stay on top of the latest innovations in ML and AI on Apple hardware.
+
+We’ve got a long and exciting tour to cover, so let’s get started. We start with platform intelligence. Machine Learning and Artificial Intelligence are at the core of a lot of built-in apps and features in our operating system. Whether it’s Optic ID to authenticate you on Apple Vision Pro, or understanding your handwriting to help you with math on iPad, or removing background noise to improve your voice quality on FaceTime, machine learning is at the core. ML Models powering these features have been trained and optimized for efficiency on device and last year marked the start of a new chapter, to bring generative intelligence into the core of our operating systems, with large foundation models that power Apple Intelligence. This brought Writing Tools, Genmoji, and Image Playground across the system, making it easy to integrate them into your apps. If you’re using system text controls, you’ll get Genmoji support automatically. You can even use the APIs to make them appear right in your text.
+
+The Image Playground framework provides Swift UI extensions to bring up the imagePlaygroundSheet in your app. And, for most of you, using the standard UI frameworks to display textViews, your apps were already set up to support Writing Tools. It's that simple. You can either use standard views or add a few lines of code to your custom ones. This way, your users can easily access Apple Intelligence within your apps with a consistent and familiar UI. But, what if you want to go beyond the default UI or need more control? This brings us to the topic of ML-powered APIs that give you programmatic access to system models and capabilities.
+
+We offer a wide variety of such APIs. While some provide access to prominent system models with essential utilities, others expose convenient APIs for specialized ML tasks. Let's dive into these by revisiting how you can integrate image generation into your app. iOS 18.4 introduced ImageCreator class to ImagePlayground framework.
+
+This lets you create images programmatically. Just instantiate the ImageCreator. Request for images based on some ideas. Here, we use a text prompt and a selected style. Then, you can show or use them in your app as you prefer. Also in 18.4, we introduced the Smart Reply API. You can let your users choose generated smart replies for their messages and e-mails, by donating the context to a keyboard. Let’s take a quick look at how you can set it up. To donate your conversation, configure a UIMessage or UIMail ConversationContext with your data, then set it on your entry view before the keyboard is requested.
+
+When a user selects a smart reply from the keyboard for an instant message, it will be directly inserted into the document. However, in a mail conversation, the selection will instead be delegated back to your view’s corresponding insertInputSuggestion delegate method. You can then generate and insert your own longer replies appropriate for an e-mail. To learn more, check out “Adopting Smart Reply in your messaging or email app” documentation page. Note that this is all running on device and using Apple’s foundation models. In iOS 26, we are going even further with the introduction of: the Foundation Models framework. It provide programmatic access to a highly optimized on-device language model that’s specialized for everyday tasks. Now it can power these features across all your apps. It’s great for things like summarization, extraction, classification, and more.
+
+You can use it to enhance existing features in your apps, like providing personalized search suggestions. Or you can create entirely new features, like generating itinerary in a travel app.
+
+You can even use it to create dialogue on-the-fly for characters in a game. That one is my personal favorite! Prompting the model is as easy as three lines of code. Import the framework, create a session, and send your prompt to the model. Since the framework is on device, your user's data stays private and doesn't need to be sent anywhere. The AI features are readily available and work offline, eliminating the need to set up an account or obtain API keys. And all of this, at no cost to you or your users for any requests.
+
+The Foundation Models framework provides much more than simple prompting for text responses. Sometimes you need an LLM to generate structured responses that you can use directly in your app.
+
+This is easy with the Foundation Models framework. You can take existing types in your app and mark them as generable. Also add some natural language guides to each property, along with optional controls over their generated values. This lets you use Guided Generation with a simple prompt. When you indicate the response to generate your type.
+
+The framework will customize the language model decoding loop and stop the model from making structural mistakes. Your data structure is filled with the correct information, so you don’t have to deal with JSON schemas. Just focus on the prompt and let the framework do the rest! The synergy between Swift, the framework and your custom types makes it easy for you to rapidly iterate and explore new ideas within your app.
+
+When developing your use case, it's important to consider the knowledge available to the foundation model. In addition to information provided via your prompt and generable type descriptions, The model has a core set of knowledge derived from the data it was trained on. This data was fixed in time and does not contain recent events. While the model is incredibly powerful for a device-scale model, it’s not as knowledgeable as larger server-scale models. To help with use cases requiring additional knowledge from your app or over the network, the foundation model’s framework supports tool calling. Tool calling lets you go beyond text generation and perform some actions. It provides the model access to live or personal data, like weather and calendar events, not just what was trained months ago. It can even let the model cite sources of truth, which allows the users to fact-check its output. Finally, tools can take real actions, whether it’s in your app, on the system, or in real world.
+
+This was just a sneak peek of the framework's awesome capabilities, but there is so much more. For a more detailed introduction watch “Meet the Foundation Models framework” session. There you will also learn about streaming responses, stateful sessions, and the framework's tight integration with Xcode. And if you prefer learning by doing, we have a code along session for building your first intelligent app using the new APIs.
+
+We also have a session dedicated to design considerations for your use cases. It focuses on best practices to help you write reflective prompts, AI safety considerations, understanding what is possible with a device-scale language model, and some solid strategies for evaluating and testing quality and safety. Be sure to check out “Explore prompt design and safety for on-device Foundation models” to learn more.
+
+The new Foundation Models framework joins the suite of other Machine Learning powered APIs and tools you can use to tap into on-device intelligence for your app’s features. These frameworks each focus on a specific domain with highly optimized task-specific models.
+
+There is Vision to understand the content of images and videos.
+
+Natural language to identify language, parts of speech, and named entities in natural language text.
+
+Translation to perform text translations between multiple languages.
+
+Sound analysis to recognize many categories of sound. And speech to identify and transcribe spoken words in audio. All with just a few lines of code.
+
+Let me highlight some interesting new additions to these frameworks this year.
+
+Let's start with Vision.
+
+Vision has over 30 APIs for different types of image analysis. And today, Vision is adding two new APIs.
+
+Vision is bringing improvements to text recognition. Instead of just reading lines of text, Vision now provides document recognition.
+
+It can group different document structures, making it easier to process and understand documents.
+
+Vision also has a new lens smudge detection mode. It helps you identify smudges on camera lens that can potentially ruin images. For more details on Lens Smudge Detection and the other cool new additions to Vision, check out the session “Reading documents using the Vision Framework” for more details.
+
+Next, let’s talk about the Speech framework. The SFSpeechRecognizer class in Speech framework gave you access to the speech-to-text model powering Siri and worked well for short-form dictation.
+
+Now in iOS 26, we’re introducing a new API, SpeechAnalyzer, that supports many more use cases and leverages the power of Swift. The new API lets you perform speech-to-text processing with very little code entirely on device.
+
+Along with the API, we are providing a new speech-to-text model that is both faster and more flexible than the previous one.
+
+You pass audio buffers to the analyzer instance, which then routes them through the new speech-to-text model. The model predicts the text that matches the spoken audio and returns it to your app.
+
+The new model is especially good for long-form and distant audio, such as lectures, meetings, and conversations.
+
+Watch the “Bring advanced speech-to-text to your app with SpeechAnalyzer” session to dive deeper.
+
+Apple’s ML powered APIs offer tons of capabilities that your app can readily take advantage of! And many of these APIs can be extended or customized to your specific use case.
+
+The Create ML app and framework give you the ability to fine-tune the system models with your own data.
+
+Create your own image classifier to use with the Vision framework, or a custom word tagger to use with Natural Language. You can even extend the capabilities of Vision Pro to recognize and track specific objects with 6 degrees of freedom for spatial experiences.
+
+So far we have talked about how you can leverage or extend the ML and AI powered capabilities built into the system. Next, let’s talk about bringing any model to device.
+
+When choosing and integrating a model into your app, there is a lot to consider. But it is made easy with Core ML. All you need is a model in the Core ML format.
+
+These model assets contain a description of the model’s inputs, outputs, and architecture along with its learned parameters.
+
+You can find a wide variety of open models in the Core ML format on developer.apple.com ready for use.
+
+They are organized by category with a description of each model’s capabilities and a list of different variants along with some high-level performance information on different devices.
+
+Similarly, you may want to check out the Apple space on Hugging Face. In addition to models already in Core ML format, you will also find links to the source model definition.
+
+These model definitions are often expressed in PyTorch along with training and fine-tuning pipelines.
+
+Core ML Tools provides utilities and workflows for transforming trained models to Core ML model format.
+
+These workflows not only directly translate the model’s representation but also apply optimizations for on-device execution.
+
+Some of these optimizations are automatic, such as fusing operations and eliminating redundant computation.
+
+However, coremltools also provides a suite of fine-tuning and post-training based model compression techniques.
+
+These will help you reduce the size of your model and improve its inference performance in terms of memory, power and latency.
+
+These techniques are opt-in and allow you to explore different trade-offs between performance and model accuracy.
+
+Check out the “Bring your models to Apple Silicon” session from WWDC24 to learn more. Also, make sure to check out the latest release notes and examples in the user guide.
+
+Once you have your model in the Core ML format, you can easily integrate it with Xcode. You can inspect your model’s key characteristics or explore its performance on any connected device.
+
+You can get insights about the expected prediction latency, load times, and also, introspect where a particular operation is supported and executed, right in Xcode.
+
+New this year, you can visualize the structure of the full model architecture and dive into details of any op.
+
+This brand new view helps you build a deeper understanding of the model you are working with, making debugging and performance opportunities incredibly visible.
+
+When it's time to get coding, Xcode generates a type safe interface in Swift specific to your model. And integration is just a few lines of code.
+
+At runtime, Core ML makes use of all available compute, optimizing execution across the CPU, GPU, and Neural Engine.
+
+While Core ML is the go-to framework for deploying models on-device, there may be scenarios where you need finer-grained control.
+
+For instance, if you need to sequence or integrate ML with graphics workload, you can use Core ML models with both MPS Graph and Metal.
+
+Alternatively, when running real-time signal processing on the CPU, Accelerate’s BNNS Graph API provides strict latency and memory management control for your ML task.
+
+These frameworks form part of Core ML’s foundation and are also directly accessible to you.
+
+This year, there are some new capabilities in BNNSGraph, including a new Graph Builder that lets developers create graphs of operations. This means you can write pre- and post-processing routines or even small machine-learning models to run in real time on CPU. Check out “What’s new in BNNS Graph” for all the details.
+
+Finally, let’s talk about how you can keep up with the fast-paced development happening in machine learning and how can the Apple platform assist you. ML research is moving at a rapid pace, there’s advancements made every single day. New models and techniques are being explored and built at an unprecedented rate. There is a lot to try and keep up with. It can be challenging without the right tools and resources.
+
+To keep up with the current frontier of exploration, one needs the ability to run large models, tinker with unique architectures, and learn from an open community. We have sophisticated tools and resources to help on your endeavors exploring the frontier. One such powerful tool is MLX.
+
+It’s array framework for numerical computing and machine learning. It’s designed by Apple’s machine learning researchers and developed fully open source.
+
+MLX provides access to state-of-the-art models and the ability to perform efficient fine-tuning, training, and distributed learning on Apple Silicon machines.
+
+MLX can run state-of-the-art ML inference on large language models like Mistral with a single command line call.
+
+For example, here it’s generating code for quick sort with a maximum token length of 1024.
+
+This allows you to stay in-step with state-of-the-art research, thanks to the open source community working to make these models work with MLX.
+
+The MLX community on Hugging Face has hundreds of frontier models readily available to you through one line of code. Check out “Explore large language models on Apple silicon with MLX” session to learn about how you can run DeepSeek-R1 on your Apple Silicon machine.
+
+MLX is designed to take advantage of the best of Apple Silicon. This includes a new programming model specific to unified memory.
+
+Most systems commonly used for machine learning have a discrete GPU with separate memory.
+
+Data is often resident and tied to a specific device.
+
+Operations run where the data is.
+
+You cannot efficiently run operations that use data from multiple pools of memory. They would require a copy in memory.
+
+Apple Silicon, on the other hand, has a unified memory architecture.
+
+This means that the CPU and the GPU share the same physical memory.
+
+Arrays in MLX aren’t tied to a device, but operations are, allowing you to even run different operations on CPU and GPU in parallel on the same buffer.
+
+Check out “Get started with MLX for Apple silicon” session to learn about this unique programming model and other features of MLX. You can even fine-tune your model with a single line of code and scale up as needed for distributed training easily.
+
+It’s available in Python, Swift, C++ or C, and other languages of your choice through the multiple bindings created by the open source community.
+
+In addition to MLX, if you are using one of the popular training frameworks like PyTorch and Jax, we’ve got you covered with Metal, so you can explore the frontier without deviating from the standard tools that have been embraced by the ML community over the years.
+
+Lastly, developer.apple.com is a great resource for AI enthusiasts and researchers to get a peek at the latest machine learning resources from Apple.
+
+With that, we've covered our agenda. Let’s step back a little and take a look at everything we talked about today.
+
+Based on your needs and experience with models, you can choose the frameworks and tools that best support your project’s Machine Learning and AI capabilities.
+
+Whether you want to fine-tune an LLM on your Mac, optimize a computer vision model to deploy on Apple Vision Pro, or use one of our ML-powered APIs to quickly add magical features to your apps, we have you covered. And all of this is optimized for Apple Silicon, providing efficient and powerful execution for your machine learning and AI workloads.
+
+We are sure you will find the resources we went over here helpful and can’t wait to see the new experiences you create by tapping into Apple Intelligence. There has never been a better time to experiment and explore what you can do with machine learning and AI on Apple platforms.
+
+Here we covered just the surface.
+
+I highly encourage you to check out the machine learning and AI category in the Developer app and on our developer forums to learn more.
+
+Ask questions and have discussions with the broader developer community there.
+
+I hope this has been as fun for you as it has been for me. Thanks for watching!
+--- END FILE ---
+
+--- FILE: Meet_the_Foundation_Models_framework.md ---
+# Meet the Foundation Models framework
+
+Hi, I’m Erik. And I’m Yifei. And today, we are so excited to get the privilege of introducing you to the new Foundation Models framework! The Foundation Models framework gives you access to the on-device Large Language Model that powers Apple Intelligence, with a convenient and powerful Swift API. It is available on macOS, iOS, iPadOS, and visionOS! You can use it to enhance existing features in your apps, like providing personalized search suggestions. Or you can create completely new features, like generating an itinerary in a travel app, all on-device. You can even use it to create dialog on-the-fly for characters in a game.
+
+It is optimized for generating content, summarizing text, analyzing user input and so much more.
+
+All of this runs on-device, so all data going into and out of the model stays private. That also means it can run offline! And it’s built into the operating system, so it won’t increase your app size. It’s a huge year, so to help you get the most out of the FoundationModels framework, we’ve prepared a series of videos. In this first video, we’ll be giving you a high level overview of the framework in its entirety. Starting with the details of the model.
+
+We will then introduce guided generation which allows you to get structured output in Swift, and the powerful streaming APIs that turn latency into delight.
+
+We will also talk about tool calling, which allows the model to autonomously execute code you define in your app.
+
+Finally, we will finish up with how we provide multi-turn support with stateful sessions, and how we seamlessly integrate the framework into the Apple developer ecosystem. The most important part of the framework, of course, is the model that powers it. And the best way to get started with prompting the model, is to jump into Xcode.
+
+Testing out a variety of prompts to find what works best is an important part of building with large language models, and the new Playgrounds feature in Xcode is the best way to do that. With just a few lines of code, you can immediately start prompting the on-device model. Here I'll ask it to generate a title for a trip to Japan, and the model's output will appear in the canvas on the right. 
+
+```swift
+import FoundationModels
+import Playgrounds
+
+#Playground {
+    let session = LanguageModelSession()
+    let response = try await session.respond(to: "What's a good name for a trip to Japan? Respond only with a title")
+}
+```
+
+Now, I want to see if this prompt works well for other destinations too. In a #Playground, you can access types defined in your app, so I'll create a for loop over the landmarks featured in mine. Now Xcode will show me the model's response for all of the landmarks.
+
+```swift
+import FoundationModels
+import Playgrounds
+
+#Playground {
+    let session = LanguageModelSession()
+    for landmark in ModelData.shared.landmarks {
+        let response = try await session.respond(to: "What's a good name for a trip to \(landmark.name)? Respond only with a title")
+    }
+}
+```
+
+The on-device model we just used is a large language model with 3 billion parameters, each quantized to 2 bits. It is several orders of magnitude bigger than any other models that are part of the operating system.
+
+But even so, it’s important to keep in mind that the on-device model is a device-scale model. It is optimized for use cases like summarization, extraction, classification, and many more. It’s not designed for world knowledge or advanced reasoning, which are tasks you might typically use server-scale LLMs for.
+
+Device scale models require tasks to be broken down into smaller pieces. As you work with the model, you’ll develop an intuition for its strengths and weaknesses.
+
+For certain common use cases, such as content tagging, we also provide specialized adapters that maximize the model’s capability in specific domains.
+
+We will also continue to improve our models over time. Later in this video we’ll talk about how you can tell us how you use our models, which will help us to improve them in ways that matter to you.
+
+Now that we've taken a look at the model, the first stop on our journey is Guided Generation. Guided Generation is what makes it possible to build features like the ones you just saw, and it is the beating heart of the FoundationModels framework. Let's take a look at a common problem and talk about how Guided Generation solves it.
+
+By default, language models produce unstructured, natural language as output. It's easy for humans to read, but difficult to map onto views in your app.
+
+A common solution is to prompt the model to produce something that's easy to parse, like JSON or CSV.
+
+However, that quickly turns into a game of whack-a-mole. You have to add increasingly specific instructions about what it it is and isn't supposed to do… Often that doesn't quite work… So you end up writing hacks to extract and patch the content. This isn't reliable because the model is probabilistic and there is a non-zero chance of structural mistakes. Guided Generation offers a fundamental solution to this problem.
+
+When you import FoundationModels, you get access to two new macros, @Generable and @Guide. Generable let's you describe a type that you want the model to generate an instance of.
+
+```swift
+// Creating a Generable struct
+
+@Generable
+struct SearchSuggestions {
+    @Guide(description: "A list of suggested search terms", .count(4))
+    var searchTerms: [String]
+}
+```
+
+Additionally, Guides let you provide natural language descriptions of properties, and programmatically control the values that can be generated for those properties.
+
+Once you've defined a Generable type, you can make the model respond to prompts by generating an instance of your type. This is really powerful.
+
+```swift
+// Responding with a Generable type
+
+let prompt = """
+    Generate a list of suggested search terms for an app about visiting famous landmarks.
+    """
+
+let response = try await session.respond(
+    to: prompt,
+    generating: SearchSuggestions.self
+)
+
+print(response.content)
+```
+
+Observe how our prompt no longer needs to specify the output format. The framework takes care of that for you.
+
+The most important part, of course, is that we now get back a rich Swift object that we can easily map onto an engaging view.
+
+Generable types can be constructed using primitives, like Strings, Integers, Doubles, Floats, and Decimals, and Booleans. Arrays are also generable. And Generable types can be composed as well. Generable even supports recursive types, which have powerful applications in domains like generative UIs.
+
+```swift
+// Composing Generable types
+
+@Generable struct Itinerary {
+    var destination: String
+    var days: Int
+    var budget: Float
+    var rating: Double
+    var requiresVisa: Bool
+    var activities: [String]
+    var emergencyContact: Person
+    var relatedItineraries: [Itinerary]
+}
+```
+
+The most important thing to understand about Guided Generation is that it fundamentally guarantees structural correctness using a technique called constrained decoding.
+
+When using Guided Generation, your prompts can be simpler and focused on desired behavior instead of the format.
+
+Additionally, Guided Generation tends to improve model accuracy. And, it allows us to perform optimizations that speed up inference at the same time. This is all made possible by carefully coordinated integration of Apple operating systems, developer tools, and the training of our foundation models. There is still a lot more to cover about guided generation, like how to create dynamic schemas at runtime, so please check out our deep dive video for more details. So that wraps up Guided Generation — we’ve seen how Swift’s powerful type system augments natural language prompts to enable reliable structured output. Our next topic is streaming, and it all builds on top of the @Generable macro you’re already familiar with.
+
+If you’ve worked with large language models before, you may be aware that they generate text as short groups of characters called tokens.
+
+Typically when streaming output, tokens are delivered in what’s called a delta, but the FoundationModels framework actually takes a different approach, and I want to show you why.
+
+As deltas are produced, the responsibility for accumulating them usually falls on the developer.
+
+You append each delta as they come in. And the response grows as you do.
+
+But it gets tricky when the result has structure. If you want to show the greeting string after each delta, you have to parse it out of the accumulation, and that’s not trivial, especially for complicated structures. Delta streaming just isn’t the right formula when working with structured output.
+
+And as you’ve learned, structured output is at the very core of the FoundationModels framework, which is why we’ve developed a different approach. Instead of raw deltas, we stream snapshots.
+
+As the model produces deltas, the framework transforms them into snapshots. Snapshots represent partially generated responses. Their properties are all optional. And they get filled in as the model produces more of the response.
+
+Snapshots are a robust and convenient representation for streaming structured output.
+
+You're already familiar with the @Generable macro, and as it turns out, it's also where the definitions for partially generated types come from. If you expand the macro, you'll discover it produces a type named `PartiallyGenerated`. It is effectively a mirror of the outer structure, except every property is optional.
+
+```swift
+// PartiallyGenerated types
+
+@Generable struct Itinerary {
+    var name: String
+    var days: [Day]
+}
+```
+
+The partially generated type comes into play when you call the `streamResponse` method on your session.
+
+```swift
+// Streaming partial generations
+
+let stream = session.streamResponse(
+    to: "Craft a 3-day itinerary to Mt. Fuji.",
+    generating: Itinerary.self
+)
+
+for try await partial in stream {
+    print(partial)
+}
+```
+
+Stream response returns an async sequence. And the elements of that sequence are instances of a partially generated type. Each element in the sequence will contain an updated snapshot.
+
+These snapshots work great with declarative frameworks like SwiftUI. First, create state holding a partially generated type.
+
+Then, just iterate over a response stream, store its elements, and watch as your UI comes to life.
+
+```swift
+ItineraryView: View {
+    let session: LanguageModelSession
+    let dayCount: Int
+    let landmarkName: String
+  
+    @State
+    private var itinerary: Itinerary.PartiallyGenerated?
+  
+    var body: some View {
+        //...
+        Button("Start") {
+            Task {
+                do {
+                    let prompt = """
+                        Generate a \(dayCount) itinerary \
+                        to \(landmarkName).
+                        """
+                  
+                    let stream = session.streamResponse(
+                        to: prompt,
+                        generating: Itinerary.self
+                    )
+                  
+                    for try await partial in stream {
+                        self.itinerary = partial
+                    }
+                } catch {
+                    print(error)  
+                }
+            }
+        }
+    }
+}
+```
+
+To wrap up, let's review some best practices for streaming.
+
+First, get creative with SwiftUI animations and transitions to hide latency. You have an opportunity turn a moment of waiting into one of delight. Second, you'll need to think carefully about view identity in SwiftUI, especially when generating arrays. Finally, bear in mind that properties are generated in the order they are declared on your Swift struct. This matters both for animations and for the quality of the model's output. For example, you may find that the model produces the best summaries when they're the last property in the struct.
+
+```swift
+@Generable struct Itinerary {
+  
+  @Guide(description: "Plans for each day")
+  var days: [DayPlan]
+  
+  @Guide(description: "A brief summary of plans")
+  var summary: String
+}
+```
+
+There is a lot to unpack here, so make sure to check out our video on integrating Foundation Models into your app for more details. So that wraps up streaming with Foundation Models. Next up, Yifei is going to teach you all about tool calling! Thanks Erik! Tool calling is another one of our key features. It lets the model execute code you define in your app. This feature is especially important for getting the most out of our model, since tool calling gives the model many additional capabilities. It allows the model to identify that a task may require additional information or actions and autonomously make decisions about what tool to use and when, when it’s difficult to decide programmatically.
+
+The information you provide to the model can be world knowledge, recent events, or personal data. For example, in our travel app, it provides information about various locations from MapKit. This also gives the model the ability to cite sources of truth, which can suppress hallucinations and allow fact-checking the model output.
+
+Finally, it allows the model to take actions, whether it’s in your app, on the system, or in the real world.
+
+Integrating with various sources of information in your app is a winning strategy for building compelling experiences. Now that you know why tool calling is very useful, let’s take a look at how it works.
+
+On the left we have a transcript which records everything that has happened so far. If you’ve provided tools to the session, the session will present these tools to the model along with the instructions. Next comes the prompt, where we tell the model which destination we want to visit.
+
+Now, if the model deems that calling a tool can enhance the response, it will produce one or more tool calls. In this example, the model produces two tool calls — querying restaurants and hotels.
+
+At this phase, the FoundationModels framework will automatically call the code you wrote for these tools. The framework then automatically inserts the tool outputs back into the transcript. Finally, the model will incorporate the tool output along with everything else in the transcript to furnish the final response.
+
+Now that we have a high level understanding of tool calling, let's define a tool.
+
+Here we're defining a simple weather tool, which conforms to the Tool protocol. The weather tool has kind of emerged as the de-facto 'hello world' of tool calling, and it's a great way to get started.
+
+The protocol first requires you to specify a name and a natural language description of the tool.
+
+The framework will automatically provide them for the model to help it understand when to call your tool.
+
+When the model calls your tool, it will run the call method you define.
+
+The argument to the call method can be any Generable type.
+
+The reason your arguments need to be generable is because tool calling is built on guided generation to ensure that the model will never produce invalid tool names or arguments.
+
+After defining your arguments type, you can now write anything you want in the body of your method. Here we're using CoreLocation and WeatherKit to find the temperature of a given city. The output is represented using the ToolOutput type, which can be created from GeneratedContent to represent structured data. Or from a string if your tool's output is natural language. 
+
+```swift
+// Defining a tool
+import WeatherKit
+import CoreLocation
+import FoundationModels
+
+struct GetWeatherTool: Tool {
+    let name = "getWeather"
+    let description = "Retrieve the latest weather information for a city"
+
+    @Generable
+    struct Arguments {
+        @Guide(description: "The city to fetch the weather for")
+        var city: String
+    }
+
+    func call(arguments: Arguments) async throws -> ToolOutput {
+        let places = try await CLGeocoder().geocodeAddressString(arguments.city)
+        let weather = try await WeatherService.shared.weather(for: places.first!.location!)
+        let temperature = weather.currentWeather.temperature.value
+
+        let content = GeneratedContent(properties: ["temperature": temperature])
+        let output = ToolOutput(content)
+
+        // Or if your tool's output is natural language:
+        // let output = ToolOutput("\(arguments.city)'s temperature is \(temperature) degrees.")
+
+        return output
+    }
+}
+```
+
+Now that we have defined a tool, we have to ensure that the model has access to it.
+
+To do so, pass your tool into your session's initializer. Tools must be attached at session initialization, and will be available to the model for the session's lifetime.
+
+```swift
+// Attaching tools to a session
+
+let session = LanguageModelSession(
+    tools: [GetWeatherTool()],
+    instructions: "Help the user with weather forecasts."
+)
+
+let response = try await session.respond(
+    to: "What is the temperature in Cupertino?"
+)
+
+print(response.content)
+// It's 71˚F in Cupertino!
+```
+
+After creating a session with tools, all you need to do is prompt the model as you would normally. Tool calls will happen transparently and autonomously, and the model will incorporate the tools' outputs into its final response. The examples I’ve shown here demonstrate how to define type-safe tools at compile time, which is great for the vast majority of use cases. But tools can also be dynamic in every way! For example, you can define the arguments and behaviors of a tool at runtime by using dynamic generation schemas. If you are curious about that, feel free to check out our deep dive video to learn more.
+
+That wraps up tool calling. We learned why tool calling is useful and how to implement tools to extend the model's capabilities. Next, let's talk about stateful sessions. You've seen the word session pop up in this video many times already. The Foundation Models framework is built around the notion of a stateful session. By default, when you create a session, you will be prompting the on-device general-purpose model. And you can provide custom instructions.
+
+Instructions are an opportunity for you to tell the model its role and provide guidance on how the model should respond. For example, you can specify things like style and verbosity.
+
+```swift
+// Supplying custom instructions
+
+let session = LanguageModelSession(
+    instructions: """
+        You are a helpful assistant who always \
+        responds in rhyme.
+        """
+)
+```
+
+Note that providing custom instructions is optional, and reasonable default instructions will be used if you don't specify any.
+
+If you do choose to provide custom instructions, it is important to understand the difference between instructions and prompts. Instructions should come from you, the developer, while prompts can come from the user. This is because the model is trained to obey instructions over prompts. This helps protect against prompt injection attacks, but is by no means bullet proof.
+
+As a general rule, instructions are mostly static, and it’s best not to interpolate untrusted user input into the instructions.
+
+So this is a basic primer on how to best form your instructions and prompts. To discover even more best practices, check out our video on prompt design and safety.
+
+Now that you have initialized a session, let's talk about multi-turn interactions! When using the respond or streamResponse methods we talked about earlier. Each interaction with the model is retained as context in a transcript, so the model will be able to refer to and understand past multi-turn interactions within a single session. For example, here the model is able to understand when we say "do another one", that we're referring back to writing a haiku.
+
+```swift
+// Multi-turn interactions
+
+let session = LanguageModelSession()
+
+let firstHaiku = try await session.respond(to: "Write a haiku about fishing")
+print(firstHaiku.content)
+// Silent waters gleam,
+// Casting lines in morning mist—
+// Hope in every cast.
+
+let secondHaiku = try await session.respond(to: "Do another one about golf")
+print(secondHaiku.content)
+// Silent morning dew,
+// Caddies guide with gentle words—
+// Paths of patience tread.
+
+print(session.transcript)// (Prompt) Write a haiku about fishing
+// (Response) Silent waters gleam...
+// (Prompt) Do another one about golf
+// (Response) Silent morning dew...
+```
+
+And the `transcript` property on the session object will allow you to inspect previous interactions or draw UI views to represent them.
+
+One more important thing to know is that while the model is producing output, its `isResponding` property will become `true`. You may need to observe this property and make sure not to submit another prompt until the model finishes responding.
+
+```swift
+import SwiftUI
+import FoundationModels
+
+struct HaikuView: View {
+
+    @State
+    private var session = LanguageModelSession()
+
+    @State
+    private var haiku: String?
+
+    var body: some View {
+        if let haiku {
+            Text(haiku)
+        }
+        Button("Go!") {
+            Task {
+                haiku = try await session.respond(
+                    to: "Write a haiku about something you haven't yet"
+                ).content
+            }
+        }
+        // Gate on `isResponding`
+        .disabled(session.isResponding)
+    }
+}
+```
+
+Beyond the default model, we are also providing additional built-in specialized use cases that are backed by adapters.
+
+If you find a built-in use case that fits your need, you can pass it to SystemLanguageModel's initializer. 
+
+```swift
+// Using a built-in use case
+
+let session = LanguageModelSession(
+    model: SystemLanguageModel(useCase: .contentTagging)
+)
+```
+
+To understand what built-in use cases are available and how to best utilize them, check out our documentation on the developer website. One specialized adapter I want to talk more about today is the content tagging adapter. The content tagging adapter provides first class support for tag generation, entity extraction, and topic detection. By default, the adapter is trained to output topic tags, and it integrates with guided generation out of the box. So you can simply define a struct with our Generable macro, and pass the user input to extract topics from it.
+
+```swift
+// Content tagging use case
+
+@Generable
+struct Result {
+    let topics: [String]
+}
+
+let session = LanguageModelSession(model: SystemLanguageModel(useCase: .contentTagging))
+let response = try await session.respond(to: ..., generating: Result.self)
+```
+
+But there's more! By providing it with custom instructions and a custom Generable output type, you can even use it to detect things like actions and emotions.
+
+```swift
+// Content tagging use case
+
+@Generable
+struct Top3ActionEmotionResult {
+    @Guide(.maximumCount(3))
+    let actions: [String]
+    @Guide(.maximumCount(3))
+    let emotions: [String]
+}
+
+let session = LanguageModelSession(
+    model: SystemLanguageModel(useCase: .contentTagging),
+    instructions: "Tag the 3 most important actions and emotions in the given input text."
+)
+let response = try await session.respond(to: ..., generating: Top3ActionEmotionResult.self)
+```
+
+Before you create a session, you should also check for availability, since the model can only run on Apple Intelligence-enabled devices in supported regions. To check if the model is currently available, you can access the availability property on the SystemLanguageModel.
+
+Availability is a two case enum that's either available or unavailable. If it's unavailable, you also receive a reason so you can adjust your UI accordingly.
+
+```swift
+// Availability checking
+
+struct AvailabilityExample: View {
+    private let model = SystemLanguageModel.default
+
+    var body: some View {
+        switch model.availability {
+        case .available:
+            Text("Model is available").foregroundStyle(.green)
+        case .unavailable(let reason):
+            Text("Model is unavailable").foregroundStyle(.red)
+            Text("Reason: \(reason)")
+        }
+    }
+}
+```
+
+Lastly, you could encounter errors when you are calling into the model.
+
+These errors might include guardrail violation, unsupported language, or context window exceeded. To provide the best user experience, you should handle them appropriately, and the deep-dive video will teach you more about them. That’s it for multi-turn stateful sessions! We learned how to create a session and use it, as well as how our model keeps track of your context. Now that you’ve seen all the cool features of the framework, let’s talk about developer tooling and experience. To start, you can go to any Swift file in your project and use the new playground macro to prompt the model.
+
+Playgrounds are powerful because they let you quickly iterate on your prompts without having to rebuild and rerun your entire app.
+
+In a playground, your code can access all the types in your project, such as the generable types that are already powering your UI.
+
+Next, we know that when it comes to building app experiences powered by large language models, it is important to understand all the latency under the hood, because large language models take longer to run compared to traditional ML models. Understanding where latency goes can help you tweak the verbosity of your prompts, or determine when to call useful APIs such as prewarming.
+
+And our new Instruments app profiling template is built exactly for that. You can profile the latency of a model request, observe areas of optimizations, and quantify improvements.
+
+Now, as you develop your app, you may have feedback that can help us improve our models and our APIs.
+
+We encourage you to provide your feedback through Feedback Assistant. We even provide an encodable feedback attachment data structure that you can attach as a file to your feedback.
+
+```swift
+let feedback = LanguageModelFeedbackAttachment(
+  input: [
+    // ...
+  ],
+  output: [
+    // ...
+  ],
+  sentiment: .negative,
+  issues: [
+    LanguageModelFeedbackAttachment.Issue(
+      category: .incorrect,
+      explanation: "..."
+    )
+  ],
+  desiredOutputExamples: [
+    [
+      // ...
+    ]
+  ]
+)
+let data = try JSONEncoder().encode(feedback)
+```
+
+Finally, if you are an ML practitioner with a highly specialized use case and a custom dataset, you can also train your custom adapters using our adapter training toolkit. But bear in mind, this comes with significant responsibilities because you need to retrain it as Apple improves the model over time. To learn more, you can visit the developer website. 
+
+Now that you've learned many of the cool features provided by the new Foundation Models framework, we can't wait to see all the amazing things you build with it! To discover even more about how you can integrate generative AI into your app, how technologies like guided generation work under the hood, and how you can create the best prompts, we have a whole series of wonderful videos and articles for you.
+
+Thank you so much for joining us today! Happy generating!
+--- END FILE ---
+
+--- FILE: Maintaining-State-in-Your-Apps.md ---
+# Maintaining State in Your Apps
+
+**Use enumerations to capture and track the state of your app.**
+
+
+## Overview
+
+Effectively managing state, the bits of data that keep track of how the app is being used at the moment, is an important part of a developing your app. Because enumerations define a finite number of states, and can bundle associated values with each individual state, you can use them to model the state of your app and its internal processes.
+
+
+### Use an Enumeration to Capture State
+
+Consider an app that requires a user to log into an account. When the app is first opened, the user is unknown, so the state of the app could be called *unregistered*. After the user has registered or logged into an account, the state is *logged in*. After some time of inactivity, the user’s session may expire, leaving the app in a *session expired* state.
+
+You can use an enumeration to specify the exact states needed for your app. This approach defines an `App` class with a nested `State` enumeration that includes only the specific states you need:
+
+```swift
+class App {
+    enum State {
+        case unregistered
+        case loggedIn(User)
+        case sessionExpired(User)
+    }
+
+    var state: State = .unregistered
+
+    // ...
+}
+```
+
+In this model, each state is represented by a case with a matching name. The `loggedIn` and `sessionExpired` cases include the user as an associated value, while the `unregistered` case doesn’t include an associated value. When you update your app’s state, there’s a single variable, `state`, to modify, no matter what the transition.
+
+![Image](maintaining-state-in-your-apps-1)
+
+
+### Don’t Spread State Across Multiple Variables
+
+It’s also possible to model an app’s state by using individual variables in combination to hold the state and the required data, which is not recommended.
+
+In this model, the app defines two variables: an optional `user` that stores user information, and a Boolean value named `sessionExpired`. The `user` variable is `nil` when the user not logged in and has a value once the user logs in. The `sessionExpired` variable begins as `false` and is set to `true` if the session expires. The three states are captured by different combinations of the two variables.
+
+Using this approach is prone to mistakes for a few reasons, in ways that can lead to bugs and make it harder to reason about your code:
+
+- For every change in state, you need to provide updates for both `user` and `sessionExpired` in tandem.
+
+- If a future change to the app requires an additional state, you need to update an additional variable at every existing change in state.
+
+- The two variables have an unused combination—it’s possible to set the `user` to `nil` and `sessionExpired` to `true`, even though that doesn’t have a corresponding state.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/maintaining-state-in-your-apps](https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/maintaining-state-in-your-apps)*
+--- END FILE ---
+
+--- FILE: Model-data.md ---
+# Model data
+
+**Manage the data that your app uses to drive its interface.**
+
+
+## Overview
+
+SwiftUI offers a declarative approach to user interface design. As you compose a hierarchy of views, you also indicate data dependencies for the views. When the data changes, either due to an external event or because of an action that the user performs, SwiftUI automatically updates the affected parts of the interface. As a result, the framework automatically performs most of the work that view controllers traditionally do.
+
+![Image](model-data-hero)
+
+The framework provides tools, like state variables and bindings, for connecting your app’s data to the user interface. These tools help you maintain a single source of truth for every piece of data in your app, in part by reducing the amount of glue logic you write. Select the tool that best suits the task you need to perform:
+
+- Manage transient UI state locally within a view by wrapping value types as [doc://com.apple.SwiftUI/documentation/SwiftUI/State](https://developer.apple.com/documentation/SwiftUI/State) properties.
+
+- Share a reference to a source of truth, like local state, using the [doc://com.apple.SwiftUI/documentation/SwiftUI/Binding](https://developer.apple.com/documentation/SwiftUI/Binding) property wrapper.
+
+- Connect to and observe reference model data in views by applying the [doc://com.apple.documentation/documentation/Observation/Observable()](https://developer.apple.com/documentation/Observation/Observable()) macro to the model data type. Instantiate an observable model data type directly in a view using a [doc://com.apple.SwiftUI/documentation/SwiftUI/State](https://developer.apple.com/documentation/SwiftUI/State) property. Share the observable model data with other views in the hierarchy without passing a reference using the [doc://com.apple.SwiftUI/documentation/SwiftUI/Environment](https://developer.apple.com/documentation/SwiftUI/Environment) property wrapper.
+
+
+### Leveraging property wrappers
+
+SwiftUI implements many data management types, like [doc://com.apple.SwiftUI/documentation/SwiftUI/State](https://developer.apple.com/documentation/SwiftUI/State) and [doc://com.apple.SwiftUI/documentation/SwiftUI/Binding](https://developer.apple.com/documentation/SwiftUI/Binding), as Swift property wrappers. Apply a property wrapper by adding an attribute with the wrapper’s name to a property’s declaration.
+
+```swift
+@State private var isVisible = true // Declares isVisible as a state variable.
+```
+
+The property gains the behavior that the wrapper specifies. The state and data flow property wrappers in SwiftUI watch for changes in your data, and automatically update affected views as necessary. When you refer directly to the property in your code, you access the wrapped value, which for the `isVisible` state property in the example above is the stored Boolean.
+
+```swift
+if isVisible == true {
+    Text("Hello") // Only renders when isVisible is true.
+}
+```
+
+Alternatively, you can access a property wrapper’s projected value by prefixing the property name with the dollar sign (`$`). SwiftUI state and data flow property wrappers project a [doc://com.apple.SwiftUI/documentation/SwiftUI/Binding](https://developer.apple.com/documentation/SwiftUI/Binding), which is a two-way connection to the wrapped value, allowing another view to access and mutate a single source of truth.
+
+```swift
+Toggle("Visible", isOn: $isVisible) // The toggle can update the stored value.
+```
+
+For more information about property wrappers, see [https://docs.swift.org/swift-book/LanguageGuide/Properties.html#ID617](https://docs.swift.org/swift-book/LanguageGuide/Properties.html#ID617) in [https://swift.org/documentation/#the-swift-programming-language](https://swift.org/documentation/#the-swift-programming-language).
+
+## Topics
+
+### Creating and sharing view state
+
+- [Managing user interface state](https://developer.apple.com/documentation/swiftui/managing-user-interface-state) — Encapsulate view-specific data within your app’s view hierarchy to make your views reusable.
+- [State](https://developer.apple.com/documentation/swiftui/state) — A property wrapper type that can read and write a value managed by SwiftUI.
+- [Bindable](https://developer.apple.com/documentation/swiftui/bindable) — A property wrapper type that supports creating bindings to the mutable properties of observable objects.
+- [Binding](https://developer.apple.com/documentation/swiftui/binding) — A property wrapper type that can read and write a value owned by a source of truth.
+### Creating model data
+
+- [Managing model data in your app](https://developer.apple.com/documentation/swiftui/managing-model-data-in-your-app) — Create connections between your app’s data model and views.
+- [Migrating from the Observable Object protocol to the Observable macro](https://developer.apple.com/documentation/swiftui/migrating-from-the-observable-object-protocol-to-the-observable-macro) — Update your existing app to leverage the benefits of Observation in Swift.
+- [Observable()](https://developer.apple.com/documentation/Observation/Observable()) — Defines and implements conformance of the Observable protocol.
+- [Monitoring data changes in your app](https://developer.apple.com/documentation/swiftui/monitoring-model-data-changes-in-your-app) — Show changes to data in your app’s user interface by using observable objects.
+- [StateObject](https://developer.apple.com/documentation/swiftui/stateobject) — A property wrapper type that instantiates an observable object.
+- [ObservedObject](https://developer.apple.com/documentation/swiftui/observedobject) — A property wrapper type that subscribes to an observable object and invalidates a view whenever the observable object changes.
+- [ObservableObject](https://developer.apple.com/documentation/Combine/ObservableObject) — A type of object with a publisher that emits before the object has changed.
+### Responding to data changes
+
+- [onChange(of:initial:_:)](https://developer.apple.com/documentation/swiftui/view/onchange(of:initial:_:)) — Adds a modifier for this view that fires an action when a specific value changes.
+- [onReceive(_:perform:)](https://developer.apple.com/documentation/swiftui/view/onreceive(_:perform:)) — Adds an action to perform when this view detects data emitted by the given publisher.
+### Distributing model data throughout your app
+
+- [environmentObject(_:)](https://developer.apple.com/documentation/swiftui/view/environmentobject(_:)) — Supplies an observable object to a view’s hierarchy.
+- [environmentObject(_:)](https://developer.apple.com/documentation/swiftui/scene/environmentobject(_:)) — Supplies an `ObservableObject` to a view subhierarchy.
+- [EnvironmentObject](https://developer.apple.com/documentation/swiftui/environmentobject) — A property wrapper type for an observable object that a parent or ancestor view supplies.
+### Managing dynamic data
+
+- [DynamicProperty](https://developer.apple.com/documentation/swiftui/dynamicproperty) — An interface for a stored variable that updates an external property of a view.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/Model-data](https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/Model-data)*
+--- END FILE ---
+
+--- FILE: Text-input-and-output.md ---
+# Text input and output
+
+**Display formatted text and get text input from the user.**
+
+
+## Overview
+
+To display read-only text, or read-only text paired with an image, use the built-in [doc://com.apple.SwiftUI/documentation/SwiftUI/Text](https://developer.apple.com/documentation/SwiftUI/Text) or [doc://com.apple.SwiftUI/documentation/SwiftUI/Label](https://developer.apple.com/documentation/SwiftUI/Label) views, respectively. When you need to collect text input from the user, use an appropriate text input view, like [doc://com.apple.SwiftUI/documentation/SwiftUI/TextField](https://developer.apple.com/documentation/SwiftUI/TextField) or [doc://com.apple.SwiftUI/documentation/SwiftUI/TextEditor](https://developer.apple.com/documentation/SwiftUI/TextEditor).
+
+![Image](text-input-and-output-hero)
+
+You add view modifiers to control the text’s font, selectability, alignment, layout direction, and so on. These modifiers also affect other views that display text, like the labels on controls, even if you don’t define an explicit [doc://com.apple.SwiftUI/documentation/SwiftUI/Text](https://developer.apple.com/documentation/SwiftUI/Text) view.
+
+For design guidance, see doc://com.apple.documentation/design/Human-Interface-Guidelines/typography in the Human Interface Guidelines.
+
+## Topics
+
+### Displaying text
+
+- [Text](https://developer.apple.com/documentation/swiftui/text) — A view that displays one or more lines of read-only text.
+- [Label](https://developer.apple.com/documentation/swiftui/label) — A standard label for user interface items, consisting of an icon with a title.
+- [labelStyle(_:)](https://developer.apple.com/documentation/swiftui/view/labelstyle(_:)) — Sets the style for labels within this view.
+### Getting text input
+
+- [Building rich SwiftUI text experiences](https://developer.apple.com/documentation/swiftui/building-rich-swiftui-text-experiences) — Build an editor for formatted text using SwiftUI text editor views and attributed strings.
+- [TextField](https://developer.apple.com/documentation/swiftui/textfield) — A control that displays an editable text interface.
+- [textFieldStyle(_:)](https://developer.apple.com/documentation/swiftui/view/textfieldstyle(_:)) — Sets the style for text fields within this view.
+- [SecureField](https://developer.apple.com/documentation/swiftui/securefield) — A control into which people securely enter private text.
+- [TextEditor](https://developer.apple.com/documentation/swiftui/texteditor) — A view that can display and edit long-form text.
+### Selecting text
+
+- [textSelection(_:)](https://developer.apple.com/documentation/swiftui/view/textselection(_:)) — Controls whether people can select text within this view.
+- [TextSelectability](https://developer.apple.com/documentation/swiftui/textselectability) — A type that describes the ability to select text.
+- [TextSelection](https://developer.apple.com/documentation/swiftui/textselection) — Represents a selection of text.
+- [textSelectionAffinity(_:)](https://developer.apple.com/documentation/swiftui/view/textselectionaffinity(_:)) — Sets the direction of a selection or cursor relative to a text character.
+- [textSelectionAffinity](https://developer.apple.com/documentation/swiftui/environmentvalues/textselectionaffinity) — A representation of the direction or association of a selection or cursor relative to a text character. This concept becomes much more prominent when dealing with bidirectional text (text that contains both LTR and RTL scripts, like English and Arabic combined).
+- [TextSelectionAffinity](https://developer.apple.com/documentation/swiftui/textselectionaffinity) — A representation of the direction or association of a selection or cursor relative to a text character. This concept becomes much more prominent when dealing with bidirectional text (text that contains both LTR and RTL scripts, like English and Arabic combined).
+- [AttributedTextSelection](https://developer.apple.com/documentation/swiftui/attributedtextselection) — Represents a selection of attributed text.
+### Setting a font
+
+- [Applying custom fonts to text](https://developer.apple.com/documentation/swiftui/applying-custom-fonts-to-text) — Add and use a font in your app that scales with Dynamic Type.
+- [font(_:)](https://developer.apple.com/documentation/swiftui/view/font(_:)) — Sets the default font for text in this view.
+- [fontDesign(_:)](https://developer.apple.com/documentation/swiftui/view/fontdesign(_:)) — Sets the font design of the text in this view.
+- [fontWeight(_:)](https://developer.apple.com/documentation/swiftui/view/fontweight(_:)) — Sets the font weight of the text in this view.
+- [fontWidth(_:)](https://developer.apple.com/documentation/swiftui/view/fontwidth(_:)) — Sets the font width of the text in this view.
+- [font](https://developer.apple.com/documentation/swiftui/environmentvalues/font) — The default font of this environment.
+- [Font](https://developer.apple.com/documentation/swiftui/font) — An environment-dependent font.
+### Adjusting text size
+
+- [textScale(_:isEnabled:)](https://developer.apple.com/documentation/swiftui/view/textscale(_:isenabled:)) — Applies a text scale to text in the view.
+- [dynamicTypeSize(_:)](https://developer.apple.com/documentation/swiftui/view/dynamictypesize(_:)) — Sets the Dynamic Type size within the view to the given value.
+- [dynamicTypeSize](https://developer.apple.com/documentation/swiftui/environmentvalues/dynamictypesize) — The current Dynamic Type size.
+- [DynamicTypeSize](https://developer.apple.com/documentation/swiftui/dynamictypesize) — A Dynamic Type size, which specifies how large scalable content should be.
+- [ScaledMetric](https://developer.apple.com/documentation/swiftui/scaledmetric) — A dynamic property that scales a numeric value.
+- [TextVariantPreference](https://developer.apple.com/documentation/swiftui/textvariantpreference) — A protocol for controlling the size variant of text views.
+- [FixedTextVariant](https://developer.apple.com/documentation/swiftui/fixedtextvariant) — The default text variant preference that chooses the largest available variant.
+- [SizeDependentTextVariant](https://developer.apple.com/documentation/swiftui/sizedependenttextvariant) — The size dependent variant preference allows the text to take the available space into account when choosing the variant to display.
+### Controlling text style
+
+- [bold(_:)](https://developer.apple.com/documentation/swiftui/view/bold(_:)) — Applies a bold font weight to the text in this view.
+- [italic(_:)](https://developer.apple.com/documentation/swiftui/view/italic(_:)) — Applies italics to the text in this view.
+- [underline(_:pattern:color:)](https://developer.apple.com/documentation/swiftui/view/underline(_:pattern:color:)) — Applies an underline to the text in this view.
+- [strikethrough(_:pattern:color:)](https://developer.apple.com/documentation/swiftui/view/strikethrough(_:pattern:color:)) — Applies a strikethrough to the text in this view.
+- [textCase(_:)](https://developer.apple.com/documentation/swiftui/view/textcase(_:)) — Sets a transform for the case of the text contained in this view when displayed.
+- [textCase](https://developer.apple.com/documentation/swiftui/environmentvalues/textcase) — A stylistic override to transform the case of `Text` when displayed, using the environment’s locale.
+- [monospaced(_:)](https://developer.apple.com/documentation/swiftui/view/monospaced(_:)) — Modifies the fonts of all child views to use the fixed-width variant of the current font, if possible.
+- [monospacedDigit()](https://developer.apple.com/documentation/swiftui/view/monospaceddigit()) — Modifies the fonts of all child views to use fixed-width digits, if possible, while leaving other characters proportionally spaced.
+- [AttributedTextFormattingDefinition](https://developer.apple.com/documentation/swiftui/attributedtextformattingdefinition) — A protocol for defining how text can be styled in a view.
+- [AttributedTextValueConstraint](https://developer.apple.com/documentation/swiftui/attributedtextvalueconstraint) — A protocol for defining a constraint on the value of a certain attribute.
+- [AttributedTextFormatting](https://developer.apple.com/documentation/swiftui/attributedtextformatting) — A namespace for types related to attributed text formatting definitions.
+### Managing text layout
+
+- [truncationMode(_:)](https://developer.apple.com/documentation/swiftui/view/truncationmode(_:)) — Sets the truncation mode for lines of text that are too long to fit in the available space.
+- [truncationMode](https://developer.apple.com/documentation/swiftui/environmentvalues/truncationmode) — A value that indicates how the layout truncates the last line of text to fit into the available space.
+- [allowsTightening(_:)](https://developer.apple.com/documentation/swiftui/view/allowstightening(_:)) — Sets whether text in this view can compress the space between characters when necessary to fit text in a line.
+- [allowsTightening](https://developer.apple.com/documentation/swiftui/environmentvalues/allowstightening) — A Boolean value that indicates whether inter-character spacing should tighten to fit the text into the available space.
+- [minimumScaleFactor(_:)](https://developer.apple.com/documentation/swiftui/view/minimumscalefactor(_:)) — Sets the minimum amount that text in this view scales down to fit in the available space.
+- [minimumScaleFactor](https://developer.apple.com/documentation/swiftui/environmentvalues/minimumscalefactor) — The minimum permissible proportion to shrink the font size to fit the text into the available space.
+- [baselineOffset(_:)](https://developer.apple.com/documentation/swiftui/view/baselineoffset(_:)) — Sets the vertical offset for the text relative to its baseline in this view.
+- [kerning(_:)](https://developer.apple.com/documentation/swiftui/view/kerning(_:)) — Sets the spacing, or kerning, between characters for the text in this view.
+- [tracking(_:)](https://developer.apple.com/documentation/swiftui/view/tracking(_:)) — Sets the tracking for the text in this view.
+- [flipsForRightToLeftLayoutDirection(_:)](https://developer.apple.com/documentation/swiftui/view/flipsforrighttoleftlayoutdirection(_:)) — Sets whether this view mirrors its contents horizontally when the layout direction is right-to-left.
+- [TextAlignment](https://developer.apple.com/documentation/swiftui/textalignment) — An alignment position for text along the horizontal axis.
+### Rendering text
+
+- [Creating visual effects with SwiftUI](https://developer.apple.com/documentation/swiftui/creating-visual-effects-with-swiftui) — Add scroll effects, rich color treatments, custom transitions, and advanced effects using shaders and a text renderer.
+- [TextAttribute](https://developer.apple.com/documentation/swiftui/textattribute) — A value that you can attach to text views and that text renderers can query.
+- [textRenderer(_:)](https://developer.apple.com/documentation/swiftui/view/textrenderer(_:)) — Returns a new view such that any text views within it will use `renderer` to draw themselves.
+- [TextRenderer](https://developer.apple.com/documentation/swiftui/textrenderer) — A value that can replace the default text view rendering behavior.
+- [TextProxy](https://developer.apple.com/documentation/swiftui/textproxy) — A proxy for a text view that custom text renderers use.
+### Limiting line count for multiline text
+
+- [lineLimit(_:)](https://developer.apple.com/documentation/swiftui/view/linelimit(_:)) — Sets to a closed range the number of lines that text can occupy in this view.
+- [lineLimit(_:reservesSpace:)](https://developer.apple.com/documentation/swiftui/view/linelimit(_:reservesspace:)) — Sets a limit for the number of lines text can occupy in this view.
+- [lineLimit](https://developer.apple.com/documentation/swiftui/environmentvalues/linelimit) — The maximum number of lines that text can occupy in a view.
+### Formatting multiline text
+
+- [lineSpacing(_:)](https://developer.apple.com/documentation/swiftui/view/linespacing(_:)) — Sets the amount of space between lines of text in this view.
+- [lineSpacing](https://developer.apple.com/documentation/swiftui/environmentvalues/linespacing) — The distance in points between the bottom of one line fragment and the top of the next.
+- [multilineTextAlignment(_:)](https://developer.apple.com/documentation/swiftui/view/multilinetextalignment(_:)) — Sets the alignment of a text view that contains multiple lines of text.
+- [multilineTextAlignment](https://developer.apple.com/documentation/swiftui/environmentvalues/multilinetextalignment) — An environment value that indicates how a text view aligns its lines when the content wraps or contains newlines.
+### Formatting date and time
+
+- [SystemFormatStyle](https://developer.apple.com/documentation/swiftui/systemformatstyle) — A namespace for format styles that implement designs used across Apple’s platformes.
+- [TimeDataSource](https://developer.apple.com/documentation/swiftui/timedatasource) — A source of time related data.
+### Managing text entry
+
+- [autocorrectionDisabled(_:)](https://developer.apple.com/documentation/swiftui/view/autocorrectiondisabled(_:)) — Sets whether to disable autocorrection for this view.
+- [autocorrectionDisabled](https://developer.apple.com/documentation/swiftui/environmentvalues/autocorrectiondisabled) — A Boolean value that determines whether the view hierarchy has auto-correction enabled.
+- [keyboardType(_:)](https://developer.apple.com/documentation/swiftui/view/keyboardtype(_:)) — Sets the keyboard type for this view.
+- [scrollDismissesKeyboard(_:)](https://developer.apple.com/documentation/swiftui/view/scrolldismisseskeyboard(_:)) — Configures the behavior in which scrollable content interacts with the software keyboard.
+- [textContentType(_:)](https://developer.apple.com/documentation/swiftui/view/textcontenttype(_:)) — Sets the text content type for this view, which the system uses to offer suggestions while the user enters text on macOS.
+- [textInputAutocapitalization(_:)](https://developer.apple.com/documentation/swiftui/view/textinputautocapitalization(_:)) — Sets how often the shift key in the keyboard is automatically enabled.
+- [TextInputAutocapitalization](https://developer.apple.com/documentation/swiftui/textinputautocapitalization) — The kind of autocapitalization behavior applied during text input.
+- [textInputCompletion(_:)](https://developer.apple.com/documentation/swiftui/view/textinputcompletion(_:)) — Associates a fully formed string with the value of this view when used as a text input suggestion
+- [textInputSuggestions(_:)](https://developer.apple.com/documentation/swiftui/view/textinputsuggestions(_:)) — Configures the text input suggestions for this view.
+- [textInputSuggestions(_:content:)](https://developer.apple.com/documentation/swiftui/view/textinputsuggestions(_:content:)) — Configures the text input suggestions for this view.
+- [textInputSuggestions(_:id:content:)](https://developer.apple.com/documentation/swiftui/view/textinputsuggestions(_:id:content:)) — Configures the text input suggestions for this view.
+- [textContentType(_:)](https://developer.apple.com/documentation/swiftui/view/textcontenttype(_:)-4dqqb) — Sets the text content type for this view, which the system uses to offer suggestions while the user enters text on a watchOS device.
+- [textContentType(_:)](https://developer.apple.com/documentation/swiftui/view/textcontenttype(_:)-6fic1) — Sets the text content type for this view, which the system uses to offer suggestions while the user enters text on macOS.
+- [textContentType(_:)](https://developer.apple.com/documentation/swiftui/view/textcontenttype(_:)-ufdv) — Sets the text content type for this view, which the system uses to offer suggestions while the user enters text on an iOS or tvOS device.
+- [TextInputFormattingControlPlacement](https://developer.apple.com/documentation/swiftui/textinputformattingcontrolplacement) — A structure defining the system text formatting controls available on each platform.
+### Dictating text
+
+- [searchDictationBehavior(_:)](https://developer.apple.com/documentation/swiftui/view/searchdictationbehavior(_:)) — Configures the dictation behavior for any search fields configured by the searchable modifier.
+- [TextInputDictationActivation](https://developer.apple.com/documentation/swiftui/textinputdictationactivation)
+- [TextInputDictationBehavior](https://developer.apple.com/documentation/swiftui/textinputdictationbehavior)
+### Configuring the Writing Tools behavior
+
+- [writingToolsBehavior(_:)](https://developer.apple.com/documentation/swiftui/view/writingtoolsbehavior(_:)) — Specifies the Writing Tools behavior for text and text input in the environment.
+- [WritingToolsBehavior](https://developer.apple.com/documentation/swiftui/writingtoolsbehavior) — The Writing Tools editing experience for text and text input.
+### Specifying text equivalents
+
+- [typeSelectEquivalent(_:)](https://developer.apple.com/documentation/swiftui/view/typeselectequivalent(_:)) — Sets an explicit type select equivalent text in a collection, such as a list or table.
+### Localizing text
+
+- [Preparing views for localization](https://developer.apple.com/documentation/swiftui/preparing-views-for-localization) — Specify hints and add strings to localize your SwiftUI views.
+- [LocalizedStringKey](https://developer.apple.com/documentation/swiftui/localizedstringkey) — The key used to look up an entry in a strings file or strings dictionary file.
+- [locale](https://developer.apple.com/documentation/swiftui/environmentvalues/locale) — The current locale that views should use.
+- [typesettingLanguage(_:isEnabled:)](https://developer.apple.com/documentation/swiftui/view/typesettinglanguage(_:isenabled:)) — Specifies the language for typesetting.
+- [TypesettingLanguage](https://developer.apple.com/documentation/swiftui/typesettinglanguage) — Defines how typesetting language is determined for text.
+### Deprecated types
+
+- [ContentSizeCategory](https://developer.apple.com/documentation/swiftui/contentsizecategory) — The sizes that you can specify for content.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/Text-input-and-output](https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/Text-input-and-output)*
+--- END FILE ---
+
+--- FILE: Double.md ---
+# Double
+
+**A double-precision, floating-point value type.**
+
+## Availability
+
+- **iOS** 8.0+
+- **iPadOS** 8.0+
+- **Mac Catalyst** 13.0+
+- **macOS** 10.10+
+- **tvOS** 9.0+
+- **visionOS** 1.0+
+- **watchOS** 2.0+
+
+
+## Topics
+
+### Converting Integers
+
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-5blrp) — Creates a new value, rounded to the closest possible representation.
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-84ohu) — Creates a new value, rounded to the closest possible representation.
+### Converting Strings
+
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-5wmm8) — Creates a new instance from the given string.
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-15kej)
+### Converting Floating-Point Values
+
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-1488d) — Creates a new instance from the given value, rounded to the closest possible representation.
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-o1k9) — Creates a new instance initialized to the given value.
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-5h7qh) — Creates a new instance that approximates the given value.
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-aeox) — Creates a new instance that approximates the given value.
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-9z7ob) — Creates a new instance that approximates the given value.
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-7ag2w)
+- [init(sign:exponent:significand:)](https://developer.apple.com/documentation/swift/double/init(sign:exponent:significand:)) — Creates a new value from the given sign, exponent, and significand.
+- [init(signOf:magnitudeOf:)](https://developer.apple.com/documentation/swift/double/init(signof:magnitudeof:)) — Creates a new floating-point value using the sign of one value and the magnitude of another.
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-1oh9r) — Creates a new value, rounded to the closest possible representation.
+- [init(truncating:)](https://developer.apple.com/documentation/swift/double/init(truncating:))
+### Converting with No Loss of Precision
+
+- [init(exactly:)](https://developer.apple.com/documentation/swift/double/init(exactly:)-8esra) — Creates a new instance from the given value, if it can be represented exactly.
+- [init(exactly:)](https://developer.apple.com/documentation/swift/double/init(exactly:)-1h1oc) — Creates a new value, if the given integer can be represented exactly.
+- [init(exactly:)](https://developer.apple.com/documentation/swift/double/init(exactly:)-2uexo) — Creates a new value, if the given integer can be represented exactly.
+- [init(exactly:)](https://developer.apple.com/documentation/swift/double/init(exactly:)-2l6p1) — Creates a new instance initialized to the given value, if it can be represented without rounding.
+- [init(exactly:)](https://developer.apple.com/documentation/swift/double/init(exactly:)-7cl0t) — Creates a new instance initialized to the given value, if it can be represented without rounding.
+- [init(exactly:)](https://developer.apple.com/documentation/swift/double/init(exactly:)-50ofc) — Creates a new instance initialized to the given value, if it can be represented without rounding.
+- [init(exactly:)](https://developer.apple.com/documentation/swift/double/init(exactly:)-63925) — Creates a new instance initialized to the given value, if it can be represented without rounding.
+- [init(exactly:)](https://developer.apple.com/documentation/swift/double/init(exactly:)-8e00y)
+### Creating a Random Value
+
+- [random(in:)](https://developer.apple.com/documentation/swift/double/random(in:)-6idef) — Returns a random value within the specified range.
+- [random(in:using:)](https://developer.apple.com/documentation/swift/double/random(in:using:)-1m6gd) — Returns a random value within the specified range, using the given generator as a source for randomness.
+- [random(in:)](https://developer.apple.com/documentation/swift/double/random(in:)-5o5ha) — Returns a random value within the specified range.
+- [random(in:using:)](https://developer.apple.com/documentation/swift/double/random(in:using:)-613hz) — Returns a random value within the specified range, using the given generator as a source for randomness.
+### Performing Calculations
+
+- [Floating-Point Operators for Double](https://developer.apple.com/documentation/swift/floating-point-operators-for-double) — Perform arithmetic and bitwise operations or compare values.
+- [addingProduct(_:_:)](https://developer.apple.com/documentation/swift/double/addingproduct(_:_:)) — Returns the result of adding the product of the two given values to this value, computed without intermediate rounding.
+- [addProduct(_:_:)](https://developer.apple.com/documentation/swift/double/addproduct(_:_:)) — Adds the product of the two given values to this value in place, computed without intermediate rounding.
+- [squareRoot()](https://developer.apple.com/documentation/swift/double/squareroot()) — Returns the square root of the value, rounded to a representable value.
+- [formSquareRoot()](https://developer.apple.com/documentation/swift/double/formsquareroot()) — Replaces this value with its square root, rounded to a representable value.
+- [remainder(dividingBy:)](https://developer.apple.com/documentation/swift/double/remainder(dividingby:)) — Returns the remainder of this value divided by the given value.
+- [formRemainder(dividingBy:)](https://developer.apple.com/documentation/swift/double/formremainder(dividingby:)) — Replaces this value with the remainder of itself divided by the given value.
+- [truncatingRemainder(dividingBy:)](https://developer.apple.com/documentation/swift/double/truncatingremainder(dividingby:)) — Returns the remainder of this value divided by the given value using truncating division.
+- [formTruncatingRemainder(dividingBy:)](https://developer.apple.com/documentation/swift/double/formtruncatingremainder(dividingby:)) — Replaces this value with the remainder of itself divided by the given value using truncating division.
+- [negate()](https://developer.apple.com/documentation/swift/double/negate()) — Replaces this value with its additive inverse.
+### Rounding Values
+
+- [rounded()](https://developer.apple.com/documentation/swift/double/rounded())
+- [rounded(_:)](https://developer.apple.com/documentation/swift/double/rounded(_:)) — Returns this value rounded to an integral value using the specified rounding rule.
+- [round()](https://developer.apple.com/documentation/swift/double/round())
+- [round(_:)](https://developer.apple.com/documentation/swift/double/round(_:)) — Rounds the value to an integral value using the specified rounding rule.
+### Comparing Values
+
+- [Floating-Point Operators for Double](https://developer.apple.com/documentation/swift/floating-point-operators-for-double) — Perform arithmetic and bitwise operations or compare values.
+- [isEqual(to:)](https://developer.apple.com/documentation/swift/double/isequal(to:)) — Returns a Boolean value indicating whether this instance is equal to the given value.
+- [isLess(than:)](https://developer.apple.com/documentation/swift/double/isless(than:)) — Returns a Boolean value indicating whether this instance is less than the given value.
+- [isLessThanOrEqualTo(_:)](https://developer.apple.com/documentation/swift/double/islessthanorequalto(_:)) — Returns a Boolean value indicating whether this instance is less than or equal to the given value.
+- [isTotallyOrdered(belowOrEqualTo:)](https://developer.apple.com/documentation/swift/double/istotallyordered(beloworequalto:)) — Returns a Boolean value indicating whether this instance should precede or tie positions with the given value in an ascending sort.
+- [minimum(_:_:)](https://developer.apple.com/documentation/swift/double/minimum(_:_:)) — Returns the lesser of the two given values.
+- [minimumMagnitude(_:_:)](https://developer.apple.com/documentation/swift/double/minimummagnitude(_:_:)) — Returns the value with lesser magnitude.
+- [maximum(_:_:)](https://developer.apple.com/documentation/swift/double/maximum(_:_:)) — Returns the greater of the two given values.
+- [maximumMagnitude(_:_:)](https://developer.apple.com/documentation/swift/double/maximummagnitude(_:_:)) — Returns the value with greater magnitude.
+### Finding the Sign and Magnitude
+
+- [magnitude](https://developer.apple.com/documentation/swift/double/magnitude-swift.property) — The magnitude of this value.
+- [sign](https://developer.apple.com/documentation/swift/double/sign) — The sign of the floating-point value.
+- [Double.Magnitude](https://developer.apple.com/documentation/swift/double/magnitude-swift.typealias) — A type that can represent the absolute value of any possible value of the conforming type.
+### Querying a Double
+
+- [ulp](https://developer.apple.com/documentation/swift/double/ulp) — The unit in the last place of this value.
+- [significand](https://developer.apple.com/documentation/swift/double/significand) — The significand of the floating-point value.
+- [exponent](https://developer.apple.com/documentation/swift/double/exponent-swift.property) — The exponent of the floating-point value.
+- [nextUp](https://developer.apple.com/documentation/swift/double/nextup) — The least representable value that compares greater than this value.
+- [nextDown](https://developer.apple.com/documentation/swift/double/nextdown) — The greatest representable value that compares less than this value.
+- [binade](https://developer.apple.com/documentation/swift/double/binade) — The floating-point value with the same sign and exponent as this value, but with a significand of 1.0.
+### Accessing Numeric Constants
+
+- [pi](https://developer.apple.com/documentation/swift/double/pi) — The mathematical constant pi (π), approximately equal to 3.14159.
+- [infinity](https://developer.apple.com/documentation/swift/double/infinity) — Positive infinity.
+- [greatestFiniteMagnitude](https://developer.apple.com/documentation/swift/double/greatestfinitemagnitude) — The greatest finite number representable by this type.
+- [nan](https://developer.apple.com/documentation/swift/double/nan) — A quiet NaN (“not a number”).
+- [signalingNaN](https://developer.apple.com/documentation/swift/double/signalingnan) — A signaling NaN (“not a number”).
+- [ulpOfOne](https://developer.apple.com/documentation/swift/double/ulpofone) — The unit in the last place of 1.0.
+- [leastNonzeroMagnitude](https://developer.apple.com/documentation/swift/double/leastnonzeromagnitude) — The least positive number.
+- [leastNormalMagnitude](https://developer.apple.com/documentation/swift/double/leastnormalmagnitude) — The least positive normal number.
+- [zero](https://developer.apple.com/documentation/swift/double/zero) — The zero value.
+### Working with Binary Representation
+
+- [bitPattern](https://developer.apple.com/documentation/swift/double/bitpattern) — The bit pattern of the value’s encoding.
+- [significandBitPattern](https://developer.apple.com/documentation/swift/double/significandbitpattern) — The raw encoding of the value’s significand field.
+- [significandWidth](https://developer.apple.com/documentation/swift/double/significandwidth) — The number of bits required to represent the value’s significand.
+- [exponentBitPattern](https://developer.apple.com/documentation/swift/double/exponentbitpattern) — The raw encoding of the value’s exponent field.
+- [significandBitCount](https://developer.apple.com/documentation/swift/double/significandbitcount) — The available number of fractional significand bits.
+- [exponentBitCount](https://developer.apple.com/documentation/swift/double/exponentbitcount) — The number of bits used to represent the type’s exponent.
+- [radix](https://developer.apple.com/documentation/swift/double/radix) — The radix, or base of exponentiation, for a floating-point type.
+- [init(bitPattern:)](https://developer.apple.com/documentation/swift/double/init(bitpattern:)) — Creates a new value with the given bit pattern.
+- [init(sign:exponentBitPattern:significandBitPattern:)](https://developer.apple.com/documentation/swift/double/init(sign:exponentbitpattern:significandbitpattern:)) — Creates a new instance from the specified sign and bit patterns.
+- [init(nan:signaling:)](https://developer.apple.com/documentation/swift/double/init(nan:signaling:)) — Creates a NaN (“not a number”) value with the specified payload.
+- [Double.Exponent](https://developer.apple.com/documentation/swift/double/exponent-swift.typealias) — A type that can represent any written exponent.
+- [Double.RawSignificand](https://developer.apple.com/documentation/swift/double/rawsignificand) — A type that represents the encoded significand of a value.
+- [Double.RawExponent](https://developer.apple.com/documentation/swift/double/rawexponent) — A type that represents the encoded exponent of a value.
+### Querying a Double’s State
+
+- [isZero](https://developer.apple.com/documentation/swift/double/iszero) — A Boolean value indicating whether the instance is equal to zero.
+- [isFinite](https://developer.apple.com/documentation/swift/double/isfinite) — A Boolean value indicating whether this instance is finite.
+- [isInfinite](https://developer.apple.com/documentation/swift/double/isinfinite) — A Boolean value indicating whether the instance is infinite.
+- [isNaN](https://developer.apple.com/documentation/swift/double/isnan) — A Boolean value indicating whether the instance is NaN (“not a number”).
+- [isSignalingNaN](https://developer.apple.com/documentation/swift/double/issignalingnan) — A Boolean value indicating whether the instance is a signaling NaN.
+- [isNormal](https://developer.apple.com/documentation/swift/double/isnormal) — A Boolean value indicating whether this instance is normal.
+- [isSubnormal](https://developer.apple.com/documentation/swift/double/issubnormal) — A Boolean value indicating whether the instance is subnormal.
+- [isCanonical](https://developer.apple.com/documentation/swift/double/iscanonical) — A Boolean value indicating whether the instance’s representation is in its canonical form.
+- [floatingPointClass](https://developer.apple.com/documentation/swift/double/floatingpointclass) — The classification of this value.
+### Encoding and Decoding Values
+
+- [encode(to:)](https://developer.apple.com/documentation/swift/double/encode(to:)) — Encodes this value into the given encoder.
+- [init(from:)](https://developer.apple.com/documentation/swift/double/init(from:)) — Creates a new instance by decoding from the given decoder.
+### Creating a Range
+
+- [...(_:_:)](https://developer.apple.com/documentation/swift/double/'...(_:_:)) — Returns a closed range that contains both of its bounds.
+### Describing a Double
+
+- [description](https://developer.apple.com/documentation/swift/double/description) — A textual representation of the value.
+- [debugDescription](https://developer.apple.com/documentation/swift/double/debugdescription) — A textual representation of the value, suitable for debugging.
+- [customMirror](https://developer.apple.com/documentation/swift/double/custommirror) — A mirror that reflects the `Double` instance.
+- [hash(into:)](https://developer.apple.com/documentation/swift/double/hash(into:)) — Hashes the essential components of this value by feeding them into the given hasher.
+### Infrequently Used Functionality
+
+- [init()](https://developer.apple.com/documentation/swift/double/init())
+- [init(floatLiteral:)](https://developer.apple.com/documentation/swift/double/init(floatliteral:)) — Creates an instance initialized to the specified floating-point value.
+- [init(integerLiteral:)](https://developer.apple.com/documentation/swift/double/init(integerliteral:)) — Creates an instance initialized to the specified integer value.
+- [init(integerLiteral:)](https://developer.apple.com/documentation/swift/double/init(integerliteral:)-6hc7j)
+- [Double.FloatLiteralType](https://developer.apple.com/documentation/swift/double/floatliteraltype) — A type that represents a floating-point literal.
+- [Double.IntegerLiteralType](https://developer.apple.com/documentation/swift/double/integerliteraltype) — A type that represents an integer literal.
+- [advanced(by:)](https://developer.apple.com/documentation/swift/double/advanced(by:)) — Returns a value that is offset the specified distance from this value.
+- [distance(to:)](https://developer.apple.com/documentation/swift/double/distance(to:)) — Returns the distance from this value to the given value, expressed as a stride.
+- [Double.Stride](https://developer.apple.com/documentation/swift/double/stride) — A type that represents the distance between two values.
+- [write(to:)](https://developer.apple.com/documentation/swift/double/write(to:)) — Writes a textual representation of this instance into the given output stream.
+- [hashValue](https://developer.apple.com/documentation/swift/double/hashvalue) — The hash value.
+### SIMD-Supporting Types
+
+- [Double.SIMDMaskScalar](https://developer.apple.com/documentation/swift/double/simdmaskscalar)
+- [Double.SIMD2Storage](https://developer.apple.com/documentation/swift/double/simd2storage) — Storage for a vector of two floating-point values.
+- [Double.SIMD4Storage](https://developer.apple.com/documentation/swift/double/simd4storage) — Storage for a vector of four floating-point values.
+- [Double.SIMD8Storage](https://developer.apple.com/documentation/swift/double/simd8storage) — Storage for a vector of eight floating-point values.
+- [Double.SIMD16Storage](https://developer.apple.com/documentation/swift/double/simd16storage) — Storage for a vector of 16 floating-point values.
+- [Double.SIMD32Storage](https://developer.apple.com/documentation/swift/double/simd32storage) — Storage for a vector of 32 floating-point values.
+- [Double.SIMD64Storage](https://developer.apple.com/documentation/swift/double/simd64storage) — Storage for a vector of 64 floating-point values.
+### Deprecated
+
+- [customPlaygroundQuickLook](https://developer.apple.com/documentation/swift/double/customplaygroundquicklook) — A custom playground Quick Look for the `Double` instance.
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-8kme5)
+### Type Aliases
+
+- [Double.Specification](https://developer.apple.com/documentation/swift/double/specification)
+- [Double.UnwrappedType](https://developer.apple.com/documentation/swift/double/unwrappedtype)
+- [Double.ValueType](https://developer.apple.com/documentation/swift/double/valuetype)
+### Type Properties
+
+- [defaultResolverSpecification](https://developer.apple.com/documentation/swift/double/defaultresolverspecification)
+- [mlMultiArrayDataType](https://developer.apple.com/documentation/swift/double/mlmultiarraydatatype)
+### Default Implementations
+
+- [AdditiveArithmetic Implementations](https://developer.apple.com/documentation/swift/double/additivearithmetic-implementations)
+- [AtomicRepresentable Implementations](https://developer.apple.com/documentation/swift/double/atomicrepresentable-implementations)
+- [BinaryFloatingPoint Implementations](https://developer.apple.com/documentation/swift/double/binaryfloatingpoint-implementations)
+- [Comparable Implementations](https://developer.apple.com/documentation/swift/double/comparable-implementations)
+- [CustomDebugStringConvertible Implementations](https://developer.apple.com/documentation/swift/double/customdebugstringconvertible-implementations)
+- [CustomReflectable Implementations](https://developer.apple.com/documentation/swift/double/customreflectable-implementations)
+- [CustomStringConvertible Implementations](https://developer.apple.com/documentation/swift/double/customstringconvertible-implementations)
+- [Decodable Implementations](https://developer.apple.com/documentation/swift/double/decodable-implementations)
+- [Encodable Implementations](https://developer.apple.com/documentation/swift/double/encodable-implementations)
+- [Equatable Implementations](https://developer.apple.com/documentation/swift/double/equatable-implementations)
+- [ExpressibleByFloatLiteral Implementations](https://developer.apple.com/documentation/swift/double/expressiblebyfloatliteral-implementations)
+- [ExpressibleByIntegerLiteral Implementations](https://developer.apple.com/documentation/swift/double/expressiblebyintegerliteral-implementations)
+- [FloatingPoint Implementations](https://developer.apple.com/documentation/swift/double/floatingpoint-implementations)
+- [Hashable Implementations](https://developer.apple.com/documentation/swift/double/hashable-implementations)
+- [LosslessStringConvertible Implementations](https://developer.apple.com/documentation/swift/double/losslessstringconvertible-implementations)
+- [Numeric Implementations](https://developer.apple.com/documentation/swift/double/numeric-implementations)
+- [SIMDScalar Implementations](https://developer.apple.com/documentation/swift/double/simdscalar-implementations)
+- [SignedNumeric Implementations](https://developer.apple.com/documentation/swift/double/signednumeric-implementations)
+- [Strideable Implementations](https://developer.apple.com/documentation/swift/double/strideable-implementations)
+- [TextOutputStreamable Implementations](https://developer.apple.com/documentation/swift/double/textoutputstreamable-implementations)
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/Double](https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/Double)*
+--- END FILE ---
+
+--- FILE: entering-data.md ---
+---
+title: Entering data | Apple Developer Documentation
+source_url: https://developer.apple.com/design/human-interface-guidelines/entering-data
+scraped_date: '2025-10-25T18:04:03.292667Z'
+extraction_method: Chrome DevTools MCP Server
+content_length: 4068
+filename: entering-data.md
+---
+
+# Entering data | Apple Developer Documentation
+
+Entering data
+When you need information from people, design ways that make it easy for them to provide it without making mistakes.
+
+Entering information can be a tedious process regardless of the interaction methods people use. Improve the experience by:
+
+Pre-gathering as much information as possible to minimize the amount of data that people need to supply
+
+Supporting all available input methods so people can choose the method that works for them
+
+Best practices
+
+Get information from the system whenever possible. Don't ask people to enter information that you can gather automatically — such as from settings — or by getting their permission, such as their location or calendar information.
+
+Be clear about the data you need. For example, you might display a prompt in a text field — like "username@company.com" — or provide an introductory label that describes the information, like "Email." You can also prefill fields with reasonable default values, which can minimize decision making and speed data entry.
+
+Use a secure text-entry field when appropriate. If your app or game needs sensitive data, use a field that obscures people's input as they enter it, typically by displaying a small filled circle symbol for each character. For developer guidance, see SecureField. In tvOS, you can also configure a digit entry view to obscure the numerals people enter (for developer guidance, see isSecureDigitEntry). When you use the system-provided text field in visionOS, the system shows the entered data to the wearer, but not to anyone else; for example, a secure text field automatically blurs when people use AirPlay to stream their content.
+
+Never prepopulate a password field. Always ask people to enter their password or use biometric or keychain authentication. For guidance, see Managing accounts.
+
+When possible, offer choices instead of requiring text entry. It's usually easier and more efficient to choose from lists of options than to type information, even when a keyboard is conveniently available. When it makes sense, consider using a picker, menu, or other selection component to give people an easy way to provide the information you need.
+
+As much as possible, let people provide data by dragging and dropping it or by pasting it. Supporting these interactions can ease data entry and make your experience feel more integrated with the rest of the system.
+
+Dynamically validate field values. People can get frustrated when they have to go back and correct mistakes after filling out a lengthy form. When you verify values as soon as people enter them — and provide feedback as soon as you detect a problem — you give them the opportunity to correct errors right away. For numeric data in particular, consider using a number formatter, which automatically configures a text field to accept only numeric values. You can also configure a formatter to display the value in a specific way, such as with a certain number of decimal places, as a percentage, or as currency.
+
+When data entry is necessary, make sure people understand that they must provide the required data before they can proceed. For example, if you include a Next or Continue button after a set of text fields, make the button available only after people enter the data you require.
+
+Platform considerations
+
+No additional considerations for iOS, iPadOS, tvOS, visionOS, or watchOS.
+
+macOS
+
+Consider using an expansion tooltip to show the full version of clipped or truncated text in a field. An expansion tooltip behaves like a regular tooltip, appearing when the pointer rests on top of a field. Apps running in macOS — including iOS and iPadOS apps running on a Mac — can use an expansion tooltip to help people view the complete data they entered when a text field is too small to display it. For guidance, see Offering help > macOS, visionOS.
+
+Resources
+Related
+
+Text fields
+
+Virtual keyboards
+
+Keyboards
+
+Developer documentation
+
+Input events — SwiftUI
+
+Videos
+What's new in UIKit
+Change log
+
+Date
+
+	
+
+Changes
+
+
+
+
+June 21, 2023
+
+	
+
+Clarified guidance about password field prepopulation and added guidance for visionOS.
+--- END FILE ---
+=== END SWIFT DOCUMENTATION ===
+=== END CONTEXT ===
+
+
+Please implement the requirements above. Write the code directly - do not explain, just write the implementation.

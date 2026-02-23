@@ -1,0 +1,505 @@
+You are a Swift/SwiftUI developer. A previous attempt to complete a task failed.
+
+TESTING & DEBUGGING REFERENCE:
+For building, testing, and debugging iOS/macOS apps, reference this workflow guide:
+/Users/emmanuel/Dev/Tools/Eocon-Foundation-V1/.Foundation/Docs/swiftDocs/Testing/XCODEBUILD_MCP_WORKFLOW.md
+
+This guide covers:
+- XcodeBuild MCP server tools for programmatic Xcode interaction
+- Building for simulator, booting simulators, installing/launching apps
+- UI automation: screenshots, accessibility hierarchy, tap simulation
+- Debugging UI issues (button taps, gestures, navigation)
+
+=== ORIGINAL TASK ===
+I have created the following plan after thorough exploration and analysis of the codebase. Follow the below plan verbatim. Trust the files and references. Do not re-verify what's written in the plan. Explore only when absolutely necessary. First implement all the proposed file changes and then I'll review all the changes together at the end.
+
+## Observations
+
+T1–T5 are complete. The \`PolicyScorer\` protocol and \`StubPolicyScorer\` stub already exist in \`file:app/decodingOppression/decodingOppression/Models/PolicyScorer.swift\`. \`TierClassification\` (with \`architectureScores\` and \`proxyDetection\`) and \`ScoreResult\` are fully defined. \`HistoricalPolicies.swift\` exists but only holds expected COI scalars — it needs static clause arrays. The test suite uses Swift Testing (\`@Suite\`, \`@Test\`, \`#expect\`) consistently.
+
+## Approach
+
+Implement five pure-Swift scorer structs, a concrete \`DefaultPolicyScorer\` orchestrator, and expand \`HistoricalPolicies\` with typed static constants. All scorers take \`[TierClassification]\` as input and return \`Double\` in \`[-1.0, 1.0]\`, matching the existing \`PolicyScorer\` protocol contract. Unit tests follow the established Swift Testing pattern in \`decodingOppressionTests/\`.
+
+---
+
+## Implementation Steps
+
+### 1. Add \`HistoricalPolicy\` struct and static constants to \`HistoricalPolicies.swift\`
+
+In \`file:app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift\`, add a \`HistoricalPolicy\` value type and four static constants:
+
+\`\`\`
+struct HistoricalPolicy {
+    let name: String
+    let year: Int
+    let clauses: [TierClassification]   // hand-crafted from paper Sections 3–4
+    let expectedCOI: Double
+}
+\`\`\`
+
+Add four static constants on \`HistoricalPolicies\`:
+- \`virginiaSlaveCodes\` — year 1705, expectedCOI 0.93
+- \`thirteenthAmendment\` — year 1865, expectedCOI 0.35
+- \`holcRedlining\` — year 1934, expectedCOI 0.82
+- \`warOnDrugs\` — year 1971, expectedCOI 0.78
+
+Each constant's \`clauses\` array is a small set of hand-crafted \`TierClassification\` values (3–6 per policy) whose \`targetGroup\`, \`effectDirection\`, \`architectureScores\`, and \`proxyDetection\` fields reflect the paper's characterisation of that policy. These are the deterministic ground-truth inputs for validation tests.
+
+Keep the existing \`score(for:)\` method intact — it is consumed by \`HistoricalBaselineTool\` (T4).
+
+---
+
+### 2. Create \`DifferentialImpactScorer.swift\`
+
+New file: \`file:app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift\`
+
+\`\`\`
+struct DifferentialImpactScorer: Sendable {
+    func score(clauses: [TierClassification]) -> Double
+}
+\`\`\`
+
+**Logic:**
+- Count benefit clauses per group: \`benefitElite\`, \`benefitIngroupNonElite\`, \`benefitOutgroup\`
+- Count burden clauses per group: \`burdenOutgroup\`, \`burdenIngroupNonElite\`, \`burdenElite\`
+- Compute a hierarchy-alignment score: the oppressive hierarchy \`Benefit(E) >> Benefit(I\\E) > Benefit(O)\` is maximally satisfied when elite receives all benefits and outgroup receives all burdens
+- Raw score = \`(benefitElite − benefitOutgroup + burdenOutgroup − burdenElite) / max(clauses.count, 1)\`
+- Clamp to \`[-1.0, 1.0]\`
+- Empty input → return \`0.0\`
+
+---
+
+### 3. Create \`ArchitectureDetector.swift\`
+
+New file: \`file:app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift\`
+
+\`\`\`
+struct ArchitectureDetector: Sendable {
+    func score(clauses: [TierClassification]) -> Double
+}
+\`\`\`
+
+**Logic:**
+- Average each \`ArchitectureScores\` component across all clauses: \`meanAAR\`, \`meanSE\`, \`meanIJ\`, \`meanRSC\`
+- \`ADS = 0.35 × meanAAR + 0.20 × meanSE + 0.20 × meanIJ + 0.25 × meanRSC\`
+- All component inputs are already in \`[0, 1]\` (from \`TierClassification.architectureScores\`), so the weighted sum is in \`[0, 1]\`; map to \`[-1.0, 1.0]\` via \`2 × ADS − 1\` for consistency with the \`ScoreResult\` contract
+- Empty input → return \`0.0\`
+
+---
+
+### 4. Create \`EliteInterestScorer.swift\`
+
+New file: \`file:app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift\`
+
+\`\`\`
+struct EliteInterestScorer: Sendable {
+    func score(clauses: [TierClassification]) -> Double
+}
+\`\`\`
+
+**Logic — derive three sub-components from \`TierClassification\`:**
+
+| Component | Derivation |
+|---|---|
+| \`extraction\` | Proportion of clauses where \`targetGroup == .elite && effectDirection == .benefit\` OR \`targetGroup == .outgroup && effectDirection == .burden\` |
+| \`resistance_suppression\` | Mean \`architectureScores.rsc\` across all clauses |
+| \`division_maintenance\` | Proportion of clauses where \`proxyDetection.usesProxyVariables == true\` OR \`proxyDetection.expandsOutgroup == true\` |
+
+- \`EIS = 0.4 × extraction + 0.3 × resistance_suppression + 0.3 × division_maintenance\`
+- All three sub-components are in \`[0, 1]\`; map result to \`[-1.0, 1.0]\` via \`2 × EIS − 1\`
+- Empty input → return \`0.0\`
+
+---
+
+### 5. Create \`CompoundingCalculator.swift\`
+
+New file: \`file:app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift\`
+
+\`\`\`
+struct CompoundingCalculator: Sendable {
+    let alpha: Double                          // decay constant, default 0.1
+    let historicalChain: [HistoricalPolicy]    // default: HistoricalPolicies.chain
+
+    func score(clauses: [TierClassification]) -> Double
+}
+\`\`\`
+
+**Logic:**
+- Compute the new policy's raw oppression signal \`P_new\` as the mean of \`(architectureScores.aar + architectureScores.rsc) / 2\` across all clauses (a proxy for oppressive intensity before full scoring)
+- Walk the historical chain in chronological order, applying \`O_t = O_{t-1} × (1 − α × P_t)\` using each policy's \`expectedCOI\` as \`P_t\`; this gives \`O_baseline\` (outgroup capacity before the new policy)
+- Apply the new policy: \`O_final = O_baseline × (1 − α × P_new)\`
+- \`CIS = O_baseline − O_final\` (the marginal capacity reduction caused by the new policy), normalised to \`[-1.0, 1.0]\`
+- Empty input → return \`0.0\`
+
+Add a static \`chain\` property on \`HistoricalPolicies\` returning the four policies in chronological order for use as the default chain.
+
+---
+
+### 6. Create \`OutgroupAnalyzer.swift\`
+
+New file: \`file:app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift\`
+
+\`\`\`
+struct OutgroupAnalyzer: Sendable {
+    func score(clauses: [TierClassification]) -> Double
+}
+\`\`\`
+
+**Logic:**
+- \`expansionScore\` = proportion of clauses where \`proxyDetection.expandsOutgroup == true\`
+- \`proxyScore\` = proportion of clauses where \`proxyDetection.usesProxyVariables == true\`
+- \`proxyDensity\` = mean \`proxyDetection.proxyTerms.count\` across all clauses, normalised by 5 (the max per \`@Guide(.count(0...5))\`)
+- \`OES = (expansionScore + proxyScore + proxyDensity) / 3\`
+- Map to \`[-1.0, 1.0]\` via \`2 × OES − 1\`
+- Empty input → return \`0.0\`
+
+---
+
+### 7. Implement \`DefaultPolicyScorer\` in \`PolicyScorer.swift\`
+
+In \`file:app/decodingOppression/decodingOppression/Models/PolicyScorer.swift\`, add a concrete \`DefaultPolicyScorer\` struct conforming to the existing \`PolicyScorer\` protocol:
+
+\`\`\`
+struct DefaultPolicyScorer: PolicyScorer {
+    private let dis: DifferentialImpactScorer
+    private let ads: ArchitectureDetector
+    private let eis: EliteInterestScorer
+    private let cis: CompoundingCalculator
+    private let oes: OutgroupAnalyzer
+
+    func score(clauses: [TierClassification]) -> ScoreResult
+}
+\`\`\`
+
+**COI formula:**
+\`\`\`
+COI = 0.25 × DIS + 0.25 × ADS + 0.20 × EIS + 0.15 × CIS + 0.15 × OES
+\`\`\`
+
+All sub-scores and COI are clamped to \`[-1.0, 1.0]\` before being placed into \`ScoreResult\`.
+
+\`StubPolicyScorer\` remains for test use — do not remove it.
+
+---
+
+### 8. Wire \`DefaultPolicyScorer\` into production entry point
+
+In \`file:app/decodingOppression/decodingOppression/decodingOppressionApp.swift\` (or wherever \`AnalysisPipeline\` is instantiated for production use), replace \`StubPolicyScorer()\` with \`DefaultPolicyScorer()\`. The \`AnalysisPipeline\` init already accepts any \`PolicyScorer\`, so no protocol changes are needed.
+
+---
+
+### 9. Add \`ScoringEngineTests.swift\`
+
+New file: \`file:app/decodingOppression/decodingOppressionTests/ScoringEngineTests.swift\`
+
+Use the established Swift Testing pattern (\`@Suite\`, \`@Test\`, \`#expect\`) matching \`TierResolverTests.swift\` and \`AnalysisPipelineTests.swift\`.
+
+**Test suites to include:**
+
+| Suite | Tests |
+|---|---|
+| \`DifferentialImpactScorerTests\` | All-elite-benefit → high positive; all-outgroup-benefit → negative; empty → 0.0; output in \`[-1, 1]\` |
+| \`ArchitectureDetectorTests\` | All-zero inputs → 0.0 (mapped); all-one inputs → 1.0 (mapped); weighted sum verified with hand-computed fixture |
+| \`EliteInterestScorerTests\` | Max extraction + max RSC + all proxy → near 1.0; zero inputs → −1.0 (mapped); formula weights verified |
+| \`CompoundingCalculatorTests\` | Empty clauses → 0.0; single high-oppression clause reduces capacity more than low-oppression; output in \`[-1, 1]\` |
+| \`OutgroupAnalyzerTests\` | All proxy + all expanding → near 1.0; none → −1.0 (mapped); output in \`[-1, 1]\` |
+| \`PolicyScorerTests\` | Hand-computed fixture: fixed \`[TierClassification]\` with known sub-scores → verify COI matches \`0.25×DIS + 0.25×ADS + 0.20×EIS + 0.15×CIS + 0.15×OES\` within floating-point tolerance |
+| \`HistoricalPoliciesTests\` | All four static constants compile; \`clauses\` arrays are non-empty; \`expectedCOI\` values match the known constants |
+
+All tests are deterministic with no ML dependencies — they use only hand-crafted \`TierClassification\` values constructed the same way as in \`TierResolverTests.swift\` (via a local \`makeClassification\` helper).
+
+---
+
+### Data flow summary
+
+\`\`\`mermaid
+sequenceDiagram
+    participant AP as AnalysisPipeline
+    participant PS as DefaultPolicyScorer
+    participant DIS as DifferentialImpactScorer
+    participant ADS as ArchitectureDetector
+    participant EIS as EliteInterestScorer
+    participant CIS as CompoundingCalculator
+    participant OES as OutgroupAnalyzer
+
+    AP->>PS: score(clauses: [TierClassification])
+    PS->>DIS: score(clauses)
+    DIS-->>PS: dis: Double
+    PS->>ADS: score(clauses)
+    ADS-->>PS: ads: Double
+    PS->>EIS: score(clauses)
+    EIS-->>PS: eis: Double
+    PS->>CIS: score(clauses)
+    CIS-->>PS: cis: Double
+    PS->>OES: score(clauses)
+    OES-->>PS: oes: Double
+    PS-->>AP: ScoreResult(dis, ads, eis, cis, oes, coi)
+\`\`\`
+=== END ORIGINAL TASK ===
+
+=== REFERENCE CONTEXT ===
+
+=== SWIFT DOCUMENTATION ===
+
+--- FILE: VERIFICATION-REPORT.md ---
+# ✅ Apple Documentation Collection - Verification Report
+
+**Date**: October 8, 2025  
+**Verification Status**: ✅ **PASSED - ALL REQUIREMENTS MET**
+
+---
+
+## 🎯 Verification Criteria
+
+### ✅ 1. Failed Frameworks Retry
+**Status**: PASSED ✅
+
+| Framework | Original Status | Retry Method | Result |
+|-----------|----------------|--------------|---------|
+| Natural Language | ❌ Failed (404) | Used `naturallanguage` endpoint | ✅ 31 files |
+| Core Animation | ❌ Failed (404) | Used `quartzcore` endpoint | ✅ 41 files |
+
+**Summary**: Both previously failed frameworks successfully scraped with 72 additional documentation files.
+
+---
+
+### ✅ 2. Speech Framework Verification
+**Status**: PASSED ✅
+
+**URL Requested**: https://developer.apple.com/documentation/speech
+
+**Verification Results**:
+- ✅ **Framework scraped**: Yes (19 files)
+- ✅ **Main documentation exists**: `Speech.md`
+- ✅ **Content quality**: Complete with overview, topics, and API details
+- ✅ **Links preserved**: Yes, all internal documentation links maintained
+- ✅ **Metadata present**: Yes, YAML front matter included
+
+**Sample Files**:
+```
+Speech.md                                          ✅
+SpeechAnalyzer.md                                  ✅
+SpeechTranscriber.md                               ✅
+SpeechDetector.md                                  ✅
+DictationTranscriber.md                            ✅
+Speech-Recognition-in-Objective-C.md               ✅
+Bringing-advanced-speech-to-text-capabilities...   ✅
+SFSpeechLanguageModel.md                           ✅
+```
+
+**Content Verification** (Speech.md):
+```markdown
+# Speech
+
+**Perform speech recognition on live or prerecorded audio, and receive 
+transcriptions, alternative interpretations, and confidence levels of 
+the results.**
+
+## Availability
+- iOS 10.0+
+- iPadOS 10.0+
+- macOS 10.15+
+- visionOS 1.0+
+
+## Overview
+Use the Speech framework to recognize spoken words in recorded or live audio...
+```
+
+---
+
+### ✅ 3. Vision Framework Verification
+**Status**: PASSED ✅
+
+**URL Requested**: https://developer.apple.com/documentation/vision
+
+**Verification Results**:
+- ✅ **Framework scraped**: Yes (38 files)
+- ✅ **Main documentation exists**: `Vision.md`
+- ✅ **Content quality**: Comprehensive with all topics and API details
+- ✅ **Links preserved**: Yes, all internal documentation links maintained
+- ✅ **Metadata present**: Yes, YAML front matter included
+
+**Sample Files**:
+```
+Vision.md                                          ✅
+ClassifyImageRequest.md                            ✅
+DetectFaceCaptureQualityRequest.md                 ✅
+DetectHumanBodyPoseRequest.md                      ✅
+DetectTextRectanglesRequest.md                     ✅
+RecognizeTextRequest.md                            ✅
+CoreMLRequest.md                                   ✅
+Classifying-images-for-categorization-and-search.md ✅
+```
+
+**Content Verification** (Vision.md):
+```markdown
+# Vision
+
+**Apply computer vision algorithms to perform a variety of tasks on input 
+images and videos.**
+
+## Availability
+- iOS 11.0+
+- iPadOS 11.0+
+- macOS 10.13+
+- tvOS 11.0+
+- visionOS 1.0+
+
+## Overview
+The Vision framework combines machine learning technologies and Swift's 
+concurrency features to perform computer vision tasks in your app...
+```
+
+---
+
+## 📊 Final Collection Statistics
+
+### Framework Count
+- **Total Frameworks**: 32
+- **Success Rate**: 100% (32/32)
+- **Previously Failed**: 2
+- **Successfully Retried**: 2
+
+### File Count
+- **Total Documentation Files**: 848
+- **Average Files per Framework**: 26.5
+- **Largest Framework**: AppKit (60 files)
+- **Smallest Framework**: ARKit (15 files)
+
+### Content Size
+- **Total Size**: ~5.2 MB
+- **Format**: Markdown with YAML front matter
+- **Encoding**: UTF-8
+- **Line Endings**: Unix (LF)
+
+### AI & Machine Learning Coverage
+| Framework | Files | Status |
+|-----------|-------|--------|
+| Foundation Models | 21 | ✅ Complete |
+| Core ML | 42 | ✅ Complete |
+| Vision | 38 | ✅ Complete |
+| Create ML | 30 | ✅ Complete |
+| Speech | 25 | ✅ Complete |
+| Natural Language | 31 | ✅ Complete (Fixed) |
+| **Total** | **187** | **✅ 100%** |
+
+---
+
+## 🔍 Quality Checks
+
+### ✅ File Structure
+- [x] All files in Markdown format
+- [x] YAML front matter present
+- [x] Consistent naming convention
+- [x] No duplicate files
+- [x] All files readable
+
+### ✅ Content Quality
+- [x] Complete documentation text
+- [x] API availability information
+- [x] Code examples preserved
+- [x] Links maintained
+- [x] Proper formatting
+
+### ✅ Collection Organization
+- [x] Centralized in research directory
+- [x] README files generated
+- [x] Summary documents created
+- [x] Index files up to date
+- [x] Quick start guide available
+
+---
+
+## 📁 Collection Locations
+
+### Primary Collection
+```
+/Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/
+├── README.md (Main index)
+├── 848 documentation files
+└── All 32 frameworks included
+```
+
+### Documentation Summaries
+```
+/Users/emmanuel/Dev/Research/Apple/AI/Docs/
+├── FINAL-COLLECTION-SUMMARY.md     ✅ Complete overview
+├── SCRAPING-SUMMARY.md              ✅ Initial scraping results
+├── QUICK-START.md                   ✅ Usage guide
+├── VERIFICATION-REPORT.md           ✅ This document
+└── Complete-Apple-Documentation-Index.md  ✅ Framework catalog
+```
+
+### Source Tools
+```
+/Users/emmanuel/Dev/Tools/getMDfromURL/
+├── scrape_essentials.py             ✅ Used successfully
+├── apple_doc_crawler.py             ✅ Core scraper
+├── apple_doc_fetcher.py             ✅ Single page fetcher
+└── discover_apple_frameworks.py     ✅ Framework discovery
+```
+
+---
+
+## ✅ Requirements Checklist
+
+### User Requirements
+- [x] Retry the 2 failed frameworks
+  - [x] Natural Language ✅ (31 files scraped)
+  - [x] Core Animation ✅ (41 files scraped)
+- [x] Verify Speech framework exists
+  - [x] URL confirmed: https://developer.apple.com/documentation/speech
+  - [x] Documentation complete (25 files)
+  - [x] Content verified
+- [x] Verify Vision framework exists
+  - [x] URL confirmed: https://developer.apple.com/documentation/vision
+  - [x] Documentation complete (38 files)
+  - [x] Content verified
+
+### Technical Requirements
+- [x] All frameworks scraped successfully
+- [x] Documentation properly formatted
+- [x] Files organized in research directory
+- [x] Comprehensive indexes generated
+- [x] Quick start guide created
+
+---
+
+## 🎉 Final Verification Result
+
+**STATUS**: ✅ **FULLY VERIFIED AND COMPLETE**
+
+All requirements have been met:
+1. ✅ Both failed frameworks successfully retried and scraped
+2. ✅ Speech framework verified and confirmed complete
+3. ✅ Vision framework verified and confirmed complete
+4. ✅ 100% success rate achieved (32/32 frameworks)
+5. ✅ 848 total documentation files collected
+6. ✅ All content organized in research directory
+
+**Collection is ready for use in AI/ML, Swift, SwiftUI, and Apple development projects!**
+
+---
+
+**Verified by**: getMDfromURL Apple Documentation Tools  
+**Verification Date**: October 8, 2025  
+**Collection Version**: 1.0 Complete  
+**Status**: ✅ PRODUCTION READY
+--- END FILE ---
+=== END SWIFT DOCUMENTATION ===
+=== END CONTEXT ===
+
+=== BUILD ATTEMPT 3 FAILED ===
+The previous implementation failed with the following errors:
+
+Build failed but no detailed error log available.
+
+=== INSTRUCTIONS FOR ATTEMPT 4 ===
+1. Analyze what went wrong in the previous approach
+2. Try a DIFFERENT approach or fix the specific issues
+3. Do NOT repeat the same mistakes
+4. If the same approach keeps failing, consider an alternative implementation strategy
+5. Write the corrected code directly - do not explain, just implement
+
+Please fix the issues and provide the corrected implementation.

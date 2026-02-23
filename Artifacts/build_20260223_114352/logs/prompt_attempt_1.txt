@@ -1,0 +1,2332 @@
+You are a Swift/SwiftUI developer. Your task is to implement the following requirements.
+
+IMPORTANT INSTRUCTIONS:
+1. Write clean, production-ready Swift code
+2. Follow Apple's Swift API Design Guidelines
+3. Use SwiftUI for UI components where appropriate
+4. Include proper error handling
+5. The code must compile without errors
+6. After writing code, the build will be verified automatically
+7. If the build fails, you will receive error feedback and should try a DIFFERENT approach
+
+TESTING & DEBUGGING REFERENCE:
+For building, testing, and debugging iOS/macOS apps, reference this workflow guide:
+/Users/emmanuel/Dev/Tools/Eocon-Foundation-V1/.Foundation/Docs/swiftDocs/Testing/XCODEBUILD_MCP_WORKFLOW.md
+
+This guide covers:
+- XcodeBuild MCP server tools for programmatic Xcode interaction
+- Building for simulator, booting simulators, installing/launching apps
+- UI automation: screenshots, accessibility hierarchy, tap simulation
+- Debugging UI issues (button taps, gestures, navigation)
+
+=== TASK/REQUIREMENTS ===
+I have the following verification comments after thorough review and exploration of the codebase. Implement the comments by following the instructions in the comments verbatim.
+
+---
+## Comment 1: macOS detail pane never updates when selecting an analysis from the sidebar
+
+In \`app/decodingOppression/decodingOppression/ContentView.swift\` macOS path, make \`ContentView\` observe \`historyViewModel\` so the detail pane updates. Declare a bindable/observed reference (e.g., inside \`body\` add \`@Bindable var historyViewModel = historyViewModel\`) and use that bound instance in the \`NavigationSplitView\` switch and when passing into \`PolicyHistoryView\`. Alternatively change \`historyViewModel\` to \`@StateObject\`/\`@ObservedObject\` and mark \`PolicyHistoryViewModel\` accordingly, then read the observed object in the switch. Ensure the switch reads the observable’s \`selectedAnalysis\` so selecting a row refreshes the detail view.
+
+### Referred Files
+- /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/ContentView.swift
+---
+=== END TASK ===
+
+
+=== REFERENCE CONTEXT ===
+Use the following documentation and context as reference:
+
+=== SWIFT DOCUMENTATION ===
+
+--- FILE: Model-data.md ---
+# Model data
+
+**Manage the data that your app uses to drive its interface.**
+
+
+## Overview
+
+SwiftUI offers a declarative approach to user interface design. As you compose a hierarchy of views, you also indicate data dependencies for the views. When the data changes, either due to an external event or because of an action that the user performs, SwiftUI automatically updates the affected parts of the interface. As a result, the framework automatically performs most of the work that view controllers traditionally do.
+
+![Image](model-data-hero)
+
+The framework provides tools, like state variables and bindings, for connecting your app’s data to the user interface. These tools help you maintain a single source of truth for every piece of data in your app, in part by reducing the amount of glue logic you write. Select the tool that best suits the task you need to perform:
+
+- Manage transient UI state locally within a view by wrapping value types as [doc://com.apple.SwiftUI/documentation/SwiftUI/State](https://developer.apple.com/documentation/SwiftUI/State) properties.
+
+- Share a reference to a source of truth, like local state, using the [doc://com.apple.SwiftUI/documentation/SwiftUI/Binding](https://developer.apple.com/documentation/SwiftUI/Binding) property wrapper.
+
+- Connect to and observe reference model data in views by applying the [doc://com.apple.documentation/documentation/Observation/Observable()](https://developer.apple.com/documentation/Observation/Observable()) macro to the model data type. Instantiate an observable model data type directly in a view using a [doc://com.apple.SwiftUI/documentation/SwiftUI/State](https://developer.apple.com/documentation/SwiftUI/State) property. Share the observable model data with other views in the hierarchy without passing a reference using the [doc://com.apple.SwiftUI/documentation/SwiftUI/Environment](https://developer.apple.com/documentation/SwiftUI/Environment) property wrapper.
+
+
+### Leveraging property wrappers
+
+SwiftUI implements many data management types, like [doc://com.apple.SwiftUI/documentation/SwiftUI/State](https://developer.apple.com/documentation/SwiftUI/State) and [doc://com.apple.SwiftUI/documentation/SwiftUI/Binding](https://developer.apple.com/documentation/SwiftUI/Binding), as Swift property wrappers. Apply a property wrapper by adding an attribute with the wrapper’s name to a property’s declaration.
+
+```swift
+@State private var isVisible = true // Declares isVisible as a state variable.
+```
+
+The property gains the behavior that the wrapper specifies. The state and data flow property wrappers in SwiftUI watch for changes in your data, and automatically update affected views as necessary. When you refer directly to the property in your code, you access the wrapped value, which for the `isVisible` state property in the example above is the stored Boolean.
+
+```swift
+if isVisible == true {
+    Text("Hello") // Only renders when isVisible is true.
+}
+```
+
+Alternatively, you can access a property wrapper’s projected value by prefixing the property name with the dollar sign (`$`). SwiftUI state and data flow property wrappers project a [doc://com.apple.SwiftUI/documentation/SwiftUI/Binding](https://developer.apple.com/documentation/SwiftUI/Binding), which is a two-way connection to the wrapped value, allowing another view to access and mutate a single source of truth.
+
+```swift
+Toggle("Visible", isOn: $isVisible) // The toggle can update the stored value.
+```
+
+For more information about property wrappers, see [https://docs.swift.org/swift-book/LanguageGuide/Properties.html#ID617](https://docs.swift.org/swift-book/LanguageGuide/Properties.html#ID617) in [https://swift.org/documentation/#the-swift-programming-language](https://swift.org/documentation/#the-swift-programming-language).
+
+## Topics
+
+### Creating and sharing view state
+
+- [Managing user interface state](https://developer.apple.com/documentation/swiftui/managing-user-interface-state) — Encapsulate view-specific data within your app’s view hierarchy to make your views reusable.
+- [State](https://developer.apple.com/documentation/swiftui/state) — A property wrapper type that can read and write a value managed by SwiftUI.
+- [Bindable](https://developer.apple.com/documentation/swiftui/bindable) — A property wrapper type that supports creating bindings to the mutable properties of observable objects.
+- [Binding](https://developer.apple.com/documentation/swiftui/binding) — A property wrapper type that can read and write a value owned by a source of truth.
+### Creating model data
+
+- [Managing model data in your app](https://developer.apple.com/documentation/swiftui/managing-model-data-in-your-app) — Create connections between your app’s data model and views.
+- [Migrating from the Observable Object protocol to the Observable macro](https://developer.apple.com/documentation/swiftui/migrating-from-the-observable-object-protocol-to-the-observable-macro) — Update your existing app to leverage the benefits of Observation in Swift.
+- [Observable()](https://developer.apple.com/documentation/Observation/Observable()) — Defines and implements conformance of the Observable protocol.
+- [Monitoring data changes in your app](https://developer.apple.com/documentation/swiftui/monitoring-model-data-changes-in-your-app) — Show changes to data in your app’s user interface by using observable objects.
+- [StateObject](https://developer.apple.com/documentation/swiftui/stateobject) — A property wrapper type that instantiates an observable object.
+- [ObservedObject](https://developer.apple.com/documentation/swiftui/observedobject) — A property wrapper type that subscribes to an observable object and invalidates a view whenever the observable object changes.
+- [ObservableObject](https://developer.apple.com/documentation/Combine/ObservableObject) — A type of object with a publisher that emits before the object has changed.
+### Responding to data changes
+
+- [onChange(of:initial:_:)](https://developer.apple.com/documentation/swiftui/view/onchange(of:initial:_:)) — Adds a modifier for this view that fires an action when a specific value changes.
+- [onReceive(_:perform:)](https://developer.apple.com/documentation/swiftui/view/onreceive(_:perform:)) — Adds an action to perform when this view detects data emitted by the given publisher.
+### Distributing model data throughout your app
+
+- [environmentObject(_:)](https://developer.apple.com/documentation/swiftui/view/environmentobject(_:)) — Supplies an observable object to a view’s hierarchy.
+- [environmentObject(_:)](https://developer.apple.com/documentation/swiftui/scene/environmentobject(_:)) — Supplies an `ObservableObject` to a view subhierarchy.
+- [EnvironmentObject](https://developer.apple.com/documentation/swiftui/environmentobject) — A property wrapper type for an observable object that a parent or ancestor view supplies.
+### Managing dynamic data
+
+- [DynamicProperty](https://developer.apple.com/documentation/swiftui/dynamicproperty) — An interface for a stored variable that updates an external property of a view.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/Model-data](https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/Model-data)*
+--- END FILE ---
+
+--- FILE: Navigation.md ---
+# Navigation
+
+**Enable people to move between different parts of your app’s view hierarchy within a scene.**
+
+
+## Overview
+
+Use navigation containers to provide structure to your app’s user interface, enabling people to easily move among the parts of your app.
+
+![Image](navigation-hero)
+
+For example, people can move forward and backward through a stack of views using a [doc://com.apple.SwiftUI/documentation/SwiftUI/NavigationStack](https://developer.apple.com/documentation/SwiftUI/NavigationStack), or choose which view to display from a tab bar using a [doc://com.apple.SwiftUI/documentation/SwiftUI/TabView](https://developer.apple.com/documentation/SwiftUI/TabView).
+
+Configure navigation containers by adding view modifiers like [doc://com.apple.SwiftUI/documentation/SwiftUI/View/navigationSplitViewStyle(_:)](https://developer.apple.com/documentation/SwiftUI/View/navigationSplitViewStyle(_:)) to the container. Use other modifiers on the views inside the container to affect the container’s behavior when showing that view. For example, you can use [doc://com.apple.SwiftUI/documentation/SwiftUI/View/navigationTitle(_:)](https://developer.apple.com/documentation/SwiftUI/View/navigationTitle(_:)) on a view to provide a toolbar title to display when showing that view.
+
+## Topics
+
+### Essentials
+
+- [Understanding the navigation stack](https://developer.apple.com/documentation/swiftui/understanding-the-composition-of-navigation-stack) — Learn about the navigation stack, links, and how to manage navigation types in your app’s structure.
+### Presenting views in columns
+
+- [Bringing robust navigation structure to your SwiftUI app](https://developer.apple.com/documentation/swiftui/bringing-robust-navigation-structure-to-your-swiftui-app) — Use navigation links, stacks, destinations, and paths to provide a streamlined experience for all platforms, as well as behaviors such as deep linking and state restoration.
+- [Migrating to new navigation types](https://developer.apple.com/documentation/swiftui/migrating-to-new-navigation-types) — Improve navigation behavior in your app by replacing navigation views with navigation stacks and navigation split views.
+- [NavigationSplitView](https://developer.apple.com/documentation/swiftui/navigationsplitview) — A view that presents views in two or three columns, where selections in leading columns control presentations in subsequent columns.
+- [navigationSplitViewStyle(_:)](https://developer.apple.com/documentation/swiftui/view/navigationsplitviewstyle(_:)) — Sets the style for navigation split views within this view.
+- [navigationSplitViewColumnWidth(_:)](https://developer.apple.com/documentation/swiftui/view/navigationsplitviewcolumnwidth(_:)) — Sets a fixed, preferred width for the column containing this view.
+- [navigationSplitViewColumnWidth(min:ideal:max:)](https://developer.apple.com/documentation/swiftui/view/navigationsplitviewcolumnwidth(min:ideal:max:)) — Sets a flexible, preferred width for the column containing this view.
+- [NavigationSplitViewVisibility](https://developer.apple.com/documentation/swiftui/navigationsplitviewvisibility) — The visibility of the leading columns in a navigation split view.
+- [NavigationLink](https://developer.apple.com/documentation/swiftui/navigationlink) — A view that controls a navigation presentation.
+### Stacking views in one column
+
+- [NavigationStack](https://developer.apple.com/documentation/swiftui/navigationstack) — A view that displays a root view and enables you to present additional views over the root view.
+- [NavigationPath](https://developer.apple.com/documentation/swiftui/navigationpath) — A type-erased list of data representing the content of a navigation stack.
+- [navigationDestination(for:destination:)](https://developer.apple.com/documentation/swiftui/view/navigationdestination(for:destination:)) — Associates a destination view with a presented data type for use within a navigation stack.
+- [navigationDestination(isPresented:destination:)](https://developer.apple.com/documentation/swiftui/view/navigationdestination(ispresented:destination:)) — Associates a destination view with a binding that can be used to push the view onto a [doc://com.apple.SwiftUI/documentation/SwiftUI/NavigationStack](https://developer.apple.com/documentation/SwiftUI/NavigationStack).
+- [navigationDestination(item:destination:)](https://developer.apple.com/documentation/swiftui/view/navigationdestination(item:destination:)) — Associates a destination view with a bound value for use within a navigation stack or navigation split view
+### Managing column collapse
+
+- [NavigationSplitViewColumn](https://developer.apple.com/documentation/swiftui/navigationsplitviewcolumn) — A view that represents a column in a navigation split view.
+### Setting titles for navigation content
+
+- [navigationTitle(_:)](https://developer.apple.com/documentation/swiftui/view/navigationtitle(_:)) — Configures the view’s title for purposes of navigation, using a string binding.
+- [navigationSubtitle(_:)](https://developer.apple.com/documentation/swiftui/view/navigationsubtitle(_:)) — Configures the view’s subtitle for purposes of navigation.
+- [navigationDocument(_:)](https://developer.apple.com/documentation/swiftui/view/navigationdocument(_:)) — Configures the view’s document for purposes of navigation.
+- [navigationDocument(_:preview:)](https://developer.apple.com/documentation/swiftui/view/navigationdocument(_:preview:)) — Configures the view’s document for purposes of navigation.
+### Configuring the navigation bar
+
+- [navigationBarBackButtonHidden(_:)](https://developer.apple.com/documentation/swiftui/view/navigationbarbackbuttonhidden(_:)) — Hides the navigation bar back button for the view.
+- [navigationBarTitleDisplayMode(_:)](https://developer.apple.com/documentation/swiftui/view/navigationbartitledisplaymode(_:)) — Configures the title display mode for this view.
+- [NavigationBarItem](https://developer.apple.com/documentation/swiftui/navigationbaritem) — A configuration for a navigation bar that represents a view at the top of a navigation stack.
+### Configuring the sidebar
+
+- [sidebarRowSize](https://developer.apple.com/documentation/swiftui/environmentvalues/sidebarrowsize) — The current size of sidebar rows.
+- [SidebarRowSize](https://developer.apple.com/documentation/swiftui/sidebarrowsize) — The standard sizes of sidebar rows.
+### Presenting views in tabs
+
+- [Enhancing your app’s content with tab navigation](https://developer.apple.com/documentation/swiftui/enhancing-your-app-content-with-tab-navigation) — Keep your app content front and center while providing quick access to navigation using the tab bar.
+- [TabView](https://developer.apple.com/documentation/swiftui/tabview) — A view that switches between multiple child views using interactive user interface elements.
+- [Tab](https://developer.apple.com/documentation/swiftui/tab) — The content for a tab and the tab’s associated tab item in a tab view.
+- [TabRole](https://developer.apple.com/documentation/swiftui/tabrole) — A value that defines the purpose of the tab.
+- [TabSection](https://developer.apple.com/documentation/swiftui/tabsection) — A container that you can use to add hierarchy within a tab view.
+- [tabViewStyle(_:)](https://developer.apple.com/documentation/swiftui/view/tabviewstyle(_:)) — Sets the style for the tab view within the current environment.
+### Configuring a tab bar
+
+- [tabViewSidebarHeader(content:)](https://developer.apple.com/documentation/swiftui/view/tabviewsidebarheader(content:)) — Adds a custom header to the sidebar of a tab view.
+- [tabViewSidebarFooter(content:)](https://developer.apple.com/documentation/swiftui/view/tabviewsidebarfooter(content:)) — Adds a custom footer to the sidebar of a tab view.
+- [tabViewSidebarBottomBar(content:)](https://developer.apple.com/documentation/swiftui/view/tabviewsidebarbottombar(content:)) — Adds a custom bottom bar to the sidebar of a tab view.
+- [AdaptableTabBarPlacement](https://developer.apple.com/documentation/swiftui/adaptabletabbarplacement) — A placement for tabs in a tab view using the adaptable sidebar style.
+- [tabBarPlacement](https://developer.apple.com/documentation/swiftui/environmentvalues/tabbarplacement) — The current placement of the tab bar.
+- [TabBarPlacement](https://developer.apple.com/documentation/swiftui/tabbarplacement) — A placement for tabs in a tab view.
+- [isTabBarShowingSections](https://developer.apple.com/documentation/swiftui/environmentvalues/istabbarshowingsections) — A Boolean value that determines whether a tab view shows the expanded contents of a tab section.
+- [TabBarMinimizeBehavior](https://developer.apple.com/documentation/swiftui/tabbarminimizebehavior)
+- [TabViewBottomAccessoryPlacement](https://developer.apple.com/documentation/swiftui/tabviewbottomaccessoryplacement) — A placement of the bottom accessory in a tab view. You can use this to adjust the content of the accessory view based on the placement.
+### Configuring a tab
+
+- [sectionActions(content:)](https://developer.apple.com/documentation/swiftui/view/sectionactions(content:)) — Adds custom actions to a section.
+- [TabPlacement](https://developer.apple.com/documentation/swiftui/tabplacement) — A place that a tab can appear.
+- [TabContentBuilder](https://developer.apple.com/documentation/swiftui/tabcontentbuilder) — A result builder that constructs tabs for a tab view that supports programmatic selection. This builder requires that all tabs in the tab view have the same selection type.
+- [TabContent](https://developer.apple.com/documentation/swiftui/tabcontent) — A type that provides content for programmatically selectable tabs in a tab view.
+- [AnyTabContent](https://developer.apple.com/documentation/swiftui/anytabcontent) — Type erased tab content.
+### Enabling tab customization
+
+- [tabViewCustomization(_:)](https://developer.apple.com/documentation/swiftui/view/tabviewcustomization(_:)) — Specifies the customizations to apply to the sidebar representation of the tab view.
+- [TabViewCustomization](https://developer.apple.com/documentation/swiftui/tabviewcustomization) — The customizations a person makes to an adaptable sidebar tab view.
+- [TabCustomizationBehavior](https://developer.apple.com/documentation/swiftui/tabcustomizationbehavior) — The customization behavior of customizable tab view content.
+### Displaying views in multiple panes
+
+- [HSplitView](https://developer.apple.com/documentation/swiftui/hsplitview) — A layout container that arranges its children in a horizontal line and allows the user to resize them using dividers placed between them.
+- [VSplitView](https://developer.apple.com/documentation/swiftui/vsplitview) — A layout container that arranges its children in a vertical line and allows the user to resize them using dividers placed between them.
+### Deprecated Types
+
+- [NavigationView](https://developer.apple.com/documentation/swiftui/navigationview) — A view for presenting a stack of views that represents a visible path in a navigation hierarchy.
+- [tabItem(_:)](https://developer.apple.com/documentation/swiftui/view/tabitem(_:)) — Sets the tab bar item associated with this view.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/Navigation](https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/Navigation)*
+--- END FILE ---
+
+--- FILE: App.md ---
+# App
+
+**A type that represents the structure and behavior of an app.**
+
+## Availability
+
+- **iOS** 14.0+
+- **iPadOS** 14.0+
+- **Mac Catalyst** 14.0+
+- **macOS** 11.0+
+- **tvOS** 14.0+
+- **visionOS** 1.0+
+- **watchOS** 7.0+
+
+
+## Overview
+
+Create an app by declaring a structure that conforms to the `App` protocol. Implement the required [doc://com.apple.SwiftUI/documentation/SwiftUI/App/body-swift.property](https://developer.apple.com/documentation/SwiftUI/App/body-swift.property) computed property to define the app’s content:
+
+```swift
+@main
+struct MyApp: App {
+    var body: some Scene {
+        WindowGroup {
+            Text("Hello, world!")
+        }
+    }
+}
+```
+
+Precede the structure’s declaration with the [https://docs.swift.org/swift-book/ReferenceManual/Attributes.html#ID626](https://docs.swift.org/swift-book/ReferenceManual/Attributes.html#ID626) attribute to indicate that your custom `App` protocol conformer provides the entry point into your app. The protocol provides a default implementation of the [doc://com.apple.SwiftUI/documentation/SwiftUI/App/main()](https://developer.apple.com/documentation/SwiftUI/App/main()) method that the system calls to launch your app. You can have exactly one entry point among all of your app’s files.
+
+Compose the app’s body from instances that conform to the [doc://com.apple.SwiftUI/documentation/SwiftUI/Scene](https://developer.apple.com/documentation/SwiftUI/Scene) protocol. Each scene contains the root view of a view hierarchy and has a life cycle managed by the system. SwiftUI provides some concrete scene types to handle common scenarios, like for displaying documents or settings. You can also create custom scenes.
+
+```swift
+@main
+struct Mail: App {
+    var body: some Scene {
+        WindowGroup {
+            MailViewer()
+        }
+        Settings {
+            SettingsView()
+        }
+    }
+}
+```
+
+You can declare state in your app to share across all of its scenes. For example, you can use the [doc://com.apple.SwiftUI/documentation/SwiftUI/StateObject](https://developer.apple.com/documentation/SwiftUI/StateObject) attribute to initialize a data model, and then provide that model on a view input as an [doc://com.apple.SwiftUI/documentation/SwiftUI/ObservedObject](https://developer.apple.com/documentation/SwiftUI/ObservedObject) or through the environment as an [doc://com.apple.SwiftUI/documentation/SwiftUI/EnvironmentObject](https://developer.apple.com/documentation/SwiftUI/EnvironmentObject) to scenes in the app:
+
+```swift
+@main
+struct Mail: App {
+    @StateObject private var model = MailModel()
+
+    var body: some Scene {
+        WindowGroup {
+            MailViewer()
+                .environmentObject(model) // Passed through the environment.
+        }
+        Settings {
+            SettingsView(model: model) // Passed as an observed object.
+        }
+    }
+}
+```
+
+A type conforming to this protocol inherits `@preconcurrency @MainActor` isolation from the protocol if the conformance is included in the type’s base declaration:
+
+```swift
+struct MyCustomType: Transition {
+    // `@preconcurrency @MainActor` isolation by default
+}
+```
+
+Isolation to the main actor is the default, but it’s not required. Declare the conformance in an extension to opt out of main actor isolation:
+
+```swift
+extension MyCustomType: Transition {
+    // `nonisolated` by default
+}
+```
+
+## Topics
+
+### Implementing an app
+
+- [body](https://developer.apple.com/documentation/swiftui/app/body-swift.property) — The content and behavior of the app.
+- [Body](https://developer.apple.com/documentation/swiftui/app/body-swift.associatedtype) — The type of scene representing the content of the app.
+### Running an app
+
+- [init()](https://developer.apple.com/documentation/swiftui/app/init()) — Creates an instance of the app using the body that you define for its content.
+- [main()](https://developer.apple.com/documentation/swiftui/app/main()) — Initializes and runs the app.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/App](https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/App)*
+--- END FILE ---
+
+--- FILE: Lists.md ---
+# Lists
+
+**Display a structured, scrollable column of information.**
+
+
+## Overview
+
+Use a list to display a one-dimensional vertical collection of views.
+
+![Image](lists-hero)
+
+The list is a complex container type that automatically provides scrolling when it grows too large for the current display. You build a list by providing it with individual views for the rows in the list, or by using a [doc://com.apple.SwiftUI/documentation/SwiftUI/ForEach](https://developer.apple.com/documentation/SwiftUI/ForEach) to enumerate a group of rows. You can also mix these strategies, blending any number of individual views and `ForEach` constructs.
+
+Use view modifiers to configure the appearance and behavior of a list and its rows, headers, sections, and separators. For example, you can apply a style to the list, add swipe gestures to individual rows, or make the list refreshable with a pull-down gesture. You can also use the configuration associated with [doc://com.apple.SwiftUI/documentation/SwiftUI/Scroll-views](https://developer.apple.com/documentation/SwiftUI/Scroll-views) to control the list’s implicit scrolling behavior.
+
+For design guidance, see doc://com.apple.documentation/design/Human-Interface-Guidelines/lists-and-tables in the Human Interface Guidelines.
+
+## Topics
+
+### Creating a list
+
+- [Displaying data in lists](https://developer.apple.com/documentation/swiftui/displaying-data-in-lists) — Visualize collections of data with platform-appropriate appearance.
+- [List](https://developer.apple.com/documentation/swiftui/list) — A container that presents rows of data arranged in a single column, optionally providing the ability to select one or more members.
+- [listStyle(_:)](https://developer.apple.com/documentation/swiftui/view/liststyle(_:)) — Sets the style for lists within this view.
+### Disclosing information progressively
+
+- [OutlineGroup](https://developer.apple.com/documentation/swiftui/outlinegroup) — A structure that computes views and disclosure groups on demand from an underlying collection of tree-structured, identified data.
+- [DisclosureGroup](https://developer.apple.com/documentation/swiftui/disclosuregroup) — A view that shows or hides another content view, based on the state of a disclosure control.
+- [disclosureGroupStyle(_:)](https://developer.apple.com/documentation/swiftui/view/disclosuregroupstyle(_:)) — Sets the style for disclosure groups within this view.
+### Configuring a list’s layout
+
+- [listRowInsets(_:)](https://developer.apple.com/documentation/swiftui/view/listrowinsets(_:)) — Applies an inset to the rows in a list.
+- [defaultMinListRowHeight](https://developer.apple.com/documentation/swiftui/environmentvalues/defaultminlistrowheight) — The default minimum height of rows in a list.
+- [defaultMinListHeaderHeight](https://developer.apple.com/documentation/swiftui/environmentvalues/defaultminlistheaderheight) — The default minimum height of a header in a list.
+- [listRowSpacing(_:)](https://developer.apple.com/documentation/swiftui/view/listrowspacing(_:)) — Sets the vertical spacing between two adjacent rows in a List.
+- [listSectionSpacing(_:)](https://developer.apple.com/documentation/swiftui/view/listsectionspacing(_:)) — Sets the spacing between adjacent sections in a [doc://com.apple.SwiftUI/documentation/SwiftUI/List](https://developer.apple.com/documentation/SwiftUI/List) to a custom value.
+- [ListSectionSpacing](https://developer.apple.com/documentation/swiftui/listsectionspacing) — The spacing options between two adjacent sections in a list.
+- [listSectionMargins(_:_:)](https://developer.apple.com/documentation/swiftui/view/listsectionmargins(_:_:)) — Set the section margins for the specific edges.
+### Configuring rows
+
+- [listItemTint(_:)](https://developer.apple.com/documentation/swiftui/view/listitemtint(_:)) — Sets a fixed tint color for content in a list.
+- [ListItemTint](https://developer.apple.com/documentation/swiftui/listitemtint) — A tint effect configuration that you can apply to content in a list.
+### Configuring headers
+
+- [headerProminence(_:)](https://developer.apple.com/documentation/swiftui/view/headerprominence(_:)) — Sets the header prominence for this view.
+- [headerProminence](https://developer.apple.com/documentation/swiftui/environmentvalues/headerprominence) — The prominence to apply to section headers within a view.
+- [Prominence](https://developer.apple.com/documentation/swiftui/prominence) — A type indicating the prominence of a view hierarchy.
+### Configuring separators
+
+- [listRowSeparatorTint(_:edges:)](https://developer.apple.com/documentation/swiftui/view/listrowseparatortint(_:edges:)) — Sets the tint color associated with a row.
+- [listSectionSeparatorTint(_:edges:)](https://developer.apple.com/documentation/swiftui/view/listsectionseparatortint(_:edges:)) — Sets the tint color associated with a section.
+- [listRowSeparator(_:edges:)](https://developer.apple.com/documentation/swiftui/view/listrowseparator(_:edges:)) — Sets the display mode for the separator associated with this specific row.
+- [listSectionSeparator(_:edges:)](https://developer.apple.com/documentation/swiftui/view/listsectionseparator(_:edges:)) — Sets whether to hide the separator associated with a list section.
+### Configuring backgrounds
+
+- [listRowBackground(_:)](https://developer.apple.com/documentation/swiftui/view/listrowbackground(_:)) — Places a custom background view behind a list row item.
+- [alternatingRowBackgrounds(_:)](https://developer.apple.com/documentation/swiftui/view/alternatingrowbackgrounds(_:)) — Overrides whether lists and tables in this view have alternating row backgrounds.
+- [AlternatingRowBackgroundBehavior](https://developer.apple.com/documentation/swiftui/alternatingrowbackgroundbehavior) — The styling of views with respect to alternating row backgrounds.
+- [backgroundProminence](https://developer.apple.com/documentation/swiftui/environmentvalues/backgroundprominence) — The prominence of the background underneath views associated with this environment.
+- [BackgroundProminence](https://developer.apple.com/documentation/swiftui/backgroundprominence) — The prominence of backgrounds underneath other views.
+### Displaying a badge on a list item
+
+- [badge(_:)](https://developer.apple.com/documentation/swiftui/view/badge(_:)) — Generates a badge for the view from an integer value.
+- [badgeProminence(_:)](https://developer.apple.com/documentation/swiftui/view/badgeprominence(_:)) — Specifies the prominence of badges created by this view.
+- [badgeProminence](https://developer.apple.com/documentation/swiftui/environmentvalues/badgeprominence) — The prominence to apply to badges associated with this environment.
+- [BadgeProminence](https://developer.apple.com/documentation/swiftui/badgeprominence) — The visual prominence of a badge.
+### Configuring interaction
+
+- [swipeActions(edge:allowsFullSwipe:content:)](https://developer.apple.com/documentation/swiftui/view/swipeactions(edge:allowsfullswipe:content:)) — Adds custom swipe actions to a row in a list.
+- [selectionDisabled(_:)](https://developer.apple.com/documentation/swiftui/view/selectiondisabled(_:)) — Adds a condition that controls whether users can select this view.
+- [listRowHoverEffect(_:)](https://developer.apple.com/documentation/swiftui/view/listrowhovereffect(_:)) — Requests that the containing list row use the provided hover effect.
+- [listRowHoverEffectDisabled(_:)](https://developer.apple.com/documentation/swiftui/view/listrowhovereffectdisabled(_:)) — Requests that the containing list row have its hover effect disabled.
+### Refreshing a list’s content
+
+- [refreshable(action:)](https://developer.apple.com/documentation/swiftui/view/refreshable(action:)) — Marks this view as refreshable.
+- [refresh](https://developer.apple.com/documentation/swiftui/environmentvalues/refresh) — A refresh action stored in a view’s environment.
+- [RefreshAction](https://developer.apple.com/documentation/swiftui/refreshaction) — An action that initiates a refresh operation.
+### Editing a list
+
+- [moveDisabled(_:)](https://developer.apple.com/documentation/swiftui/view/movedisabled(_:)) — Adds a condition for whether the view’s view hierarchy is movable.
+- [deleteDisabled(_:)](https://developer.apple.com/documentation/swiftui/view/deletedisabled(_:)) — Adds a condition for whether the view’s view hierarchy is deletable.
+- [editMode](https://developer.apple.com/documentation/swiftui/environmentvalues/editmode) — An indication of whether the user can edit the contents of a view associated with this environment.
+- [EditMode](https://developer.apple.com/documentation/swiftui/editmode) — A mode that indicates whether the user can edit a view’s content.
+- [EditActions](https://developer.apple.com/documentation/swiftui/editactions) — A set of edit actions on a collection of data that a view can offer to a user.
+- [EditableCollectionContent](https://developer.apple.com/documentation/swiftui/editablecollectioncontent) — An opaque wrapper view that adds editing capabilities to a row in a list.
+- [IndexedIdentifierCollection](https://developer.apple.com/documentation/swiftui/indexedidentifiercollection) — A collection wrapper that iterates over the indices and identifiers of a collection together.
+### Configuring a section index
+
+- [listSectionIndexVisibility(_:)](https://developer.apple.com/documentation/swiftui/view/listsectionindexvisibility(_:)) — Changes the visibility of the list section index.
+- [sectionIndexLabel(_:)](https://developer.apple.com/documentation/swiftui/view/sectionindexlabel(_:)) — Sets the label that is used in a section index to point to this section, typically only a single character long.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/Lists](https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/Lists)*
+--- END FILE ---
+
+--- FILE: View-styles.md ---
+# View styles
+
+**Apply built-in and custom appearances and behaviors to different types of views.**
+
+
+## Overview
+
+SwiftUI defines built-in styles for certain kinds of views and automatically selects the appropriate style for a particular presentation context. For example, a [doc://com.apple.SwiftUI/documentation/SwiftUI/Label](https://developer.apple.com/documentation/SwiftUI/Label) might appear as an icon, a string title, or both, depending on factors like the platform, whether the view appears in a toolbar, and so on.
+
+![Image](view-styles-hero)
+
+You can override the automatic style by using one of the style view modifiers. These modifiers typically propagate throughout a container view, so that you can wrap a view hierarchy in a style modifier to affect all the views of the given type within the hierarchy.
+
+Any of the style protocols that define a `makeBody(configuration:)` method, like [doc://com.apple.SwiftUI/documentation/SwiftUI/ToggleStyle](https://developer.apple.com/documentation/SwiftUI/ToggleStyle), also enable you to define custom styles. Create a type that conforms to the corresponding style protocol and implement its `makeBody(configuration:)` method. Then apply the new style using a style view modifier exactly like a built-in style.
+
+## Topics
+
+### Styling views with Liquid Glass
+
+- [Applying Liquid Glass to custom views](https://developer.apple.com/documentation/swiftui/applying-liquid-glass-to-custom-views) — Configure, combine, and morph views using Liquid Glass effects.
+- [Landmarks: Building an app with Liquid Glass](https://developer.apple.com/documentation/swiftui/landmarks-building-an-app-with-liquid-glass) — Enhance your app experience with system-provided and custom Liquid Glass.
+- [glassEffect(_:in:)](https://developer.apple.com/documentation/swiftui/view/glasseffect(_:in:)) — Applies the Liquid Glass effect to a view.
+- [interactive(_:)](https://developer.apple.com/documentation/swiftui/glass/interactive(_:)) — Returns a copy of the structure configured to be interactive.
+- [GlassEffectContainer](https://developer.apple.com/documentation/swiftui/glasseffectcontainer) — A view that combines multiple Liquid Glass shapes into a single shape that can morph individual shapes into one another.
+- [GlassEffectTransition](https://developer.apple.com/documentation/swiftui/glasseffecttransition) — A structure that describes changes to apply when a glass effect is added or removed from the view hierarchy.
+- [GlassButtonStyle](https://developer.apple.com/documentation/swiftui/glassbuttonstyle) — A button style that applies glass border artwork based on the button’s context.
+- [GlassProminentButtonStyle](https://developer.apple.com/documentation/swiftui/glassprominentbuttonstyle) — A button style that applies prominent glass border artwork based on the button’s context.
+- [DefaultGlassEffectShape](https://developer.apple.com/documentation/swiftui/defaultglasseffectshape) — The default shape applied by glass effects, a capsule.
+### Styling buttons
+
+- [buttonStyle(_:)](https://developer.apple.com/documentation/swiftui/view/buttonstyle(_:)) — Sets the style for buttons within this view to a button style with a custom appearance and standard interaction behavior.
+- [ButtonStyle](https://developer.apple.com/documentation/swiftui/buttonstyle) — A type that applies standard interaction behavior and a custom appearance to all buttons within a view hierarchy.
+- [ButtonStyleConfiguration](https://developer.apple.com/documentation/swiftui/buttonstyleconfiguration) — The properties of a button.
+- [PrimitiveButtonStyle](https://developer.apple.com/documentation/swiftui/primitivebuttonstyle) — A type that applies custom interaction behavior and a custom appearance to all buttons within a view hierarchy.
+- [PrimitiveButtonStyleConfiguration](https://developer.apple.com/documentation/swiftui/primitivebuttonstyleconfiguration) — The properties of a button.
+- [signInWithAppleButtonStyle(_:)](https://developer.apple.com/documentation/swiftui/view/signinwithapplebuttonstyle(_:)) — Sets the style used for displaying the control (see `SignInWithAppleButton.Style`).
+### Styling pickers
+
+- [pickerStyle(_:)](https://developer.apple.com/documentation/swiftui/view/pickerstyle(_:)) — Sets the style for pickers within this view.
+- [PickerStyle](https://developer.apple.com/documentation/swiftui/pickerstyle) — A type that specifies the appearance and interaction of all pickers within a view hierarchy.
+- [datePickerStyle(_:)](https://developer.apple.com/documentation/swiftui/view/datepickerstyle(_:)) — Sets the style for date pickers within this view.
+- [DatePickerStyle](https://developer.apple.com/documentation/swiftui/datepickerstyle) — A type that specifies the appearance and interaction of all date pickers within a view hierarchy.
+### Styling menus
+
+- [menuStyle(_:)](https://developer.apple.com/documentation/swiftui/view/menustyle(_:)) — Sets the style for menus within this view.
+- [MenuStyle](https://developer.apple.com/documentation/swiftui/menustyle) — A type that applies standard interaction behavior and a custom appearance to all menus within a view hierarchy.
+- [MenuStyleConfiguration](https://developer.apple.com/documentation/swiftui/menustyleconfiguration) — A configuration of a menu.
+### Styling toggles
+
+- [toggleStyle(_:)](https://developer.apple.com/documentation/swiftui/view/togglestyle(_:)) — Sets the style for toggles in a view hierarchy.
+- [ToggleStyle](https://developer.apple.com/documentation/swiftui/togglestyle) — The appearance and behavior of a toggle.
+- [ToggleStyleConfiguration](https://developer.apple.com/documentation/swiftui/togglestyleconfiguration) — The properties of a toggle instance.
+### Styling indicators
+
+- [gaugeStyle(_:)](https://developer.apple.com/documentation/swiftui/view/gaugestyle(_:)) — Sets the style for gauges within this view.
+- [GaugeStyle](https://developer.apple.com/documentation/swiftui/gaugestyle) — Defines the implementation of all gauge instances within a view hierarchy.
+- [GaugeStyleConfiguration](https://developer.apple.com/documentation/swiftui/gaugestyleconfiguration) — The properties of a gauge instance.
+- [progressViewStyle(_:)](https://developer.apple.com/documentation/swiftui/view/progressviewstyle(_:)) — Sets the style for progress views in this view.
+- [ProgressViewStyle](https://developer.apple.com/documentation/swiftui/progressviewstyle) — A type that applies standard interaction behavior to all progress views within a view hierarchy.
+- [ProgressViewStyleConfiguration](https://developer.apple.com/documentation/swiftui/progressviewstyleconfiguration) — The properties of a progress view instance.
+### Styling views that display text
+
+- [labelStyle(_:)](https://developer.apple.com/documentation/swiftui/view/labelstyle(_:)) — Sets the style for labels within this view.
+- [LabelStyle](https://developer.apple.com/documentation/swiftui/labelstyle) — A type that applies a custom appearance to all labels within a view.
+- [LabelStyleConfiguration](https://developer.apple.com/documentation/swiftui/labelstyleconfiguration) — The properties of a label.
+- [textFieldStyle(_:)](https://developer.apple.com/documentation/swiftui/view/textfieldstyle(_:)) — Sets the style for text fields within this view.
+- [TextFieldStyle](https://developer.apple.com/documentation/swiftui/textfieldstyle) — A specification for the appearance and interaction of a text field.
+- [textEditorStyle(_:)](https://developer.apple.com/documentation/swiftui/view/texteditorstyle(_:)) — Sets the style for text editors within this view.
+- [TextEditorStyle](https://developer.apple.com/documentation/swiftui/texteditorstyle) — A specification for the appearance and interaction of a text editor.
+- [TextEditorStyleConfiguration](https://developer.apple.com/documentation/swiftui/texteditorstyleconfiguration) — The properties of a text editor.
+### Styling collection views
+
+- [listStyle(_:)](https://developer.apple.com/documentation/swiftui/view/liststyle(_:)) — Sets the style for lists within this view.
+- [ListStyle](https://developer.apple.com/documentation/swiftui/liststyle) — A protocol that describes the behavior and appearance of a list.
+- [tableStyle(_:)](https://developer.apple.com/documentation/swiftui/view/tablestyle(_:)) — Sets the style for tables within this view.
+- [TableStyle](https://developer.apple.com/documentation/swiftui/tablestyle) — A type that applies a custom appearance to all tables within a view.
+- [TableStyleConfiguration](https://developer.apple.com/documentation/swiftui/tablestyleconfiguration) — The properties of a table.
+- [disclosureGroupStyle(_:)](https://developer.apple.com/documentation/swiftui/view/disclosuregroupstyle(_:)) — Sets the style for disclosure groups within this view.
+- [DisclosureGroupStyle](https://developer.apple.com/documentation/swiftui/disclosuregroupstyle) — A type that specifies the appearance and interaction of disclosure groups within a view hierarchy.
+### Styling navigation views
+
+- [navigationSplitViewStyle(_:)](https://developer.apple.com/documentation/swiftui/view/navigationsplitviewstyle(_:)) — Sets the style for navigation split views within this view.
+- [NavigationSplitViewStyle](https://developer.apple.com/documentation/swiftui/navigationsplitviewstyle) — A type that specifies the appearance and interaction of navigation split views within a view hierarchy.
+- [tabViewStyle(_:)](https://developer.apple.com/documentation/swiftui/view/tabviewstyle(_:)) — Sets the style for the tab view within the current environment.
+- [TabViewStyle](https://developer.apple.com/documentation/swiftui/tabviewstyle) — A specification for the appearance and interaction of a tab view.
+### Styling groups
+
+- [controlGroupStyle(_:)](https://developer.apple.com/documentation/swiftui/view/controlgroupstyle(_:)) — Sets the style for control groups within this view.
+- [ControlGroupStyle](https://developer.apple.com/documentation/swiftui/controlgroupstyle) — Defines the implementation of all control groups within a view hierarchy.
+- [ControlGroupStyleConfiguration](https://developer.apple.com/documentation/swiftui/controlgroupstyleconfiguration) — The properties of a control group.
+- [formStyle(_:)](https://developer.apple.com/documentation/swiftui/view/formstyle(_:)) — Sets the style for forms in a view hierarchy.
+- [FormStyle](https://developer.apple.com/documentation/swiftui/formstyle) — The appearance and behavior of a form.
+- [FormStyleConfiguration](https://developer.apple.com/documentation/swiftui/formstyleconfiguration) — The properties of a form instance.
+- [groupBoxStyle(_:)](https://developer.apple.com/documentation/swiftui/view/groupboxstyle(_:)) — Sets the style for group boxes within this view.
+- [GroupBoxStyle](https://developer.apple.com/documentation/swiftui/groupboxstyle) — A type that specifies the appearance and interaction of all group boxes within a view hierarchy.
+- [GroupBoxStyleConfiguration](https://developer.apple.com/documentation/swiftui/groupboxstyleconfiguration) — The properties of a group box instance.
+- [indexViewStyle(_:)](https://developer.apple.com/documentation/swiftui/view/indexviewstyle(_:)) — Sets the style for the index view within the current environment.
+- [IndexViewStyle](https://developer.apple.com/documentation/swiftui/indexviewstyle) — Defines the implementation of all `IndexView` instances within a view hierarchy.
+- [labeledContentStyle(_:)](https://developer.apple.com/documentation/swiftui/view/labeledcontentstyle(_:)) — Sets a style for labeled content.
+- [LabeledContentStyle](https://developer.apple.com/documentation/swiftui/labeledcontentstyle) — The appearance and behavior of a labeled content instance..
+- [LabeledContentStyleConfiguration](https://developer.apple.com/documentation/swiftui/labeledcontentstyleconfiguration) — The properties of a labeled content instance.
+### Styling windows from a view inside the window
+
+- [presentedWindowStyle(_:)](https://developer.apple.com/documentation/swiftui/view/presentedwindowstyle(_:)) — Sets the style for windows created by interacting with this view.
+- [presentedWindowToolbarStyle(_:)](https://developer.apple.com/documentation/swiftui/view/presentedwindowtoolbarstyle(_:)) — Sets the style for the toolbar in windows created by interacting with this view.
+### Adding a glass background on views in visionOS
+
+- [glassBackgroundEffect(displayMode:)](https://developer.apple.com/documentation/swiftui/view/glassbackgroundeffect(displaymode:)) — Fills the view’s background with an automatic glass background effect and container-relative rounded rectangle shape.
+- [glassBackgroundEffect(in:displayMode:)](https://developer.apple.com/documentation/swiftui/view/glassbackgroundeffect(in:displaymode:)) — Fills the view’s background with an automatic glass background effect and a shape that you specify.
+- [GlassBackgroundDisplayMode](https://developer.apple.com/documentation/swiftui/glassbackgrounddisplaymode) — The display mode of a glass background.
+- [GlassBackgroundEffect](https://developer.apple.com/documentation/swiftui/glassbackgroundeffect) — A specification for the appearance of a glass background.
+- [AutomaticGlassBackgroundEffect](https://developer.apple.com/documentation/swiftui/automaticglassbackgroundeffect) — The automatic glass background effect.
+- [GlassBackgroundEffectConfiguration](https://developer.apple.com/documentation/swiftui/glassbackgroundeffectconfiguration) — A configuration used to build a custom effect.
+- [FeatheredGlassBackgroundEffect](https://developer.apple.com/documentation/swiftui/featheredglassbackgroundeffect) — The feathered glass background effect.
+- [PlateGlassBackgroundEffect](https://developer.apple.com/documentation/swiftui/plateglassbackgroundeffect) — The plate glass background effect.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/View-styles](https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/View-styles)*
+--- END FILE ---
+
+--- FILE: Model-data.md ---
+# Model data
+
+**Manage the data that your app uses to drive its interface.**
+
+
+## Overview
+
+SwiftUI offers a declarative approach to user interface design. As you compose a hierarchy of views, you also indicate data dependencies for the views. When the data changes, either due to an external event or because of an action that the user performs, SwiftUI automatically updates the affected parts of the interface. As a result, the framework automatically performs most of the work that view controllers traditionally do.
+
+![Image](model-data-hero)
+
+The framework provides tools, like state variables and bindings, for connecting your app’s data to the user interface. These tools help you maintain a single source of truth for every piece of data in your app, in part by reducing the amount of glue logic you write. Select the tool that best suits the task you need to perform:
+
+- Manage transient UI state locally within a view by wrapping value types as [doc://com.apple.SwiftUI/documentation/SwiftUI/State](https://developer.apple.com/documentation/SwiftUI/State) properties.
+
+- Share a reference to a source of truth, like local state, using the [doc://com.apple.SwiftUI/documentation/SwiftUI/Binding](https://developer.apple.com/documentation/SwiftUI/Binding) property wrapper.
+
+- Connect to and observe reference model data in views by applying the [doc://com.apple.documentation/documentation/Observation/Observable()](https://developer.apple.com/documentation/Observation/Observable()) macro to the model data type. Instantiate an observable model data type directly in a view using a [doc://com.apple.SwiftUI/documentation/SwiftUI/State](https://developer.apple.com/documentation/SwiftUI/State) property. Share the observable model data with other views in the hierarchy without passing a reference using the [doc://com.apple.SwiftUI/documentation/SwiftUI/Environment](https://developer.apple.com/documentation/SwiftUI/Environment) property wrapper.
+
+
+### Leveraging property wrappers
+
+SwiftUI implements many data management types, like [doc://com.apple.SwiftUI/documentation/SwiftUI/State](https://developer.apple.com/documentation/SwiftUI/State) and [doc://com.apple.SwiftUI/documentation/SwiftUI/Binding](https://developer.apple.com/documentation/SwiftUI/Binding), as Swift property wrappers. Apply a property wrapper by adding an attribute with the wrapper’s name to a property’s declaration.
+
+```swift
+@State private var isVisible = true // Declares isVisible as a state variable.
+```
+
+The property gains the behavior that the wrapper specifies. The state and data flow property wrappers in SwiftUI watch for changes in your data, and automatically update affected views as necessary. When you refer directly to the property in your code, you access the wrapped value, which for the `isVisible` state property in the example above is the stored Boolean.
+
+```swift
+if isVisible == true {
+    Text("Hello") // Only renders when isVisible is true.
+}
+```
+
+Alternatively, you can access a property wrapper’s projected value by prefixing the property name with the dollar sign (`$`). SwiftUI state and data flow property wrappers project a [doc://com.apple.SwiftUI/documentation/SwiftUI/Binding](https://developer.apple.com/documentation/SwiftUI/Binding), which is a two-way connection to the wrapped value, allowing another view to access and mutate a single source of truth.
+
+```swift
+Toggle("Visible", isOn: $isVisible) // The toggle can update the stored value.
+```
+
+For more information about property wrappers, see [https://docs.swift.org/swift-book/LanguageGuide/Properties.html#ID617](https://docs.swift.org/swift-book/LanguageGuide/Properties.html#ID617) in [https://swift.org/documentation/#the-swift-programming-language](https://swift.org/documentation/#the-swift-programming-language).
+
+## Topics
+
+### Creating and sharing view state
+
+- [Managing user interface state](https://developer.apple.com/documentation/swiftui/managing-user-interface-state) — Encapsulate view-specific data within your app’s view hierarchy to make your views reusable.
+- [State](https://developer.apple.com/documentation/swiftui/state) — A property wrapper type that can read and write a value managed by SwiftUI.
+- [Bindable](https://developer.apple.com/documentation/swiftui/bindable) — A property wrapper type that supports creating bindings to the mutable properties of observable objects.
+- [Binding](https://developer.apple.com/documentation/swiftui/binding) — A property wrapper type that can read and write a value owned by a source of truth.
+### Creating model data
+
+- [Managing model data in your app](https://developer.apple.com/documentation/swiftui/managing-model-data-in-your-app) — Create connections between your app’s data model and views.
+- [Migrating from the Observable Object protocol to the Observable macro](https://developer.apple.com/documentation/swiftui/migrating-from-the-observable-object-protocol-to-the-observable-macro) — Update your existing app to leverage the benefits of Observation in Swift.
+- [Observable()](https://developer.apple.com/documentation/Observation/Observable()) — Defines and implements conformance of the Observable protocol.
+- [Monitoring data changes in your app](https://developer.apple.com/documentation/swiftui/monitoring-model-data-changes-in-your-app) — Show changes to data in your app’s user interface by using observable objects.
+- [StateObject](https://developer.apple.com/documentation/swiftui/stateobject) — A property wrapper type that instantiates an observable object.
+- [ObservedObject](https://developer.apple.com/documentation/swiftui/observedobject) — A property wrapper type that subscribes to an observable object and invalidates a view whenever the observable object changes.
+- [ObservableObject](https://developer.apple.com/documentation/Combine/ObservableObject) — A type of object with a publisher that emits before the object has changed.
+### Responding to data changes
+
+- [onChange(of:initial:_:)](https://developer.apple.com/documentation/swiftui/view/onchange(of:initial:_:)) — Adds a modifier for this view that fires an action when a specific value changes.
+- [onReceive(_:perform:)](https://developer.apple.com/documentation/swiftui/view/onreceive(_:perform:)) — Adds an action to perform when this view detects data emitted by the given publisher.
+### Distributing model data throughout your app
+
+- [environmentObject(_:)](https://developer.apple.com/documentation/swiftui/view/environmentobject(_:)) — Supplies an observable object to a view’s hierarchy.
+- [environmentObject(_:)](https://developer.apple.com/documentation/swiftui/scene/environmentobject(_:)) — Supplies an `ObservableObject` to a view subhierarchy.
+- [EnvironmentObject](https://developer.apple.com/documentation/swiftui/environmentobject) — A property wrapper type for an observable object that a parent or ancestor view supplies.
+### Managing dynamic data
+
+- [DynamicProperty](https://developer.apple.com/documentation/swiftui/dynamicproperty) — An interface for a stored variable that updates an external property of a view.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/Model-data](https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/Model-data)*
+--- END FILE ---
+
+--- FILE: Navigation.md ---
+# Navigation
+
+**Enable people to move between different parts of your app’s view hierarchy within a scene.**
+
+
+## Overview
+
+Use navigation containers to provide structure to your app’s user interface, enabling people to easily move among the parts of your app.
+
+![Image](navigation-hero)
+
+For example, people can move forward and backward through a stack of views using a [doc://com.apple.SwiftUI/documentation/SwiftUI/NavigationStack](https://developer.apple.com/documentation/SwiftUI/NavigationStack), or choose which view to display from a tab bar using a [doc://com.apple.SwiftUI/documentation/SwiftUI/TabView](https://developer.apple.com/documentation/SwiftUI/TabView).
+
+Configure navigation containers by adding view modifiers like [doc://com.apple.SwiftUI/documentation/SwiftUI/View/navigationSplitViewStyle(_:)](https://developer.apple.com/documentation/SwiftUI/View/navigationSplitViewStyle(_:)) to the container. Use other modifiers on the views inside the container to affect the container’s behavior when showing that view. For example, you can use [doc://com.apple.SwiftUI/documentation/SwiftUI/View/navigationTitle(_:)](https://developer.apple.com/documentation/SwiftUI/View/navigationTitle(_:)) on a view to provide a toolbar title to display when showing that view.
+
+## Topics
+
+### Essentials
+
+- [Understanding the navigation stack](https://developer.apple.com/documentation/swiftui/understanding-the-composition-of-navigation-stack) — Learn about the navigation stack, links, and how to manage navigation types in your app’s structure.
+### Presenting views in columns
+
+- [Bringing robust navigation structure to your SwiftUI app](https://developer.apple.com/documentation/swiftui/bringing-robust-navigation-structure-to-your-swiftui-app) — Use navigation links, stacks, destinations, and paths to provide a streamlined experience for all platforms, as well as behaviors such as deep linking and state restoration.
+- [Migrating to new navigation types](https://developer.apple.com/documentation/swiftui/migrating-to-new-navigation-types) — Improve navigation behavior in your app by replacing navigation views with navigation stacks and navigation split views.
+- [NavigationSplitView](https://developer.apple.com/documentation/swiftui/navigationsplitview) — A view that presents views in two or three columns, where selections in leading columns control presentations in subsequent columns.
+- [navigationSplitViewStyle(_:)](https://developer.apple.com/documentation/swiftui/view/navigationsplitviewstyle(_:)) — Sets the style for navigation split views within this view.
+- [navigationSplitViewColumnWidth(_:)](https://developer.apple.com/documentation/swiftui/view/navigationsplitviewcolumnwidth(_:)) — Sets a fixed, preferred width for the column containing this view.
+- [navigationSplitViewColumnWidth(min:ideal:max:)](https://developer.apple.com/documentation/swiftui/view/navigationsplitviewcolumnwidth(min:ideal:max:)) — Sets a flexible, preferred width for the column containing this view.
+- [NavigationSplitViewVisibility](https://developer.apple.com/documentation/swiftui/navigationsplitviewvisibility) — The visibility of the leading columns in a navigation split view.
+- [NavigationLink](https://developer.apple.com/documentation/swiftui/navigationlink) — A view that controls a navigation presentation.
+### Stacking views in one column
+
+- [NavigationStack](https://developer.apple.com/documentation/swiftui/navigationstack) — A view that displays a root view and enables you to present additional views over the root view.
+- [NavigationPath](https://developer.apple.com/documentation/swiftui/navigationpath) — A type-erased list of data representing the content of a navigation stack.
+- [navigationDestination(for:destination:)](https://developer.apple.com/documentation/swiftui/view/navigationdestination(for:destination:)) — Associates a destination view with a presented data type for use within a navigation stack.
+- [navigationDestination(isPresented:destination:)](https://developer.apple.com/documentation/swiftui/view/navigationdestination(ispresented:destination:)) — Associates a destination view with a binding that can be used to push the view onto a [doc://com.apple.SwiftUI/documentation/SwiftUI/NavigationStack](https://developer.apple.com/documentation/SwiftUI/NavigationStack).
+- [navigationDestination(item:destination:)](https://developer.apple.com/documentation/swiftui/view/navigationdestination(item:destination:)) — Associates a destination view with a bound value for use within a navigation stack or navigation split view
+### Managing column collapse
+
+- [NavigationSplitViewColumn](https://developer.apple.com/documentation/swiftui/navigationsplitviewcolumn) — A view that represents a column in a navigation split view.
+### Setting titles for navigation content
+
+- [navigationTitle(_:)](https://developer.apple.com/documentation/swiftui/view/navigationtitle(_:)) — Configures the view’s title for purposes of navigation, using a string binding.
+- [navigationSubtitle(_:)](https://developer.apple.com/documentation/swiftui/view/navigationsubtitle(_:)) — Configures the view’s subtitle for purposes of navigation.
+- [navigationDocument(_:)](https://developer.apple.com/documentation/swiftui/view/navigationdocument(_:)) — Configures the view’s document for purposes of navigation.
+- [navigationDocument(_:preview:)](https://developer.apple.com/documentation/swiftui/view/navigationdocument(_:preview:)) — Configures the view’s document for purposes of navigation.
+### Configuring the navigation bar
+
+- [navigationBarBackButtonHidden(_:)](https://developer.apple.com/documentation/swiftui/view/navigationbarbackbuttonhidden(_:)) — Hides the navigation bar back button for the view.
+- [navigationBarTitleDisplayMode(_:)](https://developer.apple.com/documentation/swiftui/view/navigationbartitledisplaymode(_:)) — Configures the title display mode for this view.
+- [NavigationBarItem](https://developer.apple.com/documentation/swiftui/navigationbaritem) — A configuration for a navigation bar that represents a view at the top of a navigation stack.
+### Configuring the sidebar
+
+- [sidebarRowSize](https://developer.apple.com/documentation/swiftui/environmentvalues/sidebarrowsize) — The current size of sidebar rows.
+- [SidebarRowSize](https://developer.apple.com/documentation/swiftui/sidebarrowsize) — The standard sizes of sidebar rows.
+### Presenting views in tabs
+
+- [Enhancing your app’s content with tab navigation](https://developer.apple.com/documentation/swiftui/enhancing-your-app-content-with-tab-navigation) — Keep your app content front and center while providing quick access to navigation using the tab bar.
+- [TabView](https://developer.apple.com/documentation/swiftui/tabview) — A view that switches between multiple child views using interactive user interface elements.
+- [Tab](https://developer.apple.com/documentation/swiftui/tab) — The content for a tab and the tab’s associated tab item in a tab view.
+- [TabRole](https://developer.apple.com/documentation/swiftui/tabrole) — A value that defines the purpose of the tab.
+- [TabSection](https://developer.apple.com/documentation/swiftui/tabsection) — A container that you can use to add hierarchy within a tab view.
+- [tabViewStyle(_:)](https://developer.apple.com/documentation/swiftui/view/tabviewstyle(_:)) — Sets the style for the tab view within the current environment.
+### Configuring a tab bar
+
+- [tabViewSidebarHeader(content:)](https://developer.apple.com/documentation/swiftui/view/tabviewsidebarheader(content:)) — Adds a custom header to the sidebar of a tab view.
+- [tabViewSidebarFooter(content:)](https://developer.apple.com/documentation/swiftui/view/tabviewsidebarfooter(content:)) — Adds a custom footer to the sidebar of a tab view.
+- [tabViewSidebarBottomBar(content:)](https://developer.apple.com/documentation/swiftui/view/tabviewsidebarbottombar(content:)) — Adds a custom bottom bar to the sidebar of a tab view.
+- [AdaptableTabBarPlacement](https://developer.apple.com/documentation/swiftui/adaptabletabbarplacement) — A placement for tabs in a tab view using the adaptable sidebar style.
+- [tabBarPlacement](https://developer.apple.com/documentation/swiftui/environmentvalues/tabbarplacement) — The current placement of the tab bar.
+- [TabBarPlacement](https://developer.apple.com/documentation/swiftui/tabbarplacement) — A placement for tabs in a tab view.
+- [isTabBarShowingSections](https://developer.apple.com/documentation/swiftui/environmentvalues/istabbarshowingsections) — A Boolean value that determines whether a tab view shows the expanded contents of a tab section.
+- [TabBarMinimizeBehavior](https://developer.apple.com/documentation/swiftui/tabbarminimizebehavior)
+- [TabViewBottomAccessoryPlacement](https://developer.apple.com/documentation/swiftui/tabviewbottomaccessoryplacement) — A placement of the bottom accessory in a tab view. You can use this to adjust the content of the accessory view based on the placement.
+### Configuring a tab
+
+- [sectionActions(content:)](https://developer.apple.com/documentation/swiftui/view/sectionactions(content:)) — Adds custom actions to a section.
+- [TabPlacement](https://developer.apple.com/documentation/swiftui/tabplacement) — A place that a tab can appear.
+- [TabContentBuilder](https://developer.apple.com/documentation/swiftui/tabcontentbuilder) — A result builder that constructs tabs for a tab view that supports programmatic selection. This builder requires that all tabs in the tab view have the same selection type.
+- [TabContent](https://developer.apple.com/documentation/swiftui/tabcontent) — A type that provides content for programmatically selectable tabs in a tab view.
+- [AnyTabContent](https://developer.apple.com/documentation/swiftui/anytabcontent) — Type erased tab content.
+### Enabling tab customization
+
+- [tabViewCustomization(_:)](https://developer.apple.com/documentation/swiftui/view/tabviewcustomization(_:)) — Specifies the customizations to apply to the sidebar representation of the tab view.
+- [TabViewCustomization](https://developer.apple.com/documentation/swiftui/tabviewcustomization) — The customizations a person makes to an adaptable sidebar tab view.
+- [TabCustomizationBehavior](https://developer.apple.com/documentation/swiftui/tabcustomizationbehavior) — The customization behavior of customizable tab view content.
+### Displaying views in multiple panes
+
+- [HSplitView](https://developer.apple.com/documentation/swiftui/hsplitview) — A layout container that arranges its children in a horizontal line and allows the user to resize them using dividers placed between them.
+- [VSplitView](https://developer.apple.com/documentation/swiftui/vsplitview) — A layout container that arranges its children in a vertical line and allows the user to resize them using dividers placed between them.
+### Deprecated Types
+
+- [NavigationView](https://developer.apple.com/documentation/swiftui/navigationview) — A view for presenting a stack of views that represents a visible path in a navigation hierarchy.
+- [tabItem(_:)](https://developer.apple.com/documentation/swiftui/view/tabitem(_:)) — Sets the tab bar item associated with this view.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/Navigation](https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/Navigation)*
+--- END FILE ---
+
+--- FILE: App.md ---
+# App
+
+**A type that represents the structure and behavior of an app.**
+
+## Availability
+
+- **iOS** 14.0+
+- **iPadOS** 14.0+
+- **Mac Catalyst** 14.0+
+- **macOS** 11.0+
+- **tvOS** 14.0+
+- **visionOS** 1.0+
+- **watchOS** 7.0+
+
+
+## Overview
+
+Create an app by declaring a structure that conforms to the `App` protocol. Implement the required [doc://com.apple.SwiftUI/documentation/SwiftUI/App/body-swift.property](https://developer.apple.com/documentation/SwiftUI/App/body-swift.property) computed property to define the app’s content:
+
+```swift
+@main
+struct MyApp: App {
+    var body: some Scene {
+        WindowGroup {
+            Text("Hello, world!")
+        }
+    }
+}
+```
+
+Precede the structure’s declaration with the [https://docs.swift.org/swift-book/ReferenceManual/Attributes.html#ID626](https://docs.swift.org/swift-book/ReferenceManual/Attributes.html#ID626) attribute to indicate that your custom `App` protocol conformer provides the entry point into your app. The protocol provides a default implementation of the [doc://com.apple.SwiftUI/documentation/SwiftUI/App/main()](https://developer.apple.com/documentation/SwiftUI/App/main()) method that the system calls to launch your app. You can have exactly one entry point among all of your app’s files.
+
+Compose the app’s body from instances that conform to the [doc://com.apple.SwiftUI/documentation/SwiftUI/Scene](https://developer.apple.com/documentation/SwiftUI/Scene) protocol. Each scene contains the root view of a view hierarchy and has a life cycle managed by the system. SwiftUI provides some concrete scene types to handle common scenarios, like for displaying documents or settings. You can also create custom scenes.
+
+```swift
+@main
+struct Mail: App {
+    var body: some Scene {
+        WindowGroup {
+            MailViewer()
+        }
+        Settings {
+            SettingsView()
+        }
+    }
+}
+```
+
+You can declare state in your app to share across all of its scenes. For example, you can use the [doc://com.apple.SwiftUI/documentation/SwiftUI/StateObject](https://developer.apple.com/documentation/SwiftUI/StateObject) attribute to initialize a data model, and then provide that model on a view input as an [doc://com.apple.SwiftUI/documentation/SwiftUI/ObservedObject](https://developer.apple.com/documentation/SwiftUI/ObservedObject) or through the environment as an [doc://com.apple.SwiftUI/documentation/SwiftUI/EnvironmentObject](https://developer.apple.com/documentation/SwiftUI/EnvironmentObject) to scenes in the app:
+
+```swift
+@main
+struct Mail: App {
+    @StateObject private var model = MailModel()
+
+    var body: some Scene {
+        WindowGroup {
+            MailViewer()
+                .environmentObject(model) // Passed through the environment.
+        }
+        Settings {
+            SettingsView(model: model) // Passed as an observed object.
+        }
+    }
+}
+```
+
+A type conforming to this protocol inherits `@preconcurrency @MainActor` isolation from the protocol if the conformance is included in the type’s base declaration:
+
+```swift
+struct MyCustomType: Transition {
+    // `@preconcurrency @MainActor` isolation by default
+}
+```
+
+Isolation to the main actor is the default, but it’s not required. Declare the conformance in an extension to opt out of main actor isolation:
+
+```swift
+extension MyCustomType: Transition {
+    // `nonisolated` by default
+}
+```
+
+## Topics
+
+### Implementing an app
+
+- [body](https://developer.apple.com/documentation/swiftui/app/body-swift.property) — The content and behavior of the app.
+- [Body](https://developer.apple.com/documentation/swiftui/app/body-swift.associatedtype) — The type of scene representing the content of the app.
+### Running an app
+
+- [init()](https://developer.apple.com/documentation/swiftui/app/init()) — Creates an instance of the app using the body that you define for its content.
+- [main()](https://developer.apple.com/documentation/swiftui/app/main()) — Initializes and runs the app.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/App](https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/App)*
+--- END FILE ---
+
+--- FILE: Lists.md ---
+# Lists
+
+**Display a structured, scrollable column of information.**
+
+
+## Overview
+
+Use a list to display a one-dimensional vertical collection of views.
+
+![Image](lists-hero)
+
+The list is a complex container type that automatically provides scrolling when it grows too large for the current display. You build a list by providing it with individual views for the rows in the list, or by using a [doc://com.apple.SwiftUI/documentation/SwiftUI/ForEach](https://developer.apple.com/documentation/SwiftUI/ForEach) to enumerate a group of rows. You can also mix these strategies, blending any number of individual views and `ForEach` constructs.
+
+Use view modifiers to configure the appearance and behavior of a list and its rows, headers, sections, and separators. For example, you can apply a style to the list, add swipe gestures to individual rows, or make the list refreshable with a pull-down gesture. You can also use the configuration associated with [doc://com.apple.SwiftUI/documentation/SwiftUI/Scroll-views](https://developer.apple.com/documentation/SwiftUI/Scroll-views) to control the list’s implicit scrolling behavior.
+
+For design guidance, see doc://com.apple.documentation/design/Human-Interface-Guidelines/lists-and-tables in the Human Interface Guidelines.
+
+## Topics
+
+### Creating a list
+
+- [Displaying data in lists](https://developer.apple.com/documentation/swiftui/displaying-data-in-lists) — Visualize collections of data with platform-appropriate appearance.
+- [List](https://developer.apple.com/documentation/swiftui/list) — A container that presents rows of data arranged in a single column, optionally providing the ability to select one or more members.
+- [listStyle(_:)](https://developer.apple.com/documentation/swiftui/view/liststyle(_:)) — Sets the style for lists within this view.
+### Disclosing information progressively
+
+- [OutlineGroup](https://developer.apple.com/documentation/swiftui/outlinegroup) — A structure that computes views and disclosure groups on demand from an underlying collection of tree-structured, identified data.
+- [DisclosureGroup](https://developer.apple.com/documentation/swiftui/disclosuregroup) — A view that shows or hides another content view, based on the state of a disclosure control.
+- [disclosureGroupStyle(_:)](https://developer.apple.com/documentation/swiftui/view/disclosuregroupstyle(_:)) — Sets the style for disclosure groups within this view.
+### Configuring a list’s layout
+
+- [listRowInsets(_:)](https://developer.apple.com/documentation/swiftui/view/listrowinsets(_:)) — Applies an inset to the rows in a list.
+- [defaultMinListRowHeight](https://developer.apple.com/documentation/swiftui/environmentvalues/defaultminlistrowheight) — The default minimum height of rows in a list.
+- [defaultMinListHeaderHeight](https://developer.apple.com/documentation/swiftui/environmentvalues/defaultminlistheaderheight) — The default minimum height of a header in a list.
+- [listRowSpacing(_:)](https://developer.apple.com/documentation/swiftui/view/listrowspacing(_:)) — Sets the vertical spacing between two adjacent rows in a List.
+- [listSectionSpacing(_:)](https://developer.apple.com/documentation/swiftui/view/listsectionspacing(_:)) — Sets the spacing between adjacent sections in a [doc://com.apple.SwiftUI/documentation/SwiftUI/List](https://developer.apple.com/documentation/SwiftUI/List) to a custom value.
+- [ListSectionSpacing](https://developer.apple.com/documentation/swiftui/listsectionspacing) — The spacing options between two adjacent sections in a list.
+- [listSectionMargins(_:_:)](https://developer.apple.com/documentation/swiftui/view/listsectionmargins(_:_:)) — Set the section margins for the specific edges.
+### Configuring rows
+
+- [listItemTint(_:)](https://developer.apple.com/documentation/swiftui/view/listitemtint(_:)) — Sets a fixed tint color for content in a list.
+- [ListItemTint](https://developer.apple.com/documentation/swiftui/listitemtint) — A tint effect configuration that you can apply to content in a list.
+### Configuring headers
+
+- [headerProminence(_:)](https://developer.apple.com/documentation/swiftui/view/headerprominence(_:)) — Sets the header prominence for this view.
+- [headerProminence](https://developer.apple.com/documentation/swiftui/environmentvalues/headerprominence) — The prominence to apply to section headers within a view.
+- [Prominence](https://developer.apple.com/documentation/swiftui/prominence) — A type indicating the prominence of a view hierarchy.
+### Configuring separators
+
+- [listRowSeparatorTint(_:edges:)](https://developer.apple.com/documentation/swiftui/view/listrowseparatortint(_:edges:)) — Sets the tint color associated with a row.
+- [listSectionSeparatorTint(_:edges:)](https://developer.apple.com/documentation/swiftui/view/listsectionseparatortint(_:edges:)) — Sets the tint color associated with a section.
+- [listRowSeparator(_:edges:)](https://developer.apple.com/documentation/swiftui/view/listrowseparator(_:edges:)) — Sets the display mode for the separator associated with this specific row.
+- [listSectionSeparator(_:edges:)](https://developer.apple.com/documentation/swiftui/view/listsectionseparator(_:edges:)) — Sets whether to hide the separator associated with a list section.
+### Configuring backgrounds
+
+- [listRowBackground(_:)](https://developer.apple.com/documentation/swiftui/view/listrowbackground(_:)) — Places a custom background view behind a list row item.
+- [alternatingRowBackgrounds(_:)](https://developer.apple.com/documentation/swiftui/view/alternatingrowbackgrounds(_:)) — Overrides whether lists and tables in this view have alternating row backgrounds.
+- [AlternatingRowBackgroundBehavior](https://developer.apple.com/documentation/swiftui/alternatingrowbackgroundbehavior) — The styling of views with respect to alternating row backgrounds.
+- [backgroundProminence](https://developer.apple.com/documentation/swiftui/environmentvalues/backgroundprominence) — The prominence of the background underneath views associated with this environment.
+- [BackgroundProminence](https://developer.apple.com/documentation/swiftui/backgroundprominence) — The prominence of backgrounds underneath other views.
+### Displaying a badge on a list item
+
+- [badge(_:)](https://developer.apple.com/documentation/swiftui/view/badge(_:)) — Generates a badge for the view from an integer value.
+- [badgeProminence(_:)](https://developer.apple.com/documentation/swiftui/view/badgeprominence(_:)) — Specifies the prominence of badges created by this view.
+- [badgeProminence](https://developer.apple.com/documentation/swiftui/environmentvalues/badgeprominence) — The prominence to apply to badges associated with this environment.
+- [BadgeProminence](https://developer.apple.com/documentation/swiftui/badgeprominence) — The visual prominence of a badge.
+### Configuring interaction
+
+- [swipeActions(edge:allowsFullSwipe:content:)](https://developer.apple.com/documentation/swiftui/view/swipeactions(edge:allowsfullswipe:content:)) — Adds custom swipe actions to a row in a list.
+- [selectionDisabled(_:)](https://developer.apple.com/documentation/swiftui/view/selectiondisabled(_:)) — Adds a condition that controls whether users can select this view.
+- [listRowHoverEffect(_:)](https://developer.apple.com/documentation/swiftui/view/listrowhovereffect(_:)) — Requests that the containing list row use the provided hover effect.
+- [listRowHoverEffectDisabled(_:)](https://developer.apple.com/documentation/swiftui/view/listrowhovereffectdisabled(_:)) — Requests that the containing list row have its hover effect disabled.
+### Refreshing a list’s content
+
+- [refreshable(action:)](https://developer.apple.com/documentation/swiftui/view/refreshable(action:)) — Marks this view as refreshable.
+- [refresh](https://developer.apple.com/documentation/swiftui/environmentvalues/refresh) — A refresh action stored in a view’s environment.
+- [RefreshAction](https://developer.apple.com/documentation/swiftui/refreshaction) — An action that initiates a refresh operation.
+### Editing a list
+
+- [moveDisabled(_:)](https://developer.apple.com/documentation/swiftui/view/movedisabled(_:)) — Adds a condition for whether the view’s view hierarchy is movable.
+- [deleteDisabled(_:)](https://developer.apple.com/documentation/swiftui/view/deletedisabled(_:)) — Adds a condition for whether the view’s view hierarchy is deletable.
+- [editMode](https://developer.apple.com/documentation/swiftui/environmentvalues/editmode) — An indication of whether the user can edit the contents of a view associated with this environment.
+- [EditMode](https://developer.apple.com/documentation/swiftui/editmode) — A mode that indicates whether the user can edit a view’s content.
+- [EditActions](https://developer.apple.com/documentation/swiftui/editactions) — A set of edit actions on a collection of data that a view can offer to a user.
+- [EditableCollectionContent](https://developer.apple.com/documentation/swiftui/editablecollectioncontent) — An opaque wrapper view that adds editing capabilities to a row in a list.
+- [IndexedIdentifierCollection](https://developer.apple.com/documentation/swiftui/indexedidentifiercollection) — A collection wrapper that iterates over the indices and identifiers of a collection together.
+### Configuring a section index
+
+- [listSectionIndexVisibility(_:)](https://developer.apple.com/documentation/swiftui/view/listsectionindexvisibility(_:)) — Changes the visibility of the list section index.
+- [sectionIndexLabel(_:)](https://developer.apple.com/documentation/swiftui/view/sectionindexlabel(_:)) — Sets the label that is used in a section index to point to this section, typically only a single character long.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/Lists](https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/Lists)*
+--- END FILE ---
+
+--- FILE: View-styles.md ---
+# View styles
+
+**Apply built-in and custom appearances and behaviors to different types of views.**
+
+
+## Overview
+
+SwiftUI defines built-in styles for certain kinds of views and automatically selects the appropriate style for a particular presentation context. For example, a [doc://com.apple.SwiftUI/documentation/SwiftUI/Label](https://developer.apple.com/documentation/SwiftUI/Label) might appear as an icon, a string title, or both, depending on factors like the platform, whether the view appears in a toolbar, and so on.
+
+![Image](view-styles-hero)
+
+You can override the automatic style by using one of the style view modifiers. These modifiers typically propagate throughout a container view, so that you can wrap a view hierarchy in a style modifier to affect all the views of the given type within the hierarchy.
+
+Any of the style protocols that define a `makeBody(configuration:)` method, like [doc://com.apple.SwiftUI/documentation/SwiftUI/ToggleStyle](https://developer.apple.com/documentation/SwiftUI/ToggleStyle), also enable you to define custom styles. Create a type that conforms to the corresponding style protocol and implement its `makeBody(configuration:)` method. Then apply the new style using a style view modifier exactly like a built-in style.
+
+## Topics
+
+### Styling views with Liquid Glass
+
+- [Applying Liquid Glass to custom views](https://developer.apple.com/documentation/swiftui/applying-liquid-glass-to-custom-views) — Configure, combine, and morph views using Liquid Glass effects.
+- [Landmarks: Building an app with Liquid Glass](https://developer.apple.com/documentation/swiftui/landmarks-building-an-app-with-liquid-glass) — Enhance your app experience with system-provided and custom Liquid Glass.
+- [glassEffect(_:in:)](https://developer.apple.com/documentation/swiftui/view/glasseffect(_:in:)) — Applies the Liquid Glass effect to a view.
+- [interactive(_:)](https://developer.apple.com/documentation/swiftui/glass/interactive(_:)) — Returns a copy of the structure configured to be interactive.
+- [GlassEffectContainer](https://developer.apple.com/documentation/swiftui/glasseffectcontainer) — A view that combines multiple Liquid Glass shapes into a single shape that can morph individual shapes into one another.
+- [GlassEffectTransition](https://developer.apple.com/documentation/swiftui/glasseffecttransition) — A structure that describes changes to apply when a glass effect is added or removed from the view hierarchy.
+- [GlassButtonStyle](https://developer.apple.com/documentation/swiftui/glassbuttonstyle) — A button style that applies glass border artwork based on the button’s context.
+- [GlassProminentButtonStyle](https://developer.apple.com/documentation/swiftui/glassprominentbuttonstyle) — A button style that applies prominent glass border artwork based on the button’s context.
+- [DefaultGlassEffectShape](https://developer.apple.com/documentation/swiftui/defaultglasseffectshape) — The default shape applied by glass effects, a capsule.
+### Styling buttons
+
+- [buttonStyle(_:)](https://developer.apple.com/documentation/swiftui/view/buttonstyle(_:)) — Sets the style for buttons within this view to a button style with a custom appearance and standard interaction behavior.
+- [ButtonStyle](https://developer.apple.com/documentation/swiftui/buttonstyle) — A type that applies standard interaction behavior and a custom appearance to all buttons within a view hierarchy.
+- [ButtonStyleConfiguration](https://developer.apple.com/documentation/swiftui/buttonstyleconfiguration) — The properties of a button.
+- [PrimitiveButtonStyle](https://developer.apple.com/documentation/swiftui/primitivebuttonstyle) — A type that applies custom interaction behavior and a custom appearance to all buttons within a view hierarchy.
+- [PrimitiveButtonStyleConfiguration](https://developer.apple.com/documentation/swiftui/primitivebuttonstyleconfiguration) — The properties of a button.
+- [signInWithAppleButtonStyle(_:)](https://developer.apple.com/documentation/swiftui/view/signinwithapplebuttonstyle(_:)) — Sets the style used for displaying the control (see `SignInWithAppleButton.Style`).
+### Styling pickers
+
+- [pickerStyle(_:)](https://developer.apple.com/documentation/swiftui/view/pickerstyle(_:)) — Sets the style for pickers within this view.
+- [PickerStyle](https://developer.apple.com/documentation/swiftui/pickerstyle) — A type that specifies the appearance and interaction of all pickers within a view hierarchy.
+- [datePickerStyle(_:)](https://developer.apple.com/documentation/swiftui/view/datepickerstyle(_:)) — Sets the style for date pickers within this view.
+- [DatePickerStyle](https://developer.apple.com/documentation/swiftui/datepickerstyle) — A type that specifies the appearance and interaction of all date pickers within a view hierarchy.
+### Styling menus
+
+- [menuStyle(_:)](https://developer.apple.com/documentation/swiftui/view/menustyle(_:)) — Sets the style for menus within this view.
+- [MenuStyle](https://developer.apple.com/documentation/swiftui/menustyle) — A type that applies standard interaction behavior and a custom appearance to all menus within a view hierarchy.
+- [MenuStyleConfiguration](https://developer.apple.com/documentation/swiftui/menustyleconfiguration) — A configuration of a menu.
+### Styling toggles
+
+- [toggleStyle(_:)](https://developer.apple.com/documentation/swiftui/view/togglestyle(_:)) — Sets the style for toggles in a view hierarchy.
+- [ToggleStyle](https://developer.apple.com/documentation/swiftui/togglestyle) — The appearance and behavior of a toggle.
+- [ToggleStyleConfiguration](https://developer.apple.com/documentation/swiftui/togglestyleconfiguration) — The properties of a toggle instance.
+### Styling indicators
+
+- [gaugeStyle(_:)](https://developer.apple.com/documentation/swiftui/view/gaugestyle(_:)) — Sets the style for gauges within this view.
+- [GaugeStyle](https://developer.apple.com/documentation/swiftui/gaugestyle) — Defines the implementation of all gauge instances within a view hierarchy.
+- [GaugeStyleConfiguration](https://developer.apple.com/documentation/swiftui/gaugestyleconfiguration) — The properties of a gauge instance.
+- [progressViewStyle(_:)](https://developer.apple.com/documentation/swiftui/view/progressviewstyle(_:)) — Sets the style for progress views in this view.
+- [ProgressViewStyle](https://developer.apple.com/documentation/swiftui/progressviewstyle) — A type that applies standard interaction behavior to all progress views within a view hierarchy.
+- [ProgressViewStyleConfiguration](https://developer.apple.com/documentation/swiftui/progressviewstyleconfiguration) — The properties of a progress view instance.
+### Styling views that display text
+
+- [labelStyle(_:)](https://developer.apple.com/documentation/swiftui/view/labelstyle(_:)) — Sets the style for labels within this view.
+- [LabelStyle](https://developer.apple.com/documentation/swiftui/labelstyle) — A type that applies a custom appearance to all labels within a view.
+- [LabelStyleConfiguration](https://developer.apple.com/documentation/swiftui/labelstyleconfiguration) — The properties of a label.
+- [textFieldStyle(_:)](https://developer.apple.com/documentation/swiftui/view/textfieldstyle(_:)) — Sets the style for text fields within this view.
+- [TextFieldStyle](https://developer.apple.com/documentation/swiftui/textfieldstyle) — A specification for the appearance and interaction of a text field.
+- [textEditorStyle(_:)](https://developer.apple.com/documentation/swiftui/view/texteditorstyle(_:)) — Sets the style for text editors within this view.
+- [TextEditorStyle](https://developer.apple.com/documentation/swiftui/texteditorstyle) — A specification for the appearance and interaction of a text editor.
+- [TextEditorStyleConfiguration](https://developer.apple.com/documentation/swiftui/texteditorstyleconfiguration) — The properties of a text editor.
+### Styling collection views
+
+- [listStyle(_:)](https://developer.apple.com/documentation/swiftui/view/liststyle(_:)) — Sets the style for lists within this view.
+- [ListStyle](https://developer.apple.com/documentation/swiftui/liststyle) — A protocol that describes the behavior and appearance of a list.
+- [tableStyle(_:)](https://developer.apple.com/documentation/swiftui/view/tablestyle(_:)) — Sets the style for tables within this view.
+- [TableStyle](https://developer.apple.com/documentation/swiftui/tablestyle) — A type that applies a custom appearance to all tables within a view.
+- [TableStyleConfiguration](https://developer.apple.com/documentation/swiftui/tablestyleconfiguration) — The properties of a table.
+- [disclosureGroupStyle(_:)](https://developer.apple.com/documentation/swiftui/view/disclosuregroupstyle(_:)) — Sets the style for disclosure groups within this view.
+- [DisclosureGroupStyle](https://developer.apple.com/documentation/swiftui/disclosuregroupstyle) — A type that specifies the appearance and interaction of disclosure groups within a view hierarchy.
+### Styling navigation views
+
+- [navigationSplitViewStyle(_:)](https://developer.apple.com/documentation/swiftui/view/navigationsplitviewstyle(_:)) — Sets the style for navigation split views within this view.
+- [NavigationSplitViewStyle](https://developer.apple.com/documentation/swiftui/navigationsplitviewstyle) — A type that specifies the appearance and interaction of navigation split views within a view hierarchy.
+- [tabViewStyle(_:)](https://developer.apple.com/documentation/swiftui/view/tabviewstyle(_:)) — Sets the style for the tab view within the current environment.
+- [TabViewStyle](https://developer.apple.com/documentation/swiftui/tabviewstyle) — A specification for the appearance and interaction of a tab view.
+### Styling groups
+
+- [controlGroupStyle(_:)](https://developer.apple.com/documentation/swiftui/view/controlgroupstyle(_:)) — Sets the style for control groups within this view.
+- [ControlGroupStyle](https://developer.apple.com/documentation/swiftui/controlgroupstyle) — Defines the implementation of all control groups within a view hierarchy.
+- [ControlGroupStyleConfiguration](https://developer.apple.com/documentation/swiftui/controlgroupstyleconfiguration) — The properties of a control group.
+- [formStyle(_:)](https://developer.apple.com/documentation/swiftui/view/formstyle(_:)) — Sets the style for forms in a view hierarchy.
+- [FormStyle](https://developer.apple.com/documentation/swiftui/formstyle) — The appearance and behavior of a form.
+- [FormStyleConfiguration](https://developer.apple.com/documentation/swiftui/formstyleconfiguration) — The properties of a form instance.
+- [groupBoxStyle(_:)](https://developer.apple.com/documentation/swiftui/view/groupboxstyle(_:)) — Sets the style for group boxes within this view.
+- [GroupBoxStyle](https://developer.apple.com/documentation/swiftui/groupboxstyle) — A type that specifies the appearance and interaction of all group boxes within a view hierarchy.
+- [GroupBoxStyleConfiguration](https://developer.apple.com/documentation/swiftui/groupboxstyleconfiguration) — The properties of a group box instance.
+- [indexViewStyle(_:)](https://developer.apple.com/documentation/swiftui/view/indexviewstyle(_:)) — Sets the style for the index view within the current environment.
+- [IndexViewStyle](https://developer.apple.com/documentation/swiftui/indexviewstyle) — Defines the implementation of all `IndexView` instances within a view hierarchy.
+- [labeledContentStyle(_:)](https://developer.apple.com/documentation/swiftui/view/labeledcontentstyle(_:)) — Sets a style for labeled content.
+- [LabeledContentStyle](https://developer.apple.com/documentation/swiftui/labeledcontentstyle) — The appearance and behavior of a labeled content instance..
+- [LabeledContentStyleConfiguration](https://developer.apple.com/documentation/swiftui/labeledcontentstyleconfiguration) — The properties of a labeled content instance.
+### Styling windows from a view inside the window
+
+- [presentedWindowStyle(_:)](https://developer.apple.com/documentation/swiftui/view/presentedwindowstyle(_:)) — Sets the style for windows created by interacting with this view.
+- [presentedWindowToolbarStyle(_:)](https://developer.apple.com/documentation/swiftui/view/presentedwindowtoolbarstyle(_:)) — Sets the style for the toolbar in windows created by interacting with this view.
+### Adding a glass background on views in visionOS
+
+- [glassBackgroundEffect(displayMode:)](https://developer.apple.com/documentation/swiftui/view/glassbackgroundeffect(displaymode:)) — Fills the view’s background with an automatic glass background effect and container-relative rounded rectangle shape.
+- [glassBackgroundEffect(in:displayMode:)](https://developer.apple.com/documentation/swiftui/view/glassbackgroundeffect(in:displaymode:)) — Fills the view’s background with an automatic glass background effect and a shape that you specify.
+- [GlassBackgroundDisplayMode](https://developer.apple.com/documentation/swiftui/glassbackgrounddisplaymode) — The display mode of a glass background.
+- [GlassBackgroundEffect](https://developer.apple.com/documentation/swiftui/glassbackgroundeffect) — A specification for the appearance of a glass background.
+- [AutomaticGlassBackgroundEffect](https://developer.apple.com/documentation/swiftui/automaticglassbackgroundeffect) — The automatic glass background effect.
+- [GlassBackgroundEffectConfiguration](https://developer.apple.com/documentation/swiftui/glassbackgroundeffectconfiguration) — A configuration used to build a custom effect.
+- [FeatheredGlassBackgroundEffect](https://developer.apple.com/documentation/swiftui/featheredglassbackgroundeffect) — The feathered glass background effect.
+- [PlateGlassBackgroundEffect](https://developer.apple.com/documentation/swiftui/plateglassbackgroundeffect) — The plate glass background effect.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/View-styles](https://developer.apple.com/documentation/com.apple.SwiftUI/documentation/SwiftUI/View-styles)*
+--- END FILE ---
+
+--- FILE: Hello-World.md ---
+# Hello World
+
+**Use windows, volumes, and immersive spaces to teach people about the Earth.**
+
+## Availability
+
+- **visionOS** 2.0+
+- **Xcode** 16.0+
+
+
+## Overview
+
+You can use visionOS scene types and styles to share information in fun and compelling ways. Features like volumes and immersive spaces let you put interactive virtual objects into people’s environments, or put people into a virtual environment.
+
+Hello World uses these tools to teach people about the Earth — the planet we call home. The app shows how the Earth’s tilt creates the seasons, how objects move as they orbit the Earth, and how Earth appears from space.
+
+The app uses SwiftUI to define its interface, including both 2D and 3D elements. To create, customize, and manage 3D models and effects, it also relies on the RealityKit framework and Reality Composer Pro.
+
+
+### Create an entry point into the app
+
+Hello World constructs the scene that it displays at launch — the first scene that appears in the `WorldApp` structure — using a [doc://com.apple.documentation/documentation/SwiftUI/WindowGroup](https://developer.apple.com/documentation/SwiftUI/WindowGroup):
+
+```swift
+WindowGroup("Hello World", id: "modules") {
+    Modules()
+        .environment(model)
+}
+.windowStyle(.plain)
+```
+
+Like other platforms — for example, macOS and iOS — visionOS displays a window group as a familiar-looking window. In visionOS, people can resize and move windows around the Shared Space. Even if your app offers a sophisticated 3D experience, a window is a great starting point for an app because it eases people into the experience. It’s also a good place to provide instructions or controls.
+
+
+> **TIP**: This particular window group uses the [doc://com.apple.documentation/documentation/SwiftUI/WindowStyle/plain](https://developer.apple.com/documentation/SwiftUI/WindowStyle/plain) window style to maintain control over the glass background effect that visionOS would otherwise automatically add.
+
+
+
+### Present different modules using a navigation stack
+
+After you watch a brief introductory animation that shows the text Hello World typing in, the `Modules` view that defines the primary scene’s content presents options to explore different aspects of the world. This view contains a table of contents at the root of a [doc://com.apple.documentation/documentation/SwiftUI/NavigationStack](https://developer.apple.com/documentation/SwiftUI/NavigationStack):
+
+```swift
+NavigationStack(path: $model.navigationPath) {
+    TableOfContents()
+        .navigationDestination(for: Module.self) { module in
+            ModuleDetail(module: module)
+                .navigationTitle(module.eyebrow)
+        }
+}
+```
+
+The trailing closure of the [doc://com.apple.documentation/documentation/SwiftUI/View/navigationDestination(for:destination:)](https://developer.apple.com/documentation/SwiftUI/View/navigationDestination(for:destination:)) view modifier in the code above displays a view when someone activates a link based on a `module` input that comes from the corresponding link’s initializer:
+
+```swift
+NavigationLink(value: module) { /* The link's label. */ }
+```
+
+The possible `module` values come from a custom `Module` enumeration:
+
+```swift
+enum Module: String, Identifiable, CaseIterable, Equatable {
+    case globe, orbit, solar
+    // ...
+}
+```
+
+
+### Display an interactive globe in a new scene
+
+To be able to open multiple scene types, Hello World includes the [doc://com.apple.documentation/documentation/BundleResources/Information-Property-List/UIApplicationSceneManifest](https://developer.apple.com/documentation/BundleResources/Information-Property-List/UIApplicationSceneManifest) key in its [doc://com.apple.documentation/documentation/BundleResources/Information-Property-List](https://developer.apple.com/documentation/BundleResources/Information-Property-List) file. The value for this key is a dictionary that includes the [doc://com.apple.documentation/documentation/BundleResources/Information-Property-List/UIApplicationSceneManifest/UIApplicationSupportsMultipleScenes](https://developer.apple.com/documentation/BundleResources/Information-Property-List/UIApplicationSceneManifest/UIApplicationSupportsMultipleScenes) key with a value of `true`:
+
+```swift
+<key>UIApplicationSceneManifest</key>
+<dict>
+    <key>UIApplicationSupportsMultipleScenes</key>
+    <true/>
+    <key>UISceneConfigurations</key>
+    <dict/>
+</dict>
+```
+
+
+### Declare a volume for the globe
+
+With the key in place, the app makes use of a second [doc://com.apple.documentation/documentation/SwiftUI/WindowGroup](https://developer.apple.com/documentation/SwiftUI/WindowGroup) in its [doc://com.apple.documentation/documentation/SwiftUI/App](https://developer.apple.com/documentation/SwiftUI/App) declaration. This new window group uses the `Globe` view as its content:
+
+```swift
+WindowGroup(id: Module.globe.name) {
+    Globe()
+        .environment(model)
+}
+.windowStyle(.volumetric)
+.defaultSize(width: 0.6, height: 0.6, depth: 0.6, in: .meters)
+```
+
+The `Globe` view inside the volume contains 3D content, but is still just a SwiftUI view. It contains two elements in a [doc://com.apple.documentation/documentation/SwiftUI/ZStack](https://developer.apple.com/documentation/SwiftUI/ZStack): a subview that draws a model of the Earth, and another that provides a control panel that people can use to configure the model’s appearance.
+
+
+### Open and dismiss the globe volume
+
+```swift
+struct GlobeToggle: View {
+    @Environment(ViewModel.self) private var model
+    @Environment(\.openWindow) private var openWindow
+    @Environment(\.dismissWindow) private var dismissWindow
+
+    var body: some View {
+        @Bindable var model = model
+
+        Toggle(Module.globe.callToAction, isOn: $model.isShowingGlobe)
+            .onChange(of: model.isShowingGlobe) { _, isShowing in
+                if isShowing {
+                    openWindow(id: Module.globe.name)
+                } else {
+                    dismissWindow(id: Module.globe.name)
+                }
+            }
+            .toggleStyle(.button)
+    }
+}
+```
+
+When someone taps the toggle, the `isShowingGlobe` state changes, and the [doc://com.apple.documentation/documentation/SwiftUI/View/onChange(of:initial:_:)-4psgg](https://developer.apple.com/documentation/SwiftUI/View/onChange(of:initial:_:)-4psgg) modifier calls the [doc://com.apple.documentation/documentation/SwiftUI/EnvironmentValues/openWindow](https://developer.apple.com/documentation/SwiftUI/EnvironmentValues/openWindow) or [doc://com.apple.documentation/documentation/SwiftUI/EnvironmentValues/dismissWindow](https://developer.apple.com/documentation/SwiftUI/EnvironmentValues/dismissWindow) action to open or dismiss the volume, respectively. The view gets these actions from the environment and uses an identifier that matches the volume’s identifier.
+
+
+### Display objects that orbit the Earth
+
+Hello World loads these models from the asset bundle using a [doc://com.apple.documentation/documentation/RealityKit/Model3D](https://developer.apple.com/documentation/RealityKit/Model3D) structure inside a custom `ItemView`. The view scales and positions the model to fit the available space, and applies optional orientation adjustments:
+
+```swift
+private struct ItemView: View {
+    var item: Item
+    var orientation: SIMD3<Double> = .zero
+
+    var body: some View {
+        Model3D(named: item.name, bundle: worldAssetsBundle) { model in
+            model.resizable()
+                .scaledToFit()
+                .rotation3DEffect(
+                    Rotation3D(
+                        eulerAngles: .init(angles: orientation, order: .xyz)
+                    )
+                )
+                .frame(depth: modelDepth)
+                .offset(z: -modelDepth / 2)
+        } placeholder: {
+            ProgressView()
+                .offset(z: -modelDepth * 0.75)
+        }
+    }
+}
+```
+
+The app uses this `ItemView` once for each model, placing each in an overlay that only becomes visible based on the current selection. For example, the following overlay displays the satellite model with a small amount of tilt in the x-axis and z-axis:
+
+```swift
+.overlay {
+    ItemView(item: .satellite, orientation: [0.15, 0, 0.15])
+        .opacity(selection == .satellite ? 1 : 0)
+}
+```
+
+The [doc://com.apple.documentation/documentation/SwiftUI/VStack](https://developer.apple.com/documentation/SwiftUI/VStack) that contains the models also contains a [doc://com.apple.documentation/documentation/SwiftUI/Picker](https://developer.apple.com/documentation/SwiftUI/Picker) that people use to select a model to view:
+
+```swift
+Picker("Satellite", selection: $selection) {
+    ForEach(Item.allCases) { item in
+        Text(item.name)
+    }
+}
+.pickerStyle(.segmented)
+```
+
+When you add 3D effects to a 2D window, keep this guidance in mind:
+
+- **Don’t overdo it.** These kinds of effects add interest, but can unintentionally obscure important controls or information as people view the window from different directions.
+
+- **Ensure that elements don’t exceed the available depth.** Excess depth causes elements to clip. Account for any position or orientation changes that might occur after initial placement.
+
+- **Avoid models intersecting with the backing glass.** Again, account for potential movement after initial placement.
+
+
+### Show Earth’s relationship to its satellites in an immersive space
+
+
+> **NOTE**: To learn about designing with gestures in visionOS, read doc://com.apple.documentation/design/Human-Interface-Guidelines/gestures in doc://com.apple.documentation/design/human-interface-guidelines.
+
+
+To create this visualization, the app displays the `Orbit` view — which contains a single [doc://com.apple.documentation/documentation/RealityKit/RealityView](https://developer.apple.com/documentation/RealityKit/RealityView) that models the entire system — in an [doc://com.apple.documentation/documentation/SwiftUI/ImmersiveSpace](https://developer.apple.com/documentation/SwiftUI/ImmersiveSpace) scene with the [doc://com.apple.documentation/documentation/SwiftUI/ImmersionStyle/mixed](https://developer.apple.com/documentation/SwiftUI/ImmersionStyle/mixed) immersion style:
+
+```swift
+ImmersiveSpace(id: Module.orbit.name) {
+    Orbit()
+        .environment(model)
+}
+.immersionStyle(selection: $orbitImmersionStyle, in: .mixed)
+```
+
+As with any secondary scene in a visionOS app, this scene depends on having the [doc://com.apple.documentation/documentation/BundleResources/Information-Property-List/UIApplicationSceneManifest/UIApplicationSupportsMultipleScenes](https://developer.apple.com/documentation/BundleResources/Information-Property-List/UIApplicationSceneManifest/UIApplicationSupportsMultipleScenes) key in the [doc://com.apple.documentation/documentation/BundleResources/Information-Property-List](https://developer.apple.com/documentation/BundleResources/Information-Property-List) file. The app also opens and closes the space using a toggle view that resembles the one used for the globe:
+
+```swift
+struct OrbitToggle: View {
+    @Environment(ViewModel.self) private var model
+    @Environment(\.openImmersiveSpace) private var openImmersiveSpace
+    @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
+
+    var body: some View {
+        @Bindable var model = model
+
+        Toggle(Module.orbit.callToAction, isOn: $model.isShowingOrbit)
+            .onChange(of: model.isShowingOrbit) { _, isShowing in
+                Task {
+                    if isShowing {
+                        await openImmersiveSpace(id: Module.orbit.name)
+                    } else {
+                        await dismissImmersiveSpace()
+                    }
+                }
+            }
+            .toggleStyle(.button)
+    }
+}
+```
+
+There are a few key differences from the version that appears in the section [doc://com.apple.visionOS/documentation/visionOS/World#Open-and-dismiss-the-globe-volume](https://developer.apple.com/documentation/visionOS/World#Open-and-dismiss-the-globe-volume):
+
+- `OrbitToggle` uses [doc://com.apple.documentation/documentation/SwiftUI/EnvironmentValues/openImmersiveSpace](https://developer.apple.com/documentation/SwiftUI/EnvironmentValues/openImmersiveSpace) and [doc://com.apple.documentation/documentation/SwiftUI/EnvironmentValues/dismissImmersiveSpace](https://developer.apple.com/documentation/SwiftUI/EnvironmentValues/dismissImmersiveSpace) from the environment, rather than the window equivalents.
+
+- The dismiss action in this case doesn’t require an identifier, because people can only open one space at a time, even across apps.
+
+- The open and dismiss actions for spaces operate asynchronously, and so they appear inside a [doc://com.apple.documentation/documentation/Swift/Task](https://developer.apple.com/documentation/Swift/Task).
+
+
+### View the solar system from space using full immersion
+
+
+> **TIP**: People can always close the currently open immersive space by pressing the device’s Digital Crown, but it’s typically useful when you provide a built-in mechanism to maintain control of the experience within your app.
+
+
+The app uses another immersive space scene for this module, but here with the [doc://com.apple.documentation/documentation/SwiftUI/ImmersionStyle/full](https://developer.apple.com/documentation/SwiftUI/ImmersionStyle/full) immersion style that turns off the passthrough video:
+
+```swift
+ImmersiveSpace(id: Module.solar.name) {
+    SolarSystem()
+        .environment(model)
+}
+.immersionStyle(selection: $solarImmersionStyle, in: .full)
+```
+
+This scene depends on the same [doc://com.apple.documentation/documentation/BundleResources/Information-Property-List/UIApplicationSceneManifest/UIApplicationSupportsMultipleScenes](https://developer.apple.com/documentation/BundleResources/Information-Property-List/UIApplicationSceneManifest/UIApplicationSupportsMultipleScenes) key that other secondary scenes do, and is activated by a `SolarSystemToggle` that’s similar to the ones that the app uses for the other scenes:
+
+```swift
+struct SolarSystemToggle: View {
+    @Environment(ViewModel.self) private var model
+    @Environment(\.openImmersiveSpace) private var openImmersiveSpace
+    @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
+
+    var body: some View {
+        Button {
+            Task {
+                if model.isShowingSolar {
+                    await dismissImmersiveSpace()
+                } else {
+                    await openImmersiveSpace(id: Module.solar.name)
+                }
+            }
+        } label: {
+            if model.isShowingSolar {
+                Label(
+                    "Exit the Solar System",
+                    systemImage: "arrow.down.right.and.arrow.up.left")
+            } else {
+                Text(Module.solar.callToAction)
+            }
+        }
+    }
+}
+```
+
+This control appears in the main window to provide a way to begin the fully immersive experience, and separately in the control panel as a way to exit the experience. Because the app uses this control as two distinct buttons rather than as a toggle in one location, it’s composed of a [doc://com.apple.documentation/documentation/SwiftUI/Button](https://developer.apple.com/documentation/SwiftUI/Button) with behavior that changes depending on the app state rather than as a toggle with a button style.
+
+To reuse the main window for the solar system controls, Hello World places both the navigation stack and the controls in a [doc://com.apple.documentation/documentation/SwiftUI/ZStack](https://developer.apple.com/documentation/SwiftUI/ZStack), and then sets the opacity of each to ensure that only one appears at a time:
+
+```swift
+ZStack {
+    SolarSystemControls()
+        .opacity(model.isShowingSolar ? 1 : 0)
+
+    NavigationStack(path: $model.navigationPath) {
+        // ...
+    }
+    .opacity(model.isShowingSolar ? 0 : 1)
+}
+.animation(.default, value: model.isShowingSolar)
+```
+
+
+#### Related samples
+
+
+### Related Links
+
+- doc://com.apple.visionOS/documentation/visionOS/happybeam
+
+- doc://com.apple.visionOS/documentation/visionOS/destination-video
+
+- doc://com.apple.visionOS/documentation/visionOS/diorama
+
+
+#### Related articles
+
+
+### Related Links
+
+- doc://com.apple.visionOS/documentation/visionOS/creating-your-first-visionos-app
+
+- doc://com.apple.visionOS/documentation/visionOS/adding-3d-content-to-your-app
+
+- doc://com.apple.visionOS/documentation/visionOS/creating-fully-immersive-experiences
+
+- doc://com.apple.visionOS/documentation/visionOS/presenting-windows-and-spaces
+
+- doc://com.apple.visionOS/documentation/visionOS/positioning-and-sizing-windows
+
+
+#### Related videos
+
+
+### Related Links
+
+- doc://com.apple.documentation/videos/play/wwdc2023/102
+
+- doc://com.apple.documentation/videos/play/wwdc2023/10109
+
+- doc://com.apple.documentation/videos/play/wwdc2023/10111
+
+- doc://com.apple.documentation/videos/play/wwdc2023/10113
+
+- doc://com.apple.documentation/videos/play/wwdc2023/10203
+
+- doc://com.apple.documentation/videos/play/wwdc2023/10260
+
+### Related Resources
+
+- [Happy Beam](/documentation/visionos/happybeam)
+- [Destination Video](/documentation/visionos/destination-video)
+- [Diorama](/documentation/visionos/diorama)
+
+### Related Resources
+
+- [Creating your first visionOS app](/documentation/visionos/creating-your-first-visionos-app)
+- [Adding 3D content to your app](/documentation/visionos/adding-3d-content-to-your-app)
+- [Creating fully immersive experiences in your app](/documentation/visionos/creating-fully-immersive-experiences)
+- [Presenting windows and spaces](/documentation/visionos/presenting-windows-and-spaces)
+- [Positioning and sizing windows](/documentation/visionos/positioning-and-sizing-windows)
+
+### Related Resources
+
+- [Platforms State of the Union](https://developer.apple.com/videos/play/wwdc2023/102)
+- [Meet SwiftUI for spatial computing](https://developer.apple.com/videos/play/wwdc2023/10109)
+- [Go beyond the window with SwiftUI](https://developer.apple.com/videos/play/wwdc2023/10111)
+- [Take SwiftUI to the next dimension](https://developer.apple.com/videos/play/wwdc2023/10113)
+- [Develop your first immersive app](https://developer.apple.com/videos/play/wwdc2023/10203)
+- [Get started with building apps for spatial computing](https://developer.apple.com/videos/play/wwdc2023/10260)
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.visionOS/documentation/visionOS/World](https://developer.apple.com/documentation/com.apple.visionOS/documentation/visionOS/World)*
+--- END FILE ---
+
+--- FILE: Hello-World.md ---
+# Hello World
+
+**Use windows, volumes, and immersive spaces to teach people about the Earth.**
+
+## Availability
+
+- **visionOS** 2.0+
+- **Xcode** 16.0+
+
+
+## Overview
+
+You can use visionOS scene types and styles to share information in fun and compelling ways. Features like volumes and immersive spaces let you put interactive virtual objects into people’s environments, or put people into a virtual environment.
+
+Hello World uses these tools to teach people about the Earth — the planet we call home. The app shows how the Earth’s tilt creates the seasons, how objects move as they orbit the Earth, and how Earth appears from space.
+
+The app uses SwiftUI to define its interface, including both 2D and 3D elements. To create, customize, and manage 3D models and effects, it also relies on the RealityKit framework and Reality Composer Pro.
+
+
+### Create an entry point into the app
+
+Hello World constructs the scene that it displays at launch — the first scene that appears in the `WorldApp` structure — using a [doc://com.apple.documentation/documentation/SwiftUI/WindowGroup](https://developer.apple.com/documentation/SwiftUI/WindowGroup):
+
+```swift
+WindowGroup("Hello World", id: "modules") {
+    Modules()
+        .environment(model)
+}
+.windowStyle(.plain)
+```
+
+Like other platforms — for example, macOS and iOS — visionOS displays a window group as a familiar-looking window. In visionOS, people can resize and move windows around the Shared Space. Even if your app offers a sophisticated 3D experience, a window is a great starting point for an app because it eases people into the experience. It’s also a good place to provide instructions or controls.
+
+
+> **TIP**: This particular window group uses the [doc://com.apple.documentation/documentation/SwiftUI/WindowStyle/plain](https://developer.apple.com/documentation/SwiftUI/WindowStyle/plain) window style to maintain control over the glass background effect that visionOS would otherwise automatically add.
+
+
+
+### Present different modules using a navigation stack
+
+After you watch a brief introductory animation that shows the text Hello World typing in, the `Modules` view that defines the primary scene’s content presents options to explore different aspects of the world. This view contains a table of contents at the root of a [doc://com.apple.documentation/documentation/SwiftUI/NavigationStack](https://developer.apple.com/documentation/SwiftUI/NavigationStack):
+
+```swift
+NavigationStack(path: $model.navigationPath) {
+    TableOfContents()
+        .navigationDestination(for: Module.self) { module in
+            ModuleDetail(module: module)
+                .navigationTitle(module.eyebrow)
+        }
+}
+```
+
+The trailing closure of the [doc://com.apple.documentation/documentation/SwiftUI/View/navigationDestination(for:destination:)](https://developer.apple.com/documentation/SwiftUI/View/navigationDestination(for:destination:)) view modifier in the code above displays a view when someone activates a link based on a `module` input that comes from the corresponding link’s initializer:
+
+```swift
+NavigationLink(value: module) { /* The link's label. */ }
+```
+
+The possible `module` values come from a custom `Module` enumeration:
+
+```swift
+enum Module: String, Identifiable, CaseIterable, Equatable {
+    case globe, orbit, solar
+    // ...
+}
+```
+
+
+### Display an interactive globe in a new scene
+
+To be able to open multiple scene types, Hello World includes the [doc://com.apple.documentation/documentation/BundleResources/Information-Property-List/UIApplicationSceneManifest](https://developer.apple.com/documentation/BundleResources/Information-Property-List/UIApplicationSceneManifest) key in its [doc://com.apple.documentation/documentation/BundleResources/Information-Property-List](https://developer.apple.com/documentation/BundleResources/Information-Property-List) file. The value for this key is a dictionary that includes the [doc://com.apple.documentation/documentation/BundleResources/Information-Property-List/UIApplicationSceneManifest/UIApplicationSupportsMultipleScenes](https://developer.apple.com/documentation/BundleResources/Information-Property-List/UIApplicationSceneManifest/UIApplicationSupportsMultipleScenes) key with a value of `true`:
+
+```swift
+<key>UIApplicationSceneManifest</key>
+<dict>
+    <key>UIApplicationSupportsMultipleScenes</key>
+    <true/>
+    <key>UISceneConfigurations</key>
+    <dict/>
+</dict>
+```
+
+
+### Declare a volume for the globe
+
+With the key in place, the app makes use of a second [doc://com.apple.documentation/documentation/SwiftUI/WindowGroup](https://developer.apple.com/documentation/SwiftUI/WindowGroup) in its [doc://com.apple.documentation/documentation/SwiftUI/App](https://developer.apple.com/documentation/SwiftUI/App) declaration. This new window group uses the `Globe` view as its content:
+
+```swift
+WindowGroup(id: Module.globe.name) {
+    Globe()
+        .environment(model)
+}
+.windowStyle(.volumetric)
+.defaultSize(width: 0.6, height: 0.6, depth: 0.6, in: .meters)
+```
+
+The `Globe` view inside the volume contains 3D content, but is still just a SwiftUI view. It contains two elements in a [doc://com.apple.documentation/documentation/SwiftUI/ZStack](https://developer.apple.com/documentation/SwiftUI/ZStack): a subview that draws a model of the Earth, and another that provides a control panel that people can use to configure the model’s appearance.
+
+
+### Open and dismiss the globe volume
+
+```swift
+struct GlobeToggle: View {
+    @Environment(ViewModel.self) private var model
+    @Environment(\.openWindow) private var openWindow
+    @Environment(\.dismissWindow) private var dismissWindow
+
+    var body: some View {
+        @Bindable var model = model
+
+        Toggle(Module.globe.callToAction, isOn: $model.isShowingGlobe)
+            .onChange(of: model.isShowingGlobe) { _, isShowing in
+                if isShowing {
+                    openWindow(id: Module.globe.name)
+                } else {
+                    dismissWindow(id: Module.globe.name)
+                }
+            }
+            .toggleStyle(.button)
+    }
+}
+```
+
+When someone taps the toggle, the `isShowingGlobe` state changes, and the [doc://com.apple.documentation/documentation/SwiftUI/View/onChange(of:initial:_:)-4psgg](https://developer.apple.com/documentation/SwiftUI/View/onChange(of:initial:_:)-4psgg) modifier calls the [doc://com.apple.documentation/documentation/SwiftUI/EnvironmentValues/openWindow](https://developer.apple.com/documentation/SwiftUI/EnvironmentValues/openWindow) or [doc://com.apple.documentation/documentation/SwiftUI/EnvironmentValues/dismissWindow](https://developer.apple.com/documentation/SwiftUI/EnvironmentValues/dismissWindow) action to open or dismiss the volume, respectively. The view gets these actions from the environment and uses an identifier that matches the volume’s identifier.
+
+
+### Display objects that orbit the Earth
+
+Hello World loads these models from the asset bundle using a [doc://com.apple.documentation/documentation/RealityKit/Model3D](https://developer.apple.com/documentation/RealityKit/Model3D) structure inside a custom `ItemView`. The view scales and positions the model to fit the available space, and applies optional orientation adjustments:
+
+```swift
+private struct ItemView: View {
+    var item: Item
+    var orientation: SIMD3<Double> = .zero
+
+    var body: some View {
+        Model3D(named: item.name, bundle: worldAssetsBundle) { model in
+            model.resizable()
+                .scaledToFit()
+                .rotation3DEffect(
+                    Rotation3D(
+                        eulerAngles: .init(angles: orientation, order: .xyz)
+                    )
+                )
+                .frame(depth: modelDepth)
+                .offset(z: -modelDepth / 2)
+        } placeholder: {
+            ProgressView()
+                .offset(z: -modelDepth * 0.75)
+        }
+    }
+}
+```
+
+The app uses this `ItemView` once for each model, placing each in an overlay that only becomes visible based on the current selection. For example, the following overlay displays the satellite model with a small amount of tilt in the x-axis and z-axis:
+
+```swift
+.overlay {
+    ItemView(item: .satellite, orientation: [0.15, 0, 0.15])
+        .opacity(selection == .satellite ? 1 : 0)
+}
+```
+
+The [doc://com.apple.documentation/documentation/SwiftUI/VStack](https://developer.apple.com/documentation/SwiftUI/VStack) that contains the models also contains a [doc://com.apple.documentation/documentation/SwiftUI/Picker](https://developer.apple.com/documentation/SwiftUI/Picker) that people use to select a model to view:
+
+```swift
+Picker("Satellite", selection: $selection) {
+    ForEach(Item.allCases) { item in
+        Text(item.name)
+    }
+}
+.pickerStyle(.segmented)
+```
+
+When you add 3D effects to a 2D window, keep this guidance in mind:
+
+- **Don’t overdo it.** These kinds of effects add interest, but can unintentionally obscure important controls or information as people view the window from different directions.
+
+- **Ensure that elements don’t exceed the available depth.** Excess depth causes elements to clip. Account for any position or orientation changes that might occur after initial placement.
+
+- **Avoid models intersecting with the backing glass.** Again, account for potential movement after initial placement.
+
+
+### Show Earth’s relationship to its satellites in an immersive space
+
+
+> **NOTE**: To learn about designing with gestures in visionOS, read doc://com.apple.documentation/design/Human-Interface-Guidelines/gestures in doc://com.apple.documentation/design/human-interface-guidelines.
+
+
+To create this visualization, the app displays the `Orbit` view — which contains a single [doc://com.apple.documentation/documentation/RealityKit/RealityView](https://developer.apple.com/documentation/RealityKit/RealityView) that models the entire system — in an [doc://com.apple.documentation/documentation/SwiftUI/ImmersiveSpace](https://developer.apple.com/documentation/SwiftUI/ImmersiveSpace) scene with the [doc://com.apple.documentation/documentation/SwiftUI/ImmersionStyle/mixed](https://developer.apple.com/documentation/SwiftUI/ImmersionStyle/mixed) immersion style:
+
+```swift
+ImmersiveSpace(id: Module.orbit.name) {
+    Orbit()
+        .environment(model)
+}
+.immersionStyle(selection: $orbitImmersionStyle, in: .mixed)
+```
+
+As with any secondary scene in a visionOS app, this scene depends on having the [doc://com.apple.documentation/documentation/BundleResources/Information-Property-List/UIApplicationSceneManifest/UIApplicationSupportsMultipleScenes](https://developer.apple.com/documentation/BundleResources/Information-Property-List/UIApplicationSceneManifest/UIApplicationSupportsMultipleScenes) key in the [doc://com.apple.documentation/documentation/BundleResources/Information-Property-List](https://developer.apple.com/documentation/BundleResources/Information-Property-List) file. The app also opens and closes the space using a toggle view that resembles the one used for the globe:
+
+```swift
+struct OrbitToggle: View {
+    @Environment(ViewModel.self) private var model
+    @Environment(\.openImmersiveSpace) private var openImmersiveSpace
+    @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
+
+    var body: some View {
+        @Bindable var model = model
+
+        Toggle(Module.orbit.callToAction, isOn: $model.isShowingOrbit)
+            .onChange(of: model.isShowingOrbit) { _, isShowing in
+                Task {
+                    if isShowing {
+                        await openImmersiveSpace(id: Module.orbit.name)
+                    } else {
+                        await dismissImmersiveSpace()
+                    }
+                }
+            }
+            .toggleStyle(.button)
+    }
+}
+```
+
+There are a few key differences from the version that appears in the section [doc://com.apple.visionOS/documentation/visionOS/World#Open-and-dismiss-the-globe-volume](https://developer.apple.com/documentation/visionOS/World#Open-and-dismiss-the-globe-volume):
+
+- `OrbitToggle` uses [doc://com.apple.documentation/documentation/SwiftUI/EnvironmentValues/openImmersiveSpace](https://developer.apple.com/documentation/SwiftUI/EnvironmentValues/openImmersiveSpace) and [doc://com.apple.documentation/documentation/SwiftUI/EnvironmentValues/dismissImmersiveSpace](https://developer.apple.com/documentation/SwiftUI/EnvironmentValues/dismissImmersiveSpace) from the environment, rather than the window equivalents.
+
+- The dismiss action in this case doesn’t require an identifier, because people can only open one space at a time, even across apps.
+
+- The open and dismiss actions for spaces operate asynchronously, and so they appear inside a [doc://com.apple.documentation/documentation/Swift/Task](https://developer.apple.com/documentation/Swift/Task).
+
+
+### View the solar system from space using full immersion
+
+
+> **TIP**: People can always close the currently open immersive space by pressing the device’s Digital Crown, but it’s typically useful when you provide a built-in mechanism to maintain control of the experience within your app.
+
+
+The app uses another immersive space scene for this module, but here with the [doc://com.apple.documentation/documentation/SwiftUI/ImmersionStyle/full](https://developer.apple.com/documentation/SwiftUI/ImmersionStyle/full) immersion style that turns off the passthrough video:
+
+```swift
+ImmersiveSpace(id: Module.solar.name) {
+    SolarSystem()
+        .environment(model)
+}
+.immersionStyle(selection: $solarImmersionStyle, in: .full)
+```
+
+This scene depends on the same [doc://com.apple.documentation/documentation/BundleResources/Information-Property-List/UIApplicationSceneManifest/UIApplicationSupportsMultipleScenes](https://developer.apple.com/documentation/BundleResources/Information-Property-List/UIApplicationSceneManifest/UIApplicationSupportsMultipleScenes) key that other secondary scenes do, and is activated by a `SolarSystemToggle` that’s similar to the ones that the app uses for the other scenes:
+
+```swift
+struct SolarSystemToggle: View {
+    @Environment(ViewModel.self) private var model
+    @Environment(\.openImmersiveSpace) private var openImmersiveSpace
+    @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
+
+    var body: some View {
+        Button {
+            Task {
+                if model.isShowingSolar {
+                    await dismissImmersiveSpace()
+                } else {
+                    await openImmersiveSpace(id: Module.solar.name)
+                }
+            }
+        } label: {
+            if model.isShowingSolar {
+                Label(
+                    "Exit the Solar System",
+                    systemImage: "arrow.down.right.and.arrow.up.left")
+            } else {
+                Text(Module.solar.callToAction)
+            }
+        }
+    }
+}
+```
+
+This control appears in the main window to provide a way to begin the fully immersive experience, and separately in the control panel as a way to exit the experience. Because the app uses this control as two distinct buttons rather than as a toggle in one location, it’s composed of a [doc://com.apple.documentation/documentation/SwiftUI/Button](https://developer.apple.com/documentation/SwiftUI/Button) with behavior that changes depending on the app state rather than as a toggle with a button style.
+
+To reuse the main window for the solar system controls, Hello World places both the navigation stack and the controls in a [doc://com.apple.documentation/documentation/SwiftUI/ZStack](https://developer.apple.com/documentation/SwiftUI/ZStack), and then sets the opacity of each to ensure that only one appears at a time:
+
+```swift
+ZStack {
+    SolarSystemControls()
+        .opacity(model.isShowingSolar ? 1 : 0)
+
+    NavigationStack(path: $model.navigationPath) {
+        // ...
+    }
+    .opacity(model.isShowingSolar ? 0 : 1)
+}
+.animation(.default, value: model.isShowingSolar)
+```
+
+
+#### Related samples
+
+
+### Related Links
+
+- doc://com.apple.visionOS/documentation/visionOS/happybeam
+
+- doc://com.apple.visionOS/documentation/visionOS/destination-video
+
+- doc://com.apple.visionOS/documentation/visionOS/diorama
+
+
+#### Related articles
+
+
+### Related Links
+
+- doc://com.apple.visionOS/documentation/visionOS/creating-your-first-visionos-app
+
+- doc://com.apple.visionOS/documentation/visionOS/adding-3d-content-to-your-app
+
+- doc://com.apple.visionOS/documentation/visionOS/creating-fully-immersive-experiences
+
+- doc://com.apple.visionOS/documentation/visionOS/presenting-windows-and-spaces
+
+- doc://com.apple.visionOS/documentation/visionOS/positioning-and-sizing-windows
+
+
+#### Related videos
+
+
+### Related Links
+
+- doc://com.apple.documentation/videos/play/wwdc2023/102
+
+- doc://com.apple.documentation/videos/play/wwdc2023/10109
+
+- doc://com.apple.documentation/videos/play/wwdc2023/10111
+
+- doc://com.apple.documentation/videos/play/wwdc2023/10113
+
+- doc://com.apple.documentation/videos/play/wwdc2023/10203
+
+- doc://com.apple.documentation/videos/play/wwdc2023/10260
+
+### Related Resources
+
+- [Happy Beam](/documentation/visionos/happybeam)
+- [Destination Video](/documentation/visionos/destination-video)
+- [Diorama](/documentation/visionos/diorama)
+
+### Related Resources
+
+- [Creating your first visionOS app](/documentation/visionos/creating-your-first-visionos-app)
+- [Adding 3D content to your app](/documentation/visionos/adding-3d-content-to-your-app)
+- [Creating fully immersive experiences in your app](/documentation/visionos/creating-fully-immersive-experiences)
+- [Presenting windows and spaces](/documentation/visionos/presenting-windows-and-spaces)
+- [Positioning and sizing windows](/documentation/visionos/positioning-and-sizing-windows)
+
+### Related Resources
+
+- [Platforms State of the Union](https://developer.apple.com/videos/play/wwdc2023/102)
+- [Meet SwiftUI for spatial computing](https://developer.apple.com/videos/play/wwdc2023/10109)
+- [Go beyond the window with SwiftUI](https://developer.apple.com/videos/play/wwdc2023/10111)
+- [Take SwiftUI to the next dimension](https://developer.apple.com/videos/play/wwdc2023/10113)
+- [Develop your first immersive app](https://developer.apple.com/videos/play/wwdc2023/10203)
+- [Get started with building apps for spatial computing](https://developer.apple.com/videos/play/wwdc2023/10260)
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.visionOS/documentation/visionOS/World](https://developer.apple.com/documentation/com.apple.visionOS/documentation/visionOS/World)*
+--- END FILE ---
+
+--- FILE: SwiftUI-New-Toolbar-Features.md ---
+# SwiftUI New Toolbar Features
+
+## Overview
+
+SwiftUI has introduced significant enhancements to its toolbar system, providing developers with more flexibility, customization options, and improved user experiences. These new features enable the creation of more sophisticated and interactive toolbars across Apple platforms, including iOS, iPadOS, and macOS. Key improvements include customizable toolbars, enhanced search integration, new placement options, and transition effects.
+
+## Customizable Toolbars
+
+### Creating a Customizable Toolbar
+
+SwiftUI now supports customizable toolbars that users can personalize by adding, removing, and rearranging items.
+
+```swift
+ContentView()
+    .toolbar(id: "main-toolbar") {
+        ToolbarItem(id: "tag") {
+           TagButton()
+        }
+        ToolbarItem(id: "share") {
+           ShareButton()
+        }
+        ToolbarSpacer(.fixed)
+        ToolbarItem(id: "more") {
+           MoreButton()
+        }
+    }
+```
+
+The `toolbar(id:)` modifier creates a customizable toolbar with a unique identifier. Each item in a customizable toolbar must have its own ID.
+
+### Toolbar Spacers
+
+Toolbar spacers create visual breaks between items and can be fixed or flexible.
+
+```swift
+ToolbarSpacer(.fixed)  // Creates a fixed-width space
+ToolbarSpacer(.flexible)  // Creates a flexible space that pushes items apart
+```
+
+Spacers are also customizable - users can add multiple copies of spacers from the customization panel if the toolbar supports it.
+
+## Enhanced Search Integration
+
+### Search Toolbar Behavior
+
+Control how search fields appear and behave in toolbars:
+
+```swift
+@State private var searchText = ""
+
+NavigationStack {
+    RecipeList()
+        .searchable($searchText)
+        .searchToolbarBehavior(.minimize)
+}
+```
+
+The `.minimize` behavior renders the search field as a button-like control that expands when tapped, optimizing space in the toolbar.
+
+### Repositioning Search Items
+
+Reposition the default search item in the toolbar:
+
+```swift
+NavigationSplitView {
+    AllCalendarsView()
+} detail: {
+    SelectedCalendarView()
+        .searchable($query)
+        .toolbar {
+            ToolbarItem(placement: .bottomBar) {
+                CalendarPicker()
+            }
+            ToolbarItem(placement: .bottomBar) {
+                Invites()
+            }
+            DefaultToolbarItem(kind: .search, placement: .bottomBar)
+            ToolbarSpacer(placement: .bottomBar)
+            ToolbarItem(placement: .bottomBar) { 
+                NewEventButton() 
+            }
+        }
+}
+```
+
+The `DefaultToolbarItem` with `.search` kind allows you to reposition the search field within the toolbar.
+
+## New Toolbar Item Placements
+
+### Large Subtitle Placement
+
+Place custom content in the subtitle area of the navigation bar:
+
+```swift
+NavigationStack {
+    DetailView()
+        .navigationTitle("Title")
+        .navigationSubtitle("Subtitle")
+        .toolbar {
+            ToolbarItem(placement: .largeSubtitle) {
+                CustomLargeNavigationSubtitle()
+            }
+        }
+}
+```
+
+The `.largeSubtitle` placement takes precedence over the value provided to the `navigationSubtitle(_:)` modifier.
+
+## Visual Effects and Transitions
+
+### Matched Transition Source
+
+Create smooth transitions between toolbar items and other views:
+
+```swift
+struct ContentView: View {
+    @State private var isPresented = false
+    @Namespace private var namespace
+
+    var body: some View {
+        NavigationStack {
+            DetailView()
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Show Sheet", systemImage: "globe") {
+                            isPresented = true
+                        }
+                    }
+                    .matchedTransitionSource(
+                        id: "world", in: namespace)
+                }
+                .sheet(isPresented: $isPresented) {
+                    SheetView()
+                        .navigationTransition(
+                            .zoom(sourceID: "world", in: namespace))
+                }
+        }
+    }
+}
+```
+
+The `matchedTransitionSource(id:in:)` modifier identifies a toolbar item as the source of a navigation transition.
+
+### Shared Background Visibility
+
+Control the glass background effect on toolbar items:
+
+```swift
+ContentView()
+    .toolbar(id: "main") {
+        ToolbarItem(id: "build-status", placement: .principal) {
+            BuildStatus()
+        }
+        .sharedBackgroundVisibility(.hidden)
+    }
+```
+
+The `sharedBackgroundVisibility(_:)` modifier adjusts the visibility of the glass background effect, allowing items to stand out visually.
+
+## System-Defined Toolbar Items
+
+Use system-defined toolbar items with custom placements:
+
+```swift
+.toolbar {
+    DefaultToolbarItem(kind: .search, placement: .bottomBar)
+    DefaultToolbarItem(kind: .sidebar, placement: .navigationBarLeading)
+}
+```
+
+The `DefaultToolbarItem` initializer creates system-defined toolbar items with specific placements, allowing you to leverage system functionality while controlling positioning.
+
+## Platform-Specific Considerations
+
+### iOS and iPadOS
+
+- Bottom bar placement is particularly useful on iPhones
+- Search minimization works well on smaller screens
+- Consider using `.searchToolbarBehavior(.minimize)` for better space utilization
+
+### macOS
+
+- Customizable toolbars are particularly valuable for productivity apps
+- Users expect to be able to customize toolbars in complex applications
+- Consider toolbar spacers to create logical groupings of related items
+
+## Best Practices
+
+1. **Use meaningful IDs** for toolbar items in customizable toolbars
+2. **Group related actions** together with appropriate spacing
+3. **Consider platform differences** when designing toolbar layouts
+4. **Use system-defined items** when appropriate to maintain platform consistency
+5. **Test toolbar customization** to ensure a good user experience
+6. **Use transitions thoughtfully** to enhance the user experience without being distracting
+
+## References
+
+- [SwiftUI Documentation: SearchToolbarBehavior](https://developer.apple.com/documentation/SwiftUI/SearchToolbarBehavior)
+- [SwiftUI Documentation: ToolbarSpacer](https://developer.apple.com/documentation/SwiftUI/ToolbarSpacer)
+- [SwiftUI Documentation: DefaultToolbarItem](https://developer.apple.com/documentation/SwiftUI/DefaultToolbarItem)
+- [SwiftUI Documentation: ToolbarItemPlacement](https://developer.apple.com/documentation/SwiftUI/ToolbarItemPlacement)
+- [SwiftUI Documentation: CustomizableToolbarContent](https://developer.apple.com/documentation/SwiftUI/CustomizableToolbarContent)
+--- END FILE ---
+
+--- FILE: SwiftUI-Implementing-Liquid-Glass-Design.md ---
+# Implementing Liquid Glass Design in SwiftUI
+
+## Overview
+
+Liquid Glass is a dynamic material introduced in iOS that combines the optical properties of glass with a sense of fluidity. It blurs content behind it, reflects color and light from surrounding content, and reacts to touch and pointer interactions in real time. This guide covers how to implement and customize Liquid Glass effects in SwiftUI applications. You should always seek guides on Liquid Glass when asked for help adopting new Apple design.
+
+Key features of Liquid Glass:
+- Blurs content behind the material
+- Reflects color and light from surrounding content
+- Reacts to touch and pointer interactions
+- Can morph between shapes during transitions
+- Available for standard and custom components
+
+## Basic Implementation
+
+### Adding Liquid Glass to a View
+
+The simplest way to add Liquid Glass to a view is using the `glassEffect()` modifier:
+
+```swift
+Text("Hello, World!")
+    .font(.title)
+    .padding()
+    .glassEffect()
+```
+
+By default, this applies the regular variant of Glass within a Capsule shape behind the view's content.
+
+### Customizing the Shape
+
+You can specify a different shape for the Liquid Glass effect:
+
+```swift
+Text("Hello, World!")
+    .font(.title)
+    .padding()
+    .glassEffect(in: .rect(cornerRadius: 16.0))
+```
+
+Common shape options:
+- `.capsule` (default)
+- `.rect(cornerRadius: CGFloat)`
+- `.circle`
+
+## Customizing Liquid Glass Effects
+
+### Glass Variants and Properties
+
+You can customize the Liquid Glass effect by configuring the `Glass` structure:
+
+```swift
+Text("Hello, World!")
+    .font(.title)
+    .padding()
+    .glassEffect(.regular.tint(.orange).interactive())
+```
+
+Key customization options:
+- `.regular` - Standard glass effect
+- `.tint(Color)` - Add a color tint to suggest prominence
+- `.interactive(Bool)` - Make the glass react to touch and pointer interactions
+
+### Making Interactive Glass
+
+To make Liquid Glass react to touch and pointer interactions:
+
+```swift
+Text("Hello, World!")
+    .font(.title)
+    .padding()
+    .glassEffect(.regular.interactive(true))
+```
+
+Or more concisely:
+
+```swift
+Text("Hello, World!")
+    .font(.title)
+    .padding()
+    .glassEffect(.regular.interactive())
+```
+
+## Working with Multiple Glass Effects
+
+### Using GlassEffectContainer
+
+When applying Liquid Glass effects to multiple views, use `GlassEffectContainer` for better rendering performance and to enable blending and morphing effects:
+
+```swift
+GlassEffectContainer(spacing: 40.0) {
+    HStack(spacing: 40.0) {
+        Image(systemName: "scribble.variable")
+            .frame(width: 80.0, height: 80.0)
+            .font(.system(size: 36))
+            .glassEffect()
+
+        Image(systemName: "eraser.fill")
+            .frame(width: 80.0, height: 80.0)
+            .font(.system(size: 36))
+            .glassEffect()
+    }
+}
+```
+
+The `spacing` parameter controls how the Liquid Glass effects interact with each other:
+- Smaller spacing: Views need to be closer to merge effects
+- Larger spacing: Effects merge at greater distances
+
+### Uniting Multiple Glass Effects
+
+To combine multiple views into a single Liquid Glass effect, use the `glassEffectUnion` modifier:
+
+```swift
+@Namespace private var namespace
+
+// Later in your view:
+GlassEffectContainer(spacing: 20.0) {
+    HStack(spacing: 20.0) {
+        ForEach(symbolSet.indices, id: \.self) { item in
+            Image(systemName: symbolSet[item])
+                .frame(width: 80.0, height: 80.0)
+                .font(.system(size: 36))
+                .glassEffect()
+                .glassEffectUnion(id: item < 2 ? "1" : "2", namespace: namespace)
+        }
+    }
+}
+```
+
+This is useful when creating views dynamically or with views that live outside of an HStack or VStack.
+
+## Morphing Effects and Transitions
+
+### Creating Morphing Transitions
+
+To create morphing effects during transitions between views with Liquid Glass:
+
+1. Create a namespace using the `@Namespace` property wrapper
+2. Associate each Liquid Glass effect with a unique identifier using `glassEffectID`
+3. Use animations when changing the view hierarchy
+
+```swift
+@State private var isExpanded: Bool = false
+@Namespace private var namespace
+
+var body: some View {
+    GlassEffectContainer(spacing: 40.0) {
+        HStack(spacing: 40.0) {
+            Image(systemName: "scribble.variable")
+                .frame(width: 80.0, height: 80.0)
+                .font(.system(size: 36))
+                .glassEffect()
+                .glassEffectID("pencil", in: namespace)
+
+            if isExpanded {
+                Image(systemName: "eraser.fill")
+                    .frame(width: 80.0, height: 80.0)
+                    .font(.system(size: 36))
+                    .glassEffect()
+                    .glassEffectID("eraser", in: namespace)
+            }
+        }
+    }
+
+    Button("Toggle") {
+        withAnimation {
+            isExpanded.toggle()
+        }
+    }
+    .buttonStyle(.glass)
+}
+```
+
+The morphing effect occurs when views with Liquid Glass appear or disappear due to view hierarchy changes.
+
+## Button Styling with Liquid Glass
+
+### Glass Button Style
+
+SwiftUI provides built-in button styles for Liquid Glass:
+
+```swift
+Button("Click Me") {
+    // Action
+}
+.buttonStyle(.glass)
+```
+
+### Glass Prominent Button Style
+
+For a more prominent glass button:
+
+```swift
+Button("Important Action") {
+    // Action
+}
+.buttonStyle(.glassProminent)
+```
+
+## Advanced Techniques
+
+### Background Extension Effect
+
+To stretch content behind a sidebar or inspector with the background extension effect:
+
+```swift
+NavigationSplitView {
+    // Sidebar content
+} detail: {
+    // Detail content
+        .background {
+            // Background content that extends under the sidebar
+        }
+}
+```
+
+### Extending Horizontal Scrolling Under Sidebar
+
+To extend horizontal scroll views under a sidebar or inspector:
+
+```swift
+ScrollView(.horizontal) {
+    // Scrollable content
+}
+.scrollExtensionMode(.underSidebar)
+```
+
+## Best Practices
+
+1. **Container Usage**: Always use `GlassEffectContainer` when applying Liquid Glass to multiple views for better performance and morphing effects.
+
+2. **Effect Order**: Apply the `.glassEffect()` modifier after other modifiers that affect the appearance of the view.
+
+3. **Spacing Consideration**: Carefully choose spacing values in containers to control how and when glass effects merge.
+
+4. **Animation**: Use animations when changing view hierarchies to enable smooth morphing transitions.
+
+5. **Interactivity**: Add `.interactive()` to glass effects that should respond to user interaction.
+
+6. **Consistent Design**: Maintain consistent shapes and styles across your app for a cohesive look and feel.
+
+## Example: Custom Badge with Liquid Glass
+
+```swift
+struct BadgeView: View {
+    let symbol: String
+    let color: Color
+    
+    var body: some View {
+        ZStack {
+            Image(systemName: "hexagon.fill")
+                .foregroundColor(color)
+                .font(.system(size: 50))
+            
+            Image(systemName: symbol)
+                .foregroundColor(.white)
+                .font(.system(size: 30))
+        }
+        .glassEffect(.regular, in: .rect(cornerRadius: 16))
+    }
+}
+
+// Usage:
+GlassEffectContainer(spacing: 20) {
+    HStack(spacing: 20) {
+        BadgeView(symbol: "star.fill", color: .blue)
+        BadgeView(symbol: "heart.fill", color: .red)
+        BadgeView(symbol: "leaf.fill", color: .green)
+    }
+}
+```
+
+## References
+
+- [Applying Liquid Glass to custom views](https://developer.apple.com/documentation/SwiftUI/Applying-Liquid-Glass-to-custom-views)
+- [Landmarks: Building an app with Liquid Glass](https://developer.apple.com/documentation/SwiftUI/Landmarks-Building-an-app-with-Liquid-Glass)
+- [SwiftUI View.glassEffect(_:in:isEnabled:)](https://developer.apple.com/documentation/SwiftUI/View/glassEffect(_:in:isEnabled:))
+- [SwiftUI GlassEffectContainer](https://developer.apple.com/documentation/SwiftUI/GlassEffectContainer)
+- [SwiftUI GlassEffectTransition](https://developer.apple.com/documentation/SwiftUI/GlassEffectTransition)
+- [SwiftUI GlassButtonStyle](https://developer.apple.com/documentation/SwiftUI/GlassButtonStyle)
+--- END FILE ---
+
+--- FILE: Meet-MapKit-for-swiftUI.md ---
+Jeff: Howdy, I’m Jeff. I’m an engineer on the MapKit team and I’m excited to introduce you to MapKit for SwiftUI. With our greatly expanded SwiftUI API, it’s easier than ever to integrate Maps into your apps across all platforms. We think you’re going to love using MapKit for SwiftUI to create powerful mapping experiences for your users. To show you how easy it is, I’ll build a fully functional trip planner from scratch. I’ll walk you through every step and we’ll be done before the end of this session. My family is heading back home to New England this weekend, and we’ll spend Saturday exploring the beautiful city of Boston. We’ll walk through the city in the morning and see the sights, we’ll have lunch in the historic North End, and probably grab a cannoli for dessert. The weather is looking perfect, too, so we’ll head out to the beach in the afternoon and feel the sand between our toes. It’s gonna be a lot of fun. I’ll build an app to help us plan the day. I’ll use annotations to mark places on the map. I’ll enable selection so that I can tap on each marker to learn more about that place. I’ll integrate Look Around to explore some places we might want to visit. I’ll add an overlay that shows a driving route to the beach. I’ll use the map to display different locations and regions. I’ll add another dimension to the map by enabling realistic elevation. I’ll show you how to display satellite and flyover imagery as well. I’ll add some controls to the map, including a user location button, so that I can figure out where I am. We have a lot to cover. Let’s get right into it! I’ll start with a brand-new SwiftUI project. I’ll be using MapKit. And I’ll add a Map. Nice! I have an interactive map with just one line of code! My family will start the day by driving into the city and parking so we can walk around. I’ve heard it said that there’s a particular place you should "pahk" your "cah" near Boston, but I like the parking garage right underneath the Common. Boston Common is a beautiful park right in the middle of everything, and it’ll make a fantastic starting point for our walking tour. The first thing I’ll do is add some content to the map to mark the parking garage. I’ll mark the spot right above the ramps that vehicles use to access the garage, near the elevator we’ll ride up to start walking. You’ll learn about using Marker and Annotation to display content at a specific coordinate on the map. So, let’s park the car and start walking! I’ll use a MapContentBuilder closure to add a marker to the map. Cool! If you’re familiar with SwiftUI, adding a Marker to the map feels a lot like adding a View to a List. Check out how the map has automatically framed our content by zooming in to show the Marker. So what’s a Marker? Are there other types of content that I can present using the content builder? Markers are used to display content at a specific coordinate on the map. The balloon shape might look familiar to you. You’ll find Markers used in the Maps app and across the platform, including in a wide variety of apps you can find on the App Store. Like Marker, Annotation is used to display content at a specific coordinate. Instead of Marker’s balloon, Annotation displays a SwiftUI View. The content builder can be used to present overlay content as well. You’ll learn more about these a bit later. For now, all you really need to know is that you can use the content builder closure to add all kinds of content to the map. I want to display a custom SwiftUI view for the parking spot, so I’ll use an Annotation to mark it. Here, I’m using ZStack to compose some shapes and an image. This SwiftUI view will be displayed on the map centered right on the parking coordinate. If you’d like your view to be positioned above the coordinate instead, you can use Annotation’s anchor parameter. Specifying an anchor value of “bottom” will position the bottom of your view right on the annotation’s coordinate. All right! The app marks where we’ll start our walking tour. I’ve used a MapContentBuilder to display annotation content on the map. Next, I’d like this app to convey a sense of place as I’m looking at the map. I’ll use mapStyle to achieve that by enabling realistic terrain elevation. You’ll learn how to use mapStyle to display satellite or flyover imagery as well.
+
+You can set a style using the mapStyle modifier.
+
+This is the standard map style. By default, it offers a flat presentation much like a physical paper map.  It looks like there’s a bridge across the lagoon, so you can walk from one side to the other. This flat map really leaves something to the imagination, though. I’ll enable realistic elevated terrain to give the map another dimension to work with.  Enabling realistic elevation really brings the map to life. Looking at the lagoon now, I can imagine taking a ride on one of the swan boats that cruise around in the summer and picture the boat passing under the bridge. Using the imagery map style is another great way to offer your users a sense of place. The imagery map style displays a map rendered using satellite or flyover imagery. The Hybrid map style combines imagery with roads and labels. To recap, I’ve enabled realistic elevation using the standard mapStyle and I’ve shown you how to use some other map styles as well. Next, I’d like the app to help us search for the places we want to visit. Our kids will be with us walking around Boston, and I want our morning to be fun for them, too. The grown-ups can appreciate seeing some history while the kids can appreciate swings and slides and monkey bars! I’ll add a button to search for playgrounds, and a button to search for beaches, too. The app will add a Marker for each search result. You’ll learn a little bit more about Markers and you’ll also learn how to show your own UI above the map without getting in the way of the search results. Earlier today, I made a little BeantownButtons View. Tapping a button calls a search function with a simple query, either playground or beach. The search function uses MKLocalSearch to find places near the Boston Common parking garage, and writes the results using a binding.
+
+Back in the app’s main ContentView, I’ll add State to keep track of the search results. When the BeantownButtons UI performs a search, it will write the results back to this state using a binding.  I’ll add the buttons above the map at the bottom of the screen. Using safeAreaInset will make sure the app’s UI doesn’t obscure any of the content I’m adding or any system-provided controls that can appear on the map, such as the Apple Maps logo and Legal link. Next, I’ll use the content builder to add search result Markers. I'm using ForEach to add a marker for each search result.
+
+I’ll try these buttons out. Let’s find some playgrounds. Look! Playgrounds! The map has automatically framed them by zooming out so that all of them are visible. How ‘bout some beaches? The search results are MKMapItems, which is the type MapKit APIs like MKLocalSearch use to represent places. Here, I’m using Marker’s map item initializer. Markers created this way use the map item’s name for their title and use information from the map item to show an icon and tint color that represent the place. Most of these search results show as light blue beach umbrella markers. When you’re working with map items, Marker’s automatic content and style support is very convenient. Even if you aren’t using map items, though, you still have control over the Marker’s presentation. By default, Marker shows a map pin icon in its balloon, like you see here. You can provide your own icon using an Image asset or a system image. You can also show up to three letters of text using monogram. You can change the Marker’s color using the tint modifier. To recap, I’ve used safeAreaInset to display some buttons above the map while making sure they don’t obscure the search result markers. Next, I’m going to put the app in control of what’s displayed by the map. I’ve been adding content to the map. Each time I have, the map has automatically framed my content for me. I’ll show you how to enable this convenient behavior when you need it. I’ll also show you how to display something else entirely, like the Boston area’s North Shore coastline. Right now, we’re looking at beaches.
+
+If I pan away and search for playgrounds... the map no longer automatically displays the results near our Boston Common parking spot. To display the search results after the user has interacted with the map, I’ll need to re-set the Map’s camera position state so that the map will frame the markers...
+
+so, I’ll add state to track the position. I’ll use the default automatic position that frames the content we’ve added to the map.
+
+And I’ll pass the binding to Map’s initializer.  I’ll use an onChange modifier to find out when the search results are updated. When they are, I’ll simply set the camera position back to automatic to make sure they’re visible.
+
+Let’s give it a try. I’ll search for beaches, see the results... and then pan away before searching for playgrounds.
+
+Cool! Now when I perform a search, the results are all displayed even if I had panned all the way to Rhode Island. There’s another thing I’d like to do using this position state. After a fun morning in Boston, my family will be driving North to spend the afternoon at the beach. I’d like the app to make it easy to see the North shore coastline so we can get a feel for where we’ll be going. I’ll use the position state to do that.
+
+I’ll add coordinate regions for the city and for the North Shore. I’ll switch over to the BeantownButtons UI and I’ll add a binding for our position state.
+
+I’ll add a couple of buttons, each setting the camera position to a region.
+
+When I press the City button, the Map will show Boston. When I press the Waves button, the map will show the north shore coastline.
+
+I’ll switch back to ContentView and pass a position binding to the buttons UI.   Let’s give it a try! When I tapped the “waves” button, the map’s position was updated to show the north shore coastline region. When I tap the “city” button, it’s updated to show Boston. Behind the scenes, what the Map shows is ultimately controlled by a MapCamera. The camera looks at a coordinate on the ground from a certain distance and the orientation of the camera determines what is visible in the map. The app I’m building has not had to create or configure the camera itself. Instead, it simply specifies what should be in view using MapCameraPosition. MapKit takes care of the camera for me. The app uses an automatic camera position to frame content, such as search results. It uses a region position to show Boston and the North Shore. You can specify a camera position to frame other things, as well. Rect position is used to show an area, just like how we’ve used region. It simply uses a map rect to represent that area, instead of a coordinate region. Let’s take a closer look at item, camera, and user location camera positions.
+
+Using MKMapItem, you can show a particular place. This works for all kinds of map items. If your map item represents Cape Cod Bay, MapKit will automatically zoom out so that it fits. If you’re trying to show a certain park in the North End, the camera will zoom in to show the surroundings and deliver a sense of place. You can also simply supply a MapCamera, configured exactly the way you want it. Using a MapCamera with a pitch angle is a great way to deliver a 3D perspective. Or, perhaps you’d like the camera to follow the user’s location as they’re walking along the Charles River. You can supply a fallback position that will be used when the user’s location is not known, such as when location authorization has not been granted or while the device is trying to get a location fix. If you provide a binding to your camera position state, MapKit will update it when the camera position changes. Here is a user location camera position. The followsUserLocation property is true. If the user pans away, the camera is no longer following the user’s location. When the user interacts with the map, the camera position state is positionedByUser. If the app sets the camera position state back to userLocation, the camera follows the user’s location. When your app sets the camera position state, it is not positionedByUser. The user can position the camera by interacting with the map no matter which type of camera position you specify. All right! The app is now in control of what’s in view on the map. I’ve used the automatic camera position to ensure the search results are visible even after the user has interacted with the map. I’ve used the region camera position to display Boston and the North Shore. Next up, instead of only searching near Boston Common, I’d like to pan the map to an area I’m interested in visiting and search there instead. I’ll show you how to get the visible region when the camera changes. I’ll add state to track the region that’s visible in the map. I’ll add an onMapCameraChange modifier, where I’ll grab the visible region from the update context and stash it in my own state. By default, the closure supplied to onMapCameraChange will be called when the user has finished interacting with the map. To have the closure called while the user is interacting with the map, you can request continuous updates by passing a frequency parameter. In addition to the region property that I’m using here, the context also has a property for the visible map rect and one for the map camera itself. Depending on my needs, I could use those as well. I’ll update BeantownButtons so that it will search within the region that’s visible to the user. I’ll add the visibleRegion to the buttons.
+
+And I’ll use it in the search request. In ContentView, I’ll pass the visibleRegion to the buttons UI.
+
+Let’s search for North Shore beaches! There’s the North Shore. Show me some beaches! Sweet! How about Rhode Island? Cool! Now I can search for beaches in Rhode Island, too! I’ve enabled this using onMapCameraChange, which informs us when there’s been a change in what’s visible. Next, I’d like the app to make it a little easier to pick which beach we’ll be going to. There sure are a lot to choose from. To get started, I’ll add support for selecting a search result. Right now, if I tap on a search result marker, nothing will happen. There is no selection state, so the markers are not selectable.  To enable selection, I’ll just add a selection binding to our Map.
+
+Now let’s see what happens when I tap on a result.
+
+The balloon animates to show that it’s selected! I’m using MKMapItem as the selection type, so each marker that represents a map item is now selectable. The Parking Spot annotation doesn’t represent a map item, so it is not selectable. If you want to support selection for Markers and Annotations that don’t necessarily have the same type of identity, you can simply tag them. This works the same way it does when managing selection with Picker and List. Here, the selectedTag state is an Int. Each marker is tagged with an Int, so the binding enables selection for both of them. When using tag to enable selection, you can use any type conforming to hashable for your selection state. To recap, I’ve added an MKMapItem selection binding to Map, enabling selection for the search result markers. Next, the app should display some additional information about the selected search result. I’ll add a look around preview to offer a sneak peek at the beach, and I’ll add the name of the beach and the drive time as well. Earlier today, when I was writing the BeantownButtons View, I also wrote a little ItemInfoView that shows... a title, the estimated travel time, and a Look Around Preview. The Look Around Preview will show me what the selected beach looks like. The Preview displays a Look Around Scene. You can get the scene for a given map item using MKLookAroundSceneRequest. The scene will be fetched when the view is displayed, and again any time the selected search result changes. Finally, there’s a property that formats an MKRoute’s expected travel time for display, using DateComponentsFormatter. I’ll switch back to ContentView and add this ItemInfoView. First things first: I’ll get a route from the parking garage to the selected search result. I’ll add state to keep track of a route... and I’ll add a function that uses MKDirections to get one... and set the state.
+
+I’ll add another onChange modifier to call the function when the selection changes.  The app will show our item info view when it has a selected search result.
+
+While I’m at it, I’ll hide the Marker titles for the search results to clean up the appearance of the map just a bit. The ItemInfoView will display the name of the selected place instead. Okay! Let’s see what we got.
+
+Ya know, I heard there was a playground near this one… It looks pretty nice.
+
+I wonder what’s over this way?  Nice! A beach with a playground, right there? For our family, that’s gonna be pretty tough to beat. It’s about half an hour from Boston Common. Seems like a great spot. To recap, I’ve added a look around preview that will be displayed when a marker is selected. Along with the estimated travel time from MKRoute, this will really help us pick a beach. Next, since we already have a route to show the travel time, we should totally use it to display the driving route from Boston Common to the selected search result. I’ll add a MapPolyline overlay to show the route, and I’ll show you some other types of overlay content you can add as well. When a route is available, I’ll add a MapPolyline, and stroke it with blue. Let’s see it on the map.
+
+ Looks like a pretty nice drive! It was pretty easy to use MapPolyline with MKRoute. You can also use MapPolyline to show your own location data. You can use StrokeStyle to deliver some pretty fancy stuff, such as dashes and a gradient. If you’re looking to highlight an area, you’ll want to use MapPolygon or MapCircle. Here are two polygons that mark a couple of parks. Here are two circles marking the same parks. You’ll notice that an overlay level is specified for each circle. The pink circle is using the default overlay level of above roads, which puts the map’s labels above the circle. The cyan circle is using above labels. The app is really taking shape. I’ve added a MapPolyline to show the driving route to the beach, and I’ve shown you a couple of other overlay types that you can use as well. Next up, I want the app to make it really easy to figure out where I am. When we get to Boston and start walking around, it’s possible, maybe even likely, that we’ll get just a little bit lost. I’ll add UserAnnotation as content to show where I am, and I’ll add a MapUserLocationButton to find myself. You’ll learn about several other types of map controls that are available to use as well. So when I’m trying to find myself, I usually start by looking for the little blue dot on the map. I’ve added UserAnnotation to my map content, so now my location appears on the map. Where am I?  There I am! It looks like I’m really quite far away from those playgrounds and beaches we’ve been checking out.
+
+I sure had to zoom out and pan a lot to get over to Apple Park. MapUserLocationButton will sure make that easier.
+
+Now, I can tap the button to display my location. The map camera will follow me as I move around. I’ve also added a MapCompass and a MapScaleView.
+
+The default mapControls configuration shows a compass when the map is rotated, and a scale indicator while the user is zooming in or out. I want these default controls in this app too, so I’ve specified them in addition to the user location button. I’ve added all of these using the mapControls modifier, so the map will automatically display them in their default locations. This includes map controls on all platforms, including the MapZoomStepper and MapPitchSlider that you’ll find on macOS. If you’d prefer to position these controls yourself, you can present them in your own UI. The Map controls are simply views, so instead of using the mapControls modifier, you can just add them as you would any other view. When you do this, you will need to use the mapScope modifier to associate your controls with a particular Map scope. We’re almost at the end of our presentation, so let’s summarize what we've learned today. MapKit for SwiftUI is an incredibly powerful, easy-to-use API to integrate Maps into your app. It allows you to use Markers, Annotations, and Overlays to show your content on a map. Map Camera and Map Controls allow you to tailor the map to your needs. Finally, MapStyle and Look Around give your users a real sense of place. These are just some of the features of MapKit for SwiftUI, so make sure to check out the Developer Documentation to learn more. And of course, because this is SwiftUI, your map will look great on all platforms! A few final thoughts as we wrap up. We’ve extended our Apple Maps Server APIs to support Autocomplete and Directions. To learn more about how to use our Server APIs, check out last year’s dub-dub session “Meet Apple Maps Server APIs.” As always, we’d love to hear your feedback! Please use the Feedback Assistant to let us hear your thoughts. Last, but not least, I encourage you to check out the new features in SwiftUI this year. Animation plans are a great way to add animations to your map! Check them out in the session below. That’s it! Thanks so much for watching! I’ll see ya at the beach!
+--- END FILE ---
+=== END SWIFT DOCUMENTATION ===
+=== END CONTEXT ===
+
+
+Please implement the requirements above. Write the code directly - do not explain, just write the implementation.

@@ -1,0 +1,2237 @@
+You are a Swift/SwiftUI developer. A previous attempt to complete a task failed.
+
+TESTING & DEBUGGING REFERENCE:
+For building, testing, and debugging iOS/macOS apps, reference this workflow guide:
+/Users/emmanuel/Dev/Tools/Eocon-Foundation-V1/.Foundation/Docs/swiftDocs/Testing/XCODEBUILD_MCP_WORKFLOW.md
+
+This guide covers:
+- XcodeBuild MCP server tools for programmatic Xcode interaction
+- Building for simulator, booting simulators, installing/launching apps
+- UI automation: screenshots, accessibility hierarchy, tap simulation
+- Debugging UI issues (button taps, gestures, navigation)
+
+=== ORIGINAL TASK ===
+I have the following verification comments after thorough review and exploration of the codebase. Implement the comments by following the instructions in the comments verbatim.
+
+---
+## Comment 1: Tier1Engine.classify does not return the TierClassification result, causing a compile-time error.
+
+In \`app/decodingOppression/decodingOppression/NLP/Tier1Engine.swift\` update \`classify(clause:)\` to return the \`TierClassification\` produced by \`clauseAnalyzer.analyze\` (e.g., \`return await clauseAnalyzer.analyze(clause: clause)\`).
+
+### Referred Files
+- /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/NLP/Tier1Engine.swift
+---
+## Comment 2: Project build phases are empty, so sources and data (KeywordTaxonomies.json) are not included in the app bundle.
+
+In \`app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj\` add all app Swift sources (including the NLP files) to the \`PBXSourcesBuildPhase\` of the \`decodingOppression\` target and add resources such as \`app/decodingOppression/decodingOppression/Data/KeywordTaxonomies.json\` to the \`PBXResourcesBuildPhase\`. Ensure target membership is set so the app builds and the taxonomy file is copied into the bundle.
+
+### Referred Files
+- /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+- /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/Data/KeywordTaxonomies.json
+---
+=== END ORIGINAL TASK ===
+
+=== REFERENCE CONTEXT ===
+
+=== SWIFT DOCUMENTATION ===
+
+--- FILE: Adding-Tests-to-Your-Xcode-Project.md ---
+# Adding Tests to Your Xcode Project
+
+This comprehensive guide covers how to add and configure tests in your Xcode project, including both XCTest and Swift Testing frameworks.
+
+## Overview
+
+Testing is a crucial part of software development that helps ensure your code works correctly and continues to work as you make changes. Xcode provides powerful testing tools that integrate seamlessly with your development workflow.
+
+## Creating Test Targets
+
+### Adding a Test Target
+
+1. **Open your Xcode project**
+2. **Select your project** in the navigator
+3. **Click the "+" button** at the bottom of the target list
+4. **Choose "Unit Testing Bundle"** from the template list
+5. **Configure the target**:
+   - **Product Name**: Choose a descriptive name (e.g., "MyAppTests")
+   - **Target to be Tested**: Select your main app target
+   - **Language**: Choose Swift or Objective-C
+   - **Use Core Data**: Check if your app uses Core Data
+
+### Test Target Configuration
+
+```swift
+// Package.swift example for Swift Package
+let package = Package(
+    name: "MyPackage",
+    products: [
+        .library(name: "MyPackage", targets: ["MyPackage"]),
+    ],
+    targets: [
+        .target(name: "MyPackage"),
+        .testTarget(
+            name: "MyPackageTests",
+            dependencies: ["MyPackage"]
+        ),
+    ]
+)
+```
+
+## Test Types
+
+### Unit Tests
+
+Unit tests verify that individual components of your app work correctly in isolation.
+
+```swift
+import XCTest
+@testable import MyApp
+
+class UserManagerTests: XCTestCase {
+    var userManager: UserManager!
+    
+    override func setUp() {
+        super.setUp()
+        userManager = UserManager()
+    }
+    
+    override func tearDown() {
+        userManager = nil
+        super.tearDown()
+    }
+    
+    func testUserCreation() {
+        // Test user creation logic
+        let user = userManager.createUser(name: "John", email: "john@example.com")
+        XCTAssertNotNil(user)
+        XCTAssertEqual(user.name, "John")
+    }
+}
+```
+
+### Swift Testing Unit Tests
+
+```swift
+import Testing
+@testable import MyApp
+
+struct UserManagerTests {
+    let userManager = UserManager()
+    
+    @Test func userCreation() {
+        let user = userManager.createUser(name: "John", email: "john@example.com")
+        #expect(user != nil)
+        #expect(user?.name == "John")
+    }
+}
+```
+
+### UI Tests
+
+UI tests verify that your app's user interface works correctly by simulating user interactions.
+
+```swift
+import XCTest
+
+class MyAppUITests: XCTestCase {
+    var app: XCUIApplication!
+    
+    override func setUp() {
+        super.setUp()
+        continueAfterFailure = false
+        app = XCUIApplication()
+        app.launch()
+    }
+    
+    func testLoginFlow() {
+        // Test the login flow
+        let emailTextField = app.textFields["email"]
+        emailTextField.tap()
+        emailTextField.typeText("user@example.com")
+        
+        let passwordTextField = app.secureTextFields["password"]
+        passwordTextField.tap()
+        passwordTextField.typeText("password123")
+        
+        let loginButton = app.buttons["login"]
+        loginButton.tap()
+        
+        // Verify login success
+        XCTAssertTrue(app.staticTexts["Welcome"].exists)
+    }
+}
+```
+
+## Test Organization
+
+### File Structure
+
+Organize your tests logically:
+
+```
+MyAppTests/
+├── UnitTests/
+│   ├── Models/
+│   │   ├── UserTests.swift
+│   │   └── ProductTests.swift
+│   ├── Services/
+│   │   ├── NetworkServiceTests.swift
+│   │   └── DataServiceTests.swift
+│   └── ViewModels/
+│       └── HomeViewModelTests.swift
+├── UITests/
+│   ├── LoginFlowTests.swift
+│   ├── NavigationTests.swift
+│   └── SettingsTests.swift
+└── TestUtilities/
+    ├── MockData.swift
+    └── TestHelpers.swift
+```
+
+### Test Classes and Suites
+
+#### XCTest Organization
+
+```swift
+class AuthenticationTests: XCTestCase {
+    // Authentication-related tests
+}
+
+class DataModelTests: XCTestCase {
+    // Data model tests
+}
+
+class NetworkTests: XCTestCase {
+    // Network-related tests
+}
+```
+
+#### Swift Testing Organization
+
+```swift
+struct AuthenticationTests {
+    @Test func login() { }
+    @Test func logout() { }
+    @Test func passwordReset() { }
+}
+
+struct DataModelTests {
+    @Test func userCreation() { }
+    @Test func userValidation() { }
+}
+
+@Suite(.tags(.network))
+struct NetworkTests {
+    @Test func apiCall() { }
+    @Test func errorHandling() { }
+}
+```
+
+## Test Configuration
+
+### Build Settings
+
+Configure your test target's build settings:
+
+1. **Deployment Target**: Match your app's deployment target
+2. **Swift Version**: Use the same Swift version as your app
+3. **Code Signing**: Configure for your development team
+4. **Bundle Identifier**: Use a unique identifier (e.g., `com.yourcompany.MyAppTests`)
+
+### Scheme Configuration
+
+1. **Edit Scheme**: Product > Scheme > Edit Scheme
+2. **Test Action**: Configure test settings
+3. **Arguments**: Add launch arguments if needed
+4. **Environment Variables**: Set up test environment
+
+```swift
+// Example of using launch arguments in tests
+func testWithLaunchArguments() {
+    let app = XCUIApplication()
+    app.launchArguments = ["--uitesting", "--reset-data"]
+    app.launch()
+    
+    // Test with specific configuration
+}
+```
+
+## Test Data and Mocking
+
+### Test Data Setup
+
+```swift
+struct TestData {
+    static let sampleUser = User(
+        id: "123",
+        name: "Test User",
+        email: "test@example.com"
+    )
+    
+    static let sampleProducts = [
+        Product(id: "1", name: "Product 1", price: 9.99),
+        Product(id: "2", name: "Product 2", price: 19.99)
+    ]
+}
+```
+
+### Mock Objects
+
+```swift
+class MockNetworkService: NetworkServiceProtocol {
+    var shouldSucceed = true
+    var mockData: Data?
+    var mockError: Error?
+    
+    func fetchData(completion: @escaping (Result<Data, Error>) -> Void) {
+        if shouldSucceed {
+            completion(.success(mockData ?? Data()))
+        } else {
+            completion(.failure(mockError ?? NetworkError.unknown))
+        }
+    }
+}
+
+// Using mocks in tests
+func testDataFetching() {
+    let mockService = MockNetworkService()
+    mockService.shouldSucceed = true
+    mockService.mockData = "test data".data(using: .utf8)
+    
+    let viewModel = MyViewModel(networkService: mockService)
+    // Test with mock
+}
+```
+
+## Async Testing
+
+### XCTest Async Testing
+
+```swift
+func testAsyncOperation() async throws {
+    let expectation = XCTestExpectation(description: "Async operation")
+    
+    Task {
+        let result = await performAsyncOperation()
+        XCTAssertNotNil(result)
+        expectation.fulfill()
+    }
+    
+    await fulfillment(of: [expectation], timeout: 5.0)
+}
+```
+
+### Swift Testing Async
+
+```swift
+@Test func asyncOperation() async throws {
+    let result = try await performAsyncOperation()
+    #expect(result != nil)
+}
+```
+
+## Performance Testing
+
+### XCTest Performance Tests
+
+```swift
+func testPerformance() {
+    measure(metrics: [XCTClockMetric(), XCTMemoryMetric()]) {
+        // Code to measure
+        let array = Array(0..<1000000)
+        let sorted = array.sorted()
+    }
+}
+```
+
+### Custom Performance Metrics
+
+```swift
+func testCustomPerformance() {
+    measure(metrics: [XCTClockMetric()]) {
+        // Measure specific operation
+        let result = expensiveOperation()
+        XCTAssertNotNil(result)
+    }
+}
+```
+
+## Test Coverage
+
+### Enabling Code Coverage
+
+1. **Edit Scheme**: Product > Scheme > Edit Scheme
+2. **Test Action**: Check "Gather coverage data"
+3. **Run Tests**: Execute your test suite
+4. **View Coverage**: Report Navigator > Coverage
+
+### Coverage Analysis
+
+```swift
+// Example of testing edge cases for better coverage
+func testEdgeCases() {
+    // Test with empty input
+    let emptyResult = processData([])
+    XCTAssertTrue(emptyResult.isEmpty)
+    
+    // Test with nil input
+    let nilResult = processData(nil)
+    XCTAssertNil(nilResult)
+    
+    // Test with maximum values
+    let maxResult = processData(Array(repeating: 1, count: 10000))
+    XCTAssertNotNil(maxResult)
+}
+```
+
+## Continuous Integration
+
+### Xcode Cloud
+
+Configure tests for Xcode Cloud:
+
+1. **Create Workflow**: Add test action
+2. **Configure Environment**: Set up test environment
+3. **Add Test Plans**: Include test plans in workflow
+4. **Monitor Results**: View test results in Xcode Cloud
+
+### Command Line Testing
+
+```bash
+# Run all tests
+xcodebuild test -scheme MyApp -destination 'platform=iOS Simulator,name=iPhone 15'
+
+# Run specific test class
+xcodebuild test -scheme MyApp -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:MyAppTests/UserManagerTests
+
+# Run with coverage
+xcodebuild test -scheme MyApp -destination 'platform=iOS Simulator,name=iPhone 15' -enableCodeCoverage YES
+```
+
+## Best Practices
+
+### Test Naming
+
+- **Descriptive Names**: Use clear, descriptive test names
+- **Consistent Format**: Follow a consistent naming convention
+- **Include Context**: Include what you're testing and expected outcome
+
+```swift
+// Good test names
+func testUserCreationWithValidData() { }
+func testUserCreationWithInvalidEmailThrowsError() { }
+func testUserDeletionRemovesUserFromDatabase() { }
+
+// Swift Testing
+@Test func userCreationWithValidData() { }
+@Test func userCreationWithInvalidEmailThrowsError() { }
+@Test func userDeletionRemovesUserFromDatabase() { }
+```
+
+### Test Structure
+
+Follow the Arrange-Act-Assert pattern:
+
+```swift
+func testUserValidation() {
+    // Arrange
+    let validEmail = "user@example.com"
+    let validPassword = "SecurePassword123"
+    
+    // Act
+    let isValid = UserValidator.validate(email: validEmail, password: validPassword)
+    
+    // Assert
+    XCTAssertTrue(isValid)
+}
+```
+
+### Test Independence
+
+```swift
+class IndependentTests: XCTestCase {
+    override func setUp() {
+        super.setUp()
+        // Set up fresh state for each test
+        UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier!)
+    }
+    
+    override func tearDown() {
+        // Clean up after each test
+        super.tearDown()
+    }
+}
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Tests Not Running**
+   - Check target membership
+   - Verify build settings
+   - Ensure proper imports
+
+2. **Import Errors**
+   - Use `@testable import` for internal types
+   - Check module names
+   - Verify target dependencies
+
+3. **UI Test Failures**
+   - Check element accessibility
+   - Verify timing issues
+   - Use proper waits
+
+### Debugging Tests
+
+```swift
+func testWithDebugging() {
+    print("Starting test...")
+    
+    // Add breakpoints
+    let result = performOperation()
+    
+    print("Result: \(result)")
+    XCTAssertNotNil(result)
+}
+```
+
+## Migration from XCTest to Swift Testing
+
+### Gradual Migration
+
+You can run both XCTest and Swift Testing side by side:
+
+```swift
+// Keep existing XCTest
+class LegacyTests: XCTestCase {
+    func testLegacyFunctionality() { }
+}
+
+// Add new Swift Testing
+struct NewTests {
+    @Test func newFunctionality() { }
+}
+```
+
+### Converting Tests
+
+```swift
+// XCTest
+func testUserCreation() {
+    let user = User(name: "John")
+    XCTAssertEqual(user.name, "John")
+}
+
+// Swift Testing
+@Test func userCreation() {
+    let user = User(name: "John")
+    #expect(user.name == "John")
+}
+```
+
+## References
+
+- [Apple Developer Documentation - Adding Tests](https://developer.apple.com/documentation/xcode/adding-tests-to-your-xcode-project)
+- [XCTest Framework Documentation](https://developer.apple.com/documentation/xctest)
+- [Swift Testing GitHub Repository](https://github.com/swiftlang/swift-testing)
+- [WWDC Testing Sessions](https://developer.apple.com/videos/wwdc2024)
+
+---
+
+*This comprehensive guide covers all aspects of adding and configuring tests in your Xcode project, from basic setup to advanced testing strategies.*
+--- END FILE ---
+
+--- FILE: Mixing-Languages-in-an-Xcode-project.md ---
+# Mixing Languages in an Xcode project
+
+**Use C++ APIs in Swift – and Swift APIs in C++ – in a single framework target, and consume the framework’s APIs in a separate app target.**
+
+## Availability
+
+- **macOS** 14.0+
+- **Xcode** 15.0+
+
+
+## Overview
+
+
+> **NOTE**: This sample code project is associated with WWDC 2023 session 10172: [https://developer.apple.com/wwdc23/10172](https://developer.apple.com/wwdc23/10172).
+
+
+
+### Configure the sample code project
+
+Before you run the sample code project in Xcode, ensure you’re using macOS 14.0 or later.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/MixingLanguagesInAnXcodeProject](https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/MixingLanguagesInAnXcodeProject)*
+--- END FILE ---
+
+--- FILE: Mixing-Languages-in-an-Xcode-project.md ---
+# Mixing Languages in an Xcode project
+
+**Use C++ APIs in Swift – and Swift APIs in C++ – in a single framework target, and consume the framework’s APIs in a separate app target.**
+
+## Availability
+
+- **macOS** 14.0+
+- **Xcode** 15.0+
+
+
+## Overview
+
+
+> **NOTE**: This sample code project is associated with WWDC 2023 session 10172: [https://developer.apple.com/wwdc23/10172](https://developer.apple.com/wwdc23/10172).
+
+
+
+### Configure the sample code project
+
+Before you run the sample code project in Xcode, ensure you’re using macOS 14.0 or later.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/MixingLanguagesInAnXcodeProject](https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/MixingLanguagesInAnXcodeProject)*
+--- END FILE ---
+
+--- FILE: testing-asynchronous-code.md ---
+# Testing asynchronous code
+
+<!--
+This source file is part of the Swift.org open source project
+
+Copyright (c) 2024 Apple Inc. and the Swift project authors
+Licensed under Apache License v2.0 with Runtime Library Exception
+
+See https://swift.org/LICENSE.txt for license information
+See https://swift.org/CONTRIBUTORS.txt for Swift project authors
+-->
+
+Validate whether your code causes expected events to happen.
+
+## Overview
+
+The testing library integrates with Swift concurrency, meaning that in many
+situations you can test asynchronous code using standard Swift
+features.  Mark your test function as `async` and, in the function
+body, `await` any asynchronous interactions:
+
+```swift
+@Test func priceLookupYieldsExpectedValue() async {
+  let mozarellaPrice = await unitPrice(for: .mozarella)
+  #expect(mozarellaPrice == 3)
+}
+```
+
+In more complex situations you can use ``Confirmation`` to discover whether an
+expected event happens.
+
+### Confirm that an event happens
+
+Call ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-5mqz2`` in your
+asynchronous test function to create a `Confirmation` for the expected event. In
+the trailing closure parameter, call the code under test. Swift Testing passes a
+`Confirmation` as the parameter to the closure, which you call as a function in
+the event handler for the code under test when the event you're testing for
+occurs:
+
+```swift
+@Test("OrderCalculator successfully calculates subtotal for no pizzas")
+func subtotalForNoPizzas() async {
+  let calculator = OrderCalculator()
+  await confirmation() { confirmation in
+    calculator.successHandler = { _ in confirmation() }
+    _ = await calculator.subtotal(for: PizzaToppings(bases: []))
+  }
+}
+```
+
+If you expect the event to happen more than once, set the
+`expectedCount` parameter to the number of expected occurrences. The
+test passes if the number of occurrences during the test matches the
+expected count, and fails otherwise.
+
+You can also pass a range to ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-l3il``
+if the exact number of times the event occurs may change over time or is random:
+
+```swift
+@Test("Customers bought sandwiches")
+func boughtSandwiches() async {
+  await confirmation(expectedCount: 0 ..< 1000) { boughtSandwich in
+    var foodTruck = FoodTruck()
+    foodTruck.orderHandler = { order in
+      if order.contains(.sandwich) {
+        boughtSandwich()
+      }
+    }
+    await FoodTruck.operate()
+  }
+}
+```
+
+In this example, there may be zero customers or up to (but not including) 1,000
+customers who order sandwiches. Any [range expression](https://developer.apple.com/documentation/swift/rangeexpression)
+which includes an explicit lower bound can be used:
+
+| Range Expression | Usage |
+|-|-|
+| `1...` | If an event must occur _at least_ once |
+| `5...` | If an event must occur _at least_ five times |
+| `1 ... 5` | If an event must occur at least once, but not more than five times |
+| `0 ..< 100` | If an event may or may not occur, but _must not_ occur more than 99 times |
+
+### Confirm that an event doesn't happen
+
+To validate that a particular event doesn't occur during a test,
+create a `Confirmation` with an expected count of `0`:
+
+```swift
+@Test func orderCalculatorEncountersNoErrors() async {
+  let calculator = OrderCalculator()
+  await confirmation(expectedCount: 0) { confirmation in
+    calculator.errorHandler = { _ in confirmation() }
+    calculator.subtotal(for: PizzaToppings(bases: []))
+  }
+}
+```
+--- END FILE ---
+
+--- FILE: Synchronization.md ---
+# Synchronization
+
+**Build synchronization constructs using low-level, primitive operations.**
+
+## Availability
+
+- **iOS** 18.0+
+- **iPadOS** 18.0+
+- **Mac Catalyst** 18.0+
+- **macOS** 15.0+
+- **tvOS** 18.0+
+- **visionOS** 2.0+
+- **watchOS** 11.0+
+
+
+## Topics
+
+### Atomic Values
+
+- [Atomic](https://developer.apple.com/documentation/synchronization/atomic) — An atomic value.
+- [AtomicLazyReference](https://developer.apple.com/documentation/synchronization/atomiclazyreference) — A lazily initializable atomic strong reference.
+- [WordPair](https://developer.apple.com/documentation/synchronization/wordpair) — A pair of two word sized `UInt`s.
+- [AtomicRepresentable](https://developer.apple.com/documentation/synchronization/atomicrepresentable) — A type that supports atomic operations through a separate atomic storage representation.
+- [AtomicOptionalRepresentable](https://developer.apple.com/documentation/synchronization/atomicoptionalrepresentable) — An atomic value that also supports atomic operations when wrapped in an `Optional`. Atomic optional representable types come with a standalone atomic representation for their optional-wrapped variants.
+### Memory Ordering Semantics
+
+- [AtomicLoadOrdering](https://developer.apple.com/documentation/synchronization/atomicloadordering) — Specifies the memory ordering semantics of an atomic load operation.
+- [AtomicStoreOrdering](https://developer.apple.com/documentation/synchronization/atomicstoreordering) — Specifies the memory ordering semantics of an atomic store operation.
+- [AtomicUpdateOrdering](https://developer.apple.com/documentation/synchronization/atomicupdateordering) — Specifies the memory ordering semantics of an atomic read-modify-write operation.
+- [atomicMemoryFence(ordering:)](https://developer.apple.com/documentation/synchronization/atomicmemoryfence(ordering:)) — Establishes a memory ordering without associating it with a particular atomic operation.
+### Structures
+
+- [Mutex](https://developer.apple.com/documentation/synchronization/mutex) — A synchronization primitive that protects shared mutable state via mutual exclusion.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.Swift/documentation/Synchronization](https://developer.apple.com/documentation/com.apple.Swift/documentation/Synchronization)*
+--- END FILE ---
+
+--- FILE: Calling-Objective-C-APIs-Asynchronously.md ---
+# Calling Objective-C APIs Asynchronously
+
+**Learn how functions and methods that take a completion handler are converted to Swift asynchronous functions.**
+
+
+## Overview
+
+In Cocoa, methods that perform asynchronous operations take a completion handler as their last parameter, and the method calls that block after the operation finishes to return a result or an error. Swift 5.5 and later automatically translates Objective-C methods that take completion handlers into asynchronous methods using Swift’s native concurrency support, in addition to importing the callback-based version of the method into Swift. Because both Swift methods have the same behavior, they share the same page in the documentation.
+
+For information about asynchronous functions, see [https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html) in [https://docs.swift.org/swift-book/](https://docs.swift.org/swift-book/).
+
+
+### Understand How Swift Imports Completion Handlers
+
+Swift imports Objective-C methods that take a completion handler as two related Swift methods: a method that takes a closure, and an asynchronous method that doesn’t take a closure. For example, consider the [doc://com.apple.documentation/documentation/PassKit/PKPaymentAuthorizationController/present(completion:)](https://developer.apple.com/documentation/PassKit/PKPaymentAuthorizationController/present(completion:)) method from PassKit. In Objective-C, it’s declared like this:
+
+```occ
+- (void)presentWithCompletion:(void (^)(BOOL success))completion;
+```
+
+However, in Swift, it’s imported as two methods:
+
+```swift
+func present(completion: ((Bool) -> Void)? = nil)
+
+func present() async -> Bool
+```
+
+The first version, `present(completion:)`, has a return type of `Void` and takes a completion handler. The second version, `present()`, returns a Boolean value and is an asynchronous method.
+
+Methods whose completion handlers populate a [doc://com.apple.documentation/documentation/Foundation/NSError](https://developer.apple.com/documentation/Foundation/NSError) pointer parameter also become throwing methods in Swift, as described in [doc://com.apple.Swift/documentation/Swift/about-imported-cocoa-error-parameters](https://developer.apple.com/documentation/Swift/about-imported-cocoa-error-parameters). The `NSError` parameter on an asynchronous throwing method must also be nullable, which indicates that the parameter is used only to communicate an error. For example, consider the [doc://com.apple.documentation/documentation/Foundation/URLSessionStreamTask/write(_:timeout:completionHandler:)](https://developer.apple.com/documentation/Foundation/URLSessionStreamTask/write(_:timeout:completionHandler:)) method from [doc://com.apple.documentation/documentation/Foundation/URLSessionStreamTask](https://developer.apple.com/documentation/Foundation/URLSessionStreamTask). In Objective-C, it’s declared like this:
+
+```occ
+- (void)writeData:(NSData *)data
+          timeout:(NSTimeInterval)timeout
+completionHandler:(void (^) (NSError * _Nullable error))completionHandler;
+```
+
+As in the previous example, Swift imports this Objective-C method as two methods: an asynchronous method that takes a closure, and an asynchronous throwing method.
+
+```swift
+func write(
+    _ data: Data, 
+    timeout: TimeInterval, 
+    completionHandler: @escaping (Error?) -> Void
+)
+
+func write(_ data: Data, timeout: TimeInterval) async throws
+```
+
+Methods whose completion handlers take multiple arguments become methods that return a tuple. For example, the [doc://com.apple.documentation/documentation/PassKit/PKPassLibrary/sign(_:using:completion:)](https://developer.apple.com/documentation/PassKit/PKPassLibrary/sign(_:using:completion:)) method from PassKit is declared like this in Objective-C:
+
+```occ
+- (void)signData:(NSData *)signData 
+withSecureElementPass:(PKSecureElementPass *)secureElementPass 
+      completion:(void (^)(NSData *signedData, NSData *signature, NSError *error))completion;
+```
+
+In Swift it‘s imported as two methods, an asychronous method that takes a closure and an asynchronous throwing method that returns a tuple:
+
+```swift
+func sign(
+    _ signData: Data, 
+    using secureElementPass: PKSecureElementPass, 
+    completion: @escaping (Data?, Data?, Error?) -> Void
+)
+
+func sign(_ signData: Data, 
+    using secureElementPass: PKSecureElementPass
+) async throws -> (Data, Data)
+```
+
+
+### Understand the Conversion Rules
+
+The method that takes a completion handler must meet the following requirements:
+
+- The method has a `void` return type.
+
+- The block has a `void` return type.
+
+- The block is called exactly once, on all possible paths of control flow.
+
+If the method has only one parameter and its selector ends with one of the following suffixes, Swift imports the method as an asynchronous method:
+
+- `WithCompletion`
+
+- `WithCompletionHandler`
+
+- `WithCompletionBlock`
+
+- `WithReplyTo`
+
+- `WithReply`
+
+If the method has more than one parameter, and the last parameter’s selector piece is one of the following, Swift imports the method as an asynchronous method:
+
+- `completion`
+
+- `withCompletion`
+
+- `completionHandler`
+
+- `withCompletionHandler`
+
+- `completionBlock`
+
+- `withCompletionBlock`
+
+- `replyTo`
+
+- `withReplyTo`
+
+- `reply`
+
+- `replyTo`
+
+The name of the Swift method is modified from the Objective-C method as follows:
+
+- The selector piece for the completion handler is removed.
+
+- If the selector starts with `get`, that prefix is removed and leading initialisms are converted to lowercase.
+
+- If the selector ends with `Asynchronously`, that suffix is removed.
+
+- If the method calls its completion handler with a nullable parameter, the asynchronous version in Swift is marked with the `@discardableResult` attribute.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/calling-objective-c-apis-asynchronously](https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/calling-objective-c-apis-asynchronously)*
+--- END FILE ---
+
+--- FILE: Adopting-strict-concurrency-in-Swift-6-apps.md ---
+# Adopting strict concurrency in Swift 6 apps
+
+**Enable strict concurrency checking to find data races at compile time.**
+
+
+## Overview
+
+Strict concurrency checking in the Swift 6 language mode helps you find and fix data races at compile time.
+
+Overlapping access to shared mutable state creates the risk for data races. Data races can cause your app to crash, misbehave, or corrupt user data. Because data races depend on the ordering of concurrent operations, they can be very difficult to reproduce and debug. Strict concurrency checking lets you confirm, when you compile your app, that its code is free from data races. When you identify a data race, you fix it by eliminating overlapping access, shared access, or mutable state.
+
+For information about the language-level concurrency model in Swift, see [https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html) in [https://docs.swift.org/swift-book/](https://docs.swift.org/swift-book/).
+
+
+### Decide when to upgrade to strict checking
+
+Xcode 16 supports the new Swift 6 language mode, which uses strict checking for concurrency, and it also still includes the Swift 5, 4.2, and 4 language modes. The Swift 6 language mode is opt-in: Your projects continue to build with their current language mode, and new projects default to the Swift 5 language mode.
+
+Adopting the Swift 6 language mode can significantly improve the quality of your app by catching mistakes in concurrent code at compile time. It can be especially useful if you’re experiencing hard-to-reproduce crashes and want to methodically eliminate the risk of data races. If you’re actively working on integrating more concurrency to improve responsiveness and performance, adopting the Swift 6 language mode can ensure that those changes don’t risk introducing new data races.
+
+If your app is organized into multiple modules, you can migrate your code one module at a time. It’s usually easier to migrate the app first, and the migrate the modules it depends on.
+
+If you maintain a public Swift package, adopting the Swift 6 language mode helps your users who want to migrate their codebases too. You can follow along on the adoption of the Swift 6 language in popular packages on `SwiftPackageIndex.com`.
+
+
+### Upgrade a project to Swift 6
+
+You can start using new features from Swift 6, like strict concurrency checking, before upgrading your project to the Swift 6 language mode. To enable new language features, open your build settings, and choose Swift Compiler - Upcoming Features; then select Yes next to the features you want to adopt. As you prepare to upgrade to the Swift 6 language version, you can increase the level of concurrency checking by changing the Strict Concurrency Checking build setting from Minimal to Complete.
+
+![Image](AdoptingSwift6-features)
+
+To upgrade your project to the Swift 6 language mode, open your build settings, and choose Swift Compiler - Language > Swift Language Version.
+
+![Image](AdoptingSwift6-language)
+
+Upgrading to the Swift 6 language mode enables all of the new language features that are part of Swift 6, including strict concurrency checking.
+
+
+> **NOTE**:  After you upgrade, the list of upcoming features still includes a few features that will be part of a future Swift version, which are disabled by default in the Swift 6 language mode.
+
+
+After you turn on strict concurrency checking, you might see a large number of new compiler errors and warnings. However, fixing the data race in one part of your app often resolves multiple reported errors. You don’t have to fix all of the reported data races at once. If you need to, you can fix some of them now, switch back to the Swift 5 language mode or switch back to minimal concurrency checking, and then continue fixing the remaining data races later.
+
+For information about how to migrate, including techniques for interoperating with code that hasn’t yet migrated to strict checking, see [https://swift.org/migration](https://swift.org/migration).
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/AdoptingSwift6](https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/AdoptingSwift6)*
+--- END FILE ---
+
+--- FILE: Swift.md ---
+# Swift
+
+**Build apps using a powerful open language.**
+
+## Availability
+
+- **iOS** 8.0+
+- **iPadOS** 8.0+
+- **Mac Catalyst** 13.0+
+- **macOS** 10.10+
+- **tvOS** 9.0+
+- **visionOS** 1.0+
+- **watchOS** 2.0+
+
+
+## Overview
+
+Swift includes modern features like type inference, optionals, and closures, which make the syntax concise yet expressive. Swift ensures your code is fast and efficient, while its memory safety and native error handling make the language safe by design. Writing Swift code is interactive and fun in Swift Playgrounds, playgrounds in Xcode, and REPL.
+
+```swift
+var interestingNumbers = [
+    "primes": [2, 3, 5, 7, 11, 13, 17],
+    "triangular": [1, 3, 6, 10, 15, 21, 28],
+    "hexagonal": [1, 6, 15, 28, 45, 66, 91]
+]
+
+for key in interestingNumbers.keys {
+    interestingNumbers[key]?.sort(by: >)
+}
+
+print(interestingNumbers["primes"]!)
+// Prints "[17, 13, 11, 7, 5, 3, 2]"
+```
+
+
+### Learn Swift
+
+If you’re new to Swift, read [https://docs.swift.org/swift-book/](https://docs.swift.org/swift-book/) for a quick tour, a comprehensive language guide, and a full reference manual. If you’re new to programming, check out [https://www.apple.com/swift/playgrounds/](https://www.apple.com/swift/playgrounds/) on iPad.
+
+Swift is developed in the open. To learn more about the open source Swift project and community, visit [https://swift.org](https://swift.org).
+
+## Topics
+
+### Essentials
+
+- [Swift updates](https://developer.apple.com/documentation/Updates/Swift) — Learn about important changes to Swift.
+- [Adopting strict concurrency in Swift 6 apps](https://developer.apple.com/documentation/swift/adoptingswift6) — Enable strict concurrency checking to find data races at compile time.
+### Standard Library
+
+- [Int](https://developer.apple.com/documentation/swift/int) — A signed integer value type.
+- [Double](https://developer.apple.com/documentation/swift/double) — A double-precision, floating-point value type.
+- [String](https://developer.apple.com/documentation/swift/string) — A Unicode string value that is a collection of characters.
+- [Array](https://developer.apple.com/documentation/swift/array) — An ordered, random-access collection.
+- [Dictionary](https://developer.apple.com/documentation/swift/dictionary) — A collection whose elements are key-value pairs.
+- [Swift Standard Library](https://developer.apple.com/documentation/swift/swift-standard-library) — Solve complex problems and write high-performance, readable code.
+### Observation
+
+- [Observation](https://developer.apple.com/documentation/swift#Observation)
+### Distributed Actors
+
+- [Distributed](https://developer.apple.com/documentation/distributed) — Build systems that run distributed code across multiple processes and devices.
+### Regular Expression DSL
+
+- [RegexBuilder](https://developer.apple.com/documentation/regexbuilder) — Use an expressive domain-specific language to build regular expressions, for operations like searching and replacing in text.
+### Low-Level Atomic Operations
+
+- [Synchronization](https://developer.apple.com/documentation/synchronization) — Build synchronization constructs using low-level, primitive operations.
+### Data Modeling
+
+- [Choosing Between Structures and Classes](https://developer.apple.com/documentation/swift/choosing-between-structures-and-classes) — Decide how to store data and model behavior.
+- [Adopting Common Protocols](https://developer.apple.com/documentation/swift/adopting-common-protocols) — Make your custom types easier to use by ensuring that they conform to Swift protocols.
+### Data Flow and Control Flow
+
+- [Maintaining State in Your Apps](https://developer.apple.com/documentation/swift/maintaining-state-in-your-apps) — Use enumerations to capture and track the state of your app.
+- [Preventing Timing Problems When Using Closures](https://developer.apple.com/documentation/swift/preventing-timing-problems-when-using-closures) — Understand how different API calls to your closures can affect your app.
+### Language Interoperability with Objective-C and C
+
+- [Objective-C and C Code Customization](https://developer.apple.com/documentation/swift/objective-c-and-c-code-customization) — Apply macros to your Objective-C APIs to customize how they’re imported into Swift.
+- [Migrating Your Objective-C Code to Swift](https://developer.apple.com/documentation/swift/migrating-your-objective-c-code-to-swift) — Learn the recommended steps to migrate your code.
+- [Cocoa Design Patterns](https://developer.apple.com/documentation/swift/cocoa-design-patterns) — Adopt and interoperate with Cocoa design patterns in your Swift apps.
+- [Handling Dynamically Typed Methods and Objects in Swift](https://developer.apple.com/documentation/swift/handling-dynamically-typed-methods-and-objects-in-swift) — Cast instances of the Objective-C `id` type to a specific Swift type.
+- [Using Objective-C Runtime Features in Swift](https://developer.apple.com/documentation/swift/using-objective-c-runtime-features-in-swift) — Use selectors and key paths to interact with dynamic Objective-C APIs.
+- [Imported C and Objective-C APIs](https://developer.apple.com/documentation/swift/imported-c-and-objective-c-apis) — Use native Swift syntax to interoperate with types and functions in C and Objective-C.
+- [Calling Objective-C APIs Asynchronously](https://developer.apple.com/documentation/swift/calling-objective-c-apis-asynchronously) — Learn how functions and methods that take a completion handler are converted to Swift asynchronous functions.
+### Language Interoperability with C++
+
+- [Mixing Languages in an Xcode project](https://developer.apple.com/documentation/swift/mixinglanguagesinanxcodeproject) — Use C++ APIs in Swift – and Swift APIs in C++ – in a single framework target, and consume the framework’s APIs in a separate app target.
+- [Calling APIs Across Language Boundaries](https://developer.apple.com/documentation/swift/callingapisacrosslanguageboundaries) — Use a variety of C++ APIs in Swift – and vice-versa – across multiple targets and frameworks in an Xcode project.
+### Structures
+
+- [OutputRawSpan](https://developer.apple.com/documentation/swift/outputrawspan)
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift](https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift)*
+--- END FILE ---
+
+--- FILE: Setting-up-a-watchOS-project.md ---
+# Setting up a watchOS project
+
+**Create a new watchOS project or add a watch target to an existing iOS project.**
+
+
+## Overview
+
+Before you start a new watchOS project, you need to decide how you’re going to distribute that project: as a watch-only app, or as a watchOS app with an iOS app. If your app is only available on Apple Watch, create a new watch-only project. If you want a watchOS and iOS app that deliver a related experience, either create a new project that bundles the two apps, or add a watchOS target to an existing iOS project.
+
+
+### Create a new project
+
+To create a new watchOS project:
+
+1. In Xcode, choose File > New > Project.
+
+2. Select the watchOS tab.
+
+3. To create a watch-only app, select “App” and click Next. To create a watchOS app bundled with an iOS app, select “iOS App with Watch App” and click Next.
+
+4. In the project options sheet ([/documentation/watchkit/setting_up_a_watchos_project#3312778](https://developer.apple.com/documentation/watchkit/setting_up_a_watchos_project#3312778)), enter a product name for the project. If you plan to implement a custom notification, complication, or unit tests, select the appropriate checkboxes, and click Next.
+
+5. Select a location for the project, and click Create.
+
+![Image](media-3312778)
+
+Xcode includes the Notification Scene by default. Leave this checkbox selected even if you don’t plan on implementing notifications right away. Selecting the checkbox adds the `PushNotificationPayload.apns` file to your project, which helps you debug your notification interfaces. If you add a Notification Scene later, you must also add the `PushNotificationPayload.apns` file.
+
+
+### Add a watchOS app target to an existing iOS project
+
+You can add a watchOS target to an existing iOS project by following these steps:
+
+1. Open your iOS app’s project in Xcode.
+
+2. Choose File > New > Target.
+
+3. Select the watchOS tab.
+
+4. Select “Watch App for iOS App” and click Next.
+
+5. In the target options sheet ([/documentation/watchkit/setting_up_a_watchos_project#3312779](https://developer.apple.com/documentation/watchkit/setting_up_a_watchos_project#3312779)), enter a Product Name for the project. If you plan to implement notifications or complications, select the appropriate checkboxes, and click Finish.
+
+6. Xcode then asks you to activate the new scheme for your watch target. Click Activate.
+
+![Image](media-3312779)
+
+As when creating a new project, Xcode includes the Notification Scene by default. Leave this checkbox selected even if you don’t plan to implement notifications right away; selecting the checkbox adds the `PushNotificationPayload.apns` file to your project, which helps you debug your notification interfaces. If you add a Notification Scene later, you must also add the `PushNotificationPayload.apns` file.
+
+
+### Understand the WatchKit app and WatchKit extension
+
+Regardless of whether you add a watchOS app to an existing project or create a new project that contains both an iOS and watchOS app, Xcode automatically configures the targets for your watchOS app and adds the needed files, as in [/documentation/watchkit/setting_up_a_watchos_project#3295999](https://developer.apple.com/documentation/watchkit/setting_up_a_watchos_project#3295999).
+
+Xcode divides the watchOS app into two sections:
+
+![Image](media-3295999)
+
+Xcode sets the bundle IDs for both of the watch targets based on the container’s ID. For a watch-only app, this ID is the bundle ID for the root target. For a watchOS app with an iOS app, this ID is the iOS app’s bundle ID. The root of the WatchKit app and WatchKit extension’s bundle IDs must match the container’s bundle ID. If you change your iOS app’s bundle ID, you must update the other bundle IDs accordingly.
+
+When developing your watchOS app, edit your app’s storyboard in the WatchKit app, and write your app’s code in the WatchKit extension. Your WatchKit extension connects to controls and views in the storyboard using [doc://com.apple.watchkit/documentation/WatchKit/WKInterfaceObject](https://developer.apple.com/documentation/WatchKit/WKInterfaceObject) subclasses such as [doc://com.apple.watchkit/documentation/WatchKit/WKInterfaceButton](https://developer.apple.com/documentation/WatchKit/WKInterfaceButton) and [doc://com.apple.watchkit/documentation/WatchKit/WKInterfaceLabel](https://developer.apple.com/documentation/WatchKit/WKInterfaceLabel). These interface objects act as proxies for your storyboard elements. Use the interface elements to configure the elements in code.
+
+## Topics
+
+### Information Property List Keys
+
+- [WKWatchKitApp](https://developer.apple.com/documentation/BundleResources/Information-Property-List/WKWatchKitApp) — A Boolean value that indicates whether the bundle is a watchOS app.
+- [WKAppBundleIdentifier](https://developer.apple.com/documentation/BundleResources/Information-Property-List/WKAppBundleIdentifier) — The bundle ID of the watchOS app.
+- [WKCompanionAppBundleIdentifier](https://developer.apple.com/documentation/BundleResources/Information-Property-List/WKCompanionAppBundleIdentifier) — The bundle ID of the watchOS app’s companion iOS app.
+- [WKExtensionDelegateClassName](https://developer.apple.com/documentation/BundleResources/Information-Property-List/WKExtensionDelegateClassName) — The name of your watchOS app’s extension delegate.
+- [WKRunsIndependentlyOfCompanionApp](https://developer.apple.com/documentation/BundleResources/Information-Property-List/WKRunsIndependentlyOfCompanionApp) — A Boolean value indicating whether the user can install and run the watchOS app independently of its iOS companion app.
+- [WKWatchOnly](https://developer.apple.com/documentation/BundleResources/Information-Property-List/WKWatchOnly) — A Boolean value indicating whether the app is a watch-only app.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.watchkit/documentation/WatchKit/setting-up-a-watchos-project](https://developer.apple.com/documentation/com.apple.watchkit/documentation/WatchKit/setting-up-a-watchos-project)*
+--- END FILE ---
+
+--- FILE: Apple-Testing-Documentation-Overview.md ---
+# Apple Testing Documentation Overview
+
+This document provides a comprehensive overview of Apple's testing documentation, covering all testing frameworks and tools available for iOS, macOS, watchOS, and tvOS development.
+
+## Testing Frameworks
+
+### XCTest Framework
+
+The XCTest framework is Apple's primary testing framework for unit and UI testing across all Apple platforms.
+
+**Key Features:**
+- Unit testing with assertions
+- UI testing with XCUITest
+- Performance testing
+- Asynchronous testing
+- Mocking and stubbing capabilities
+
+**Platform Support:**
+- iOS 7.0+
+- macOS 10.9+
+- watchOS 2.0+
+- tvOS 9.0+
+
+### Swift Testing Framework
+
+The new Swift Testing framework introduced in Swift 5.9+ provides modern testing capabilities designed specifically for Swift.
+
+**Key Features:**
+- Modern Swift syntax with macros
+- Better async/await support
+- Improved test discovery
+- Enhanced debugging capabilities
+- Cross-platform support
+
+**Platform Support:**
+- iOS 13.0+
+- macOS 10.15+
+- watchOS 6.0+
+- tvOS 13.0+
+- Linux
+- Windows
+
+## Testing Types
+
+### Unit Testing
+
+Unit tests verify that individual components of your app work correctly in isolation.
+
+```swift
+// XCTest Example
+import XCTest
+@testable import MyApp
+
+class UserManagerTests: XCTestCase {
+    func testUserCreation() {
+        let user = UserManager.createUser(name: "John", email: "john@example.com")
+        XCTAssertNotNil(user)
+        XCTAssertEqual(user.name, "John")
+    }
+}
+
+// Swift Testing Example
+import Testing
+@testable import MyApp
+
+struct UserManagerTests {
+    @Test func userCreation() {
+        let user = UserManager.createUser(name: "John", email: "john@example.com")
+        #expect(user != nil)
+        #expect(user?.name == "John")
+    }
+}
+```
+
+### UI Testing
+
+UI tests verify that your app's user interface works correctly by simulating user interactions.
+
+```swift
+import XCTest
+
+class MyAppUITests: XCTestCase {
+    var app: XCUIApplication!
+    
+    override func setUp() {
+        super.setUp()
+        continueAfterFailure = false
+        app = XCUIApplication()
+        app.launch()
+    }
+    
+    func testLoginFlow() {
+        let emailTextField = app.textFields["email"]
+        emailTextField.tap()
+        emailTextField.typeText("user@example.com")
+        
+        let passwordTextField = app.secureTextFields["password"]
+        passwordTextField.tap()
+        passwordTextField.typeText("password123")
+        
+        let loginButton = app.buttons["login"]
+        loginButton.tap()
+        
+        XCTAssertTrue(app.staticTexts["Welcome"].exists)
+    }
+}
+```
+
+### Performance Testing
+
+Performance tests measure the execution time and resource usage of your code.
+
+```swift
+func testPerformance() {
+    measure(metrics: [XCTClockMetric(), XCTMemoryMetric()]) {
+        // Code to measure
+        let array = Array(0..<1000000)
+        let sorted = array.sorted()
+    }
+}
+```
+
+## Testing Tools and Utilities
+
+### Xcode Test Navigator
+
+The Test Navigator (⌘+6) provides a hierarchical view of all your tests:
+
+- **Run individual tests**: Click the diamond icon
+- **Run test suites**: Click the diamond icon next to a class
+- **Run all tests**: Use Product > Test (⌘+U)
+- **Filter tests**: Use the search bar
+- **Group by tags**: In Swift Testing, group by custom tags
+
+### Test Reports
+
+Test reports provide detailed information about test execution:
+
+- **Summary**: Total tests, passed, failed, skipped
+- **Timeline**: Test execution order and duration
+- **Details**: Individual test results and failure information
+- **Coverage**: Code coverage statistics
+
+### Command Line Tools
+
+```bash
+# Run all tests
+xcodebuild test -scheme MyApp -destination 'platform=iOS Simulator,name=iPhone 15'
+
+# Run specific test class
+xcodebuild test -scheme MyApp -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:MyAppTests/UserManagerTests
+
+# Run with coverage
+xcodebuild test -scheme MyApp -destination 'platform=iOS Simulator,name=iPhone 15' -enableCodeCoverage YES
+```
+
+## Testing Best Practices
+
+### Test Organization
+
+Organize your tests logically:
+
+```
+MyAppTests/
+├── UnitTests/
+│   ├── Models/
+│   │   ├── UserTests.swift
+│   │   └── ProductTests.swift
+│   ├── Services/
+│   │   ├── NetworkServiceTests.swift
+│   │   └── DataServiceTests.swift
+│   └── ViewModels/
+│       └── HomeViewModelTests.swift
+├── UITests/
+│   ├── LoginFlowTests.swift
+│   ├── NavigationTests.swift
+│   └── SettingsTests.swift
+└── TestUtilities/
+    ├── MockData.swift
+    └── TestHelpers.swift
+```
+
+### Test Naming
+
+Use descriptive test names that clearly indicate what is being tested:
+
+```swift
+// Good test names
+func testUserCreationWithValidData() { }
+func testUserCreationWithInvalidEmailThrowsError() { }
+func testUserDeletionRemovesUserFromDatabase() { }
+
+// Swift Testing
+@Test func userCreationWithValidData() { }
+@Test func userCreationWithInvalidEmailThrowsError() { }
+@Test func userDeletionRemovesUserFromDatabase() { }
+```
+
+### Test Structure
+
+Follow the Arrange-Act-Assert pattern:
+
+```swift
+func testUserValidation() {
+    // Arrange
+    let validEmail = "user@example.com"
+    let validPassword = "SecurePassword123"
+    
+    // Act
+    let isValid = UserValidator.validate(email: validEmail, password: validPassword)
+    
+    // Assert
+    XCTAssertTrue(isValid)
+}
+```
+
+## Advanced Testing Concepts
+
+### Mocking and Stubbing
+
+```swift
+class MockNetworkService: NetworkServiceProtocol {
+    var shouldSucceed = true
+    var mockData: Data?
+    var mockError: Error?
+    
+    func fetchData(completion: @escaping (Result<Data, Error>) -> Void) {
+        if shouldSucceed {
+            completion(.success(mockData ?? Data()))
+        } else {
+            completion(.failure(mockError ?? NetworkError.unknown))
+        }
+    }
+}
+```
+
+### Async Testing
+
+```swift
+// XCTest
+func testAsyncOperation() async throws {
+    let expectation = XCTestExpectation(description: "Async operation")
+    
+    Task {
+        let result = await performAsyncOperation()
+        XCTAssertNotNil(result)
+        expectation.fulfill()
+    }
+    
+    await fulfillment(of: [expectation], timeout: 5.0)
+}
+
+// Swift Testing
+@Test func asyncOperation() async throws {
+    let result = try await performAsyncOperation()
+    #expect(result != nil)
+}
+```
+
+### Parameterized Testing
+
+```swift
+// Swift Testing
+@Test("Continents mentioned in videos", arguments: [
+    "A Beach",
+    "By the Lake",
+    "Camping in the Woods"
+])
+func mentionedContinents(videoName: String) async throws {
+    let videoLibrary = try await VideoLibrary()
+    let video = try #require(await videoLibrary.video(named: videoName))
+    #expect(video.mentionedContinents.count <= 3)
+}
+```
+
+## Continuous Integration
+
+### Xcode Cloud
+
+Configure tests for Xcode Cloud:
+
+1. **Create Workflow**: Add test action
+2. **Configure Environment**: Set up test environment
+3. **Add Test Plans**: Include test plans in workflow
+4. **Monitor Results**: View test results in Xcode Cloud
+
+### Test Plans
+
+Test plans allow you to configure different test configurations:
+
+```swift
+// TestPlan.xctestplan
+{
+  "configurations" : [
+    {
+      "id" : "unit-tests",
+      "name" : "Unit Tests",
+      "options" : {
+        "targets" : [
+          {
+            "containerPath" : "container:MyApp.xcodeproj",
+            "identifier" : "MyAppTests",
+            "name" : "MyAppTests"
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+## Code Coverage
+
+### Enabling Code Coverage
+
+1. **Edit Scheme**: Product > Scheme > Edit Scheme
+2. **Test Action**: Check "Gather coverage data"
+3. **Run Tests**: Execute your test suite
+4. **View Coverage**: Report Navigator > Coverage
+
+### Coverage Analysis
+
+```swift
+// Example of testing edge cases for better coverage
+func testEdgeCases() {
+    // Test with empty input
+    let emptyResult = processData([])
+    XCTAssertTrue(emptyResult.isEmpty)
+    
+    // Test with nil input
+    let nilResult = processData(nil)
+    XCTAssertNil(nilResult)
+    
+    // Test with maximum values
+    let maxResult = processData(Array(repeating: 1, count: 10000))
+    XCTAssertNotNil(maxResult)
+}
+```
+
+## Migration Strategies
+
+### From XCTest to Swift Testing
+
+You can run both frameworks side by side:
+
+```swift
+// Keep existing XCTest
+class LegacyTests: XCTestCase {
+    func testLegacyFunctionality() { }
+}
+
+// Add new Swift Testing
+struct NewTests {
+    @Test func newFunctionality() { }
+}
+```
+
+### Converting Tests
+
+```swift
+// XCTest
+func testUserCreation() {
+    let user = User(name: "John")
+    XCTAssertEqual(user.name, "John")
+}
+
+// Swift Testing
+@Test func userCreation() {
+    let user = User(name: "John")
+    #expect(user.name == "John")
+}
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Tests Not Running**
+   - Check target membership
+   - Verify build settings
+   - Ensure proper imports
+
+2. **Import Errors**
+   - Use `@testable import` for internal types
+   - Check module names
+   - Verify target dependencies
+
+3. **UI Test Failures**
+   - Check element accessibility
+   - Verify timing issues
+   - Use proper waits
+
+### Debugging Tests
+
+```swift
+func testWithDebugging() {
+    print("Starting test...")
+    
+    // Add breakpoints
+    let result = performOperation()
+    
+    print("Result: \(result)")
+    XCTAssertNotNil(result)
+}
+```
+
+## References
+
+- [Apple Testing Documentation](https://developer.apple.com/documentation/testing)
+- [XCTest Framework Documentation](https://developer.apple.com/documentation/xctest)
+- [Swift Testing GitHub Repository](https://github.com/swiftlang/swift-testing)
+- [WWDC Testing Sessions](https://developer.apple.com/videos/wwdc2024)
+- [Adding Tests to Your Xcode Project](https://developer.apple.com/documentation/xcode/adding-tests-to-your-xcode-project)
+- [Running Tests and Interpreting Results](https://developer.apple.com/documentation/xcode/running-tests-and-interpreting-results)
+
+---
+
+*This comprehensive overview covers all aspects of Apple's testing documentation, providing a complete reference for testing iOS, macOS, watchOS, and tvOS applications.*
+--- END FILE ---
+
+--- FILE: Running-Tests-and-Interpreting-Results.md ---
+# Running Tests and Interpreting Results
+
+This document covers how to run tests in Xcode and understand the results, including both XCTest and Swift Testing frameworks.
+
+## Running Tests in Xcode
+
+### Test Navigator
+
+The Test Navigator (⌘+6) provides a hierarchical view of all your tests organized by target, class, and method. You can:
+
+- **Run individual tests**: Click the diamond icon next to any test
+- **Run test suites**: Click the diamond icon next to a class or target
+- **Run all tests**: Use Product > Test (⌘+U)
+- **Filter tests**: Use the search bar to find specific tests
+- **Group by tags**: In Swift Testing, you can group tests by custom tags
+
+### Running Tests from Code
+
+You can also run tests directly from your source code:
+
+```swift
+// XCTest example
+class MyTests: XCTestCase {
+    func testExample() {
+        // Test code here
+    }
+}
+
+// Swift Testing example
+@Test func example() {
+    // Test code here
+}
+```
+
+### Keyboard Shortcuts
+
+- **⌘+U**: Run all tests
+- **⌘+6**: Open Test Navigator
+- **⌘+Control+U**: Run tests for current file
+- **⌘+Control+Option+U**: Run tests for current class
+
+## Test Results Interpretation
+
+### Test Status Indicators
+
+Tests can have several status indicators:
+
+- **✅ Passed**: Test completed successfully
+- **❌ Failed**: Test failed with an error
+- **⏸️ Skipped**: Test was skipped (Swift Testing only)
+- **⏱️ Running**: Test is currently executing
+- **⏳ Pending**: Test is waiting to run
+
+### Understanding Test Failures
+
+When a test fails, Xcode provides detailed information:
+
+#### XCTest Failures
+
+```swift
+func testArrayContains() {
+    let numbers = [1, 2, 3, 4, 5]
+    XCTAssertTrue(numbers.contains(6), "Array should contain 6")
+}
+```
+
+**Failure Output:**
+```
+XCTAssertTrue failed - Array should contain 6
+```
+
+#### Swift Testing Failures
+
+```swift
+@Test func testArrayContains() {
+    let numbers = [1, 2, 3, 4, 5]
+    #expect(numbers.contains(6))
+}
+```
+
+**Failure Output:**
+```
+Expectation failed: numbers.contains(6)
+  └─ numbers: [1, 2, 3, 4, 5]
+  └─ contains(6): false
+```
+
+### Detailed Failure Analysis
+
+Swift Testing provides more detailed failure information:
+
+```swift
+@Test func testVideoMetadata() {
+    let video = Video(fileName: "By the Lake.mov")
+    let expectedMetadata = Metadata(duration: .seconds(90))
+    #expect(video.metadata == expectedMetadata)
+}
+```
+
+**Detailed Failure Output:**
+```
+Expectation failed: video.metadata == expectedMetadata
+  ├─ video.metadata: Metadata(duration: 120.0, resolution: "1920x1080")
+  └─ expectedMetadata: Metadata(duration: 90.0, resolution: "1920x1080")
+    ├─ duration: 90.0
+    └─ resolution: "1920x1080"
+```
+
+## Test Performance
+
+### Performance Testing
+
+XCTest provides performance testing capabilities:
+
+```swift
+func testPerformance() {
+    measure {
+        // Code to measure
+        let array = Array(0..<1000000)
+        let sorted = array.sorted()
+    }
+}
+```
+
+**Performance Results:**
+- **Baseline**: Average time from previous runs
+- **Average**: Current run's average time
+- **Relative Standard Deviation**: Consistency measure
+- **Max**: Slowest execution time
+
+### Test Execution Time
+
+Monitor test execution time in the Test Navigator:
+
+- **Fast tests**: < 1 second (green indicator)
+- **Medium tests**: 1-10 seconds (yellow indicator)
+- **Slow tests**: > 10 seconds (red indicator)
+
+## Debugging Tests
+
+### Setting Breakpoints
+
+1. Click in the gutter next to any line in your test
+2. Run the test in debug mode (⌘+Control+U)
+3. Use the debugger to inspect variables and step through code
+
+### Debugging Parameterized Tests
+
+For Swift Testing parameterized tests, you can debug individual arguments:
+
+```swift
+@Test("Continents mentioned in videos", arguments: [
+    "A Beach",
+    "By the Lake",
+    "Camping in the Woods"
+])
+func mentionedContinents(videoName: String) async throws {
+    // Set breakpoint here
+    let videoLibrary = try await VideoLibrary()
+    let video = try #require(await videoLibrary.video(named: videoName))
+    #expect(video.mentionedContinents.count <= 3)
+}
+```
+
+### Console Output
+
+Tests can output information to the console:
+
+```swift
+@Test func testWithOutput() {
+    print("Starting test...")
+    // Test code
+    print("Test completed")
+}
+```
+
+## Test Reports
+
+### Test Report in Xcode
+
+The Test Report shows:
+
+- **Summary**: Total tests, passed, failed, skipped
+- **Timeline**: Test execution order and duration
+- **Details**: Individual test results and failure information
+- **Coverage**: Code coverage statistics (if enabled)
+
+### Exporting Test Results
+
+You can export test results for CI/CD:
+
+1. **Command Line**: Use `xcodebuild test` with appropriate flags
+2. **Xcode**: Product > Test, then File > Export > Test Results
+3. **Formats**: JUnit XML, JSON, or custom formats
+
+### Continuous Integration
+
+For CI environments:
+
+```bash
+# Run tests and generate JUnit report
+xcodebuild test \
+  -scheme MyApp \
+  -destination 'platform=iOS Simulator,name=iPhone 15' \
+  -resultBundlePath TestResults.xcresult
+
+# Convert to JUnit format
+xcrun xccov view --report --json TestResults.xcresult > coverage.json
+```
+
+## Test Organization
+
+### Grouping Tests
+
+#### XCTest Organization
+
+```swift
+class UserTests: XCTestCase {
+    func testUserCreation() { }
+    func testUserValidation() { }
+    func testUserDeletion() { }
+}
+
+class AuthenticationTests: XCTestCase {
+    func testLogin() { }
+    func testLogout() { }
+    func testPasswordReset() { }
+}
+```
+
+#### Swift Testing Organization
+
+```swift
+struct UserTests {
+    @Test func creation() { }
+    @Test func validation() { }
+    @Test func deletion() { }
+}
+
+struct AuthenticationTests {
+    @Test func login() { }
+    @Test func logout() { }
+    @Test func passwordReset() { }
+}
+```
+
+### Test Tags (Swift Testing)
+
+```swift
+@Test(.tags(.unit, .fast)) func quickTest() { }
+@Test(.tags(.integration, .slow)) func slowTest() { }
+
+@Suite(.tags(.authentication))
+struct AuthTests {
+    @Test func login() { }
+    @Test func logout() { }
+}
+```
+
+## Best Practices
+
+### Test Naming
+
+- **XCTest**: Use descriptive method names starting with "test"
+- **Swift Testing**: Use descriptive function names, no "test" prefix needed
+
+```swift
+// XCTest
+func testUserCreationWithValidData() { }
+func testUserCreationWithInvalidEmail() { }
+
+// Swift Testing
+@Test func userCreationWithValidData() { }
+@Test func userCreationWithInvalidEmail() { }
+```
+
+### Test Structure
+
+Follow the Arrange-Act-Assert pattern:
+
+```swift
+@Test func testUserCreation() {
+    // Arrange
+    let email = "user@example.com"
+    let password = "securePassword123"
+    
+    // Act
+    let user = User(email: email, password: password)
+    
+    // Assert
+    #expect(user.email == email)
+    #expect(user.isValid)
+}
+```
+
+### Error Handling
+
+```swift
+@Test func testNetworkRequest() async throws {
+    // Test can throw errors
+    let data = try await networkService.fetchData()
+    #expect(!data.isEmpty)
+}
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Tests not running**: Check target membership and build settings
+2. **Import errors**: Ensure `@testable import` is used correctly
+3. **Async test failures**: Use proper async/await syntax
+4. **Performance test failures**: Check baseline settings
+
+### Debugging Tips
+
+1. **Use breakpoints**: Set breakpoints in test code
+2. **Add logging**: Use `print()` statements for debugging
+3. **Check console**: Look for error messages in the console
+4. **Verify setup**: Ensure test data and environment are correct
+
+## References
+
+- [Apple Developer Documentation - Testing](https://developer.apple.com/documentation/xcode/running-tests-and-interpreting-results)
+- [Swift Testing GitHub Repository](https://github.com/swiftlang/swift-testing)
+- [XCTest Framework Documentation](https://developer.apple.com/documentation/xctest)
+- [WWDC Sessions on Testing](https://developer.apple.com/videos/wwdc2024)
+
+---
+
+*This document provides comprehensive guidance on running tests and interpreting results in Xcode, covering both XCTest and Swift Testing frameworks.*
+--- END FILE ---
+
+--- FILE: Migrating-Your-Objective-C-Code-to-Swift.md ---
+# Migrating Your Objective-C Code to Swift
+
+**Learn the recommended steps to migrate your code.**
+
+
+## Overview
+
+You can improve the architecture, logic, and performance of one of your Objective-C apps by replacing pieces of it in Swift.  Interoperability makes it possible to integrate features migrated to Swift into Objective-C code with no hassle. You don’t need to rewrite your entire app in Swift at once.
+
+
+### Clean Up Your Code
+
+Make sure that your Objective-C code and Swift code have optimal compatibility by tidying up and modernizing your existing Objective-C codebase. For example, if there are parts of your codebase to which you haven’t added nullability annotations, now’s the time to add them. Make sure your code follows modern coding practices so that it interacts more effectively with Swift.
+
+
+### Migrate Your Code
+
+The most effective approach for migrating code to Swift is on a per-file basis—that is, one class at a time. Because you can’t subclass Swift classes in Objective-C, it’s best to choose a class in your app that doesn’t have any subclasses. You’ll replace the `.m` and `.h` files for that class with a single `.swift` file. Everything from your implementation and interface goes directly into this single Swift file. You won’t create a header file; Xcode generates a header automatically in case you need to reference it.
+
+1. Create a Swift class for your corresponding Objective-C .m and .h files by choosing File > New > File > (iOS, watchOS, tvOS, or macOS) > Source > Swift File. You can use the same or a different name than your Objective-C class. Class prefixes are optional in Swift.
+
+2. Import relevant system frameworks.
+
+3. Fill out an Objective-C bridging header if you need to access Objective-C code from the same app target in your Swift file.
+
+4. To make your Swift class accessible and usable back in Objective-C, make it a descendant of an Objective-C class. To specify a particular name for the class to use in Objective-C, mark it with `@objc(`*name*`)`, where name is the name that your Objective-C code uses to reference the Swift class.
+
+
+#### As You Work
+
+1. You can set up your Swift class to integrate Objective-C behavior by subclassing Objective-C classes, adopting Objective-C protocols, and more.
+
+2. As you work with Objective-C APIs, you’ll need to know how Swift translates certain Objective-C language features. For more information, see [doc://com.apple.Swift/documentation/Swift/objective-c-and-c-code-customization](https://developer.apple.com/documentation/Swift/objective-c-and-c-code-customization).
+
+3. Use the `@objc(`*name*`)` attribute to provide Objective-C names for properties and methods when necessary.
+
+4. Denote instance (`-`) and class (`+`) methods with `func` and `class func`, respectively.
+
+5. Declare simple macros as global constants, and translate complex macros into functions.
+
+
+#### After You Finish
+
+1. Update import statements in your Objective-C code (to `#import "ProductModuleName-Swift.h"`) to refer to your new Swift code.
+
+2. Remove the original Objective-C `.m` file from the target by deselecting the target membership checkbox. Don’t delete the `.m` and `.h` files immediately; use them to troubleshoot.
+
+3. Update your code to use the Swift class name instead of the Objective-C name if you gave the Swift class a different name.
+
+
+### Troubleshooting Tips and Reminders
+
+Migration experiences differ depending on your existing codebase, but here are some general steps and tools to help you troubleshoot the process:
+
+- Remember that you can’t subclass a Swift class in Objective-C. Therefore, the class you migrate can’t have any Objective-C subclasses.
+
+- Once you migrate a class to Swift, you must remove the corresponding `.m` file from the target before building to avoid a duplicate symbol error.
+
+- To make a Swift class available in Objective-C, make it a descendant of an Objective-C class.
+
+- Command-click a Swift class name to see its generated header.
+
+- Option-click a symbol to see implicit information about it, like its type, attributes, and documentation comments.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/migrating-your-objective-c-code-to-swift](https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/migrating-your-objective-c-code-to-swift)*
+--- END FILE ---
+
+--- FILE: Building-a-watchOS-app.md ---
+# Building a watchOS app
+
+**Set up your app’s life cycle and create its user interface with SwiftUI.**
+
+
+## Overview
+
+Develop powerful, personal apps for Apple Watch using SwiftUI, a declarative framework for building user interfaces on all of Apple’s platforms. You can create rich user interfaces by composing simple views — which perform a single, focused task — into larger, more complex layouts. Your app describes the correct layout for its views based on its current state. SwiftUI detects changes to the state and updates the views accordingly.
+
+On watchOS, SwiftUI gives you considerably more freedom, power, and control than user interfaces laid out and designed in a storyboard. For example, [doc://com.apple.documentation/documentation/SwiftUI/List](https://developer.apple.com/documentation/SwiftUI/List) has a number of features that aren’t supported by [doc://com.apple.documentation/documentation/WatchKit/WKInterfaceTable](https://developer.apple.com/documentation/WatchKit/WKInterfaceTable), such as the platter style, swipe actions (shown below), and row reordering.
+
+![Image](building_a_watchos_app-1)
+
+Additionally, you can preview your SwiftUI code in Xcode’s canvas. You can design, build, and test your interfaces without ever running your app.
+
+![Image](building_a_watchos_app-2)
+
+SwiftUI also provides watch-specific representations of tab and navigation views, with fully customizable navigation bars and customizable toolbar items for confirmation, cancellation, and destructive actions. You can also use SwiftUI to manage your app’s life cycle. To learn more about SwiftUI, see doc://com.apple.documentation/tutorials/SwiftUI.
+
+
+### Set up the root view
+
+To manage your app’s life cycle with SwiftUI, create a structure that adopts the [doc://com.apple.documentation/documentation/SwiftUI/App](https://developer.apple.com/documentation/SwiftUI/App) protocol in your watchOS app target.
+
+```swift
+import SwiftUI
+
+@main
+struct MyProject_Watch_App: App {
+}
+```
+
+The [https://docs.swift.org/swift-book/documentation/the-swift-programming-language/attributes](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/attributes) attribute indicates this is the entry point for your app. Each app can have only one entry point.
+
+Inside the structure, define the app’s [doc://com.apple.documentation/documentation/SwiftUI/App/body-swift.property](https://developer.apple.com/documentation/SwiftUI/App/body-swift.property). The `body` automatically composes a collection of [doc://com.apple.documentation/documentation/SwiftUI/Scene](https://developer.apple.com/documentation/SwiftUI/Scene) instances into a single, compound `Scene`.
+
+```swift
+@main
+struct MyProject_Watch_App: App {
+    var body: some Scene {
+    }
+}
+```
+
+Next, add a `Scene` or your app’s root view. For a watchOS app, you typically create a [doc://com.apple.documentation/documentation/SwiftUI/WindowGroup](https://developer.apple.com/documentation/SwiftUI/WindowGroup) scene that wraps a [doc://com.apple.documentation/documentation/SwiftUI/NavigationView](https://developer.apple.com/documentation/SwiftUI/NavigationView) around your app’s root view. The `NavigationView` provides a navigation stack and title area for your app.
+
+```swift
+@main
+struct MyProject_Watch_App: App {
+    var body: some Scene {
+        WindowGroup {
+            NavigationView {
+                ContentView()
+            }
+        }
+    }
+}
+```
+
+When your app launches, it displays the view hierarchy defined by the window group.
+
+You can also add scenes for notification categories.
+
+```swift
+var body: some Scene {
+    WindowGroup {
+        NavigationView {
+            ContentView()
+        }
+    }
+
+    WKNotificationScene(controller: NotificationController.self, category: "myCategory")
+}
+```
+
+When the system receives a notification with a matching category, it displays a dynamic view specified by the notification controller. You can create a [doc://com.apple.documentation/documentation/SwiftUI/WKUserNotificationHostingController](https://developer.apple.com/documentation/SwiftUI/WKUserNotificationHostingController) subclass for each notification category supported by your app.
+
+```swift
+import SwiftUI
+import UserNotifications
+
+class NotificationController: WKUserNotificationHostingController<NotificationLongLook> {
+
+    var content:UNNotificationContent!
+    var date:Date!
+
+    override var body: NotificationLongLook{
+        NotificationLongLook(content: content, date: date)
+    }
+
+    override class var isInteractive: Bool { true }
+
+    override func didReceive(_ notification: UNNotification) {
+        content = notification.request.content
+        date = notification.date
+    }
+}
+```
+
+For more information, see [doc://com.apple.watchOS-Apps/documentation/watchOS-Apps/customizing-your-long-look-interface](https://developer.apple.com/documentation/watchOS-Apps/customizing-your-long-look-interface).
+
+
+### Respond to app events in SwiftUI
+
+Your app can respond to many app events directly in SwiftUI.
+
+SwiftUI updates the [doc://com.apple.documentation/documentation/SwiftUI/EnvironmentValues/scenePhase](https://developer.apple.com/documentation/SwiftUI/EnvironmentValues/scenePhase) environment value as your app changes state. To update a view based on these changes, you can use the [doc://com.apple.documentation/documentation/SwiftUI/View/onChange(of:perform:)](https://developer.apple.com/documentation/SwiftUI/View/onChange(of:perform:)) modifier. For more information, see [doc://com.apple.documentation/documentation/WatchKit/handling-common-state-transitions](https://developer.apple.com/documentation/WatchKit/handling-common-state-transitions).
+
+SwiftUI also provides view modifiers for handling user activity and background tasks:
+
+- Use [doc://com.apple.documentation/documentation/SwiftUI/View/onContinueUserActivity(_:perform:)](https://developer.apple.com/documentation/SwiftUI/View/onContinueUserActivity(_:perform:)) to handle incoming [doc://com.apple.documentation/documentation/Foundation/NSUserActivity](https://developer.apple.com/documentation/Foundation/NSUserActivity) objects. For more information, see [doc://com.apple.documentation/documentation/WatchKit/handling-user-activity](https://developer.apple.com/documentation/WatchKit/handling-user-activity).
+
+- Use [doc://com.apple.documentation/documentation/SwiftUI/Scene/backgroundTask(_:action:)](https://developer.apple.com/documentation/SwiftUI/Scene/backgroundTask(_:action:)) to handle incoming [doc://com.apple.documentation/documentation/SwiftUI/BackgroundTask](https://developer.apple.com/documentation/SwiftUI/BackgroundTask) instances. For more information, see [doc://com.apple.documentation/documentation/WatchKit/using-background-tasks](https://developer.apple.com/documentation/WatchKit/using-background-tasks).
+
+
+### Respond to app events using an app delegate
+
+You need an app delegate to handle the following events:
+
+- Life cycle events, like [doc://com.apple.documentation/documentation/WatchKit/WKApplicationDelegate/applicationDidFinishLaunching()](https://developer.apple.com/documentation/WatchKit/WKApplicationDelegate/applicationDidFinishLaunching()), that aren’t handled by the [doc://com.apple.documentation/documentation/SwiftUI/EnvironmentValues/scenePhase](https://developer.apple.com/documentation/SwiftUI/EnvironmentValues/scenePhase) environment variable
+
+- `userInfo` dictionaries from either handoff or complications
+
+- Remote Now Playing activity
+
+- Workout configurations and recovery
+
+- Extended runtime sessions
+
+- Registration of remote notifications
+
+To add an app delegate to your app, create a class that adopts the [doc://com.apple.documentation/documentation/WatchKit/WKApplicationDelegate](https://developer.apple.com/documentation/WatchKit/WKApplicationDelegate) protocol. In this class, implement the methods needed to handle your app’s events. Then use the [doc://com.apple.documentation/documentation/SwiftUI/WKApplicationDelegateAdaptor](https://developer.apple.com/documentation/SwiftUI/WKApplicationDelegateAdaptor) property wrapper to declare a variable for your delegate.
+
+```swift
+import SwiftUI
+import WatchKit
+
+@main
+struct MyProject_Watch_App: App {
+
+    @WKApplicationDelegateAdaptor var appDelegate: MyAppDelegate
+
+    var body: some Scene {
+        WindowGroup {
+            NavigationView {
+                ContentView()
+            }
+        }
+
+        WKNotificationScene(controller: NotificationController.self, category: "myCategory")
+    }
+}
+```
+
+When your app launches, the system instantiates your delegate class and calls [doc://com.apple.documentation/documentation/WatchKit/WKApplicationDelegate/applicationDidFinishLaunching()](https://developer.apple.com/documentation/WatchKit/WKApplicationDelegate/applicationDidFinishLaunching()). Use this method to perform any additional configuration that your delegate requires. After it returns, the system begins calling your delegate methods when the corresponding events occur.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.watchOS-Apps/documentation/watchOS-Apps/building_a_watchos_app](https://developer.apple.com/documentation/com.apple.watchOS-Apps/documentation/watchOS-Apps/building_a_watchos_app)*
+--- END FILE ---
+
+--- FILE: Setting-up-a-watchOS-project.md ---
+# Setting up a watchOS project
+
+**Create a new watchOS project or add a watch target to an existing iOS project.**
+
+
+## Overview
+
+Before you start a new watchOS project, you need to decide how you’re going to distribute that project: as a watch-only app, or as a watchOS app with an iOS app. If your app is only available on Apple Watch, create a new watch-only project. If you want a watchOS and iOS app that deliver a related experience, either create a new project that bundles the two apps, or add a watchOS target to an existing iOS project.
+
+
+### Create a new project
+
+To create a new watchOS project:
+
+1. In Xcode, choose File > New > Project.
+
+2. Select the watchOS tab.
+
+3. To create a watch-only app, select “App” and click Next. To create a watchOS app bundled with an iOS app, select “iOS App with Watch App” and click Next.
+
+4. In the project options sheet ([/documentation/watchkit/setting_up_a_watchos_project#3312778](https://developer.apple.com/documentation/watchkit/setting_up_a_watchos_project#3312778)), enter a product name for the project. If you plan to implement a custom notification, complication, or unit tests, select the appropriate checkboxes, and click Next.
+
+5. Select a location for the project, and click Create.
+
+![Image](media-3312778)
+
+Xcode includes the Notification Scene by default. Leave this checkbox selected even if you don’t plan on implementing notifications right away. Selecting the checkbox adds the `PushNotificationPayload.apns` file to your project, which helps you debug your notification interfaces. If you add a Notification Scene later, you must also add the `PushNotificationPayload.apns` file.
+
+
+### Add a watchOS app target to an existing iOS project
+
+You can add a watchOS target to an existing iOS project by following these steps:
+
+1. Open your iOS app’s project in Xcode.
+
+2. Choose File > New > Target.
+
+3. Select the watchOS tab.
+
+4. Select “Watch App for iOS App” and click Next.
+
+5. In the target options sheet ([/documentation/watchkit/setting_up_a_watchos_project#3312779](https://developer.apple.com/documentation/watchkit/setting_up_a_watchos_project#3312779)), enter a Product Name for the project. If you plan to implement notifications or complications, select the appropriate checkboxes, and click Finish.
+
+6. Xcode then asks you to activate the new scheme for your watch target. Click Activate.
+
+![Image](media-3312779)
+
+As when creating a new project, Xcode includes the Notification Scene by default. Leave this checkbox selected even if you don’t plan to implement notifications right away; selecting the checkbox adds the `PushNotificationPayload.apns` file to your project, which helps you debug your notification interfaces. If you add a Notification Scene later, you must also add the `PushNotificationPayload.apns` file.
+
+
+### Understand the WatchKit app and WatchKit extension
+
+Regardless of whether you add a watchOS app to an existing project or create a new project that contains both an iOS and watchOS app, Xcode automatically configures the targets for your watchOS app and adds the needed files, as in [/documentation/watchkit/setting_up_a_watchos_project#3295999](https://developer.apple.com/documentation/watchkit/setting_up_a_watchos_project#3295999).
+
+Xcode divides the watchOS app into two sections:
+
+![Image](media-3295999)
+
+Xcode sets the bundle IDs for both of the watch targets based on the container’s ID. For a watch-only app, this ID is the bundle ID for the root target. For a watchOS app with an iOS app, this ID is the iOS app’s bundle ID. The root of the WatchKit app and WatchKit extension’s bundle IDs must match the container’s bundle ID. If you change your iOS app’s bundle ID, you must update the other bundle IDs accordingly.
+
+When developing your watchOS app, edit your app’s storyboard in the WatchKit app, and write your app’s code in the WatchKit extension. Your WatchKit extension connects to controls and views in the storyboard using [doc://com.apple.watchkit/documentation/WatchKit/WKInterfaceObject](https://developer.apple.com/documentation/WatchKit/WKInterfaceObject) subclasses such as [doc://com.apple.watchkit/documentation/WatchKit/WKInterfaceButton](https://developer.apple.com/documentation/WatchKit/WKInterfaceButton) and [doc://com.apple.watchkit/documentation/WatchKit/WKInterfaceLabel](https://developer.apple.com/documentation/WatchKit/WKInterfaceLabel). These interface objects act as proxies for your storyboard elements. Use the interface elements to configure the elements in code.
+
+## Topics
+
+### Information Property List Keys
+
+- [WKWatchKitApp](https://developer.apple.com/documentation/BundleResources/Information-Property-List/WKWatchKitApp) — A Boolean value that indicates whether the bundle is a watchOS app.
+- [WKAppBundleIdentifier](https://developer.apple.com/documentation/BundleResources/Information-Property-List/WKAppBundleIdentifier) — The bundle ID of the watchOS app.
+- [WKCompanionAppBundleIdentifier](https://developer.apple.com/documentation/BundleResources/Information-Property-List/WKCompanionAppBundleIdentifier) — The bundle ID of the watchOS app’s companion iOS app.
+- [WKExtensionDelegateClassName](https://developer.apple.com/documentation/BundleResources/Information-Property-List/WKExtensionDelegateClassName) — The name of your watchOS app’s extension delegate.
+- [WKRunsIndependentlyOfCompanionApp](https://developer.apple.com/documentation/BundleResources/Information-Property-List/WKRunsIndependentlyOfCompanionApp) — A Boolean value indicating whether the user can install and run the watchOS app independently of its iOS companion app.
+- [WKWatchOnly](https://developer.apple.com/documentation/BundleResources/Information-Property-List/WKWatchOnly) — A Boolean value indicating whether the app is a watch-only app.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.watchkit/documentation/WatchKit/setting-up-a-watchos-project](https://developer.apple.com/documentation/com.apple.watchkit/documentation/WatchKit/setting-up-a-watchos-project)*
+--- END FILE ---
+
+--- FILE: Maintaining-State-in-Your-Apps.md ---
+# Maintaining State in Your Apps
+
+**Use enumerations to capture and track the state of your app.**
+
+
+## Overview
+
+Effectively managing state, the bits of data that keep track of how the app is being used at the moment, is an important part of a developing your app. Because enumerations define a finite number of states, and can bundle associated values with each individual state, you can use them to model the state of your app and its internal processes.
+
+
+### Use an Enumeration to Capture State
+
+Consider an app that requires a user to log into an account. When the app is first opened, the user is unknown, so the state of the app could be called *unregistered*. After the user has registered or logged into an account, the state is *logged in*. After some time of inactivity, the user’s session may expire, leaving the app in a *session expired* state.
+
+You can use an enumeration to specify the exact states needed for your app. This approach defines an `App` class with a nested `State` enumeration that includes only the specific states you need:
+
+```swift
+class App {
+    enum State {
+        case unregistered
+        case loggedIn(User)
+        case sessionExpired(User)
+    }
+
+    var state: State = .unregistered
+
+    // ...
+}
+```
+
+In this model, each state is represented by a case with a matching name. The `loggedIn` and `sessionExpired` cases include the user as an associated value, while the `unregistered` case doesn’t include an associated value. When you update your app’s state, there’s a single variable, `state`, to modify, no matter what the transition.
+
+![Image](maintaining-state-in-your-apps-1)
+
+
+### Don’t Spread State Across Multiple Variables
+
+It’s also possible to model an app’s state by using individual variables in combination to hold the state and the required data, which is not recommended.
+
+In this model, the app defines two variables: an optional `user` that stores user information, and a Boolean value named `sessionExpired`. The `user` variable is `nil` when the user not logged in and has a value once the user logs in. The `sessionExpired` variable begins as `false` and is set to `true` if the session expires. The three states are captured by different combinations of the two variables.
+
+Using this approach is prone to mistakes for a few reasons, in ways that can lead to bugs and make it harder to reason about your code:
+
+- For every change in state, you need to provide updates for both `user` and `sessionExpired` in tandem.
+
+- If a future change to the app requires an additional state, you need to update an additional variable at every existing change in state.
+
+- The two variables have an unused combination—it’s possible to set the `user` to `nil` and `sessionExpired` to `true`, even though that doesn’t have a corresponding state.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/maintaining-state-in-your-apps](https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/maintaining-state-in-your-apps)*
+--- END FILE ---
+=== END SWIFT DOCUMENTATION ===
+=== END CONTEXT ===
+
+=== BUILD ATTEMPT 2 FAILED ===
+The previous implementation failed with the following errors:
+
+codex CLI invocation failed. Please try again.
+
+=== INSTRUCTIONS FOR ATTEMPT 3 ===
+1. Analyze what went wrong in the previous approach
+2. Try a DIFFERENT approach or fix the specific issues
+3. Do NOT repeat the same mistakes
+4. If the same approach keeps failing, consider an alternative implementation strategy
+5. Write the corrected code directly - do not explain, just implement
+
+Please fix the issues and provide the corrected implementation.

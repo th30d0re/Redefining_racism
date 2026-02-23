@@ -1,0 +1,21 @@
+
+[0;36m[BUILD][0m ==========================================
+[0;36m[BUILD][0m Phase 5: BuildLint Starting
+[0;36m[BUILD][0m ==========================================
+
+0
+[0;36m[VERBOSE][0m Using provided logs directory: /Users/emmanuel/Documents/Theory/Redefining_racism/Artifacts/build_20260222_200437/logs/platform_results
+[0;36m[VERBOSE][0m No Build folder found in script directory, using default
+[1;33m[WARNING][0m Destination device/simulator not found, falling back to auto-detection
+[0;34m[INFO][0m Using platform.sh auto-detected destination: id=8DD3EC87-E400-4AC9-88AB-C53ABEB542C2
+[0;34m[INFO][0m Project Root: /Users/emmanuel/Dev/Tools/Eocon-Foundation-V1
+[0;34m[INFO][0m Scheme: decodingOppression
+[0;34m[INFO][0m Configuration: Debug
+[0;34m[INFO][0m Destination: id=8DD3EC87-E400-4AC9-88AB-C53ABEB542C2
+
+[0;34m[INFO][0m No uncommitted Swift files to lint
+
+[0;36m[BUILD][0m Starting Xcode build...
+[0;36m[VERBOSE][0m Skipping Swift macro validation
+⚠️  xcodemake not found, using full xcodebuild
+[0;34m[INFO][0m Build command: xcodebuild -project "/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj" -scheme "decodingOppression" -configuration "Debug" -destination "id=8DD3EC87-E400-4AC9-88AB-C53ABEB542C2" -skipMacroValidation build

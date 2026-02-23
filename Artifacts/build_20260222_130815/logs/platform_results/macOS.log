@@ -1,0 +1,32 @@
+
+[0;36m[BUILD][0m ==========================================
+[0;36m[BUILD][0m Phase 5: BuildLint Starting
+[0;36m[BUILD][0m ==========================================
+
+0
+[0;34m[INFO][0m Project Root: /Users/emmanuel/Dev/Tools/Eocon-Foundation-V1
+[0;34m[INFO][0m Scheme: decodingOppression
+[0;34m[INFO][0m Configuration: Debug
+[0;34m[INFO][0m Destination: platform=macOS
+
+[0;34m[INFO][0m No uncommitted Swift files to lint
+
+[0;36m[BUILD][0m Starting Xcode build...
+⚠️  xcodemake not found, using full xcodebuild
+[0;34m[INFO][0m Build command: xcodebuild -project "/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj" -scheme "decodingOppression" -configuration "Debug" -destination "platform=macOS" -skipMacroValidation build
+[0;31m[ERROR][0m Build failed with exit code: 65
+[0;31m[ERROR][0m Error log written to: /Users/emmanuel/Documents/Theory/Redefining_racism/Artifacts/build_20260222_130815/logs/platform_results/error.log
+{
+  "status": "failed",
+  "platform": "iOS Simulator",
+  "scheme": "decodingOppression",
+  "configuration": "Debug",
+  "destination": "platform=macOS",
+  "error": "Xcode build failed ",
+  "error_file": "/Users/emmanuel/Documents/Theory/Redefining_racism/Artifacts/build_20260222_130815/logs/platform_results/error.log",
+  "logs_dir": "/Users/emmanuel/Documents/Theory/Redefining_racism/Artifacts/build_20260222_130815/logs/platform_results",
+  "exit_code": 10,
+  "timestamp": "2026-02-22T18:13:26Z"
+}
+/Users/emmanuel/Documents/Theory/Redefining_racism/Artifacts/build_20260222_130815/logs/platform_results/error.log
+[0;31m[ERROR][0m Build failed

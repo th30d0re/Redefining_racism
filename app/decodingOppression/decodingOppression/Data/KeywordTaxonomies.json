@@ -1,0 +1,49 @@
+{
+  "outgroupBurden": [
+    "negro",
+    "slave",
+    "colored",
+    "redlined",
+    "drug offender",
+    "felon",
+    "illegal alien",
+    "welfare dependent",
+    "inner city",
+    "thug",
+    "undeserving"
+  ],
+  "ingroupBenefit": [
+    "citizen",
+    "property owner",
+    "taxpayer",
+    "homeowner",
+    "veteran",
+    "law-abiding",
+    "hardworking",
+    "deserving",
+    "merit"
+  ],
+  "eliteExtraction": [
+    "investor",
+    "stakeholder",
+    "job creator",
+    "donor",
+    "corporation",
+    "business owner",
+    "entrepreneur",
+    "capital gains",
+    "estate tax"
+  ],
+  "dogWhistleProxies": [
+    "urban",
+    "those people",
+    "certain communities",
+    "law and order",
+    "traditional values",
+    "neighborhood character",
+    "quality of life",
+    "welfare",
+    "handout",
+    "personal responsibility"
+  ]
+}

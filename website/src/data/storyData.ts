@@ -1,8 +1,24 @@
+export interface TimelineEvent {
+  year: number;
+  event: string;
+  outgroup: string[];
+}
+
+export interface VennDiagramData {
+  inGroup: { label: string; members: string[] };
+  outGroup: { label: string; members: string[] };
+  elite?: { label: string; members: string[] };
+}
+
+export interface ExpansionData {
+  periods: Array<{ year: number; size: number; groups: string[] }>;
+}
+
 export interface StoryChapter {
   title: string;
   content: string[];
   visualization?: 'venn' | 'timeline' | 'expansion' | 'compounding';
-  visualizationData?: any;
+  visualizationData?: VennDiagramData | TimelineEvent[] | ExpansionData;
   keyConcepts?: Array<{ term: string; definition: string }>;
 }
 

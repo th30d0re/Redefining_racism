@@ -1,0 +1,3172 @@
+OpenAI Codex v0.104.0 (research preview)
+--------
+workdir: /Users/emmanuel/Documents/Theory/Redefining_racism
+model: gpt-5.2-codex
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: high
+reasoning summaries: auto
+session id: 019c8735-4900-73e1-8e47-05e986175b01
+--------
+user
+You are a Swift/SwiftUI developer. Your task is to implement the following requirements.
+
+IMPORTANT INSTRUCTIONS:
+1. Write clean, production-ready Swift code
+2. Follow Apple's Swift API Design Guidelines
+3. Use SwiftUI for UI components where appropriate
+4. Include proper error handling
+5. The code must compile without errors
+6. After writing code, the build will be verified automatically
+7. If the build fails, you will receive error feedback and should try a DIFFERENT approach
+
+TESTING & DEBUGGING REFERENCE:
+For building, testing, and debugging iOS/macOS apps, reference this workflow guide:
+/Users/emmanuel/Dev/Tools/Eocon-Foundation-V1/.Foundation/Docs/swiftDocs/Testing/XCODEBUILD_MCP_WORKFLOW.md
+
+This guide covers:
+- XcodeBuild MCP server tools for programmatic Xcode interaction
+- Building for simulator, booting simulators, installing/launching apps
+- UI automation: screenshots, accessibility hierarchy, tap simulation
+- Debugging UI issues (button taps, gestures, navigation)
+
+=== TASK/REQUIREMENTS ===
+I have created the following plan after thorough exploration and analysis of the codebase. Follow the below plan verbatim. Trust the files and references. Do not re-verify what's written in the plan. Explore only when absolutely necessary. First implement all the proposed file changes and then I'll review all the changes together at the end.
+
+## Observations
+
+\`GenerableTypes.swift\` already defines all three \`@Generable\` structs (\`ClauseClassification\`, \`ArchitectureDetection\`, \`ProxyDetection\`) gated behind \`#if canImport(FoundationModels)\`. \`PipelineContracts.swift\` has \`TierClassification\` and \`AnalysisProgress\`. \`Tier1Engine\` and \`Tier2Engine\` are both \`actor\` types returning \`TierClassification?\`. No \`AI/\` folder, \`Tier3Engine\`, \`PolicyAnalysisSession\`, \`HistoricalBaselineTool\`, or \`HistoricalPolicies\` exist yet.
+
+## Approach
+
+Create a new \`AI/\` group inside the Xcode target with five focused files: \`Tier3Error\`, \`HistoricalPolicies\`, \`HistoricalBaselineTool\`, \`PolicyAnalysisSession\`, and \`Tier3Engine\`. Each file is gated behind \`#if canImport(FoundationModels)\` with a stub fallback, mirroring the pattern already used in \`GenerableTypes.swift\`. \`Tier3Engine\` mirrors the \`Tier2Engine\` public actor interface so \`TierResolver\` (T5) can consume both symmetrically.
+
+---
+
+## Implementation Steps
+
+### 1. Create \`AI/Tier3Error.swift\`
+
+Add a new file at \`file:app/decodingOppression/decodingOppression/AI/Tier3Error.swift\`.
+
+Define an \`enum Tier3Error: Error\` with cases:
+- \`.unavailable\` — Foundation Models not available on this device/configuration
+- \`.safetyGuardrail\` — prompt was rejected by the safety system (caught internally, never surfaced to callers)
+- \`.contextWindowExceeded\` — \`exceededContextWindowSize\` persisted even after condensed-text retry
+- \`.sessionFailed(Error)\` — wraps any other \`LanguageModelSession\` error for internal logging
+
+---
+
+### 2. Create \`AI/HistoricalPolicies.swift\`
+
+Add \`file:app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift\`.
+
+Define a \`struct HistoricalPolicies\` with a \`static func score(for policyName: String) -> Double\` that returns the expected COI for each of the four ground-truth policies:
+
+| Policy | Expected COI |
+|---|---|
+| Virginia Slave Codes (1705) | 0.93 |
+| 13th Amendment (1865) | 0.35 |
+| HOLC Redlining (1934) | 0.82 |
+| War on Drugs (1971) | 0.78 |
+
+Return \`0.0\` for unrecognised names. This struct is the single source of truth consumed by both \`HistoricalBaselineTool\` (T4) and the \`ValidationRunner\` (T8/T9).
+
+---
+
+### 3. Create \`AI/HistoricalBaselineTool.swift\`
+
+Add \`file:app/decodingOppression/decodingOppression/AI/HistoricalBaselineTool.swift\`.
+
+Gate the entire file behind \`#if canImport(FoundationModels)\`.
+
+Define \`struct HistoricalBaselineTool: Tool\`:
+- \`let name = \"getHistoricalBaseline\"\`
+- \`let description\` — one sentence explaining the tool returns the COI of a known historical policy for comparison
+- Nested \`@Generable struct Arguments\` with a single \`policyName: String\` property annotated with \`@Guide(.anyOf([...]))\` constraining it to the four valid policy names (matching the keys in \`HistoricalPolicies\`)
+- \`func call(arguments: Arguments) async throws -> String\` — delegates to \`HistoricalPolicies.score(for: arguments.policyName)\` and returns a human-readable string such as \`\"Historical COI for Virginia Slave Codes: 0.93\"\`
+
+---
+
+### 4. Create \`AI/PolicyAnalysisSession.swift\`
+
+Add \`file:app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift\`.
+
+Gate the entire implementation behind \`#if canImport(FoundationModels)\`.
+
+Define \`actor PolicyAnalysisSession\`:
+
+**Academic framing prefix** — a \`private let academicFramingPrefix: String\` constant (~15 tokens) that frames every session as an academic policy-analysis task. This is injected as the \`instructions:\` parameter of every \`LanguageModelSession\` init.
+
+**\`classifyClause(_ clause: Clause) async throws -> ClauseClassification\`**
+- Creates a fresh \`LanguageModelSession(instructions: academicFramingPrefix, tools: [HistoricalBaselineTool()])\` on every call (one session per clause, per the 4k token constraint)
+- Calls \`session.respond(to: clause.text, generating: ClauseClassification.self)\`
+- Catches \`LanguageModelSession.GenerationError.exceededContextWindowSize\` → truncates \`clause.text\` to its first ~500 characters and retries once with a new session; if the retry also throws \`exceededContextWindowSize\`, rethrows as \`Tier3Error.contextWindowExceeded\`
+- Catches safety guardrail errors (the specific \`LanguageModelError\` case for content policy rejection) → logs the clause ID internally and rethrows as \`Tier3Error.safetyGuardrail\`
+
+**\`detectArchitecture(_ clause: Clause) async throws -> ArchitectureDetection\`**
+- Same session-creation and error-handling pattern as \`classifyClause\`
+- Calls \`session.respond(to: clause.text, generating: ArchitectureDetection.self)\`
+
+**\`detectProxy(_ clause: Clause) async throws -> ProxyDetection\`**
+- Same pattern; calls \`session.respond(to: clause.text, generating: ProxyDetection.self)\`
+
+**\`streamArchitecture(_ clause: Clause) -> AsyncThrowingStream<ArchitectureDetection.PartiallyGenerated, Error>\`**
+- Creates a fresh session and calls \`session.streamResponse(to: clause.text, generating: ArchitectureDetection.self)\`
+- Yields each \`PartiallyGenerated\` value so the UI can update property-by-property (AAR → SE → IJ → RSC) as the model generates them
+- Catches safety guardrail and context-window errors with the same handling as above
+
+---
+
+### 5. Create \`AI/Tier3Engine.swift\`
+
+Add \`file:app/decodingOppression/decodingOppression/AI/Tier3Engine.swift\`.
+
+Gate the full implementation behind \`#if canImport(FoundationModels)\`. Provide a stub \`#else\` block that mirrors \`Tier2Engine\`'s simulator stub pattern (all methods throw \`Tier3Error.unavailable\`).
+
+Define \`public actor Tier3Engine\`:
+
+**Availability check** — a \`private func checkAvailability() throws\` that inspects \`SystemLanguageModel.default.availability\` and handles all cases:
+
+\`\`\`
+.available                          → proceed
+.unavailable(.deviceNotEligible)    → throw Tier3Error.unavailable (device cannot run Apple Intelligence)
+.unavailable(.appleIntelligenceNotEnabled) → throw Tier3Error.unavailable (user must enable in Settings)
+.unavailable(.modelNotReady)        → throw Tier3Error.unavailable (model still downloading)
+.unavailable(_)                     → throw Tier3Error.unavailable (unknown reason)
+\`\`\`
+
+**\`public func isAvailable() -> Bool\`** — returns \`true\` only when \`SystemLanguageModel.default.availability == .available\`
+
+**\`public func classify(clause: Clause) async throws -> TierClassification?\`**
+- Calls \`checkAvailability()\`; returns \`nil\` on \`Tier3Error.unavailable\` (not a throw — mirrors \`Tier2Engine.classify\` returning \`nil\` when the model is not downloaded)
+- Uses \`async let\` to run \`session.classifyClause\`, \`session.detectArchitecture\`, and \`session.detectProxy\` concurrently
+- Maps the three \`@Generable\` results into a \`TierClassification\`:
+  - \`ClauseClassification.TargetGroup\` → \`TargetGroup\` (same case names, direct mapping)
+  - \`ClauseClassification.EffectDirection\` → \`EffectDirection\` (same case names)
+  - \`ArchitectureDetection\` → \`ArchitectureScores\` (rename fields: \`asymmetricAutonomyRestriction\` → \`aar\`, \`selectiveEmpathy\` → \`se\`, \`ideologicalJustification\` → \`ij\`, \`resistanceToStructuralCritique\` → \`rsc\`)
+  - \`ProxyDetection\` passes through directly (same field names as \`PipelineContracts.ProxyDetection\`)
+  - \`confidence\` from \`ClauseClassification.confidence\`
+  - \`tier: .tier3\`
+- Catches \`Tier3Error.safetyGuardrail\` → logs internally (e.g. \`print(\"[Tier3] Safety guardrail triggered for clause \\(clause.id)\")\`) and returns \`nil\` so the caller silently routes to Tier 2
+
+**\`public func streamClassify(clause: Clause) -> AsyncThrowingStream<ArchitectureDetection.PartiallyGenerated, Error>\`**
+- Delegates to \`session.streamArchitecture(clause)\` for progressive UI updates
+
+---
+
+### 6. Register new files in the Xcode project
+
+Open \`file:app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj\` and add all five new \`AI/\` Swift files to:
+- The \`PBXFileReference\` section (one entry per file)
+- The \`PBXGroup\` for the \`decodingOppression\` target (create a new \`AI\` child group)
+- The \`PBXSourcesBuildPhase\` compile sources list for the \`decodingOppression\` target
+
+This ensures Xcode compiles the new files as part of the app target.
+
+---
+
+### Data flow summary
+
+\`\`\`mermaid
+sequenceDiagram
+    participant Caller as TierResolver (T5)
+    participant T3 as Tier3Engine
+    participant PAS as PolicyAnalysisSession
+    participant FM as LanguageModelSession
+    participant HBT as HistoricalBaselineTool
+    participant HP as HistoricalPolicies
+
+    Caller->>T3: classify(clause)
+    T3->>T3: checkAvailability()
+    alt unavailable
+        T3-->>Caller: nil
+    else available
+        par
+            T3->>PAS: classifyClause(clause)
+            PAS->>FM: respond(to:, generating: ClauseClassification)
+            FM-->>PAS: ClauseClassification
+        and
+            T3->>PAS: detectArchitecture(clause)
+            PAS->>FM: respond(to:, generating: ArchitectureDetection)
+            FM-->>PAS: ArchitectureDetection
+        and
+            T3->>PAS: detectProxy(clause)
+            PAS->>FM: respond(to:, generating: ProxyDetection)
+            FM-->>PAS: ProxyDetection
+        end
+        Note over FM,HBT: Model may invoke tool callback
+        FM->>HBT: call(arguments: policyName)
+        HBT->>HP: score(for: policyName)
+        HP-->>HBT: Double
+        HBT-->>FM: \"Historical COI for …: 0.93\"
+        T3->>T3: map → TierClassification(.tier3)
+        T3-->>Caller: TierClassification
+    end
+\`\`\`
+=== END TASK ===
+
+
+=== REFERENCE CONTEXT ===
+Use the following documentation and context as reference:
+
+=== SWIFT DOCUMENTATION ===
+
+--- FILE: generating-content-and-performing-tasks.md ---
+# Generating content and performing tasks with Foundation Models
+
+**Enhance the experience in your app by prompting an on-device large language model.**
+
+
+## Overview
+
+The Foundation Models framework lets you tap into the on-device large models at the core of Apple Intelligence. You can enhance your app by using generative models to create content or perform tasks. The framework supports language understanding and generation based on model capabilities.
+
+For design guidance, see Human Interface Guidelines > Technologies > [https://developer.apple.com/design/human-interface-guidelines/generative-ai](https://developer.apple.com/design/human-interface-guidelines/generative-ai).
+
+
+## Understand model capabilities
+
+When considering features for your app, it helps to know what the on-device language model can do. The on-device model supports text generation and understanding that you can use to:
+
+The on-device language model may not be suitable for handling all requests, like:
+
+The model can complete complex generative tasks when you use guided generation or tool calling. For more on handling complex tasks, or tasks that require extensive world-knowledge, see [doc://com.apple.foundationmodels/documentation/FoundationModels/generating-swift-data-structures-with-guided-generation](https://developer.apple.com/documentation/FoundationModels/generating-swift-data-structures-with-guided-generation) and [doc://com.apple.foundationmodels/documentation/FoundationModels/expanding-generation-with-tool-calling](https://developer.apple.com/documentation/FoundationModels/expanding-generation-with-tool-calling).
+
+
+## Check for availability
+
+Before you use the on-device model in your app, check that the model is available by creating an instance of [doc://com.apple.foundationmodels/documentation/FoundationModels/SystemLanguageModel](https://developer.apple.com/documentation/FoundationModels/SystemLanguageModel) with the [doc://com.apple.foundationmodels/documentation/FoundationModels/SystemLanguageModel/default](https://developer.apple.com/documentation/FoundationModels/SystemLanguageModel/default) property.
+
+Model availability depends on device factors like:
+
+- The device must support Apple Intelligence.
+
+- The device must have Apple Intelligence turned on in Settings.
+
+
+> **NOTE**: It can take some time for the model to download and become available when a person turns on Apple Intelligence.
+
+
+Always verify model availability first, and plan for a fallback experience in case the model is unavailable.
+
+```swift
+struct GenerativeView: View {
+    // Create a reference to the system language model.
+    private var model = SystemLanguageModel.default
+
+    var body: some View {
+        switch model.availability {
+        case .available:
+            // Show your intelligence UI.
+        case .unavailable(.deviceNotEligible):
+            // Show an alternative UI.
+        case .unavailable(.appleIntelligenceNotEnabled):
+            // Ask the person to turn on Apple Intelligence.
+        case .unavailable(.modelNotReady):
+            // The model isn't ready because it's downloading or because of other system reasons.
+        case .unavailable(let other):
+            // The model is unavailable for an unknown reason.
+        }
+    }
+}
+```
+
+
+## Create a session
+
+After confirming that the model is available, create a [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession) object to call the model. For a single-turn interaction, create a new session each time you call the model:
+
+```swift
+// Create a session with the system model.
+let session = LanguageModelSession()
+```
+
+For a multiturn interaction — where the model retains some knowledge of what it produced — reuse the same session each time you call the model.
+
+
+## Provide a prompt to the model
+
+A [doc://com.apple.foundationmodels/documentation/FoundationModels/Prompt](https://developer.apple.com/documentation/FoundationModels/Prompt) is an input that the model responds to. Prompt engineering is the art of designing high-quality prompts so that the model generates a best possible response for the request you make. A prompt can be as short as “hello”, or as long as multiple paragraphs. The process of designing a prompt involves a lot of exploration to discover the best prompt, and involves optimizing prompt length and writing style.
+
+When thinking about the prompt you want to use in your app, consider using conversational language in the form of a question or command. For example, “What’s a good month to visit Paris?” or “Generate a food truck menu.”
+
+Write prompts that focus on a single and specific task, like “Write a profile for the dog breed Siberian Husky”. When a prompt is long and complicated, the model takes longer to respond, and may respond in unpredictable ways. If you have a complex generation task in mind, break the task down into a series of specific prompts.
+
+You can refine your prompt by telling the model exactly how much content it should generate. A prompt like, “Write a profile for the dog breed Siberian Husky” often takes a long time to process as the model generates a full multi-paragraph essay. If you specify “using three sentences”, it speeds up processing and generates a concise summary. Use phrases like “in a single sentence” or “in a few words” to shorten the generation time and produce shorter text.
+
+```swift
+// Generate a longer response for a specific command.
+let simple = "Write me a story about pears."
+
+// Quickly generate a concise response.
+let quick = "Write the profile for the dog breed Siberian Husky using three sentences."
+```
+
+
+## Provide instructions to the model
+
+[doc://com.apple.foundationmodels/documentation/FoundationModels/Instructions](https://developer.apple.com/documentation/FoundationModels/Instructions) help steer the model in a way that fits the use case of your app. The model obeys prompts at a lower priority than the instructions you provide. When you provide instructions to the model, consider specifying details like:
+
+- What the model’s role is; for example, “You are a mentor,” or “You are a movie critic”.
+
+- What the model should do, like “Help the person extract calendar events,” or “Help the person by recommending search suggestions”.
+
+- What the style preferences are, like “Respond as briefly as possible”.
+
+- What the possible safety measures are, like “Respond with ‘I can’t help with that’ if you’re asked to do something dangerous”.
+
+Use content you trust in instructions because the model follows them more closely than the prompt itself. When you initialize a session with instructions, it affects all prompts the model responds to in that session. Instructions can also include example responses to help steer the model. When you add examples to your prompt, you provide the model with a template that shows the model what a good response looks like.
+
+
+## Generate a response
+
+To call the model with a prompt, call [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/respond(to:options:)-b2re](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/respond(to:options:)-b2re) on your session. The response call is asynchronous because it may take a few seconds for the on-device foundation model to generate the response.
+
+```swift
+let instructions = """
+    Suggest five related topics. Keep them concise (three to seven words) and make sure they \
+    build naturally from the person's topic.
+    """
+
+let session = LanguageModelSession(instructions: instructions)
+
+let prompt = "Making homemade bread"
+let response = try await session.respond(to: prompt)
+```
+
+
+> **NOTE**: A session can only handle a single request at a time, and causes a runtime error if you call it again before the previous request finishes. Check [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/isResponding](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/isResponding) to verify the session is done processing the previous request before sending a new one.
+
+
+Instead of working with raw string output from the model, the framework offers guided generation to generate a custom Swift data structure you define. For more information about guided generation, see [doc://com.apple.foundationmodels/documentation/FoundationModels/generating-swift-data-structures-with-guided-generation](https://developer.apple.com/documentation/FoundationModels/generating-swift-data-structures-with-guided-generation).
+
+When you make a request to the model, you can provide custom tools to help the model complete the request. If the model determines that a [doc://com.apple.foundationmodels/documentation/FoundationModels/Tool](https://developer.apple.com/documentation/FoundationModels/Tool) can assist with the request, the framework calls your [doc://com.apple.foundationmodels/documentation/FoundationModels/Tool](https://developer.apple.com/documentation/FoundationModels/Tool) to perform additional actions like retrieving content from your local database. For more information about tool calling, see [doc://com.apple.foundationmodels/documentation/FoundationModels/expanding-generation-with-tool-calling](https://developer.apple.com/documentation/FoundationModels/expanding-generation-with-tool-calling)
+
+
+## Consider context size limits per session
+
+The *context window size* is a limit on how much data the model can process for a session instance. A token is a chunk of text the model processes, and the system model supports up to 4,096 tokens. A single token corresponds to three or four characters in languages like English, Spanish, or German, and one token per character in languages like Japanese, Chinese, or Korean. In a single session, the sum of all tokens in the instructions, all prompts, and all outputs count toward the context window size.
+
+If your session processes a large amount of tokens that exceed the context window, the framework throws the error [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/GenerationError/exceededContextWindowSize(_:)](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/GenerationError/exceededContextWindowSize(_:)). When you encounter the error, start a new session and try shortening your prompts. If you need to process a large amount of data that won’t fit in a single context window limit, break your data into smaller chunks, process each chunk in a separate session, and then combine the results.
+
+
+## Tune generation options and optimize performance
+
+To get the best results for your prompt, experiment with different generation options. [doc://com.apple.foundationmodels/documentation/FoundationModels/GenerationOptions](https://developer.apple.com/documentation/FoundationModels/GenerationOptions) affects the runtime parameters of the model, and you can customize them for every request you make.
+
+```swift
+// Customize the temperature to increase creativity.
+let options = GenerationOptions(temperature: 2.0)
+
+let session = LanguageModelSession()
+
+let prompt = "Write me a story about coffee."
+let response = try await session.respond(
+    to: prompt,
+    options: options
+)
+```
+
+When you test apps that use the framework, use Xcode Instruments to understand more about the requests you make, like the time it takes to perform a request. When you make a request, you can access the [doc://com.apple.foundationmodels/documentation/FoundationModels/Transcript](https://developer.apple.com/documentation/FoundationModels/Transcript) entries that describe the actions the model takes during your [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession).
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.foundationmodels/documentation/FoundationModels/generating-content-and-performing-tasks-with-foundation-models](https://developer.apple.com/documentation/com.apple.foundationmodels/documentation/FoundationModels/generating-content-and-performing-tasks-with-foundation-models)*
+--- END FILE ---
+
+--- FILE: FINAL-COLLECTION-SUMMARY.md ---
+# 🎉 Complete Apple Documentation Collection - Final Summary
+
+**Date**: October 8, 2025  
+**Status**: ✅ **100% SUCCESS - ALL FRAMEWORKS SCRAPED!**
+
+---
+
+## 🏆 Mission Accomplished!
+
+Successfully scraped **ALL 32 FRAMEWORKS** including the two that initially failed!
+
+### 📊 Final Statistics
+
+- **Total Frameworks**: 32 (100% success!)
+- **Total Documentation Files**: 848 Markdown files
+- **Success Rate**: 100% 🎉
+- **Collection Location**: `/Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/`
+- **Total Content Size**: ~5.2 MB
+
+---
+
+## ✅ All 32 Frameworks Successfully Scraped
+
+### AI & Machine Learning (6 frameworks) ✅
+1. ✅ **Foundation Models** (21 files) - Apple's AI foundation models
+2. ✅ **Core ML** (42 files) - On-device machine learning
+3. ✅ **Vision** (38 files) - Computer vision & image analysis
+4. ✅ **Create ML** (30 files) - ML model training
+5. ✅ **Speech** (25 files) - Speech recognition & synthesis
+6. ✅ **Natural Language** (31 files) - NLP & text analysis ⭐ **FIXED!**
+
+### Swift & SwiftUI (2 frameworks) ✅
+7. ✅ **Swift** (27 files) - Swift language documentation
+8. ✅ **SwiftUI** (57 files) - Modern declarative UI
+
+### Core Apple Frameworks (3 frameworks) ✅
+9. ✅ **Foundation** (60 files) - Essential data types
+10. ✅ **UIKit** (46 files) - iOS UI framework
+11. ✅ **AppKit** (60 files) - macOS UI framework
+
+### Graphics & Media (6 frameworks) ✅
+12. ✅ **Metal** (42 files) - Low-level graphics API
+13. ✅ **AVFoundation** (50 files) - Audio/video processing
+14. ✅ **Core Graphics** (40 files) - 2D graphics
+15. ✅ **Core Animation** (41 files) - Animation framework ⭐ **FIXED!**
+16. ✅ **ARKit** (15 files) - Augmented reality
+17. ✅ **RealityKit** (30 files) - 3D rendering for AR
+
+### System & Security (2 frameworks) ✅
+18. ✅ **Security** (30 files) - Cryptography & secure storage
+19. ✅ **Network** (30 files) - Modern networking
+
+### App Services (5 frameworks) ✅
+20. ✅ **CloudKit** (30 files) - Cloud data storage
+21. ✅ **HealthKit** (25 files) - Health & fitness data
+22. ✅ **StoreKit** (25 files) - In-app purchases
+23. ✅ **WatchKit** (30 files) - Apple Watch apps
+24. ✅ **WidgetKit** (20 files) - Home screen widgets
+
+### Data & Storage (1 framework) ✅
+25. ✅ **Core Data** (40 files) - Object persistence
+
+### System Integration (1 framework) ✅
+26. ✅ **Intents** (25 files) - Siri integration
+
+### Game Development (2 frameworks) ✅
+27. ✅ **SpriteKit** (30 files) - 2D game engine
+28. ✅ **SceneKit** (30 files) - 3D game engine
+
+### Development Tools (1 framework) ✅
+29. ✅ **XCTest** (30 files) - Unit testing
+
+### Hardware & Sensors (3 frameworks) ✅
+30. ✅ **Core Motion** (25 files) - Motion & sensor data
+31. ✅ **Core Bluetooth** (25 files) - Bluetooth LE
+32. ✅ **Core Location** (25 files) - Location services
+
+---
+
+## 🔧 How We Fixed the Failed Frameworks
+
+### Problem 1: Natural Language (Failed as "natural")
+**Solution**: Used the full framework name `naturallanguage` instead of `natural`
+```bash
+python3 apple_doc_crawler.py "naturallanguage" -m 30 -d 0.5
+```
+**Result**: ✅ 31 files successfully scraped!
+
+### Problem 2: Core Animation (Failed as "coreanimation")
+**Solution**: Used the original framework name `quartzcore` instead of `coreanimation`
+```bash
+python3 apple_doc_crawler.py "quartzcore" -m 40 -d 0.5
+```
+**Result**: ✅ 41 files successfully scraped!
+
+---
+
+## 📈 Collection Growth
+
+| Metric | Before Retry | After Retry | Improvement |
+|--------|-------------|-------------|-------------|
+| Frameworks | 30/32 | 32/32 | +2 frameworks |
+| Success Rate | 93.8% | 100% | +6.2% |
+| Total Files | 802 | 848 | +46 files |
+| Content Size | ~4.6 MB | ~5.2 MB | +0.6 MB |
+
+---
+
+## 🎯 Verified Documentation
+
+### Speech Framework ✅
+- **Files**: 19 documentation files
+- **URL**: https://developer.apple.com/documentation/speech
+- **Content**: Speech recognition, synthesis, analysis
+- **Location**: `/Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/`
+
+### Vision Framework ✅
+- **Files**: 38 documentation files
+- **URL**: https://developer.apple.com/documentation/vision
+- **Content**: Computer vision, image analysis, object detection
+- **Location**: `/Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/`
+
+---
+
+## 📁 Complete Collection Structure
+
+```
+/Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/
+├── README.md                                  # Main index
+├── 848 Framework Documentation Files          # All scraped content
+│
+├── AI & Machine Learning (6 frameworks, 187 files)
+│   ├── Foundation Models (21 files)
+│   ├── Core ML (42 files)
+│   ├── Vision (38 files)
+│   ├── Create ML (30 files)
+│   ├── Speech (25 files)
+│   └── Natural Language (31 files) ⭐ NEW
+│
+├── Swift & SwiftUI (2 frameworks, 84 files)
+│   ├── Swift (27 files)
+│   └── SwiftUI (57 files)
+│
+├── Core Frameworks (3 frameworks, 166 files)
+│   ├── Foundation (60 files)
+│   ├── UIKit (46 files)
+│   └── AppKit (60 files)
+│
+├── Graphics & Media (6 frameworks, 226 files)
+│   ├── Metal (42 files)
+│   ├── AVFoundation (50 files)
+│   ├── Core Graphics (40 files)
+│   ├── Core Animation (41 files) ⭐ NEW
+│   ├── ARKit (15 files)
+│   └── RealityKit (30 files)
+│
+└── ... (15 more frameworks, 185 files)
+```
+
+---
+
+## 🚀 Quick Start Commands
+
+### Navigate to Collection
+```bash
+cd /Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection
+```
+
+### Search for AI/ML Content
+```bash
+# Core ML
+grep -r "MLModel" . --include="*.md" | head -20
+
+# Vision
+grep -r "VNImageRequest" . --include="*.md" | head -20
+
+# Natural Language (NEW!)
+grep -r "NLTagger\|Natural Language" . --include="*.md" | head -20
+
+# Speech
+grep -r "SFSpeechRecognizer\|Speech" . --include="*.md" | head -20
+```
+
+### Search for Graphics & Animation
+```bash
+# Core Animation (NEW!)
+grep -r "CALayer\|CAAnimation" . --include="*.md" | head -20
+
+# Metal
+grep -r "MTL\|Metal" . --include="*.md" | head -20
+
+# ARKit
+grep -r "ARKit\|ARSession" . --include="*.md" | head -20
+```
+
+### Search for Swift/SwiftUI
+```bash
+# SwiftUI
+grep -r "@State\|@Binding" . --include="*.md" | head -20
+
+# Swift language features
+grep -r "async\|await" . --include="*.md" | head -20
+```
+
+---
+
+## 📊 Coverage by Category
+
+| Category | Frameworks | Files | Percentage |
+|----------|-----------|-------|-----------|
+| AI & Machine Learning | 6 | 187 | 22% |
+| Swift & SwiftUI | 2 | 84 | 10% |
+| Core Frameworks | 3 | 166 | 20% |
+| Graphics & Media | 6 | 226 | 27% |
+| System & Security | 2 | 60 | 7% |
+| App Services | 5 | 130 | 15% |
+| Other | 8 | 95 | 11% |
+| **Total** | **32** | **848** | **100%** |
+
+---
+
+## 🎓 What You Can Do Now
+
+### 1. AI/ML Development
+- **Foundation Models**: Build AI-powered apps with Apple's LLMs
+- **Core ML**: Integrate machine learning models
+- **Vision**: Add computer vision capabilities
+- **Natural Language**: Process and analyze text
+- **Speech**: Add voice recognition and synthesis
+
+### 2. UI Development
+- **SwiftUI**: Build modern, declarative interfaces
+- **UIKit**: iOS app development
+- **AppKit**: macOS app development
+- **Core Animation**: Create smooth animations
+
+### 3. Graphics & Gaming
+- **Metal**: GPU programming and compute
+- **ARKit/RealityKit**: Augmented reality experiences
+- **SpriteKit/SceneKit**: 2D/3D game development
+
+### 4. System Integration
+- **CloudKit**: Sync data across devices
+- **HealthKit**: Health and fitness apps
+- **Intents/Siri**: Voice integration
+- **Core Location**: Location-based features
+
+---
+
+## 🔄 Keep Your Documentation Updated
+
+To get the latest documentation in the future:
+
+```bash
+# Navigate to tools directory
+cd /Users/emmanuel/Dev/Tools/getMDfromURL
+
+# Re-run the essentials scraper
+python3 scrape_essentials.py
+
+# Add the newly fixed frameworks
+python3 apple_doc_crawler.py "naturallanguage" -m 30
+python3 apple_doc_crawler.py "quartzcore" -m 40
+
+# Copy to research directory
+rsync -av output/apple-docs-*/ /Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/
+```
+
+---
+
+## 📚 Additional Resources
+
+- **Quick Start Guide**: `/Users/emmanuel/Dev/Research/Apple/AI/Docs/QUICK-START.md`
+- **Scraping Summary**: `/Users/emmanuel/Dev/Research/Apple/AI/Docs/SCRAPING-SUMMARY.md`
+- **Collection README**: `/Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/README.md`
+- **Tools Location**: `/Users/emmanuel/Dev/Tools/getMDfromURL`
+
+---
+
+## 🎉 Summary
+
+**You now have the most comprehensive Apple documentation collection possible!**
+
+- ✅ All 32 essential frameworks
+- ✅ 848 documentation files
+- ✅ 100% success rate
+- ✅ Fully searchable and offline
+- ✅ Perfect for AI/ML, Swift, SwiftUI, and all Apple development
+
+**Ready for any Apple development project! 🚀**
+
+---
+
+**Generated**: October 8, 2025  
+**Status**: ✅ COMPLETE COLLECTION - 100% SUCCESS!  
+**Total**: 32 frameworks, 848 files, ~5.2 MB
+--- END FILE ---
+=== END SWIFT DOCUMENTATION ===
+=== END CONTEXT ===
+
+
+Please implement the requirements above. Write the code directly - do not explain, just write the implementation.
+mcp: xcodebuildmcp starting
+mcp: xcodebuildmcp ready
+mcp startup: ready: xcodebuildmcp
+exec
+/bin/zsh -lc ls in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 53ms:
+Algo
+Artifacts
+README.md
+Racism_is_an_engineering_problem.txt
+Redefining_Racism.aux
+Redefining_Racism.fdb_latexmk
+Redefining_Racism.fls
+Redefining_Racism.log
+Redefining_Racism.out
+Redefining_Racism.pdf
+Redefining_Racism.synctex.gz
+Redefining_Racism.tex
+__Avenue
+app
+critique
+swiftDocs
+venn_diagram_1.png
+venn_diagram_2.png
+website
+
+thinking
+**Locating relevant engine files**
+exec
+/bin/zsh -lc 'rg -n "Tier2Engine|Tier1Engine|TierClassification|AnalysisProgress|Generable" app/decodingOppression/decodingOppression -S' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+app/decodingOppression/decodingOppression/AI/HistoricalBaselineTool.swift:17:    @Generable
+app/decodingOppression/decodingOppression/decodingOppressionApp.swift:52:// MARK: - Shared ModelDownloadManager + Tier2Engine for pipeline/view-model
+app/decodingOppression/decodingOppression/decodingOppressionApp.swift:69:    let tier2Engine: Tier2Engine
+app/decodingOppression/decodingOppression/decodingOppressionApp.swift:75:        tier2Engine = Tier2Engine(downloadManager: modelDownloadManager)
+app/decodingOppression/decodingOppression/decodingOppressionApp.swift:84:    func classify(clause: Clause) async throws -> TierClassification {
+app/decodingOppression/decodingOppression/MLX/MLXClauseClassifier.swift:5://  Actor that loads Qwen3-4B-4bit + LoRA and classifies clauses to TierClassification.
+app/decodingOppression/decodingOppression/MLX/MLXClauseClassifier.swift:46:    func classify(clause: Clause) async throws -> TierClassification {
+app/decodingOppression/decodingOppression/MLX/MLXClauseClassifier.swift:62:    private func parseResponse(_ response: String) -> TierClassification {
+app/decodingOppression/decodingOppression/MLX/MLXClauseClassifier.swift:132:        return TierClassification(
+app/decodingOppression/decodingOppression/MLX/MLXClauseClassifier.swift:152:    func classify(clause: Clause) async throws -> TierClassification {
+app/decodingOppression/decodingOppression/NLP/ClauseAnalyzer.swift:17:    func analyze(clause: Clause) async -> TierClassification {
+app/decodingOppression/decodingOppression/NLP/ClauseAnalyzer.swift:38:        return TierClassification(
+app/decodingOppression/decodingOppression/NLP/Tier1Engine.swift:2://  Tier1Engine.swift
+app/decodingOppression/decodingOppression/NLP/Tier1Engine.swift:10:actor Tier1Engine {
+app/decodingOppression/decodingOppression/NLP/Tier1Engine.swift:23:    func classify(clause: Clause) async -> TierClassification {
+app/decodingOppression/decodingOppression/AI/Tier3Engine.swift:5://  Facade mirroring Tier2Engine; gates Foundation Models classification behind availability.
+app/decodingOppression/decodingOppression/AI/Tier3Engine.swift:29:    public func classify(clause: Clause) async throws -> TierClassification? {
+app/decodingOppression/decodingOppression/AI/Tier3Engine.swift:48:            return TierClassification(
+app/decodingOppression/decodingOppression/AI/Tier3Engine.swift:74:    public func classify(clause: Clause) async throws -> TierClassification? {
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:2://  GenerableTypes.swift
+
+thinking
+**Confirming existing files before implementation**
+
+Since relevant files like Tier3Engine.swift already exist despite the plan stating otherwise, I’ll inspect current versions of key files to avoid conflicts and follow existing patterns while proceeding with implementation.
+exec
+/bin/zsh -lc "sed -n '1,220p' app/decodingOppression/decodingOppression/MLX/Tier2Engine.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 53ms:
+//
+//  Tier2Engine.swift
+//  decodingOppression
+//
+//  Facade mirroring Tier1Engine; gates MLX embedding and classifier behind download state.
+//
+
+import Foundation
+
+public actor Tier2Engine {
+    private let embeddingEngine: MLXEmbeddingEngine
+    private let classifier: MLXClauseClassifier
+    private let downloadManager: ModelDownloadManager
+
+    public init(downloadManager: ModelDownloadManager) {
+        self.downloadManager = downloadManager
+        self.embeddingEngine = MLXEmbeddingEngine()
+        self.classifier = MLXClauseClassifier(downloadManager: downloadManager)
+    }
+
+
+thinking
+**Checking type compatibility**
+exec
+/bin/zsh -lc "sed -n '1,220p' app/decodingOppression/decodingOppression/Models/GenerableTypes.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 53ms:
+//
+//  GenerableTypes.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+import FoundationModels
+#endif
+
+// MARK: - Clause classification (classification-first order for constrained decoding)
+
+#if canImport(FoundationModels)
+@Generable(description: "Classification of a policy clause by target group and effect direction")
+struct ClauseClassification {
+    @Generable
+    enum TargetGroup: String {
+
+thinking
+**Identifying missing PipelineContracts**
+exec
+/bin/zsh -lc "sed -n '1,220p' app/decodingOppression/decodingOppression/Models/PipelineContracts.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  PipelineContracts.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+// MARK: - Architecture scores (Codable for pipeline and training)
+
+struct ArchitectureScores: Codable {
+    var aar: Double  // asymmetric autonomy restriction
+    var se: Double   // selective empathy
+    var ij: Double   // ideological justification
+    var rsc: Double  // resistance to structural critique
+}
+
+// MARK: - Analysis progress
+
+
+thinking
+**Planning model searches**
+
+I'm planning to search for the Clause model, TargetGroup, and related entities to understand their structure and usage.
+exec
+/bin/zsh -lc 'rg -n "struct Clause|enum TargetGroup|enum EffectDirection|enum MLTier" app/decodingOppression/decodingOppression -S' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:18:struct ClauseClassification {
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:20:    enum TargetGroup: String {
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:28:    enum EffectDirection: String {
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:79:struct ClauseClassification: Codable {
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:80:    enum TargetGroup: String, Codable {
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:87:    enum EffectDirection: String, Codable {
+app/decodingOppression/decodingOppression/Models/Policy.swift:20:enum TargetGroup: String, Codable, CaseIterable {
+app/decodingOppression/decodingOppression/Models/Policy.swift:27:enum EffectDirection: String, Codable, CaseIterable {
+app/decodingOppression/decodingOppression/Models/Policy.swift:34:enum MLTier: String, Codable {
+app/decodingOppression/decodingOppression/Models/Policy.swift:48:struct Clause: Identifiable, Codable {
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/Policy.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 53ms:
+//
+//  Policy.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+// MARK: - Section type and targeting
+
+enum SectionType: String, Codable, CaseIterable {
+    case title
+    case definitions
+    case operativeClauses
+    case penalties
+    case exceptions
+}
+
+enum TargetGroup: String, Codable, CaseIterable {
+
+thinking
+**Reviewing Tier3Engine implementation**
+
+I'm checking the existing Tier3Engine file to understand how it parallels Tier2Engine, aiming to replicate or adapt its structure accordingly.
+exec
+/bin/zsh -lc "sed -n '1,220p' app/decodingOppression/decodingOppression/AI/Tier3Engine.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  Tier3Engine.swift
+//  decodingOppression
+//
+//  Facade mirroring Tier2Engine; gates Foundation Models classification behind availability.
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+import FoundationModels
+
+public actor Tier3Engine {
+    private let session = PolicyAnalysisSession()
+
+    private func checkAvailability() throws {
+        switch SystemLanguageModel.default.availability {
+        case .available:
+            break
+        default:
+
+thinking
+**Assessing existing analysis file**
+
+The existing file uses PolicyAnalysisSession and intersects with AI/HistoricalBaselineTool but doesn't fully align with the plan, especially regarding unavailable cases, so it needs updating. I'll review related files next to confirm dependencies and decide the best update approach.
+exec
+/bin/zsh -lc "sed -n '1,220p' app/decodingOppression/decodingOppression/AI/HistoricalBaselineTool.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 53ms:
+//
+//  HistoricalBaselineTool.swift
+//  decodingOppression
+//
+//  Tool returning the COI of a known historical policy for model comparison.
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+import FoundationModels
+
+struct HistoricalBaselineTool: Tool {
+    let name = "getHistoricalBaseline"
+    let description = "Returns the COI (coefficient of oppression intensity) of a known historical policy for comparison."
+
+    @Generable
+    struct Arguments {
+        @Guide(.anyOf([
+            "Virginia Slave Codes (1705)",
+
+thinking
+**Checking need for HistoricalPolicies**
+
+I'm verifying whether a HistoricalPolicies component is necessary since there is already a HistoricalBaselineTool with similar functionality.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  HistoricalPolicies.swift
+//  decodingOppression
+//
+//  Single source of truth for expected COI of known historical policies.
+//  Consumed by HistoricalBaselineTool (T4) and ValidationRunner (T8/T9).
+//
+
+import Foundation
+
+struct HistoricalPolicies {
+    /// Returns the expected COI (0–1) for a known historical policy name; 0.0 for unrecognised names.
+    static func score(for policyName: String) -> Double {
+        switch policyName {
+        case "Virginia Slave Codes (1705)": return 0.93
+        case "13th Amendment (1865)": return 0.35
+        case "HOLC Redlining (1934)": return 0.82
+        case "War on Drugs (1971)": return 0.78
+        default: return 0.0
+        }
+
+thinking
+**Noting presence of HistoricalPolicies and PolicyAnalysisSession**
+exec
+/bin/zsh -lc "sed -n '1,260p' app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  PolicyAnalysisSession.swift
+//  decodingOppression
+//
+//  One session per clause (4k token constraint); academic framing and tool injection.
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+import FoundationModels
+
+actor PolicyAnalysisSession {
+    private let academicFramingPrefix = "You are an academic policy analyst. Classify and analyze the following clause with precision and cite evidence."
+
+    func classifyClause(_ clause: Clause) async throws -> ClauseClassification {
+        try await runWithRetry(clause: clause) { session, text in
+            try await session.respond(to: text, generating: ClauseClassification.self)
+        }
+    }
+
+thinking
+**Clarifying error type**
+
+I'm identifying that the error in question might be a Tier3Error, which could influence how it should be handled or categorized next.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/AI/Tier3Error.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  Tier3Error.swift
+//  decodingOppression
+//
+//  Errors for Tier3 (Foundation Models) classification path.
+//
+
+import Foundation
+
+enum Tier3Error: Error {
+    /// Foundation Models not available on this device/configuration.
+    case unavailable
+    /// Prompt was rejected by the safety system (caught internally, never surfaced to callers).
+    case safetyGuardrail
+    /// exceededContextWindowSize persisted even after condensed-text retry.
+    case contextWindowExceeded
+    /// Wraps any other LanguageModelSession error for internal logging.
+    case sessionFailed(Error)
+}
+
+
+thinking
+**Clarifying gating for all files**
+
+The plan mandates gating each new file behind `#if canImport(FoundationModels)` with a stub fallback, so I'll apply this consistently to all files, including those like Tier3Error that implementation steps omit gating for.
+thinking
+**Reconciling gating and stubs for existing files**
+
+I'll adjust all files to strictly follow the plan's gating with stub fallbacks, wrapping definitions in `#if canImport(FoundationModels)` and providing matching stubs in the else clause—even for files like Tier3Error and HistoricalPolicies that currently lack them—to ensure compilation regardless of FoundationModels availability. I'll also carefully inspect and update the Xcode project file to register new files without duplications.
+exec
+/bin/zsh -lc 'rg -n "HistoricalPolicies|ValidationRunner" app/decodingOppression/decodingOppression -S' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 53ms:
+app/decodingOppression/decodingOppression/AI/HistoricalBaselineTool.swift:29:        let coi = HistoricalPolicies.score(for: arguments.policyName)
+app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift:2://  HistoricalPolicies.swift
+app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift:6://  Consumed by HistoricalBaselineTool (T4) and ValidationRunner (T8/T9).
+app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift:11:struct HistoricalPolicies {
+
+
+thinking
+**Planning consistent gating with stub fallbacks**
+
+I'm deciding to implement gating with #else branches providing stub or actual fallback structs to keep code compiling and usable where needed, including HistoricalPolicies and PolicyAnalysisSession, aligning with the planned approach and error handling details.
+thinking
+**Reviewing error handling against plan**
+
+I'm confirming session creation and retry logic for context window errors matches the plan, but the plan requires catching a specific content policy rejection error that isn't clearly identified yet, so I'll search documentation and code for precise LanguageModelError cases.
+exec
+/bin/zsh -lc 'rg -n "LanguageModelError" app/decodingOppression/decodingOppression -S' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:50:                } catch is LanguageModelError {
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:73:                } catch is LanguageModelError {
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:80:        } catch is LanguageModelError {
+
+
+thinking
+**Planning error case discovery**
+
+I'll search local docs or source files to find exact LanguageModelError cases, focusing on any `.safety` variant to handle content policy rejections correctly and ensure code compiles without guesses.
+thinking
+**Searching local docs for error cases**
+exec
+/bin/zsh -lc 'rg -n "LanguageModelError" /Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection -S' in /Users/emmanuel/Documents/Theory/Redefining_racism exited 1 in 51ms:
+
+
+thinking
+**Checking local swiftDocs folder**
+exec
+/bin/zsh -lc 'rg -n "LanguageModelError" swiftDocs -S' in /Users/emmanuel/Documents/Theory/Redefining_racism exited 1 in 53ms:
+
+
+
+thinking
+**Assessing error handling approach**
+
+I'm considering detecting safety guardrail errors by matching error descriptions or localized strings since referencing explicit enum cases may cause compile errors without available case names.
+thinking
+**Planning enum case discovery via local search**
+
+I'm preparing to search local Xcode directories for the LanguageModelError enum definition to identify the exact case name for content policy rejection errors.
+exec
+/bin/zsh -lc 'rg -n "LanguageModelError" /Applications/Xcode.app/Contents/Developer/Platforms -S --max-count 20' in /Users/emmanuel/Documents/Theory/Redefining_racism
+ succeeded in 2.77s:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/PrivateFrameworks/TokenGenerationInference.framework/Versions/A/TokenGenerationInference.tbd:400:                       '_$s24TokenGenerationInference17NodeStateProtocolTL', '_$s24TokenGenerationInference18LanguageModelErrorO14notImplementedyA2CmFWC', 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/PrivateFrameworks/TokenGenerationInference.framework/Versions/A/TokenGenerationInference.tbd:401:                       '_$s24TokenGenerationInference18LanguageModelErrorO2eeoiySbAC_ACtFZ', 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/PrivateFrameworks/TokenGenerationInference.framework/Versions/A/TokenGenerationInference.tbd:402:                       '_$s24TokenGenerationInference18LanguageModelErrorO4hash4intoys6HasherVz_tF', 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/PrivateFrameworks/TokenGenerationInference.framework/Versions/A/TokenGenerationInference.tbd:403:                       '_$s24TokenGenerationInference18LanguageModelErrorO9hashValueSivg', 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/PrivateFrameworks/TokenGenerationInference.framework/Versions/A/TokenGenerationInference.tbd:404:                       '_$s24TokenGenerationInference18LanguageModelErrorO9hashValueSivpMV', 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/PrivateFrameworks/TokenGenerationInference.framework/Versions/A/TokenGenerationInference.tbd:405:                       '_$s24TokenGenerationInference18LanguageModelErrorOMa', '_$s24TokenGenerationInference18LanguageModelErrorOMn', 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/PrivateFrameworks/TokenGenerationInference.framework/Versions/A/TokenGenerationInference.tbd:406:                       '_$s24TokenGenerationInference18LanguageModelErrorON', '_$s24TokenGenerationInference18LanguageModelErrorOSHAAMc', 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/PrivateFrameworks/TokenGenerationInference.framework/Versions/A/TokenGenerationInference.tbd:407:                       '_$s24TokenGenerationInference18LanguageModelErrorOSQAAMc', 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/PrivateFrameworks/TokenGenerationInference.framework/Versions/A/TokenGenerationInference.tbd:408:                       '_$s24TokenGenerationInference18LanguageModelErrorOs0F0AAMc', 
+thinking
+**Handling command output with write_stdin**
+
+thinking
+**Searching for Swift interface in FoundationModels**
+
+I'm looking for LanguageModelError in swiftinterface files under the FoundationModels framework in the MacOSX SDK to see if there's a Swift interface for FoundationModels and related classes.
+exec
+/bin/zsh -lc 'rg -n "LanguageModelError" /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs -g "*.swiftinterface" -S --max-count 20' in /Users/emmanuel/Documents/Theory/Redefining_racism exited 1 in 198ms:
+
+
+thinking
+**Searching alternate framework locations**
+
+I'm checking if FoundationModels is a private framework inside Xcode’s app bundle by searching for the error symbol in swiftinterface files there.
+exec
+/bin/zsh -lc 'rg -n "LanguageModelError" /Applications/Xcode.app -g "*.swiftinterface" -S --max-count 20' in /Users/emmanuel/Documents/Theory/Redefining_racism exited 1 in 550ms:
+
+
+thinking
+**Planning error handling with heuristic matching**
+
+Planning to implement error handling by pattern matching error descriptions to avoid direct case references, ensuring compile safety, and gating files with conditional compilation and stubs. Also preparing to verify AI files are included in the Xcode project by inspecting the pbxproj file.
+exec
+/bin/zsh -lc 'rg -n "AI|Tier3Error|HistoricalPolicies|HistoricalBaselineTool|PolicyAnalysisSession|Tier3Engine" app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj -S' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+88:				AI/HistoricalBaselineTool.swift,
+89:				AI/HistoricalPolicies.swift,
+90:				AI/PolicyAnalysisSession.swift,
+91:				AI/Tier3Engine.swift,
+92:				AI/Tier3Error.swift,
+550:				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+557:				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+612:				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+619:				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+
+thinking
+**Confirming file references in pbxproj**
+
+The project likely already includes the files in file lists and build phases, especially PBXSourcesBuildPhase; next, I'll verify presence by searching for target filenames in the sources section to confirm if Step 6 additions are needed.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1487ADC22F47B281009460B8 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC52F47B281009460B8 /* MLXLLM */; };
+		1487ADC32F47B281009460B8 /* MLXEmbedders in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC62F47B281009460B8 /* MLXEmbedders */; };
+		1487ADC42F47B281009460B8 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC72F47B281009460B8 /* MLXLMCommon */; };
+		1487ADEE2F47B281009460B8 /* decodingOppression/ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487ADE02F47B27E009460B8 /* decodingOppression/ContentView.swift */; };
+		1487ADEF2F47B281009460B8 /* decodingOppression/decodingOppressionApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487ADE12F47B27E009460B8 /* decodingOppression/decodingOppressionApp.swift */; };
+		1487ADF02F47B281009460B8 /* decodingOppression/NLP/ClauseAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487ADE22F47B27E009460B8 /* decodingOppression/NLP/ClauseAnalyzer.swift */; };
+		1487ADF12F47B281009460B8 /* decodingOppression/NLP/KeywordEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487ADE32F47B27E009460B8 /* decodingOppression/NLP/KeywordEngine.swift */; };
+		1487ADF22F47B281009460B8 /* decodingOppression/NLP/PDFExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487ADE42F47B27E009460B8 /* decodingOppression/NLP/PDFExtractor.swift */; };
+		1487ADF32F47B281009460B8 /* decodingOppression/NLP/TextPreprocessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487ADE52F47B27E009460B8 /* decodingOppression/NLP/TextPreprocessor.swift */; };
+		1487ADF42F47B281009460B8 /* decodingOppression/NLP/Tier1Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487ADE62F47B27E009460B8 /* decodingOppression/NLP/Tier1Engine.swift */; };
+		1487ADF52F47B281009460B8 /* decodingOppression/Models/AnalyzedClause.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487ADE72F47B27E009460B8 /* decodingOppression/Models/AnalyzedClause.swift */; };
+
+
+thinking
+**Assessing necessity of pbxproj edits with file system sync**
+
+File system synchronization may handle folder membership without explicit AI groups in the pbxproj, so manual pbxproj edits might be unnecessary or risky; next, I'll verify if an AI group exists in the pbxproj before proceeding.
+thinking
+**Confirming file syncing and build phase setup**
+
+The pbxproj lacks explicit AI file references, likely relying on file system sync with membership exceptions to exclude some files; next, I'll check the PBXSourcesBuildPhase section to see how build files are managed under this sync setup.
+exec
+/bin/zsh -lc 'rg -n "PBXSourcesBuildPhase" -n app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj -S' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 53ms:
+380:/* Begin PBXSourcesBuildPhase section */
+382:			isa = PBXSourcesBuildPhase;
+408:			isa = PBXSourcesBuildPhase;
+415:			isa = PBXSourcesBuildPhase;
+421:/* End PBXSourcesBuildPhase section */
+exec
+/bin/zsh -lc "sed -n '360,440p' app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+				1487AE062F47B281009460B8 /* adapters.safetensors in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1487ADA12F47B280009460B8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1487ADAB2F47B280009460B8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+
+
+thinking
+**Evaluating AI group integration in Xcode project**
+
+The AI files aren't compiled because they're missing from sources and project groups, so adding a new PBXGroup for AI within the root—while balancing file system synchronized groups—will likely be necessary along with updating PBXBuildFile, PBXFileReference, and PBXSourcesBuildPhase entries to include AI files. The presence of membership exceptions hints that Xcode 15 might auto-manage some files, but explicit source listings suggest manual inclusion will still be required.
+thinking
+**Deciding AI group placement alongside existing groups**
+
+The plan is to create a new AI group under the main project root group, paralleling the existing MLX group (which is defined but not yet child of the root), by adding a PBXGroup with path decodingOppression/AI and corresponding file references. This avoids complications with the file system synchronized root group and aligns with the approach seen for MLX, pending confirmation of MLX's parentage in the pbxproj.
+exec
+/bin/zsh -lc 'rg -n "1487AE072F47B27E009460B8" app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj -n' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+185:		1487AE072F47B27E009460B8 /* MLX */ = {
+210:				1487AE072F47B27E009460B8 /* MLX */,
+
+thinking
+**Locating MLX group context**
+
+I'm inspecting lines 200-230 to identify the surrounding group that includes MLX for better understanding of its context.
+exec
+/bin/zsh -lc "sed -n '200,250p' app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+			children = (
+				1487AE052F47B27E009460B8 /* adapter_config.json */,
+				1487AE062F47B27E009460B8 /* adapters.safetensors */,
+			);
+			path = decodingOppression/Resources/Adapters;
+			sourceTree = "<group>";
+		};
+		1487ADE62F4B7ED9009460B8 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				1487AE072F47B27E009460B8 /* MLX */,
+				1487AE082F47B27E009460B8 /* Adapters */,
+				1487ADE02F47B27E009460B8 /* decodingOppression/ContentView.swift */,
+				1487ADE12F47B27E009460B8 /* decodingOppression/decodingOppressionApp.swift */,
+				1487ADE22F47B27E009460B8 /* decodingOppression/NLP/ClauseAnalyzer.swift */,
+				1487ADE32F47B27E009460B8 /* decodingOppression/NLP/KeywordEngine.swift */,
+				1487ADE42F47B27E009460B8 /* decodingOppression/NLP/PDFExtractor.swift */,
+				1487ADE52F47B27E009460B8 /* decodingOppression/NLP/TextPreprocessor.swift */,
+				1487ADE62F47B27E009460B8 /* decodingOppression/NLP/Tier1Engine.swift */,
+				1487ADE72F47B27E009460B8 /* decodingOppression/Models/AnalyzedClause.swift */,
+
+
+thinking
+**Mapping AI files into Xcode structure**
+
+The AI files belong in a new "AI" group under Recovered References for consistency, with PBXFileReference and PBXBuildFile entries added and linked in PBXSourcesBuildPhase to ensure they integrate into the build despite being outside the main sources.
+thinking
+**Planning conditional compilation with stub fallbacks**
+
+All five files will be gated with `#if canImport(FoundationModels)` and provide matching stub fallbacks in `#else` blocks to satisfy explicit gating instructions, ensuring compilation without FoundationModels.
+exec
+/bin/zsh -lc 'find /Applications/Xcode.app -name "FoundationModels.swiftinterface" | head -n 20' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 3.44s:
+
+
+thinking
+**Searching for framework files**
+
+I'm looking for FoundationModels.* in system directories like /Library/Developer/CommandLineTools to check if the framework is part of a private SDK or just not installed.
+exec
+/bin/zsh -lc 'find /Applications/Xcode.app -name "FoundationModels.*" | head -n 20' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 2.58s:
+/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks/FoundationModels.framework
+/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks/FoundationModels.framework/Modules/FoundationModels.swiftmodule
+/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks/FoundationModels.framework/FoundationModels.tbd
+/Applications/Xcode.app/Contents/Developer/Platforms/XROS.platform/Developer/SDKs/XROS.sdk/System/Library/Frameworks/FoundationModels.framework
+/Applications/Xcode.app/Contents/Developer/Platforms/XROS.platform/Developer/SDKs/XROS.sdk/System/Library/Frameworks/FoundationModels.framework/Modules/FoundationModels.swiftmodule
+/Applications/Xcode.app/Contents/Developer/Platforms/XROS.platform/Developer/SDKs/XROS.sdk/System/Library/Frameworks/FoundationModels.framework/FoundationModels.tbd
+/Applications/Xcode.app/Contents/Developer/Platforms/XRSimulator.platform/Developer/SDKs/XRSimulator.sdk/System/Library/Frameworks/FoundationModels.framework
+/Applications/Xcode.app/Contents/Developer/Platforms/XRSimulator.platform/Developer/SDKs/XRSimulator.sdk/System/Library/Frameworks/FoundationModels.framework/Modules/FoundationModels.swiftmodule
+/Applications/Xcode.app/Contents/Developer/Platforms/XRSimulator.platform/Developer/SDKs/XRSimulator.sdk/System/Library/Frameworks/FoundationModels.framework/FoundationModels.tbd
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/FoundationModels.framework
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/FoundationModels.framework/Versions/A/Modules/FoundationModels.swiftmodule
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/FoundationModels.framework/Versions/A/FoundationModels.tbd
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/FoundationModels.framework/FoundationModels.tbd
+/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/FoundationModels.framework
+/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/FoundationModels.framework/Modules/FoundationModels.swiftmodule
+/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/FoundationModels.framework/FoundationModels.tbd
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/xros/prebuilt-modules/26.2/FoundationModels.swiftmodule
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/FoundationModels.swiftmodule
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.2/FoundationModels.swiftmodule
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator/prebuilt-modules/26.2/FoundationModels.swiftmodule
+
+thinking
+**Checking macOS prebuilt modules for swiftinterface files**
+
+I'm inspecting macOS prebuilt modules to see if they contain .swiftinterface files alongside their binary .swiftmodule counterparts.
+exec
+/bin/zsh -lc 'ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/FoundationModels.framework/Versions/A/Modules/FoundationModels.swiftmodule' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+arm64e-apple-ios-macabi.swiftdoc
+arm64e-apple-ios-macabi.swiftinterface
+arm64e-apple-macos.swiftdoc
+arm64e-apple-macos.swiftinterface
+x86_64-apple-ios-macabi.swiftdoc
+x86_64-apple-ios-macabi.swiftinterface
+x86_64-apple-macos.swiftdoc
+x86_64-apple-macos.swiftinterface
+
+thinking
+**Searching for error cases**
+
+I'm searching inside the swiftinterface file for the LanguageModelError case to understand its definition and usage.
+exec
+/bin/zsh -lc 'rg -n "LanguageModelError" /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/FoundationModels.framework/Versions/A/Modules/FoundationModels.swiftmodule/arm64e-apple-macos.swiftinterface -S --max-count 20' in /Users/emmanuel/Documents/Theory/Redefining_racism exited 1 in 53ms:
+
+
+thinking
+**Searching for GenerationError usage**
+
+I'm searching the codebase for occurrences of "GenerationError" to understand where and how it's used.
+exec
+/bin/zsh -lc 'rg -n "GenerationError|LanguageModelSession|LanguageModel" /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/FoundationModels.framework/Versions/A/Modules/FoundationModels.swiftmodule/arm64e-apple-macos.swiftinterface -S --max-count 50' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+331:final public class LanguageModelSession {
+339:  @_disfavoredOverload convenience public init(model: FoundationModels.SystemLanguageModel = .default, tools: [any FoundationModels.Tool] = [], instructions: Swift.String? = nil)
+341:  convenience public init(model: FoundationModels.SystemLanguageModel = .default, tools: [any FoundationModels.Tool] = [], @FoundationModels.InstructionsBuilder instructions: () throws -> FoundationModels.Instructions) rethrows
+343:  convenience public init(model: FoundationModels.SystemLanguageModel = .default, tools: [any FoundationModels.Tool] = [], instructions: FoundationModels.Instructions? = nil)
+345:  convenience public init(model: FoundationModels.SystemLanguageModel = .default, tools: [any FoundationModels.Tool] = [], transcript: FoundationModels.Transcript)
+359:  nonisolated(nonsending) final public func respond(to prompt: FoundationModels.Prompt, options: FoundationModels.GenerationOptions = GenerationOptions()) async throws -> FoundationModels.LanguageModelSession.Response<Swift.String>
+363:  @_disfavoredOverload nonisolated(nonsending) final public func respond(to prompt: Swift.String, options: FoundationModels.GenerationOptions = GenerationOptions()) async throws -> FoundationModels.LanguageModelSession.Response<Swift.String>
+367:  nonisolated(nonsending) final public func respond(options: FoundationModels.GenerationOptions = GenerationOptions(), @FoundationModels.PromptBuilder prompt: () throws -> FoundationModels.Prompt) async throws -> FoundationModels.LanguageModelSession.Response<Swift.String>
+371:  nonisolated(nonsending) final public func respond(to prompt: FoundationModels.Prompt, schema: FoundationModels.GenerationSchema, includeSchemaInPrompt: Swift.Bool = true, options: FoundationModels.GenerationOptions = GenerationOptions()) async throws -> FoundationModels.LanguageModelSession.Response<FoundationModels.GeneratedContent>
+375:  @_disfavoredOverload nonisolated(nonsending) final public func respond(to prompt: Swift.String, schema: FoundationModels.GenerationSchema, includeSchemaInPrompt: Swift.Bool = true, options: FoundationModels.GenerationOptions = GenerationOptions()) async throws -> FoundationModels.LanguageModelSession.Response<FoundationModels.GeneratedContent>
+379:  nonisolated(nonsending) final public func respond(schema: FoundationModels.GenerationSchema, includeSchemaInPrompt: Swift.Bool = true, options: FoundationModels.GenerationOptions = GenerationOptions(), @FoundationModels.PromptBuilder prompt: () throws -> FoundationModels.Prompt) async throws -> FoundationModels.LanguageModelSession.Response<FoundationModels.GeneratedContent>
+383:  nonisolated(nonsending) final public func respond<Content>(to prompt: FoundationModels.Prompt, generating type: Content.Type = Content.self, includeSchemaInPrompt: Swift.Bool = true, options: FoundationModels.GenerationOptions = GenerationOptions()) async throws -> FoundationModels.LanguageModelSession.Response<Content> where Content : FoundationModels.Generable
+387:  @_disfavoredOverload nonisolated(nonsending) final public func respond<Content>(to prompt: Swift.String, generating type: Content.Type = Content.self, includeSchemaInPrompt: Swift.Bool = true, options: FoundationModels.GenerationOptions = GenerationOptions()) async throws -> FoundationModels.LanguageModelSession.Response<Content> where Content : FoundationModels.Generable
+391:  nonisolated(nonsending) final public func respond<Content>(generating type: Content.Type = Content.self, includeSchemaInPrompt: Swift.Bool = true, options: FoundationModels.GenerationOptions = GenerationOptions(), @FoundationModels.PromptBuilder prompt: () throws -> FoundationModels.Prompt) async throws -> FoundationModels.LanguageModelSession.Response<Content> where Content : FoundationModels.Generable
+397:  final public func streamResponse(to prompt: FoundationModels.Prompt, schema: FoundationModels.GenerationSchema, includeSchemaInPrompt: Swift.Bool = true, options: FoundationModels.GenerationOptions = GenerationOptions()) -> sending FoundationModels.LanguageModelSession.ResponseStream<FoundationModels.GeneratedContent>
+402:  final public func streamResponse(to prompt: FoundationModels.Prompt, schema: FoundationModels.GenerationSchema, includeSchemaInPrompt: Swift.Bool = true, options: FoundationModels.GenerationOptions = GenerationOptions()) -> FoundationModels.LanguageModelSession.ResponseStream<FoundationModels.GeneratedContent>
+409:extension FoundationModels.LanguageModelSession : @unchecked Swift.Sendable {
+414:extension FoundationModels.LanguageModelSession : nonisolated Observation.Observable {
+416:extension FoundationModels.LanguageModelSession {
+420:  public enum GenerationError : Swift.Error, Foundation.LocalizedError {
+
+thinking
+**Clarifying error types for guardrail handling**
+
+Found no LanguageModelError in FoundationModels but did find LanguageModelSession.GenerationError with guardrailViolation and refusal cases matching content policy rejection; plan mentions LanguageModelError but implementation should likely use GenerationError.guardrailViolation to catch safety-related errors instead.
+exec
+/bin/zsh -lc "sed -n '410,460p' /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/FoundationModels.framework/Versions/A/Modules/FoundationModels.swiftmodule/arm64e-apple-macos.swiftinterface" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 50ms:
+}
+@available(iOS 26.0, macOS 26.0, visionOS 26.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension FoundationModels.LanguageModelSession : nonisolated Observation.Observable {
+}
+extension FoundationModels.LanguageModelSession {
+  @available(iOS 26.0, macOS 26.0, visionOS 26.0, *)
+  @available(tvOS, unavailable)
+  @available(watchOS, unavailable)
+  public enum GenerationError : Swift.Error, Foundation.LocalizedError {
+    @available(iOS 26.0, macOS 26.0, visionOS 26.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public struct Context : Swift.Sendable {
+      public let debugDescription: Swift.String
+      public init(debugDescription: Swift.String)
+    }
+    @available(iOS 26.0, macOS 26.0, visionOS 26.0, *)
+    @available(tvOS, unavailable)
+
+
+thinking
+**Clarifying error handling and response types**
+
+The plan's mention of LanguageModelError doesn't match the real API, which uses GenerationError.guardrailViolation for content policy rejections; I'll implement handling accordingly and map stream errors similarly. Also, the session.respond method returns a Response wrapping the content, so code expecting just the content may require adjustment or confirmation since it currently compiles.
+thinking
+**Investigating response type and overloads**
+
+The main respond method returns Response wrapping the content, but there might be an overload or extension providing direct Content access; I'll inspect the Response struct in the swiftinterface to clarify how our code compiles when expecting direct content.
+exec
+/bin/zsh -lc 'rg -n "struct Response" /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/FoundationModels.framework/Versions/A/Modules/FoundationModels.swiftmodule/arm64e-apple-macos.swiftinterface -S --max-count 40' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+352:  public struct Response<Content> where Content : FoundationModels.Generable {
+483:  public struct ResponseStream<Content> where Content : FoundationModels.Generable {
+828:  public struct ResponseFormat : Swift.Sendable, Swift.Equatable {
+911:  public struct Response : Swift.Sendable, Swift.Identifiable, Swift.Equatable {
+exec
+/bin/zsh -lc "sed -n '340,370p' /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/FoundationModels.framework/Versions/A/Modules/FoundationModels.swiftmodule/arm64e-apple-macos.swiftinterface" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+  #endif
+  convenience public init(model: FoundationModels.SystemLanguageModel = .default, tools: [any FoundationModels.Tool] = [], @FoundationModels.InstructionsBuilder instructions: () throws -> FoundationModels.Instructions) rethrows
+  #if compiler(>=5.3) && $NonescapableTypes
+  convenience public init(model: FoundationModels.SystemLanguageModel = .default, tools: [any FoundationModels.Tool] = [], instructions: FoundationModels.Instructions? = nil)
+  #endif
+  convenience public init(model: FoundationModels.SystemLanguageModel = .default, tools: [any FoundationModels.Tool] = [], transcript: FoundationModels.Transcript)
+  #if compiler(>=5.3) && $NonescapableTypes
+  final public func prewarm(promptPrefix: FoundationModels.Prompt? = nil)
+  #endif
+  @available(iOS 26.0, macOS 26.0, visionOS 26.0, *)
+  @available(tvOS, unavailable)
+  @available(watchOS, unavailable)
+  public struct Response<Content> where Content : FoundationModels.Generable {
+    public let content: Content
+    public let rawContent: FoundationModels.GeneratedContent
+    public let transcriptEntries: Swift.ArraySlice<FoundationModels.Transcript.Entry>
+  }
+  #if compiler(>=5.3) && $AsyncExecutionBehaviorAttributes
+  @discardableResult
+  nonisolated(nonsending) final public func respond(to prompt: FoundationModels.Prompt, options: FoundationModels.GenerationOptions = GenerationOptions()) async throws -> FoundationModels.LanguageModelSession.Response<Swift.String>
+
+
+thinking
+**Clarifying response handling**
+
+The code currently returns Response<Content> directly, which should be changed to access `.content` for correctness and to avoid potential compile errors with the current SDK API.
+thinking
+**Identifying API adjustments for streaming**
+
+The code must extract `.content` from `respond` results and properly handle `ResponseStream` as an async sequence of snapshots with partial content, updating PolicyAnalysisSession methods accordingly to match API types and avoid build failures.
+exec
+/bin/zsh -lc "sed -n '470,520p' /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/FoundationModels.framework/Versions/A/Modules/FoundationModels.swiftmodule/arm64e-apple-macos.swiftinterface" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+    public var underlyingError: any Swift.Error
+    public init(tool: any FoundationModels.Tool, underlyingError: any Swift.Error)
+    #if compiler(>=5.3) && $NonescapableTypes
+    public var errorDescription: Swift.String? {
+      get
+    }
+    #endif
+  }
+}
+extension FoundationModels.LanguageModelSession {
+  @available(iOS 26.0, macOS 26.0, visionOS 26.0, *)
+  @available(tvOS, unavailable)
+  @available(watchOS, unavailable)
+  public struct ResponseStream<Content> where Content : FoundationModels.Generable {
+    public struct Snapshot {
+      public var content: Content.PartiallyGenerated
+      public var rawContent: FoundationModels.GeneratedContent
+    }
+  }
+}
+
+thinking
+**Adjusting stream handling and return types**
+
+Realized streamResponse yields Snapshot objects, not direct PartiallyGenerated contents, so I'll update iteration to yield snapshot.content. Also, runWithRetry should return .content from Response<Content>. I'll plan to add handling for GenerationError cases like guardrail violations. Next, I'll verify the Tool protocol's call return type since current usage compiles with String but spec may differ.
+exec
+/bin/zsh -lc 'rg -n "protocol Tool" /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/FoundationModels.framework/Versions/A/Modules/FoundationModels.swiftmodule/arm64e-apple-macos.swiftinterface -S --max-count 40' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+1196:public protocol Tool<Arguments, Output> : Swift.Sendable {
+exec
+/bin/zsh -lc "sed -n '1196,1235p' /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/FoundationModels.framework/Versions/A/Modules/FoundationModels.swiftmodule/arm64e-apple-macos.swiftinterface" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+public protocol Tool<Arguments, Output> : Swift.Sendable {
+  associatedtype Output : FoundationModels.PromptRepresentable
+  associatedtype Arguments : FoundationModels.ConvertibleFromGeneratedContent
+  var name: Swift.String { get }
+  var description: Swift.String { get }
+  var parameters: FoundationModels.GenerationSchema { get }
+  var includesSchemaInInstructions: Swift.Bool { get }
+  func call(arguments: Self.Arguments) async throws -> Self.Output
+}
+@available(iOS 26.0, macOS 26.0, visionOS 26.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension FoundationModels.Tool {
+  public var name: Swift.String {
+    get
+  }
+  public var includesSchemaInInstructions: Swift.Bool {
+    get
+  }
+}
+
+
+thinking
+**Confirming protocol defaults and conformance**
+
+The Tool protocol provides default implementations for name and includesSchemaInInstructions but not for description or parameters directly; the struct covers name and description, while parameters come via a Generable extension. Output conforms via PromptRepresentable, and argument annotations with Guide align with Generable types, supporting smooth compilation.
+thinking
+**Clarifying error handling and imports**
+
+The plan is to catch `LanguageModelSession.GenerationError` cases—mapping both `guardrailViolation` and `refusal` to a safety guardrail error—and throw session failures for others. Imports of FoundationModels will be conditional, with core Foundation imported always. Availability checking in Tier3Engine will uniformly treat all `.unavailable` cases as errors, considering potential unknown cases.
+exec
+/bin/zsh -lc 'rg -n "enum Availability" /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/FoundationModels.framework/Versions/A/Modules/FoundationModels.swiftmodule/arm64e-apple-macos.swiftinterface -S --max-count 20' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 53ms:
+608:  @frozen public enum Availability : Swift.Equatable, Swift.Sendable {
+exec
+/bin/zsh -lc "sed -n '604,635p' /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/FoundationModels.framework/Versions/A/Modules/FoundationModels.swiftmodule/arm64e-apple-macos.swiftinterface" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 53ms:
+extension FoundationModels.SystemLanguageModel {
+  @available(iOS 26.0, macOS 26.0, visionOS 26.0, *)
+  @available(tvOS, unavailable)
+  @available(watchOS, unavailable)
+  @frozen public enum Availability : Swift.Equatable, Swift.Sendable {
+    @available(iOS 26.0, macOS 26.0, visionOS 26.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public enum UnavailableReason : Swift.Equatable, Swift.Sendable {
+      case deviceNotEligible
+      case appleIntelligenceNotEnabled
+      case modelNotReady
+      public static func == (a: FoundationModels.SystemLanguageModel.Availability.UnavailableReason, b: FoundationModels.SystemLanguageModel.Availability.UnavailableReason) -> Swift.Bool
+      public func hash(into hasher: inout Swift.Hasher)
+      public var hashValue: Swift.Int {
+        get
+      }
+    }
+    case available
+    case unavailable(FoundationModels.SystemLanguageModel.Availability.UnavailableReason)
+
+
+
+thinking
+**Defining availability handling and error catching**
+
+The availability enum has only known reasons, so I'll implement a switch that lists specific unavailable cases and a catch-all for others, throwing a unified error. In classify, I'll adjust error handling to catch only the unavailable error and return nil, letting other errors propagate as planned.
+thinking
+**Finalizing mapping, stubs, and error handling**
+
+I'm confirming direct enum mappings, wrapping key files with FoundationModels guards and stubs, refining PolicyAnalysisSession’s retry and guardrail logging, and aligning Tier3Engine’s interface and concurrency with plans. Also, I’ll update pbxproj to manually reference AI files and ensure build phases include them per the outlined convention.
+thinking
+**Generating unique IDs for pbxproj entries**
+
+I'll generate new unique 24-digit hex IDs to add correct file and build references in the pbxproj as required for the new AI files.
+exec
+/bin/zsh -lc "python - <<'PY'
+import uuid
+for _ in range(10):
+    print(uuid.uuid4().hex[:24].upper())
+PY" in /Users/emmanuel/Documents/Theory/Redefining_racism exited 127 in 53ms:
+zsh:1: command not found: python
+
+thinking
+**Noticing python command absence**
+
+The system lacks a default `python` command, so I'll try `python3` instead to run Python scripts.
+exec
+/bin/zsh -lc "python3 - <<'PY'
+import uuid
+for _ in range(10):
+    print(uuid.uuid4().hex[:24].upper())
+PY" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 283ms:
+2467E8070D1646038A09BBD2
+473A1DCC70674B1088012F04
+5EC2A52B074C4B4F80E486FB
+C7ACD73D83AF4BD1BF278199
+A6E5E59775EC4A2D83DBF692
+3F905F1B71EC4592BA52F524
+F7EBBA3FBB7D48DBB64A3D5F
+DCB26A02D5DC4B6F91076977
+34286CD2DA874541B8E16E36
+C6B4706C099C4852B2B1E2BB
+
+thinking
+**Planning ID allocation**
+
+The plan is to generate at least 11 unique IDs to cover file references, build files, and the group, ensuring there are enough without relying solely on existing IDs.
+exec
+/bin/zsh -lc "python3 - <<'PY'
+import uuid
+for _ in range(12):
+    print(uuid.uuid4().hex[:24].upper())
+PY" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 53ms:
+B662951DFDEA4C00819E5AB0
+45468D7A9CFC43FE98FCFED6
+22E4196157E64E2BBE514948
+56C99FC86141483CBBAD6A46
+C5B2BB81BC924526AF30F3B6
+C8DDD7DED66D4E2DBDA8160A
+A1E330161A71475AA1BC14D9
+F9F41F380AF34F68BAAF7178
+27E6839E60A74BFCAAECC28E
+BC1E4A9AC7DE46D5BB78303F
+A3DEB1594BCB4C14B8203DBA
+36F33291B039416C8164AD9D
+
+
+thinking
+**Planning unique IDs and file references**
+
+I'm selecting 11 unique IDs for build files, file references, and group, ensuring no collisions. I'll reference files by filename only within their group path (e.g., path "Tier3Error.swift" with group path "decodingOppression/AI") following the existing MLX group pattern.
+thinking
+**Detailing file modifications and pbxproj updates**
+
+I'm planning thorough rewrites for key Swift files to handle conditional imports, error mapping, concurrency, and consistent session creation, plus adjusting PolicyAnalysisSession framing and error handling with retries. I'll add the AI group to the pbxproj with correct file refs and build files, inserting them cautiously to match existing group structure and build phases.
+exec
+/bin/zsh -lc "cat <<'EOF' > app/decodingOppression/decodingOppression/AI/Tier3Error.swift
+//
+//  Tier3Error.swift
+//  decodingOppression
+//
+//  Errors for Tier3 (Foundation Models) classification path.
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+
+enum Tier3Error: Error {
+    /// Foundation Models not available on this device/configuration.
+    case unavailable
+    /// Prompt was rejected by the safety system (caught internally, never surfaced to callers).
+    case safetyGuardrail
+    /// exceededContextWindowSize persisted even after condensed-text retry.
+    case contextWindowExceeded
+    /// Wraps any other LanguageModelSession error for internal logging.
+    case sessionFailed(Error)
+}
+
+#else
+
+enum Tier3Error: Error {
+    /// Foundation Models not available on this device/configuration.
+    case unavailable
+    /// Prompt was rejected by the safety system (caught internally, never surfaced to callers).
+    case safetyGuardrail
+    /// exceededContextWindowSize persisted even after condensed-text retry.
+    case contextWindowExceeded
+    /// Wraps any other LanguageModelSession error for internal logging.
+    case sessionFailed(Error)
+}
+
+#endif
+EOF" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 53ms:
+
+exec
+/bin/zsh -lc "cat <<'EOF' > app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift
+//
+//  HistoricalPolicies.swift
+//  decodingOppression
+//
+//  Single source of truth for expected COI of known historical policies.
+//  Consumed by HistoricalBaselineTool (T4) and ValidationRunner (T8/T9).
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+
+struct HistoricalPolicies {
+    /// Returns the expected COI (0-1) for a known historical policy name; 0.0 for unrecognised names.
+    static func score(for policyName: String) -> Double {
+        switch policyName {
+        case \"Virginia Slave Codes (1705)\": return 0.93
+        case \"13th Amendment (1865)\": return 0.35
+        case \"HOLC Redlining (1934)\": return 0.82
+        case \"War on Drugs (1971)\": return 0.78
+        default: return 0.0
+        }
+    }
+}
+
+#else
+
+struct HistoricalPolicies {
+    /// Returns the expected COI (0-1) for a known historical policy name; 0.0 for unrecognised names.
+    static func score(for policyName: String) -> Double {
+        switch policyName {
+        case \"Virginia Slave Codes (1705)\": return 0.93
+        case \"13th Amendment (1865)\": return 0.35
+        case \"HOLC Redlining (1934)\": return 0.82
+        case \"War on Drugs (1971)\": return 0.78
+        default: return 0.0
+        }
+    }
+}
+
+#endif
+EOF" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+
+exec
+/bin/zsh -lc "cat <<'EOF' > app/decodingOppression/decodingOppression/AI/HistoricalBaselineTool.swift
+//
+//  HistoricalBaselineTool.swift
+//  decodingOppression
+//
+//  Tool returning the COI of a known historical policy for model comparison.
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+import FoundationModels
+
+struct HistoricalBaselineTool: Tool {
+    let name = \"getHistoricalBaseline\"
+    let description = \"Returns the COI of a known historical policy for comparison.\"
+
+    @Generable
+    struct Arguments {
+        @Guide(.anyOf([
+            \"Virginia Slave Codes (1705)\",
+            \"13th Amendment (1865)\",
+            \"HOLC Redlining (1934)\",
+            \"War on Drugs (1971)\"
+        ]))
+        var policyName: String
+    }
+
+    func call(arguments: Arguments) async throws -> String {
+        let coi = HistoricalPolicies.score(for: arguments.policyName)
+        return \"Historical COI for \\(arguments.policyName): \\(coi)\"
+    }
+}
+
+#else
+
+struct HistoricalBaselineTool {
+    let name = \"getHistoricalBaseline\"
+    let description = \"Returns the COI of a known historical policy for comparison.\"
+}
+
+#endif
+EOF" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 53ms:
+
+
+thinking
+**Rewriting policy analysis session**
+exec
+/bin/zsh -lc "cat <<'EOF' > app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+//
+//  PolicyAnalysisSession.swift
+//  decodingOppression
+//
+//  One session per clause (4k token constraint); academic framing and tool injection.
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+import FoundationModels
+
+actor PolicyAnalysisSession {
+    private let academicFramingPrefix = \"You are an academic policy analyst. Provide precise, evidence-based clause analysis.\"
+    private let retryCharacterLimit = 500
+
+    func classifyClause(_ clause: Clause) async throws -> ClauseClassification {
+        try await runWithRetry(clause: clause) { session, text in
+            let response = try await session.respond(to: text, generating: ClauseClassification.self)
+            return response.content
+        }
+    }
+
+    func detectArchitecture(_ clause: Clause) async throws -> ArchitectureDetection {
+        try await runWithRetry(clause: clause) { session, text in
+            let response = try await session.respond(to: text, generating: ArchitectureDetection.self)
+            return response.content
+        }
+    }
+
+    func detectProxy(_ clause: Clause) async throws -> ProxyDetection {
+        try await runWithRetry(clause: clause) { session, text in
+            let response = try await session.respond(to: text, generating: ProxyDetection.self)
+            return response.content
+        }
+    }
+
+    func streamArchitecture(_ clause: Clause) -> AsyncThrowingStream<ArchitectureDetection.PartiallyGenerated, Error> {
+        AsyncThrowingStream { continuation in
+            Task {
+                do {
+                    try await streamWithRetry(clause: clause) { session, text in
+                        let stream = session.streamResponse(to: text, generating: ArchitectureDetection.self)
+                        for try await snapshot in stream {
+                            continuation.yield(snapshot.content)
+                        }
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+        }
+    }
+
+    private func makeSession() -> LanguageModelSession {
+        LanguageModelSession(instructions: academicFramingPrefix, tools: [HistoricalBaselineTool()])
+    }
+
+    private func runWithRetry<T>(
+        clause: Clause,
+        body: (LanguageModelSession, String) async throws -> T
+    ) async throws -> T {
+        do {
+            return try await body(makeSession(), clause.text)
+        } catch let error as LanguageModelSession.GenerationError {
+            switch error {
+            case .exceededContextWindowSize:
+                let truncated = String(clause.text.prefix(retryCharacterLimit))
+                do {
+                    return try await body(makeSession(), truncated)
+                } catch let retryError as LanguageModelSession.GenerationError {
+                    switch retryError {
+                    case .exceededContextWindowSize:
+                        throw Tier3Error.contextWindowExceeded
+                    case .guardrailViolation, .refusal:
+                        logSafetyGuardrail(for: clause.id)
+                        throw Tier3Error.safetyGuardrail
+                    default:
+                        throw Tier3Error.sessionFailed(retryError)
+                    }
+                } catch {
+                    throw Tier3Error.sessionFailed(error)
+                }
+            case .guardrailViolation, .refusal:
+                logSafetyGuardrail(for: clause.id)
+                throw Tier3Error.safetyGuardrail
+            default:
+                throw Tier3Error.sessionFailed(error)
+            }
+        } catch {
+            throw Tier3Error.sessionFailed(error)
+        }
+    }
+
+    private func streamWithRetry(
+        clause: Clause,
+        body: (LanguageModelSession, String) async throws -> Void
+    ) async throws {
+        do {
+            try await body(makeSession(), clause.text)
+        } catch let error as LanguageModelSession.GenerationError {
+            switch error {
+            case .exceededContextWindowSize:
+                let truncated = String(clause.text.prefix(retryCharacterLimit))
+                do {
+                    try await body(makeSession(), truncated)
+                } catch let retryError as LanguageModelSession.GenerationError {
+                    switch retryError {
+                    case .exceededContextWindowSize:
+                        throw Tier3Error.contextWindowExceeded
+                    case .guardrailViolation, .refusal:
+                        logSafetyGuardrail(for: clause.id)
+                        throw Tier3Error.safetyGuardrail
+                    default:
+                        throw Tier3Error.sessionFailed(retryError)
+                    }
+                } catch {
+                    throw Tier3Error.sessionFailed(error)
+                }
+            case .guardrailViolation, .refusal:
+                logSafetyGuardrail(for: clause.id)
+                throw Tier3Error.safetyGuardrail
+            default:
+                throw Tier3Error.sessionFailed(error)
+            }
+        } catch {
+            throw Tier3Error.sessionFailed(error)
+        }
+    }
+
+    private func logSafetyGuardrail(for clauseID: UUID) {
+        print(\"[Tier3] Safety guardrail triggered for clause \\(clauseID)\")
+    }
+}
+
+#else
+
+actor PolicyAnalysisSession {
+    func classifyClause(_ clause: Clause) async throws -> ClauseClassification {
+        throw Tier3Error.unavailable
+    }
+
+    func detectArchitecture(_ clause: Clause) async throws -> ArchitectureDetection {
+        throw Tier3Error.unavailable
+    }
+
+    func detectProxy(_ clause: Clause) async throws -> ProxyDetection {
+        throw Tier3Error.unavailable
+    }
+
+    func streamArchitecture(_ clause: Clause) -> AsyncThrowingStream<ArchitectureDetection.PartiallyGenerated, Error> {
+        AsyncThrowingStream { "'$0.finish(throwing: Tier3Error.unavailable) }
+    }
+}
+
+#endif
+EOF' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+
+
+
+thinking
+**Verifying error handling and shadowing**
+
+Confirmed that error variable shadowing in nested catch blocks is intentional and correctly references the inner caught error when throwing wrapped errors.
+thinking
+**Reviewing availability annotations and error wrapping**
+
+Noted that error wrapping uses a generic Error type safely, but availability checks rely only on canImport, which may not fully ensure runtime availability of FoundationModels APIs; this might require @available annotations for clarity.
+exec
+/bin/zsh -lc "cat <<'EOF' > app/decodingOppression/decodingOppression/AI/Tier3Engine.swift
+//
+//  Tier3Engine.swift
+//  decodingOppression
+//
+//  Facade mirroring Tier2Engine; gates Foundation Models classification behind availability.
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+import FoundationModels
+
+public actor Tier3Engine {
+    private let session = PolicyAnalysisSession()
+
+    private func checkAvailability() throws {
+        switch SystemLanguageModel.default.availability {
+        case .available:
+            return
+        case .unavailable(.deviceNotEligible):
+            throw Tier3Error.unavailable
+        case .unavailable(.appleIntelligenceNotEnabled):
+            throw Tier3Error.unavailable
+        case .unavailable(.modelNotReady):
+            throw Tier3Error.unavailable
+        case .unavailable:
+            throw Tier3Error.unavailable
+        }
+    }
+
+    public func isAvailable() -> Bool {
+        SystemLanguageModel.default.availability == .available
+    }
+
+    public func classify(clause: Clause) async throws -> TierClassification? {
+        do {
+            try checkAvailability()
+        } catch Tier3Error.unavailable {
+            return nil
+        }
+
+        do {
+            async let classification = session.classifyClause(clause)
+            async let architecture = session.detectArchitecture(clause)
+            async let proxy = session.detectProxy(clause)
+            let (c, a, p) = try await (classification, architecture, proxy)
+
+            let targetGroup: TargetGroup
+            switch c.targetGroup {
+            case .outgroup: targetGroup = .outgroup
+            case .ingroupNonElite: targetGroup = .ingroupNonElite
+            case .elite: targetGroup = .elite
+            case .multiple: targetGroup = .multiple
+            }
+
+            let effectDirection: EffectDirection
+            switch c.effectDirection {
+            case .burden: effectDirection = .burden
+            case .benefit: effectDirection = .benefit
+            case .neutral: effectDirection = .neutral
+            case .mixed: effectDirection = .mixed
+            }
+
+            let scores = ArchitectureScores(
+                aar: a.asymmetricAutonomyRestriction,
+                se: a.selectiveEmpathy,
+                ij: a.ideologicalJustification,
+                rsc: a.resistanceToStructuralCritique
+            )
+
+            return TierClassification(
+                targetGroup: targetGroup,
+                effectDirection: effectDirection,
+                architectureScores: scores,
+                proxyDetection: p,
+                confidence: c.confidence,
+                tier: .tier3
+            )
+        } catch Tier3Error.safetyGuardrail {
+            print(\"[Tier3] Safety guardrail triggered for clause \\(clause.id)\")
+            return nil
+        }
+    }
+
+    public func streamClassify(clause: Clause) -> AsyncThrowingStream<ArchitectureDetection.PartiallyGenerated, Error> {
+        session.streamArchitecture(clause)
+    }
+}
+
+#else
+
+public actor Tier3Engine {
+    public func isAvailable() -> Bool { false }
+
+    public func classify(clause: Clause) async throws -> TierClassification? {
+        throw Tier3Error.unavailable
+    }
+
+    public func streamClassify(clause: Clause) -> AsyncThrowingStream<ArchitectureDetection.PartiallyGenerated, Error> {
+        AsyncThrowingStream { "'$0.finish(throwing: Tier3Error.unavailable) }
+    }
+}
+
+#endif
+EOF' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+
+
+
+thinking
+**Preparing PBXBuildFile and fileRef entries**
+
+I've assigned consistent fileRef and build file IDs for the new Swift files and will add these entries along with group references in the pbxproj patch. Next, I'll apply these modifications to properly register the files in the build system.
+thinking
+**Planning precise pbxproj insertions**
+
+I'm preparing stepwise insertions in pbxproj: adding build files after a known marker in PBXBuildFile section, file references after existing entries, defining the AI group with children, updating Recovered References to include AI, and adding build files to PBXSourcesBuildPhase, all while preserving tab formatting.
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -35,2 +35,7 @@
+ 		1487AE062F47B281009460B8 /* adapters.safetensors in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE062F47B27E009460B8 /* adapters.safetensors */; };
++		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
++		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
++		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
++		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
++		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+ /* End PBXBuildFile section */
+apply_patch(auto_approved=true) exited 0 in 41ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index d5e7130f5269da59c20746ffc08bb40c3b931f2a..18dc1e136f27a29601245149cb74f82d2da2c599
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -33,6 +33,11 @@
+ 		1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */; };
+ 		1487AE052F47B281009460B8 /* adapter_config.json in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE052F47B27E009460B8 /* adapter_config.json */; };
+ 		1487AE062F47B281009460B8 /* adapters.safetensors in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE062F47B27E009460B8 /* adapters.safetensors */; };
++		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
++		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
++		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
++		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
++		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXContainerItemProxy section */
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index d5e7130f5269da59c20746ffc08bb40c3b931f2a..18dc1e136f27a29601245149cb74f82d2da2c599
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -33,6 +33,11 @@
+ 		1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */; };
+ 		1487AE052F47B281009460B8 /* adapter_config.json in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE052F47B27E009460B8 /* adapter_config.json */; };
+ 		1487AE062F47B281009460B8 /* adapters.safetensors in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE062F47B27E009460B8 /* adapters.safetensors */; };
++		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
++		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
++		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
++		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
++		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXContainerItemProxy section */
+
+
+thinking
+**Planning PBXFileReference insertion**
+
+I'm preparing to add new entries after the last existing one in the PBXFileReference section, using adapters.safetensors as the insertion point for the patch.
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -86,2 +86,7 @@
+ 		1487AE062F47B27E009460B8 /* adapters.safetensors */ = {isa = PBXFileReference; lastKnownFileType = file; path = adapters.safetensors; sourceTree = "<group>"; };
++		3F905F1B71EC4592BA52F524 /* Tier3Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Error.swift; sourceTree = "<group>"; };
++		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
++		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
++		34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyAnalysisSession.swift; sourceTree = "<group>"; };
++		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+apply_patch(auto_approved=true) exited 0 in 37ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index d5e7130f5269da59c20746ffc08bb40c3b931f2a..a6d106207bca30c0dbfd1649228cc367f55e73b4
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -33,6 +33,11 @@
+ 		1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */; };
+ 		1487AE052F47B281009460B8 /* adapter_config.json in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE052F47B27E009460B8 /* adapter_config.json */; };
+ 		1487AE062F47B281009460B8 /* adapters.safetensors in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE062F47B27E009460B8 /* adapters.safetensors */; };
++		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
++		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
++		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
++		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
++		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXContainerItemProxy section */
+@@ -79,6 +84,11 @@
+ 		1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier2EngineHolder.swift; sourceTree = "<group>"; };
+ 		1487AE052F47B27E009460B8 /* adapter_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = adapter_config.json; sourceTree = "<group>"; };
+ 		1487AE062F47B27E009460B8 /* adapters.safetensors */ = {isa = PBXFileReference; lastKnownFileType = file; path = adapters.safetensors; sourceTree = "<group>"; };
++		3F905F1B71EC4592BA52F524 /* Tier3Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Error.swift; sourceTree = "<group>"; };
++		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
++		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
++		34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyAnalysisSession.swift; sourceTree = "<group>"; };
++		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index d5e7130f5269da59c20746ffc08bb40c3b931f2a..a6d106207bca30c0dbfd1649228cc367f55e73b4
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -33,6 +33,11 @@
+ 		1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */; };
+ 		1487AE052F47B281009460B8 /* adapter_config.json in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE052F47B27E009460B8 /* adapter_config.json */; };
+ 		1487AE062F47B281009460B8 /* adapters.safetensors in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE062F47B27E009460B8 /* adapters.safetensors */; };
++		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
++		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
++		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
++		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
++		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXContainerItemProxy section */
+@@ -79,6 +84,11 @@
+ 		1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier2EngineHolder.swift; sourceTree = "<group>"; };
+ 		1487AE052F47B27E009460B8 /* adapter_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = adapter_config.json; sourceTree = "<group>"; };
+ 		1487AE062F47B27E009460B8 /* adapters.safetensors */ = {isa = PBXFileReference; lastKnownFileType = file; path = adapters.safetensors; sourceTree = "<group>"; };
++		3F905F1B71EC4592BA52F524 /* Tier3Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Error.swift; sourceTree = "<group>"; };
++		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
++		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
++		34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyAnalysisSession.swift; sourceTree = "<group>"; };
++		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+
+thinking
+**Adding AI group definition near MLX group**
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -207,2 +207,14 @@
+ 		};
++		B662951DFDEA4C00819E5AB0 /* AI */ = {
++			isa = PBXGroup;
++			children = (
++				3F905F1B71EC4592BA52F524 /* Tier3Error.swift */,
++				F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */,
++				DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */,
++				34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */,
++				C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */,
++			);
++			path = decodingOppression/AI;
++			sourceTree = "<group>";
++		};
+ 		1487AE082F47B27E009460B8 /* Adapters */ = {
+apply_patch(auto_approved=true) exited 0 in 41ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index d5e7130f5269da59c20746ffc08bb40c3b931f2a..b4a4ef3033355d317f9c99da9ebf28197b208841
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -33,6 +33,11 @@
+ 		1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */; };
+ 		1487AE052F47B281009460B8 /* adapter_config.json in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE052F47B27E009460B8 /* adapter_config.json */; };
+ 		1487AE062F47B281009460B8 /* adapters.safetensors in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE062F47B27E009460B8 /* adapters.safetensors */; };
++		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
++		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
++		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
++		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
++		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXContainerItemProxy section */
+@@ -79,6 +84,11 @@
+ 		1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier2EngineHolder.swift; sourceTree = "<group>"; };
+ 		1487AE052F47B27E009460B8 /* adapter_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = adapter_config.json; sourceTree = "<group>"; };
+ 		1487AE062F47B27E009460B8 /* adapters.safetensors */ = {isa = PBXFileReference; lastKnownFileType = file; path = adapters.safetensors; sourceTree = "<group>"; };
++		3F905F1B71EC4592BA52F524 /* Tier3Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Error.swift; sourceTree = "<group>"; };
++		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
++		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
++		34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyAnalysisSession.swift; sourceTree = "<group>"; };
++		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -195,6 +205,18 @@
+ 			path = decodingOppression/MLX;
+ 			sourceTree = "<group>";
+ 		};
++		B662951DFDEA4C00819E5AB0 /* AI */ = {
++			isa = PBXGroup;
++			children = (
++				3F905F1B71EC4592BA52F524 /* Tier3Error.swift */,
++				F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */,
++				DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */,
++				34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */,
++				C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */,
++			);
++			path = decodingOppression/AI;
++			sourceTree = "<group>";
++		};
+ 		1487AE082F47B27E009460B8 /* Adapters */ = {
+ 			isa = PBXGroup;
+ 			children = (
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index d5e7130f5269da59c20746ffc08bb40c3b931f2a..b4a4ef3033355d317f9c99da9ebf28197b208841
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -33,6 +33,11 @@
+ 		1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */; };
+ 		1487AE052F47B281009460B8 /* adapter_config.json in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE052F47B27E009460B8 /* adapter_config.json */; };
+ 		1487AE062F47B281009460B8 /* adapters.safetensors in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE062F47B27E009460B8 /* adapters.safetensors */; };
++		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
++		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
++		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
++		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
++		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXContainerItemProxy section */
+@@ -79,6 +84,11 @@
+ 		1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier2EngineHolder.swift; sourceTree = "<group>"; };
+ 		1487AE052F47B27E009460B8 /* adapter_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = adapter_config.json; sourceTree = "<group>"; };
+ 		1487AE062F47B27E009460B8 /* adapters.safetensors */ = {isa = PBXFileReference; lastKnownFileType = file; path = adapters.safetensors; sourceTree = "<group>"; };
++		3F905F1B71EC4592BA52F524 /* Tier3Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Error.swift; sourceTree = "<group>"; };
++		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
++		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
++		34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyAnalysisSession.swift; sourceTree = "<group>"; };
++		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -195,6 +205,18 @@
+ 			path = decodingOppression/MLX;
+ 			sourceTree = "<group>";
+ 		};
++		B662951DFDEA4C00819E5AB0 /* AI */ = {
++			isa = PBXGroup;
++			children = (
++				3F905F1B71EC4592BA52F524 /* Tier3Error.swift */,
++				F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */,
++				DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */,
++				34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */,
++				C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */,
++			);
++			path = decodingOppression/AI;
++			sourceTree = "<group>";
++		};
+ 		1487AE082F47B27E009460B8 /* Adapters */ = {
+ 			isa = PBXGroup;
+ 			children = (
+
+
+thinking
+**Adding AI group to recovered references**
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -232,2 +232,3 @@
+ 				1487AE072F47B27E009460B8 /* MLX */,
++				B662951DFDEA4C00819E5AB0 /* AI */,
+ 				1487AE082F47B27E009460B8 /* Adapters */,
+apply_patch(auto_approved=true) exited 0 in 39ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index d5e7130f5269da59c20746ffc08bb40c3b931f2a..70f2efca20deed11801f52a7bf7aab84a3423bee
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -33,6 +33,11 @@
+ 		1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */; };
+ 		1487AE052F47B281009460B8 /* adapter_config.json in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE052F47B27E009460B8 /* adapter_config.json */; };
+ 		1487AE062F47B281009460B8 /* adapters.safetensors in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE062F47B27E009460B8 /* adapters.safetensors */; };
++		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
++		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
++		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
++		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
++		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXContainerItemProxy section */
+@@ -79,6 +84,11 @@
+ 		1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier2EngineHolder.swift; sourceTree = "<group>"; };
+ 		1487AE052F47B27E009460B8 /* adapter_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = adapter_config.json; sourceTree = "<group>"; };
+ 		1487AE062F47B27E009460B8 /* adapters.safetensors */ = {isa = PBXFileReference; lastKnownFileType = file; path = adapters.safetensors; sourceTree = "<group>"; };
++		3F905F1B71EC4592BA52F524 /* Tier3Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Error.swift; sourceTree = "<group>"; };
++		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
++		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
++		34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyAnalysisSession.swift; sourceTree = "<group>"; };
++		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -195,6 +205,18 @@
+ 			path = decodingOppression/MLX;
+ 			sourceTree = "<group>";
+ 		};
++		B662951DFDEA4C00819E5AB0 /* AI */ = {
++			isa = PBXGroup;
++			children = (
++				3F905F1B71EC4592BA52F524 /* Tier3Error.swift */,
++				F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */,
++				DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */,
++				34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */,
++				C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */,
++			);
++			path = decodingOppression/AI;
++			sourceTree = "<group>";
++		};
+ 		1487AE082F47B27E009460B8 /* Adapters */ = {
+ 			isa = PBXGroup;
+ 			children = (
+@@ -208,6 +230,7 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				1487AE072F47B27E009460B8 /* MLX */,
++				B662951DFDEA4C00819E5AB0 /* AI */,
+ 				1487AE082F47B27E009460B8 /* Adapters */,
+ 				1487ADE02F47B27E009460B8 /* decodingOppression/ContentView.swift */,
+ 				1487ADE12F47B27E009460B8 /* decodingOppression/decodingOppressionApp.swift */,
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index d5e7130f5269da59c20746ffc08bb40c3b931f2a..70f2efca20deed11801f52a7bf7aab84a3423bee
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -33,6 +33,11 @@
+ 		1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */; };
+ 		1487AE052F47B281009460B8 /* adapter_config.json in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE052F47B27E009460B8 /* adapter_config.json */; };
+ 		1487AE062F47B281009460B8 /* adapters.safetensors in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE062F47B27E009460B8 /* adapters.safetensors */; };
++		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
++		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
++		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
++		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
++		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXContainerItemProxy section */
+@@ -79,6 +84,11 @@
+ 		1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier2EngineHolder.swift; sourceTree = "<group>"; };
+ 		1487AE052F47B27E009460B8 /* adapter_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = adapter_config.json; sourceTree = "<group>"; };
+ 		1487AE062F47B27E009460B8 /* adapters.safetensors */ = {isa = PBXFileReference; lastKnownFileType = file; path = adapters.safetensors; sourceTree = "<group>"; };
++		3F905F1B71EC4592BA52F524 /* Tier3Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Error.swift; sourceTree = "<group>"; };
++		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
++		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
++		34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyAnalysisSession.swift; sourceTree = "<group>"; };
++		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -195,6 +205,18 @@
+ 			path = decodingOppression/MLX;
+ 			sourceTree = "<group>";
+ 		};
++		B662951DFDEA4C00819E5AB0 /* AI */ = {
++			isa = PBXGroup;
++			children = (
++				3F905F1B71EC4592BA52F524 /* Tier3Error.swift */,
++				F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */,
++				DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */,
++				34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */,
++				C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */,
++			);
++			path = decodingOppression/AI;
++			sourceTree = "<group>";
++		};
+ 		1487AE082F47B27E009460B8 /* Adapters */ = {
+ 			isa = PBXGroup;
+ 			children = (
+@@ -208,6 +230,7 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				1487AE072F47B27E009460B8 /* MLX */,
++				B662951DFDEA4C00819E5AB0 /* AI */,
+ 				1487AE082F47B27E009460B8 /* Adapters */,
+ 				1487ADE02F47B27E009460B8 /* decodingOppression/ContentView.swift */,
+ 				1487ADE12F47B27E009460B8 /* decodingOppression/decodingOppressionApp.swift */,
+
+
+thinking
+**Scheduling build file additions**
+
+Planning to insert the 5 new build file IDs into the PBXSourcesBuildPhase files list, positioning them just after Tier2EngineHolder in the target's source list.
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -426,2 +426,7 @@
+ 				1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */,
++				2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */,
++				473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */,
++				5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */,
++				C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */,
++				A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */,
+ 			);
+apply_patch(auto_approved=true) exited 0 in 40ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index d5e7130f5269da59c20746ffc08bb40c3b931f2a..f5a21e1aa43a678416cc4c9b4b1641fcc7bc7e48
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -33,6 +33,11 @@
+ 		1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */; };
+ 		1487AE052F47B281009460B8 /* adapter_config.json in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE052F47B27E009460B8 /* adapter_config.json */; };
+ 		1487AE062F47B281009460B8 /* adapters.safetensors in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE062F47B27E009460B8 /* adapters.safetensors */; };
++		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
++		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
++		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
++		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
++		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXContainerItemProxy section */
+@@ -79,6 +84,11 @@
+ 		1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier2EngineHolder.swift; sourceTree = "<group>"; };
+ 		1487AE052F47B27E009460B8 /* adapter_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = adapter_config.json; sourceTree = "<group>"; };
+ 		1487AE062F47B27E009460B8 /* adapters.safetensors */ = {isa = PBXFileReference; lastKnownFileType = file; path = adapters.safetensors; sourceTree = "<group>"; };
++		3F905F1B71EC4592BA52F524 /* Tier3Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Error.swift; sourceTree = "<group>"; };
++		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
++		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
++		34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyAnalysisSession.swift; sourceTree = "<group>"; };
++		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -195,6 +205,18 @@
+ 			path = decodingOppression/MLX;
+ 			sourceTree = "<group>";
+ 		};
++		B662951DFDEA4C00819E5AB0 /* AI */ = {
++			isa = PBXGroup;
++			children = (
++				3F905F1B71EC4592BA52F524 /* Tier3Error.swift */,
++				F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */,
++				DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */,
++				34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */,
++				C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */,
++			);
++			path = decodingOppression/AI;
++			sourceTree = "<group>";
++		};
+ 		1487AE082F47B27E009460B8 /* Adapters */ = {
+ 			isa = PBXGroup;
+ 			children = (
+@@ -208,6 +230,7 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				1487AE072F47B27E009460B8 /* MLX */,
++				B662951DFDEA4C00819E5AB0 /* AI */,
+ 				1487AE082F47B27E009460B8 /* Adapters */,
+ 				1487ADE02F47B27E009460B8 /* decodingOppression/ContentView.swift */,
+ 				1487ADE12F47B27E009460B8 /* decodingOppression/decodingOppressionApp.swift */,
+@@ -401,6 +424,11 @@
+ 				1487AE032F47B281009460B8 /* MLXClauseClassifier.swift in Sources */,
+ 				1487AE042F47B281009460B8 /* Tier2Engine.swift in Sources */,
+ 				1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */,
++				2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */,
++				473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */,
++				5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */,
++				C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */,
++				A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */,
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 		};
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index d5e7130f5269da59c20746ffc08bb40c3b931f2a..f5a21e1aa43a678416cc4c9b4b1641fcc7bc7e48
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -33,6 +33,11 @@
+ 		1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */; };
+ 		1487AE052F47B281009460B8 /* adapter_config.json in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE052F47B27E009460B8 /* adapter_config.json */; };
+ 		1487AE062F47B281009460B8 /* adapters.safetensors in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE062F47B27E009460B8 /* adapters.safetensors */; };
++		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
++		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
++		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
++		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
++		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXContainerItemProxy section */
+@@ -79,6 +84,11 @@
+ 		1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier2EngineHolder.swift; sourceTree = "<group>"; };
+ 		1487AE052F47B27E009460B8 /* adapter_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = adapter_config.json; sourceTree = "<group>"; };
+ 		1487AE062F47B27E009460B8 /* adapters.safetensors */ = {isa = PBXFileReference; lastKnownFileType = file; path = adapters.safetensors; sourceTree = "<group>"; };
++		3F905F1B71EC4592BA52F524 /* Tier3Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Error.swift; sourceTree = "<group>"; };
++		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
++		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
++		34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyAnalysisSession.swift; sourceTree = "<group>"; };
++		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -195,6 +205,18 @@
+ 			path = decodingOppression/MLX;
+ 			sourceTree = "<group>";
+ 		};
++		B662951DFDEA4C00819E5AB0 /* AI */ = {
++			isa = PBXGroup;
++			children = (
++				3F905F1B71EC4592BA52F524 /* Tier3Error.swift */,
++				F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */,
++				DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */,
++				34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */,
++				C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */,
++			);
++			path = decodingOppression/AI;
++			sourceTree = "<group>";
++		};
+ 		1487AE082F47B27E009460B8 /* Adapters */ = {
+ 			isa = PBXGroup;
+ 			children = (
+@@ -208,6 +230,7 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				1487AE072F47B27E009460B8 /* MLX */,
++				B662951DFDEA4C00819E5AB0 /* AI */,
+ 				1487AE082F47B27E009460B8 /* Adapters */,
+ 				1487ADE02F47B27E009460B8 /* decodingOppression/ContentView.swift */,
+ 				1487ADE12F47B27E009460B8 /* decodingOppression/decodingOppressionApp.swift */,
+@@ -401,6 +424,11 @@
+ 				1487AE032F47B281009460B8 /* MLXClauseClassifier.swift in Sources */,
+ 				1487AE042F47B281009460B8 /* Tier2Engine.swift in Sources */,
+ 				1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */,
++				2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */,
++				473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */,
++				5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */,
++				C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */,
++				A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */,
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 		};
+
+
+
+thinking
+**Verifying initializers and file references**
+
+New file references align with expected membershipExceptions formatting, so no changes needed there. The LanguageModelSession initializer uses an optional String for instructions, matching the swiftinterface details and confirming compatibility for recent code updates.
+thinking
+**Confirming API usage and error handling**
+
+Verified `LanguageModelSession` initializers with `instructions: String?` accept `_disfavoredOverload` and are usable. Checked `streamResponse` has `_disfavoredOverload` but is fine to use. Reviewed `HistoricalBaselineTool` adherence to `Generable` and `Tool` protocols, including `name` property provisions. Noted potential error handling improvements in `Tier3Engine.classify` for catching `Tier3Error.unavailable`. Confirmed error wrapping covers `ToolError` and `GenerationError`. Prepared to verify no remaining `LanguageModelError` references to maintain clean compile.
+exec
+/bin/zsh -lc 'rg -n "LanguageModelError" app/decodingOppression/decodingOppression/AI -S' in /Users/emmanuel/Documents/Theory/Redefining_racism exited 1 in 53ms:
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index d5e7130f5269da59c20746ffc08bb40c3b931f2a..f5a21e1aa43a678416cc4c9b4b1641fcc7bc7e48
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -33,6 +33,11 @@
+ 		1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */; };
+ 		1487AE052F47B281009460B8 /* adapter_config.json in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE052F47B27E009460B8 /* adapter_config.json */; };
+ 		1487AE062F47B281009460B8 /* adapters.safetensors in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE062F47B27E009460B8 /* adapters.safetensors */; };
++		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
++		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
++		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
++		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
++		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXContainerItemProxy section */
+@@ -79,6 +84,11 @@
+ 		1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier2EngineHolder.swift; sourceTree = "<group>"; };
+ 		1487AE052F47B27E009460B8 /* adapter_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = adapter_config.json; sourceTree = "<group>"; };
+ 		1487AE062F47B27E009460B8 /* adapters.safetensors */ = {isa = PBXFileReference; lastKnownFileType = file; path = adapters.safetensors; sourceTree = "<group>"; };
++		3F905F1B71EC4592BA52F524 /* Tier3Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Error.swift; sourceTree = "<group>"; };
++		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
++		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
++		34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyAnalysisSession.swift; sourceTree = "<group>"; };
++		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -195,6 +205,18 @@
+ 			path = decodingOppression/MLX;
+ 			sourceTree = "<group>";
+ 		};
++		B662951DFDEA4C00819E5AB0 /* AI */ = {
++			isa = PBXGroup;
++			children = (
++				3F905F1B71EC4592BA52F524 /* Tier3Error.swift */,
++				F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */,
++				DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */,
++				34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */,
++				C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */,
++			);
++			path = decodingOppression/AI;
++			sourceTree = "<group>";
++		};
+ 		1487AE082F47B27E009460B8 /* Adapters */ = {
+ 			isa = PBXGroup;
+ 			children = (
+@@ -208,6 +230,7 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				1487AE072F47B27E009460B8 /* MLX */,
++				B662951DFDEA4C00819E5AB0 /* AI */,
+ 				1487AE082F47B27E009460B8 /* Adapters */,
+ 				1487ADE02F47B27E009460B8 /* decodingOppression/ContentView.swift */,
+ 				1487ADE12F47B27E009460B8 /* decodingOppression/decodingOppressionApp.swift */,
+@@ -401,6 +424,11 @@
+ 				1487AE032F47B281009460B8 /* MLXClauseClassifier.swift in Sources */,
+ 				1487AE042F47B281009460B8 /* Tier2Engine.swift in Sources */,
+ 				1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */,
++				2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */,
++				473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */,
++				5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */,
++				C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */,
++				A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */,
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 		};
+
+
+
+thinking
+**Verifying code structure and project files**
+
+I confirmed no unused references to the response type remain and checked syntax consistency around pattern matching and imports. The filesystem and project file groups reflect the new AI files correctly, and folder structure matches. Some duplicate definitions exist but are confirmed acceptable for now.
+thinking
+**Confirming type accessibility and refining academic prefix**
+
+I verified fallback definitions prevent compile errors across conditional imports and confirmed concurrency and Sendable requirements are met. Now I'm updating the academic framing prefix string to meet the 15-token target for clearer alignment with the plan.
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+@@ -13,3 +13,3 @@
+ actor PolicyAnalysisSession {
+-    private let academicFramingPrefix = "You are an academic policy analyst. Provide precise, evidence-based clause analysis."
++    private let academicFramingPrefix = "You are an academic policy analyst. Provide precise, evidence-based analysis of each clause for research."
+     private let retryCharacterLimit = 500
+apply_patch(auto_approved=true) exited 0 in 35ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index d5e7130f5269da59c20746ffc08bb40c3b931f2a..f5a21e1aa43a678416cc4c9b4b1641fcc7bc7e48
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -33,6 +33,11 @@
+ 		1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */; };
+ 		1487AE052F47B281009460B8 /* adapter_config.json in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE052F47B27E009460B8 /* adapter_config.json */; };
+ 		1487AE062F47B281009460B8 /* adapters.safetensors in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE062F47B27E009460B8 /* adapters.safetensors */; };
++		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
++		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
++		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
++		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
++		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXContainerItemProxy section */
+@@ -79,6 +84,11 @@
+ 		1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier2EngineHolder.swift; sourceTree = "<group>"; };
+ 		1487AE052F47B27E009460B8 /* adapter_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = adapter_config.json; sourceTree = "<group>"; };
+ 		1487AE062F47B27E009460B8 /* adapters.safetensors */ = {isa = PBXFileReference; lastKnownFileType = file; path = adapters.safetensors; sourceTree = "<group>"; };
++		3F905F1B71EC4592BA52F524 /* Tier3Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Error.swift; sourceTree = "<group>"; };
++		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
++		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
++		34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyAnalysisSession.swift; sourceTree = "<group>"; };
++		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -195,6 +205,18 @@
+ 			path = decodingOppression/MLX;
+ 			sourceTree = "<group>";
+ 		};
++		B662951DFDEA4C00819E5AB0 /* AI */ = {
++			isa = PBXGroup;
++			children = (
++				3F905F1B71EC4592BA52F524 /* Tier3Error.swift */,
++				F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */,
++				DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */,
++				34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */,
++				C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */,
++			);
++			path = decodingOppression/AI;
++			sourceTree = "<group>";
++		};
+ 		1487AE082F47B27E009460B8 /* Adapters */ = {
+ 			isa = PBXGroup;
+ 			children = (
+@@ -208,6 +230,7 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				1487AE072F47B27E009460B8 /* MLX */,
++				B662951DFDEA4C00819E5AB0 /* AI */,
+ 				1487AE082F47B27E009460B8 /* Adapters */,
+ 				1487ADE02F47B27E009460B8 /* decodingOppression/ContentView.swift */,
+ 				1487ADE12F47B27E009460B8 /* decodingOppression/decodingOppressionApp.swift */,
+@@ -401,6 +424,11 @@
+ 				1487AE032F47B281009460B8 /* MLXClauseClassifier.swift in Sources */,
+ 				1487AE042F47B281009460B8 /* Tier2Engine.swift in Sources */,
+ 				1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */,
++				2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */,
++				473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */,
++				5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */,
++				C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */,
++				A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */,
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 		};
+diff --git a/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift b/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+index ac402dc20e925c8985af10c93555b5d58531a15c..f262c24f259fb97a8bab5194cf400ec00ec640bb
+--- a/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
++++ b/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+@@ -11,7 +11,7 @@
+ import FoundationModels
+ 
+ actor PolicyAnalysisSession {
+-    private let academicFramingPrefix = "You are an academic policy analyst. Provide precise, evidence-based clause analysis."
++    private let academicFramingPrefix = "You are an academic policy analyst. Provide precise, evidence-based analysis of each clause for research."
+     private let retryCharacterLimit = 500
+ 
+     func classifyClause(_ clause: Clause) async throws -> ClauseClassification {
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index d5e7130f5269da59c20746ffc08bb40c3b931f2a..f5a21e1aa43a678416cc4c9b4b1641fcc7bc7e48
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -33,6 +33,11 @@
+ 		1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */; };
+ 		1487AE052F47B281009460B8 /* adapter_config.json in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE052F47B27E009460B8 /* adapter_config.json */; };
+ 		1487AE062F47B281009460B8 /* adapters.safetensors in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE062F47B27E009460B8 /* adapters.safetensors */; };
++		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
++		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
++		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
++		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
++		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXContainerItemProxy section */
+@@ -79,6 +84,11 @@
+ 		1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier2EngineHolder.swift; sourceTree = "<group>"; };
+ 		1487AE052F47B27E009460B8 /* adapter_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = adapter_config.json; sourceTree = "<group>"; };
+ 		1487AE062F47B27E009460B8 /* adapters.safetensors */ = {isa = PBXFileReference; lastKnownFileType = file; path = adapters.safetensors; sourceTree = "<group>"; };
++		3F905F1B71EC4592BA52F524 /* Tier3Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Error.swift; sourceTree = "<group>"; };
++		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
++		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
++		34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyAnalysisSession.swift; sourceTree = "<group>"; };
++		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -195,6 +205,18 @@
+ 			path = decodingOppression/MLX;
+ 			sourceTree = "<group>";
+ 		};
++		B662951DFDEA4C00819E5AB0 /* AI */ = {
++			isa = PBXGroup;
++			children = (
++				3F905F1B71EC4592BA52F524 /* Tier3Error.swift */,
++				F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */,
++				DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */,
++				34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */,
++				C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */,
++			);
++			path = decodingOppression/AI;
++			sourceTree = "<group>";
++		};
+ 		1487AE082F47B27E009460B8 /* Adapters */ = {
+ 			isa = PBXGroup;
+ 			children = (
+@@ -208,6 +230,7 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				1487AE072F47B27E009460B8 /* MLX */,
++				B662951DFDEA4C00819E5AB0 /* AI */,
+ 				1487AE082F47B27E009460B8 /* Adapters */,
+ 				1487ADE02F47B27E009460B8 /* decodingOppression/ContentView.swift */,
+ 				1487ADE12F47B27E009460B8 /* decodingOppression/decodingOppressionApp.swift */,
+@@ -401,6 +424,11 @@
+ 				1487AE032F47B281009460B8 /* MLXClauseClassifier.swift in Sources */,
+ 				1487AE042F47B281009460B8 /* Tier2Engine.swift in Sources */,
+ 				1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */,
++				2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */,
++				473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */,
++				5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */,
++				C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */,
++				A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */,
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 		};
+diff --git a/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift b/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+index ac402dc20e925c8985af10c93555b5d58531a15c..f262c24f259fb97a8bab5194cf400ec00ec640bb
+--- a/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
++++ b/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+@@ -11,7 +11,7 @@
+ import FoundationModels
+ 
+ actor PolicyAnalysisSession {
+-    private let academicFramingPrefix = "You are an academic policy analyst. Provide precise, evidence-based clause analysis."
++    private let academicFramingPrefix = "You are an academic policy analyst. Provide precise, evidence-based analysis of each clause for research."
+     private let retryCharacterLimit = 500
+ 
+     func classifyClause(_ clause: Clause) async throws -> ClauseClassification {
+
+
+
+thinking
+**Verifying conditional compilation correctness**
+
+I'm confirming that the `Tier3Error` type and `PolicyAnalysisSession` actor are correctly defined in mutually exclusive `#if`/`#else` branches so only one definition compiles based on `FoundationModels` availability, ensuring no conflicts or missing imports cause compile issues.
+thinking
+**Confirming stub method error behavior**
+
+I verified the stub of `Tier3Engine` properly throws `Tier3Error.unavailable` on its `classify` method as intended, and its non-throwing `isAvailable` returns false consistently; next, I'll ensure new files are correctly referenced in the project configuration.
+exec
+/bin/zsh -lc 'rg -n "Tier3Error.swift|HistoricalPolicies.swift|HistoricalBaselineTool.swift|PolicyAnalysisSession.swift|Tier3Engine.swift" app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj -S' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+36:		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
+37:		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
+38:		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
+39:		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
+40:		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+87:		3F905F1B71EC4592BA52F524 /* Tier3Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Error.swift; sourceTree = "<group>"; };
+88:		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
+89:		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
+90:		34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyAnalysisSession.swift; sourceTree = "<group>"; };
+91:		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+98:				AI/HistoricalBaselineTool.swift,
+99:				AI/HistoricalPolicies.swift,
+100:				AI/PolicyAnalysisSession.swift,
+101:				AI/Tier3Engine.swift,
+102:				AI/Tier3Error.swift,
+211:				3F905F1B71EC4592BA52F524 /* Tier3Error.swift */,
+212:				F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */,
+213:				DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */,
+214:				34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */,
+215:				C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */,
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index d5e7130f5269da59c20746ffc08bb40c3b931f2a..f5a21e1aa43a678416cc4c9b4b1641fcc7bc7e48
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -33,6 +33,11 @@
+ 		1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */; };
+ 		1487AE052F47B281009460B8 /* adapter_config.json in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE052F47B27E009460B8 /* adapter_config.json */; };
+ 		1487AE062F47B281009460B8 /* adapters.safetensors in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE062F47B27E009460B8 /* adapters.safetensors */; };
++		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
++		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
++		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
++		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
++		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXContainerItemProxy section */
+@@ -79,6 +84,11 @@
+ 		1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier2EngineHolder.swift; sourceTree = "<group>"; };
+ 		1487AE052F47B27E009460B8 /* adapter_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = adapter_config.json; sourceTree = "<group>"; };
+ 		1487AE062F47B27E009460B8 /* adapters.safetensors */ = {isa = PBXFileReference; lastKnownFileType = file; path = adapters.safetensors; sourceTree = "<group>"; };
++		3F905F1B71EC4592BA52F524 /* Tier3Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Error.swift; sourceTree = "<group>"; };
++		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
++		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
++		34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyAnalysisSession.swift; sourceTree = "<group>"; };
++		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -195,6 +205,18 @@
+ 			path = decodingOppression/MLX;
+ 			sourceTree = "<group>";
+ 		};
++		B662951DFDEA4C00819E5AB0 /* AI */ = {
++			isa = PBXGroup;
++			children = (
++				3F905F1B71EC4592BA52F524 /* Tier3Error.swift */,
++				F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */,
++				DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */,
++				34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */,
++				C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */,
++			);
++			path = decodingOppression/AI;
++			sourceTree = "<group>";
++		};
+ 		1487AE082F47B27E009460B8 /* Adapters */ = {
+ 			isa = PBXGroup;
+ 			children = (
+@@ -208,6 +230,7 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				1487AE072F47B27E009460B8 /* MLX */,
++				B662951DFDEA4C00819E5AB0 /* AI */,
+ 				1487AE082F47B27E009460B8 /* Adapters */,
+ 				1487ADE02F47B27E009460B8 /* decodingOppression/ContentView.swift */,
+ 				1487ADE12F47B27E009460B8 /* decodingOppression/decodingOppressionApp.swift */,
+@@ -401,6 +424,11 @@
+ 				1487AE032F47B281009460B8 /* MLXClauseClassifier.swift in Sources */,
+ 				1487AE042F47B281009460B8 /* Tier2Engine.swift in Sources */,
+ 				1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */,
++				2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */,
++				473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */,
++				5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */,
++				C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */,
++				A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */,
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 		};
+diff --git a/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift b/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+index ac402dc20e925c8985af10c93555b5d58531a15c..f262c24f259fb97a8bab5194cf400ec00ec640bb
+--- a/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
++++ b/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+@@ -11,7 +11,7 @@
+ import FoundationModels
+ 
+ actor PolicyAnalysisSession {
+-    private let academicFramingPrefix = "You are an academic policy analyst. Provide precise, evidence-based clause analysis."
++    private let academicFramingPrefix = "You are an academic policy analyst. Provide precise, evidence-based analysis of each clause for research."
+     private let retryCharacterLimit = 500
+ 
+     func classifyClause(_ clause: Clause) async throws -> ClauseClassification {
+
+
+thinking
+**Verifying AI file updates**
+exec
+/bin/zsh -lc "sed -n '1,260p' app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 57ms:
+//
+//  PolicyAnalysisSession.swift
+//  decodingOppression
+//
+//  One session per clause (4k token constraint); academic framing and tool injection.
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+import FoundationModels
+
+actor PolicyAnalysisSession {
+    private let academicFramingPrefix = "You are an academic policy analyst. Provide precise, evidence-based analysis of each clause for research."
+    private let retryCharacterLimit = 500
+
+    func classifyClause(_ clause: Clause) async throws -> ClauseClassification {
+        try await runWithRetry(clause: clause) { session, text in
+            let response = try await session.respond(to: text, generating: ClauseClassification.self)
+            return response.content
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index d5e7130f5269da59c20746ffc08bb40c3b931f2a..f5a21e1aa43a678416cc4c9b4b1641fcc7bc7e48
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -33,6 +33,11 @@
+ 		1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */; };
+ 		1487AE052F47B281009460B8 /* adapter_config.json in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE052F47B27E009460B8 /* adapter_config.json */; };
+ 		1487AE062F47B281009460B8 /* adapters.safetensors in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE062F47B27E009460B8 /* adapters.safetensors */; };
++		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
++		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
++		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
++		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
++		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXContainerItemProxy section */
+@@ -79,6 +84,11 @@
+ 		1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier2EngineHolder.swift; sourceTree = "<group>"; };
+ 		1487AE052F47B27E009460B8 /* adapter_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = adapter_config.json; sourceTree = "<group>"; };
+ 		1487AE062F47B27E009460B8 /* adapters.safetensors */ = {isa = PBXFileReference; lastKnownFileType = file; path = adapters.safetensors; sourceTree = "<group>"; };
++		3F905F1B71EC4592BA52F524 /* Tier3Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Error.swift; sourceTree = "<group>"; };
++		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
++		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
++		34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyAnalysisSession.swift; sourceTree = "<group>"; };
++		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -195,6 +205,18 @@
+ 			path = decodingOppression/MLX;
+ 			sourceTree = "<group>";
+ 		};
++		B662951DFDEA4C00819E5AB0 /* AI */ = {
++			isa = PBXGroup;
++			children = (
++				3F905F1B71EC4592BA52F524 /* Tier3Error.swift */,
++				F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */,
++				DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */,
++				34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */,
++				C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */,
++			);
++			path = decodingOppression/AI;
++			sourceTree = "<group>";
++		};
+ 		1487AE082F47B27E009460B8 /* Adapters */ = {
+ 			isa = PBXGroup;
+ 			children = (
+@@ -208,6 +230,7 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				1487AE072F47B27E009460B8 /* MLX */,
++				B662951DFDEA4C00819E5AB0 /* AI */,
+ 				1487AE082F47B27E009460B8 /* Adapters */,
+ 				1487ADE02F47B27E009460B8 /* decodingOppression/ContentView.swift */,
+ 				1487ADE12F47B27E009460B8 /* decodingOppression/decodingOppressionApp.swift */,
+@@ -401,6 +424,11 @@
+ 				1487AE032F47B281009460B8 /* MLXClauseClassifier.swift in Sources */,
+ 				1487AE042F47B281009460B8 /* Tier2Engine.swift in Sources */,
+ 				1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */,
++				2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */,
++				473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */,
++				5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */,
++				C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */,
++				A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */,
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 		};
+diff --git a/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift b/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+index ac402dc20e925c8985af10c93555b5d58531a15c..f262c24f259fb97a8bab5194cf400ec00ec640bb
+--- a/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
++++ b/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+@@ -11,7 +11,7 @@
+ import FoundationModels
+ 
+ actor PolicyAnalysisSession {
+-    private let academicFramingPrefix = "You are an academic policy analyst. Provide precise, evidence-based clause analysis."
++    private let academicFramingPrefix = "You are an academic policy analyst. Provide precise, evidence-based analysis of each clause for research."
+     private let retryCharacterLimit = 500
+ 
+     func classifyClause(_ clause: Clause) async throws -> ClauseClassification {
+
+
+
+thinking
+**Reviewing error handling and concurrency in engine**
+
+I've verified error handling with specific Tier3Error cases and confirmed concurrency via async let in classify; I'll also update comments and ensure attribute usage aligns with expectations.
+thinking
+**Confirming FoundationModels gating and actor safety**
+
+I've ensured all files use proper FoundationModels gating with stubs, validated actor use and concurrency safety with non-Sendable classes confined inside actors, and accepted planned double logging of guardrail events.
+exec
+/bin/zsh -lc 'ls app/decodingOppression/decodingOppression/AI' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+HistoricalBaselineTool.swift
+HistoricalPolicies.swift
+PolicyAnalysisSession.swift
+Tier3Engine.swift
+Tier3Error.swift
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index d5e7130f5269da59c20746ffc08bb40c3b931f2a..f5a21e1aa43a678416cc4c9b4b1641fcc7bc7e48
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -33,6 +33,11 @@
+ 		1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */; };
+ 		1487AE052F47B281009460B8 /* adapter_config.json in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE052F47B27E009460B8 /* adapter_config.json */; };
+ 		1487AE062F47B281009460B8 /* adapters.safetensors in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE062F47B27E009460B8 /* adapters.safetensors */; };
++		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
++		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
++		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
++		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
++		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXContainerItemProxy section */
+@@ -79,6 +84,11 @@
+ 		1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier2EngineHolder.swift; sourceTree = "<group>"; };
+ 		1487AE052F47B27E009460B8 /* adapter_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = adapter_config.json; sourceTree = "<group>"; };
+ 		1487AE062F47B27E009460B8 /* adapters.safetensors */ = {isa = PBXFileReference; lastKnownFileType = file; path = adapters.safetensors; sourceTree = "<group>"; };
++		3F905F1B71EC4592BA52F524 /* Tier3Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Error.swift; sourceTree = "<group>"; };
++		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
++		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
++		34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyAnalysisSession.swift; sourceTree = "<group>"; };
++		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -195,6 +205,18 @@
+ 			path = decodingOppression/MLX;
+ 			sourceTree = "<group>";
+ 		};
++		B662951DFDEA4C00819E5AB0 /* AI */ = {
++			isa = PBXGroup;
++			children = (
++				3F905F1B71EC4592BA52F524 /* Tier3Error.swift */,
++				F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */,
++				DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */,
++				34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */,
++				C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */,
++			);
++			path = decodingOppression/AI;
++			sourceTree = "<group>";
++		};
+ 		1487AE082F47B27E009460B8 /* Adapters */ = {
+ 			isa = PBXGroup;
+ 			children = (
+@@ -208,6 +230,7 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				1487AE072F47B27E009460B8 /* MLX */,
++				B662951DFDEA4C00819E5AB0 /* AI */,
+ 				1487AE082F47B27E009460B8 /* Adapters */,
+ 				1487ADE02F47B27E009460B8 /* decodingOppression/ContentView.swift */,
+ 				1487ADE12F47B27E009460B8 /* decodingOppression/decodingOppressionApp.swift */,
+@@ -401,6 +424,11 @@
+ 				1487AE032F47B281009460B8 /* MLXClauseClassifier.swift in Sources */,
+ 				1487AE042F47B281009460B8 /* Tier2Engine.swift in Sources */,
+ 				1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */,
++				2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */,
++				473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */,
++				5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */,
++				C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */,
++				A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */,
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 		};
+diff --git a/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift b/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+index ac402dc20e925c8985af10c93555b5d58531a15c..f262c24f259fb97a8bab5194cf400ec00ec640bb
+--- a/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
++++ b/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+@@ -11,7 +11,7 @@
+ import FoundationModels
+ 
+ actor PolicyAnalysisSession {
+-    private let academicFramingPrefix = "You are an academic policy analyst. Provide precise, evidence-based clause analysis."
++    private let academicFramingPrefix = "You are an academic policy analyst. Provide precise, evidence-based analysis of each clause for research."
+     private let retryCharacterLimit = 500
+ 
+     func classifyClause(_ clause: Clause) async throws -> ClauseClassification {
+
+
+
+thinking
+**Verifying conditional compilation and type usage**
+
+Confirmed `Tier3Engine` uses `Tier3Error` consistently in the `#else` branch without referencing `FoundationModels`, and noted `HistoricalBaselineTool` lacks conformance but is unused. Verified `Tier3Engine` classification properly maps enums between modules and safely calls async actor methods. Also ensured stubs avoid `FoundationModels` types and confirmed `ArchitectureDetection.PartiallyGenerated` exists or is generated appropriately across configurations.
+thinking
+**Confirming completion and summarizing updates**
+
+Implemented all required changes with no import or compilation issues detected, ensuring fallbacks and stubs are consistent across build conditions. Tests were not run as none were requested.
+codex
+Done.
+
+Modified files:
+- `app/decodingOppression/decodingOppression/AI/Tier3Error.swift`
+- `app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift`
+- `app/decodingOppression/decodingOppression/AI/HistoricalBaselineTool.swift`
+- `app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift`
+- `app/decodingOppression/decodingOppression/AI/Tier3Engine.swift`
+- `app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj`
+
+Tests not run (not requested).
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index d5e7130f5269da59c20746ffc08bb40c3b931f2a..f5a21e1aa43a678416cc4c9b4b1641fcc7bc7e48
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -33,6 +33,11 @@
+ 		1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */; };
+ 		1487AE052F47B281009460B8 /* adapter_config.json in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE052F47B27E009460B8 /* adapter_config.json */; };
+ 		1487AE062F47B281009460B8 /* adapters.safetensors in Resources */ = {isa = PBXBuildFile; fileRef = 1487AE062F47B27E009460B8 /* adapters.safetensors */; };
++		2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F905F1B71EC4592BA52F524 /* Tier3Error.swift */; };
++		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
++		5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */; };
++		C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */; };
++		A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXContainerItemProxy section */
+@@ -79,6 +84,11 @@
+ 		1487AE092F47B27E009460B8 /* Tier2EngineHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier2EngineHolder.swift; sourceTree = "<group>"; };
+ 		1487AE052F47B27E009460B8 /* adapter_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = adapter_config.json; sourceTree = "<group>"; };
+ 		1487AE062F47B27E009460B8 /* adapters.safetensors */ = {isa = PBXFileReference; lastKnownFileType = file; path = adapters.safetensors; sourceTree = "<group>"; };
++		3F905F1B71EC4592BA52F524 /* Tier3Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Error.swift; sourceTree = "<group>"; };
++		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
++		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
++		34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyAnalysisSession.swift; sourceTree = "<group>"; };
++		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -195,6 +205,18 @@
+ 			path = decodingOppression/MLX;
+ 			sourceTree = "<group>";
+ 		};
++		B662951DFDEA4C00819E5AB0 /* AI */ = {
++			isa = PBXGroup;
++			children = (
++				3F905F1B71EC4592BA52F524 /* Tier3Error.swift */,
++				F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */,
++				DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */,
++				34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */,
++				C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */,
++			);
++			path = decodingOppression/AI;
++			sourceTree = "<group>";
++		};
+ 		1487AE082F47B27E009460B8 /* Adapters */ = {
+ 			isa = PBXGroup;
+ 			children = (
+@@ -208,6 +230,7 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				1487AE072F47B27E009460B8 /* MLX */,
++				B662951DFDEA4C00819E5AB0 /* AI */,
+ 				1487AE082F47B27E009460B8 /* Adapters */,
+ 				1487ADE02F47B27E009460B8 /* decodingOppression/ContentView.swift */,
+ 				1487ADE12F47B27E009460B8 /* decodingOppression/decodingOppressionApp.swift */,
+@@ -401,6 +424,11 @@
+ 				1487AE032F47B281009460B8 /* MLXClauseClassifier.swift in Sources */,
+ 				1487AE042F47B281009460B8 /* Tier2Engine.swift in Sources */,
+ 				1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */,
++				2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */,
++				473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */,
++				5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */,
++				C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */,
++				A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */,
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 		};
+diff --git a/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift b/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+index ac402dc20e925c8985af10c93555b5d58531a15c..f262c24f259fb97a8bab5194cf400ec00ec640bb
+--- a/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
++++ b/app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+@@ -11,7 +11,7 @@
+ import FoundationModels
+ 
+ actor PolicyAnalysisSession {
+-    private let academicFramingPrefix = "You are an academic policy analyst. Provide precise, evidence-based clause analysis."
++    private let academicFramingPrefix = "You are an academic policy analyst. Provide precise, evidence-based analysis of each clause for research."
+     private let retryCharacterLimit = 500
+ 
+     func classifyClause(_ clause: Clause) async throws -> ClauseClassification {
+
+tokens used
+92,323
+Done.
+
+Modified files:
+- `app/decodingOppression/decodingOppression/AI/Tier3Error.swift`
+- `app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift`
+- `app/decodingOppression/decodingOppression/AI/HistoricalBaselineTool.swift`
+- `app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift`
+- `app/decodingOppression/decodingOppression/AI/Tier3Engine.swift`
+- `app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj`
+
+Tests not run (not requested).

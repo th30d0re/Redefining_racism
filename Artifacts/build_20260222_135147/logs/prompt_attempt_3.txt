@@ -1,0 +1,2928 @@
+You are a Swift/SwiftUI developer. A previous attempt to complete a task failed.
+
+TESTING & DEBUGGING REFERENCE:
+For building, testing, and debugging iOS/macOS apps, reference this workflow guide:
+/Users/emmanuel/Dev/Tools/Eocon-Foundation-V1/.Foundation/Docs/swiftDocs/Testing/XCODEBUILD_MCP_WORKFLOW.md
+
+This guide covers:
+- XcodeBuild MCP server tools for programmatic Xcode interaction
+- Building for simulator, booting simulators, installing/launching apps
+- UI automation: screenshots, accessibility hierarchy, tap simulation
+- Debugging UI issues (button taps, gestures, navigation)
+
+=== ORIGINAL TASK ===
+I have created the following plan after thorough exploration and analysis of the codebase. Follow the below plan verbatim. Trust the files and references. Do not re-verify what's written in the plan. Explore only when absolutely necessary. First implement all the proposed file changes and then I'll review all the changes together at the end.
+
+## Observations
+
+\`mlx-swift-lm\` v2.29.3 is already resolved in \`Package.resolved\` (T1 dependency satisfied). All shared data models (\`TierClassification\`, \`ArchitectureScores\`, \`ProxyDetection\`, \`MLTier.tier2\`, \`Clause\`) are defined and ready in \`file:app/decodingOppression/decodingOppression/Models/\`. The existing \`actor\` pattern from \`Tier1Engine\` / \`ClauseAnalyzer\` / \`KeywordEngine\` establishes the concurrency conventions to follow. No \`MLX/\` directory exists yet.
+
+## Approach
+
+Create four new Swift files under a new \`MLX/\` group, plus a bundled LoRA adapter stub. \`ModelDownloadManager\` is \`@MainActor @Observable\` so SwiftUI can bind to its state directly. The two inference components (\`MLXEmbeddingEngine\`, \`MLXClauseClassifier\`) are \`actor\`s, consistent with the existing NLP layer. \`Tier2Engine\` is a thin \`actor\` facade that mirrors \`Tier1Engine\`'s interface and gates both components behind \`ModelDownloadManager.state\`.
+
+---
+
+## Implementation Steps
+
+### 1. Create \`MLX/MLXError.swift\`
+
+Define a single error enum used across all MLX components:
+
+- \`case simulatorNotSupported\` — thrown on \`#if targetEnvironment(simulator)\`
+- \`case modelUnavailable\` — thrown when \`ModelDownloadManager.state\` is not \`.available\`
+- \`case modelNotLoaded\` — thrown when \`loadModel()\` has not been called yet
+- \`case adapterNotFound\` — thrown when the bundled LoRA adapter cannot be located in the bundle
+
+---
+
+### 2. Create \`MLX/ModelDownloadManager.swift\`
+
+**Type:** \`@MainActor @Observable final class ModelDownloadManager: NSObject\`
+
+**\`DownloadState\` enum** (nested):
+\`\`\`
+case unavailable
+case downloading(progress: Double)   // 0.0 – 1.0
+case available(modelURL: URL)
+\`\`\`
+
+**Stored properties:**
+- \`var state: DownloadState\` — published observable state
+- \`private var backgroundSession: URLSession\` — configured with \`URLSessionConfiguration.background(withIdentifier:)\`
+- \`private let modelDestinationURL: URL\` — \`FileManager.default.urls(for: .applicationSupportDirectory, …)\` / \`decodingOppression/Qwen3-4B-4bit/\`
+
+**\`init()\`:**
+1. Check if \`modelDestinationURL\` already contains the downloaded model files (presence check on \`config.json\`). If yes, set \`state = .available(modelURL: modelDestinationURL)\`.
+2. Otherwise set \`state = .unavailable\`.
+3. Initialise \`backgroundSession\` with \`URLSessionConfiguration.background(withIdentifier: \"com.decodingOppression.modelDownload\")\` and \`self\` as delegate.
+
+**\`func startDownload() async\`:**
+1. Guard \`state == .unavailable\`, else return.
+2. Use \`HubApi\` (from \`swift-transformers\`, already a transitive dependency of \`mlx-swift-lm\`) to resolve the file list for \`mlx-community/Qwen3-4B-4bit\`. Specifically call \`HubApi().snapshot(from: \"mlx-community/Qwen3-4B-4bit\", matching: [\"*.safetensors\", \"*.json\"])\` to get the list of remote URLs.
+3. Enqueue one \`backgroundSession.downloadTask(with:)\` per file. Track total bytes expected vs. received for aggregate progress.
+4. Set \`state = .downloading(progress: 0)\`.
+
+**\`URLSessionDownloadDelegate\` conformance:**
+- \`urlSession(_:downloadTask:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:)\` — update \`state = .downloading(progress: aggregateProgress)\` on \`@MainActor\`.
+- \`urlSession(_:downloadTask:didFinishDownloadingTo:)\` — move the temp file to the appropriate sub-path under \`modelDestinationURL\`.
+- \`urlSession(_:task:didCompleteWithError:)\` — when all tasks complete without error, set \`state = .available(modelURL: modelDestinationURL)\`. On error, reset to \`state = .unavailable\` and surface the error via a separate \`var downloadError: Error?\` property.
+- \`urlSessionDidFinishEvents(forBackgroundURLSession:)\` — call the stored background completion handler (required for iOS background download lifecycle).
+
+**\`func cancelDownload()\`:** invalidates the background session and resets state to \`.unavailable\`.
+
+---
+
+### 3. Create \`MLX/MLXEmbeddingEngine.swift\`
+
+**Type:** \`actor MLXEmbeddingEngine\`
+
+**Simulator guard:** Wrap the entire implementation body in \`#if !targetEnvironment(simulator)\` / \`#else\` blocks. The \`#else\` branch throws \`MLXError.simulatorNotSupported\` from every method.
+
+**Stored properties:**
+- \`private var embedder: (any EmbedderModel)?\` — from \`MLXEmbedders\`
+
+**\`func loadModel() async throws\`:**
+- Call \`MLXEmbedders.loadEmbedder(configuration: .init(id: \"mlx-community/bge-small-en-v1.5\"))\` (the \`MLXEmbedders\` API in \`mlx-swift-lm\` ≥ 2.29.x). Store the result in \`embedder\`.
+- This model is ~90 MB and downloads on first call; subsequent calls use the local cache managed by \`mlx-swift-lm\`.
+
+**\`func embed(_ text: String) async throws -> [Float]\`:**
+- Guard \`embedder != nil\`, else throw \`MLXError.modelNotLoaded\`.
+- Call \`embedder.encode([text])\` and return the first row as \`[Float]\`.
+
+**\`func cosineSimilarity(_ a: [Float], _ b: [Float]) -> Double\` (nonisolated pure helper):**
+- Compute dot product / (‖a‖ · ‖b‖). Return 0 if either vector is zero-length.
+
+**\`func similarity(clause: String, taxonomyTerm: String) async throws -> Double\`:**
+- Embed both strings, call \`cosineSimilarity\`.
+
+---
+
+### 4. Create \`MLX/MLXClauseClassifier.swift\`
+
+**Type:** \`actor MLXClauseClassifier\`
+
+**Simulator guard:** Same \`#if !targetEnvironment(simulator)\` pattern as above.
+
+**Stored properties:**
+- \`private var session: ChatSession?\` — from \`MLXLMCommon\`
+- \`private let downloadManager: ModelDownloadManager\`
+
+**\`init(downloadManager: ModelDownloadManager)\`**
+
+**\`func loadModel() async throws\`:**
+1. Guard \`downloadManager.state\` is \`.available(let modelURL)\`, else throw \`MLXError.modelUnavailable\`.
+2. Load the base model: \`let model = try await LLMModelFactory.shared.loadContainer(configuration: .init(directory: modelURL))\`.
+3. Locate the bundled LoRA adapter: \`Bundle.main.url(forResource: \"adapters\", withExtension: \"safetensors\", subdirectory: \"Adapters\")\`. Throw \`MLXError.adapterNotFound\` if nil.
+4. Apply the adapter: \`try model.loadLoRAAdapters(from: adapterURL.deletingLastPathComponent())\`.
+5. Create \`session = ChatSession(model.model, tokenizer: model.tokenizer)\`.
+
+**\`func classify(clause: Clause) async throws -> TierClassification\`:**
+1. Guard \`session != nil\`, else throw \`MLXError.modelNotLoaded\`.
+2. Build a structured prompt asking the model to classify \`targetGroup\`, \`effectDirection\`, and four \`architectureScores\` (AAR, SE, IJ, RSC) for the clause text. Keep the prompt under ~200 tokens.
+3. Call \`session.respond(to: prompt)\` and parse the plain-text response into a \`TierClassification\`. Use a lightweight regex/string-split parser (no JSON decoding — the base model without Foundation Models cannot guarantee JSON output).
+4. Return \`TierClassification(targetGroup:effectDirection:architectureScores:proxyDetection:confidence:tier: .tier2)\`.
+
+> **Note on parsing robustness:** The parser should have a safe fallback — if any field cannot be parsed, default to \`.multiple\` / \`.neutral\` / zeroed \`ArchitectureScores\` with \`confidence: 0.5\` rather than throwing, so the \`TierResolver\` can still pick the best result.
+
+---
+
+### 5. Create \`MLX/Tier2Engine.swift\`
+
+**Type:** \`actor Tier2Engine\`
+
+This is the facade that mirrors \`Tier1Engine\`'s interface and is the only MLX type that \`TierResolver\` (T5) will import.
+
+**Stored properties:**
+- \`private let embeddingEngine: MLXEmbeddingEngine\`
+- \`private let classifier: MLXClauseClassifier\`
+- \`private let downloadManager: ModelDownloadManager\`
+
+**\`init(downloadManager: ModelDownloadManager) throws\`:**
+- Instantiate \`embeddingEngine\` and \`classifier(downloadManager:)\`.
+
+**\`func classify(clause: Clause) async throws -> TierClassification?\`:**
+1. Guard \`downloadManager.state\` is \`.available\`, else return \`nil\`.
+2. If \`classifier.session == nil\`, call \`try await classifier.loadModel()\` (lazy load on first use).
+3. Delegate to \`classifier.classify(clause:)\` and return the result.
+
+**\`var isAvailable: Bool\`** (nonisolated computed, reads \`downloadManager.state\`):
+- Returns \`true\` only when state is \`.available\`.
+
+---
+
+### 6. Add Bundled LoRA Adapter Stub
+
+Create the directory \`app/decodingOppression/decodingOppression/Resources/Adapters/\` and add two placeholder files:
+
+| File | Content |
+|---|---|
+| \`adapter_config.json\` | Minimal valid JSON: \`{\"lora_rank\": 8, \"lora_alpha\": 16, \"target_modules\": [\"q_proj\", \"v_proj\"]}\` |
+| \`adapters.safetensors\` | Empty file (0 bytes) — sufficient as a bundle placeholder; the real adapter from T9 replaces this |
+
+Add both files to the Xcode target's **Copy Bundle Resources** build phase under the \`Adapters\` folder reference. The actual trained adapter produced in T9 will replace \`adapters.safetensors\` in place.
+
+---
+
+### 7. Register New Files in the Xcode Project
+
+In Xcode, add the new \`MLX/\` group under \`decodingOppression/\` and add all four Swift files (\`MLXError.swift\`, \`ModelDownloadManager.swift\`, \`MLXEmbeddingEngine.swift\`, \`MLXClauseClassifier.swift\`, \`Tier2Engine.swift\`) to the \`decodingOppression\` target. Add the \`Resources/Adapters/\` folder reference and ensure both stub files are in **Copy Bundle Resources**.
+
+---
+
+### 8. Update \`decodingOppressionApp.swift\` — Background Session Handoff
+
+In \`file:app/decodingOppression/decodingOppression/decodingOppressionApp.swift\`, add the \`application(_:handleEventsForBackgroundURLSession:completionHandler:)\` UIKit lifecycle hook (via \`@UIApplicationDelegateAdaptor\`) to store the background completion handler and pass it to \`ModelDownloadManager\`. This is required for iOS background download tasks to complete correctly when the app is not in the foreground.
+
+---
+
+### Component Interaction Diagram
+
+\`\`\`mermaid
+sequenceDiagram
+    participant App as decodingOppressionApp
+    participant MDM as ModelDownloadManager
+    participant T2 as Tier2Engine
+    participant EE as MLXEmbeddingEngine
+    participant CC as MLXClauseClassifier
+
+    App->>MDM: init() — check Application Support
+    MDM-->>App: state = .unavailable (first launch)
+    App->>MDM: startDownload()
+    MDM-->>App: state = .downloading(progress: …)
+    Note over MDM: Background URLSession<br/>survives backgrounding/sleep
+    MDM-->>App: state = .available(modelURL:)
+
+    App->>T2: classify(clause:)
+    T2->>MDM: check state
+    MDM-->>T2: .available
+    T2->>CC: loadModel() [lazy, first call only]
+    CC->>CC: loadLoRAAdapters from bundle
+    T2->>CC: classify(clause:)
+    CC-->>T2: TierClassification(tier: .tier2)
+    T2-->>App: TierClassification?
+\`\`\`
+=== END ORIGINAL TASK ===
+
+=== REFERENCE CONTEXT ===
+
+=== SWIFT DOCUMENTATION ===
+
+--- FILE: Additional-data-capture.md ---
+# Additional data capture
+
+**Capture additional data including depth and metadata, and synchronize capture from multiple outputs.**
+
+
+## Topics
+
+### Depth data capture
+
+- [Capturing Photos with Depth](https://developer.apple.com/documentation/avfoundation/capturing-photos-with-depth) — Get a depth map with a photo to create effects like the system camera’s Portrait mode (on compatible devices).
+- [Creating Auxiliary Depth Data Manually](https://developer.apple.com/documentation/avfoundation/creating-auxiliary-depth-data-manually) — Generate a depth image and attach it to your own image.
+- [Capturing depth using the LiDAR camera](https://developer.apple.com/documentation/avfoundation/capturing-depth-using-the-lidar-camera) — Access the LiDAR camera on supporting devices to capture precise depth data.
+- [AVCamFilter: Applying Filters to a Capture Stream](https://developer.apple.com/documentation/avfoundation/avcamfilter-applying-filters-to-a-capture-stream) — Render a capture stream with rose-colored filtering and depth effects.
+- [Streaming Depth Data from the TrueDepth Camera](https://developer.apple.com/documentation/avfoundation/streaming-depth-data-from-the-truedepth-camera) — Visualize depth data in 2D and 3D from the TrueDepth camera.
+- [Enhancing Live Video by Leveraging TrueDepth Camera Data](https://developer.apple.com/documentation/avfoundation/enhancing-live-video-by-leveraging-truedepth-camera-data) — Apply your own background to a live capture feed streamed from the front-facing TrueDepth camera.
+- [AVCaptureDepthDataOutput](https://developer.apple.com/documentation/avfoundation/avcapturedepthdataoutput) — A capture output that records scene depth information on compatible camera devices.
+- [AVDepthData](https://developer.apple.com/documentation/avfoundation/avdepthdata) — A container for per-pixel distance or disparity information captured by compatible camera devices.
+- [AVCameraCalibrationData](https://developer.apple.com/documentation/avfoundation/avcameracalibrationdata) — Information about the camera characteristics used to capture images and depth data.
+### Metadata capture
+
+- [AVCaptureMetadataInput](https://developer.apple.com/documentation/avfoundation/avcapturemetadatainput) — A capture input for providing timed metadata to a capture session.
+- [AVCaptureMetadataOutput](https://developer.apple.com/documentation/avfoundation/avcapturemetadataoutput) — A capture output for processing timed metadata produced by a capture session.
+- [AVMetadataObject](https://developer.apple.com/documentation/avfoundation/avmetadataobject) — The abstract superclass for objects provided by a metadata capture output.
+- [Metadata Types](https://developer.apple.com/documentation/avfoundation/metadata-types) — Inspect the supported metadata object types that the framework supports.
+### Synchronized capture
+
+- [AVCaptureDataOutputSynchronizer](https://developer.apple.com/documentation/avfoundation/avcapturedataoutputsynchronizer) — An object that coordinates time-matched delivery of data from multiple capture outputs.
+- [AVCaptureSynchronizedDataCollection](https://developer.apple.com/documentation/avfoundation/avcapturesynchronizeddatacollection) — A set of data samples collected simultaneously from multiple capture outputs.
+- [AVCaptureSynchronizedSampleBufferData](https://developer.apple.com/documentation/avfoundation/avcapturesynchronizedsamplebufferdata) — A container for video or audio samples collected using synchronized capture.
+- [AVCaptureSynchronizedMetadataObjectData](https://developer.apple.com/documentation/avfoundation/avcapturesynchronizedmetadataobjectdata) — A container for metadata objects collected using synchronized capture.
+- [AVCaptureSynchronizedDepthData](https://developer.apple.com/documentation/avfoundation/avcapturesynchronizeddepthdata) — A container for scene depth information collected using synchronized capture.
+- [AVCaptureSynchronizedData](https://developer.apple.com/documentation/avfoundation/avcapturesynchronizeddata) — The abstract superclass for media samples collected using synchronized capture.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.avfoundation/documentation/AVFoundation/additional-data-capture](https://developer.apple.com/documentation/com.apple.avfoundation/documentation/AVFoundation/additional-data-capture)*
+--- END FILE ---
+
+--- FILE: expectations-and-confirmations-apple-developer-documentation.md ---
+---
+title: Expectations and confirmations | Apple Developer Documentation
+source_url: https://developer.apple.com/documentation/testing/expectations
+scraped_date: '2025-10-25T18:04:03.309684Z'
+extraction_method: Chrome DevTools MCP Server
+content_length: 5787
+filename: expectations-and-confirmations-apple-developer-documentation.md
+---
+
+# Expectations and confirmations | Apple Developer Documentation
+
+Swift Testing
+Expectations and confirmations
+API Collection
+Expectations and confirmations
+Check for expected values, outcomes, and asynchronous events in tests.
+Overview
+
+Use expect(_:_:sourceLocation:) and require(_:_:sourceLocation:) macros to validate expected outcomes. To validate that an error is thrown, or not thrown, the testing library provides several overloads of the macros that you can use. For more information, see Testing for errors in Swift code.
+
+Use a Confirmation to confirm the occurrence of an asynchronous event that you can't check directly using an expectation. For more information, see Testing asynchronous code.
+
+Validate your code's result
+
+To validate that your code produces an expected value, use expect(_:_:sourceLocation:). This macro captures the expression you pass, and provides detailed information when the code doesn't satisfy the expectation.
+
+@Test func calculatingOrderTotal() {
+  let calculator = OrderCalculator()
+  #expect(calculator.total(of: [3, 3]) == 7)
+  // Prints "Expectation failed: (calculator.total(of: [3, 3]) → 6) == 7"
+}
+
+
+Your test keeps running after expect(_:_:sourceLocation:) fails. To stop the test when the code doesn't satisfy a requirement, use require(_:_:sourceLocation:) instead:
+
+@Test func returningCustomerRemembersUsualOrder() throws {
+  let customer = try #require(Customer(id: 123))
+  // The test runner doesn't reach this line if the customer is nil.
+  #expect(customer.usualOrder.countOfItems == 2)
+}
+
+
+require(_:_:sourceLocation:) throws an instance of ExpectationFailedError when your code fails to satisfy the requirement.
+
+Topics
+Checking expectations
+macro expect(Bool, @autoclosure () -> Comment?, sourceLocation: SourceLocation)
+Check that an expectation has passed after a condition has been evaluated.
+macro require(Bool, @autoclosure () -> Comment?, sourceLocation: SourceLocation)
+Check that an expectation has passed after a condition has been evaluated and throw an error if it failed.
+macro require<T>(T?, @autoclosure () -> Comment?, sourceLocation: SourceLocation) -> T
+Unwrap an optional value or, if it is nil, fail and throw an error.
+Checking that errors are thrown
+Testing for errors in Swift code
+Ensure that your code handles errors in the way you expect.
+macro expect<E, R>(throws: E.Type, @autoclosure () -> Comment?, sourceLocation: SourceLocation, performing: () async throws -> R) -> E?
+Check that an expression always throws an error of a given type.
+macro expect<E, R>(throws: E, @autoclosure () -> Comment?, sourceLocation: SourceLocation, performing: () async throws -> R) -> E?
+Check that an expression always throws a specific error.
+macro expect<R>(@autoclosure () -> Comment?, sourceLocation: SourceLocation, performing: () async throws -> R, throws: (any Error) async throws -> Bool) -> (any Error)?
+Check that an expression always throws an error matching some condition.
+Deprecated
+macro require<E, R>(throws: E.Type, @autoclosure () -> Comment?, sourceLocation: SourceLocation, performing: () async throws -> R) -> E
+Check that an expression always throws an error of a given type, and throw an error if it does not.
+macro require<E, R>(throws: E, @autoclosure () -> Comment?, sourceLocation: SourceLocation, performing: () async throws -> R) -> E
+macro require<R>(@autoclosure () -> Comment?, sourceLocation: SourceLocation, performing: () async throws -> R, throws: (any Error) async throws -> Bool) -> any Error
+Check that an expression always throws an error matching some condition, and throw an error if it did not.
+Deprecated
+Checking how processes exit
+Exit testing
+Use exit tests to test functionality that might cause a test process to exit.
+macro expect(processExitsWith: ExitTest.Condition, observing: [any PartialKeyPath<ExitTest.Result> & Sendable], @autoclosure () -> Comment?, sourceLocation: SourceLocation, performing: () async throws -> Void) -> ExitTest.Result?
+Check that an expression causes the process to terminate in a given fashion.
+macro require(processExitsWith: ExitTest.Condition, observing: [any PartialKeyPath<ExitTest.Result> & Sendable], @autoclosure () -> Comment?, sourceLocation: SourceLocation, performing: () async throws -> Void) -> ExitTest.Result
+Check that an expression causes the process to terminate in a given fashion and throw an error if it did not.
+enum ExitStatus
+An enumeration describing possible status a process will report on exit.
+struct ExitTest
+A type describing an exit test.
+Confirming that asynchronous events occur
+Testing asynchronous code
+Validate whether your code causes expected events to happen.
+func confirmation<R>(Comment?, expectedCount: Int, isolation: isolated (any Actor)?, sourceLocation: SourceLocation, (Confirmation) async throws -> sending R) async rethrows -> R
+Confirm that some event occurs during the invocation of a function.
+func confirmation<R>(Comment?, expectedCount: some RangeExpression<Int> & Sendable & Sequence<Int>, isolation: isolated (any Actor)?, sourceLocation: SourceLocation, (Confirmation) async throws -> sending R) async rethrows -> R
+Confirm that some event occurs during the invocation of a function.
+struct Confirmation
+A type that can be used to confirm that an event occurs zero or more times.
+Retrieving information about checked expectations
+struct Expectation
+A type describing an expectation that has been evaluated.
+struct ExpectationFailedError
+A type describing an error thrown when an expectation fails during evaluation.
+protocol CustomTestStringConvertible
+A protocol describing types with a custom string representation when presented as part of a test's output.
+Representing source locations
+struct SourceLocation
+A type representing a location in source code.
+See Also
+Behavior validation
+Known issues
+Mark issues as known when running tests.
+--- END FILE ---
+
+--- FILE: app-icons.md ---
+---
+title: App icons | Apple Developer Documentation
+source_url: https://developer.apple.com/design/human-interface-guidelines/app-icons
+scraped_date: '2025-10-25T18:04:03.291030Z'
+extraction_method: Chrome DevTools MCP Server
+content_length: 9563
+filename: app-icons.md
+---
+
+# App icons | Apple Developer Documentation
+
+App icons
+A unique, memorable icon expresses your app's or game's purpose and personality and helps people recognize it at a glance.
+
+Your app icon is a crucial aspect of your app's or game's branding and user experience. It appears on the Home Screen and in key locations throughout the system, including search results, notifications, system settings, and share sheets. A well-designed app icon conveys your app's or game's identity clearly and consistently across all Apple platforms.
+
+Layer design
+
+Although you can provide a flattened image for your icon, layers give you the most control over how your icon design is represented. A layered app icon comes together to produce a sense of depth and vitality. On each platform, the system applies visual effects that respond to the environment and people's interactions.
+
+iOS, iPadOS, macOS, and watchOS app icons include a background layer and one or more foreground layers that coalesce to create dimensionality. These icons take on Liquid Glass attributes like specular highlights, frostiness, and translucency, which respond to changes in lighting and, in iOS and iPadOS, device movement.
+
+Play
+iOS app icon
+
+tvOS app icons use between two and five layers to create a sense of dynamism as people bring them into focus. When focused, the app icon elevates to the foreground in response to someone's finger movement on their remote, and gently sways while the surface illuminates. The separation between layers and the use of transparency produce a feeling of depth during the parallax effect.
+
+Play
+tvOS app icon
+
+A visionOS app icon includes a background layer and one or two layers on top, producing a three-dimensional object that subtly expands when people view it. The system enhances the icon's visual dimensionality by adding shadows that convey a sense of depth between layers and by using the alpha channel of the upper layers to create an embossed appearance.
+
+Play
+visionOS app icon
+
+You use your favorite design tool to craft the individual foreground layers of your app icon. For iOS, iPadOS, macOS, and watchOS icons, you then import your icon layers into Icon Composer, a design tool included with Xcode and available from the Apple Developer website. In Icon Composer, you define the background layer for your icon, adjust your foreground layer placement, apply visual effects like transparency, define default, dark, clear, and tinted appearance variants, and export your icon for use in Xcode. For additional guidance, see Creating your app icon using Icon Composer.
+
+Icon Composer
+
+For tvOS and visionOS app icons, you add your icon layers directly to an image stack in Xcode to form your complete icon. For developer guidance, see Configuring your app icon using an asset catalog.
+
+Prefer clearly defined edges in foreground layers. To ensure system-drawn highlights and shadows look best, avoid soft and feathered edges on foreground layer shapes.
+
+Vary opacity in foreground layers to increase the sense of depth and liveliness. For example, the Photos icon separates its centerpiece into multiple layers that contain translucent pieces, bringing greater dynamism to the design. Importing fully opaque layers and adjusting transparency in Icon Composer lets you preview and make adjustments to your design based on how transparency and system effects impact one another.
+
+Design a background that both stands out and emphasizes foreground content. Subtle top-to-bottom, light-to-dark gradients tend to respond well to system lighting effects. Icon Composer supports solid colors and gradients for background layers, making it unnecessary to import custom background images in most cases. If you do import a background layer, make sure it's full-bleed and opaque.
+
+Prefer vector graphics when bringing layers into Icon Composer. Unlike raster images, vector graphics (such as SVG or PDF) scale gracefully and appear crisp at any size. Outline artwork and convert text to outline in your design. For mesh gradients and raster artwork, prefer PNG format because it's a lossless image format.
+
+Icon shape
+
+An app icon's shape varies based on a platform's visual language. In iOS, iPadOS, and macOS, icons are square, and the system applies masking to produce rounded corners that precisely match the curvature of other rounded interface elements throughout the system and the bezel of the physical device itself. In tvOS, icons are rectangular, also with concentric edges. In visionOS and watchOS, icons are square and the system applies circular masking.
+
+iOS, iPadOS, macOS
+tvOS
+visionOS, watchOS
+
+Produce appropriately shaped, unmasked layers. The system masks all layer edges to produce an icon's final shape. For iOS, iPadOS, and macOS icons, provide square layers so the system can apply rounded corners. For visionOS and watchOS, provide square layers so the system can create the circular icon shape. For tvOS, provide rectangular layers so the system can apply rounded corners. Providing layers with pre-defined masking negatively impacts specular highlight effects and makes edges look jagged.
+
+Keep primary content centered to avoid truncation when the system adjusts corners or applies masking. Pay particular attention to centering content in visionOS and watchOS icons. To help with icon placement, use the grids in the app icon production templates, which you can find in Apple Design Resources.
+
+Design
+
+Embrace simplicity in your icon design. Simple icons tend to be easiest for people to understand and recognize. An icon with fine visual features might look busy when rendered with system-provided shadows and highlights, and details may be hard to discern at smaller sizes. Find a concept or element that captures the essence of your app or game, make it the core idea of your icon, and express it in a simple, unique way with a minimal number of shapes. Prefer a simple background, such as a solid color or gradient, that puts the emphasis on your primary design — you don't need to fill the entire icon canvas with content.
+
+The Podcasts app icon
+
+The Home app icon
+
+Provide a visually consistent icon design across all the platforms your app supports. A consistent design helps people quickly find your app wherever it appears and prevents people from mistaking your app for multiple apps.
+
+Consider basing your icon design around filled, overlapping shapes. Overlapping solid shapes in the foreground, particularly when paired with transparency and blurring, can give an icon a sense of depth.
+
+Include text only when it's essential to your experience or brand. Text in icons doesn't support accessibility or localization, is often too small to read easily, and can make an icon appear cluttered. In some contexts, your app name already appears nearby, making it redundant to display the name within the icon itself. Although displaying a mnemonic like the first letter of your app's name can help people recognize your app or game, avoid including nonessential words that tell people what to do with it — like "Watch" or "Play" — or context-specific terms like "New" or "For visionOS." If you include text in a tvOS app icon, make sure it's above other layers so it's not cropped by the parallax effect.
+
+Prefer illustrations to photos and avoid replicating UI components. Photos are full of details that don't work well when displayed in different appearances, viewed at small sizes, or split into layers. Instead of using photos, create a graphic representation of the content that emphasizes the features you want people to notice. Similarly, if your app has an interface that people recognize, don't just replicate standard UI components or use app screenshots in your icon.
+
+Don't use replicas of Apple hardware products. Apple products are copyrighted and can't be reproduced in your app icons.
+
+Visual effects
+
+Let the system handle blurring and other visual effects. The system dynamically applies visual effects to your app icon layers, so there's no need to include specular highlights, drop shadows between layers, beveled edges, blurs, glows, and other effects. In addition to interfering with system-provided effects, custom effects are static, whereas the system supplies dynamic ones. If you do include custom visual effects on your icon layers, use them intentionally and test carefully with Icon Composer, in Simulator, or on device to make sure they appear as expected and don't conflict with system effects.
+
+Create layer groupings to apply effects to multiple layers at once. System effects typically occur on individual layers. If it makes sense for your design, however, you can group several layers together in Icon Composer or your design tool so effects occur at the group level.
+
+Appearances
+
+In iOS, iPadOS, and macOS, people can choose whether their Home Screen app icons are default, dark, clear, or tinted in appearance. For example, someone may want to personalize their app icon appearance to complement their wallpaper. You can design app icon variants for every appearance variant, and the system automatically generates variants you don't provide.
+
+Keep your icon's features consistent across appearances. To create a seamless experience, keep your icon's core visual features the same in the default, dark, clear, and tinted appearances. Avoid creating custom icon variants that swap elements in and out with each variant, which may make it harder for people to find your app when they switch appearances.
+
+Design dark and tinted icons that feel at home beside system app icons and widgets. You can preserve the color palette of your default icon, but be mindful that dark icons are more subdued, and clear and tinted icons are even more so. A great app icon is visible, legible, and recognizable, regardless of its appearance variant.
+
+Use your light app icon as the basis for your dark icon. Choose complementary colors that reflect the default design, and avoid excessively bright images. Color backgrounds generally offer the greatest contrast in dark icons. For guidance, see Dark Mode.
+
+Consider offering alternate app icons. In iOS, iPadOS, tvOS, and compatible apps running in visionOS, it's possible to let people visit your app's settings to choose an alternate version of your app icon. For example, a sports app might offer icons for different teams, letting someone choose their favorite. If you offer this capability, make sure each icon you design remains closely related to your content and experience. Avoid creating one someone might mistake for another app.
+
+Note
+
+Alternate app icons in iOS and iPadOS require their own dark, clear, and tinted variants. As with your default app icon, all alternate and variant icons are subject to app review and must adhere to the App Review Guidelines.
+
+Platform considerations
+
+No additional considerations for iOS, iPadOS, or macOS.
+
+tvOS
+
+Include a safe zone to ensure the system doesn't crop your content. When someone focuses your app icon, the system may crop content around the edges as the icon scales and moves. To ensure that your icon's content is always visible, keep a safe zone around it. Be aware that the safe zone can vary, depending on the image size, layer depth, and motion, and the system crops foreground layers more than background layers.
+
+visionOS
+
+Avoid adding a shape that's intended to look like a hole or concave area to the background layer. The system-added shadow and specular highlights can make such a shape stand out instead of recede.
+
+watchOS
+
+Avoid using black for your icon's background. Lighten a black background so the icon doesn't blend into the display background.
+
+Specifications
+
+The layout, size, style, and appearances of app icons vary by platform.
+
+Platform
+
+	
+
+Layout shape
+
+	
+
+Icon shape after system masking
+
+	
+
+Layout size
+
+	
+
+Style
+
+	
+
+Appearances
+
+
+
+
+iOS, iPadOS, macOS
+
+	
+
+Square
+
+	
+
+Rounded rectangle (square)
+
+	
+
+1024x1024 px
+
+	
+
+Layered
+
+	
+
+Default, dark, clear light, clear dark, tinted light, tinted dark
+
+
+
+
+tvOS
+
+	
+
+Rectangle (landscape)
+
+	
+
+Rounded rectangle (rectangular)
+
+	
+
+800x480 px
+
+	
+
+Layered (Parallax)
+
+	
+
+N/A
+
+
+
+
+visionOS
+
+	
+
+Square
+
+	
+
+Circular
+
+	
+
+1024x1024 px
+
+	
+
+Layered (3D)
+
+	
+
+N/A
+
+
+
+
+watchOS
+
+	
+
+Square
+
+	
+
+Circular
+
+	
+
+1088x1088 px
+
+	
+
+Layered
+
+	
+
+N/A
+
+The system automatically scales your icon to produce smaller variants that appear in certain locations, such as Settings and notifications.
+
+App icons support the following color spaces:
+
+sRGB (color)
+
+Gray Gamma 2.2 (grayscale)
+
+Display P3 (wide-gamut color in iOS, iPadOS, macOS, tvOS, and watchOS only)
+
+Resources
+Related
+
+Apple Design Resources
+
+Icon Composer
+
+Icons
+
+Images
+
+Dark Mode
+
+Developer documentation
+
+Creating your app icon using Icon Composer
+
+Configuring your app icon using an asset catalog
+
+Videos
+Say hello to the new look of app icons
+Create icons with Icon Composer
+Change log
+
+Date
+
+	
+
+Changes
+
+
+
+
+June 9, 2025
+
+	
+
+Updated guidance to reflect layered icons, consistency across platforms, and best practices for Liquid Glass.
+
+
+
+
+June 10, 2024
+
+	
+
+Added guidance for creating dark and tinted app icon variants for iOS and iPadOS.
+
+
+
+
+January 31, 2024
+
+	
+
+Clarified platform availability for alternate app icons.
+
+
+
+
+June 21, 2023
+
+	
+
+Updated to include guidance for visionOS.
+
+
+
+
+September 14, 2022
+
+	
+
+Added specifications for Apple Watch Ultra.
+--- END FILE ---
+
+--- FILE: known-issues-apple-developer-documentation.md ---
+---
+title: Known issues | Apple Developer Documentation
+source_url: https://developer.apple.com/documentation/testing/known-issues
+scraped_date: '2025-10-25T18:04:03.296066Z'
+extraction_method: Chrome DevTools MCP Server
+content_length: 6091
+filename: known-issues-apple-developer-documentation.md
+---
+
+# Known issues | Apple Developer Documentation
+
+Swift Testing
+Known issues
+API Collection
+Known issues
+Mark issues as known when running tests.
+Overview
+
+The testing library provides several functions named withKnownIssue() that you can use to mark issues as known. Use them to inform the testing library that a test should not be marked as failing if only known issues are recorded.
+
+Mark an expectation failure as known
+
+Consider a test function with a single expectation:
+
+@Test func grillHeating() throws {
+  var foodTruck = FoodTruck()
+  try foodTruck.startGrill()
+  #expect(foodTruck.grill.isHeating) // ❌ Expectation failed
+}
+
+
+If the value of the isHeating property is false, #expect will record an issue. If you cannot fix the underlying problem, you can surround the failing code in a closure passed to withKnownIssue():
+
+@Test func grillHeating() throws {
+  var foodTruck = FoodTruck()
+  try foodTruck.startGrill()
+  withKnownIssue("Propane tank is empty") {
+    #expect(foodTruck.grill.isHeating) // Known issue
+  }
+}
+
+
+The issue recorded by #expect will then be considered "known" and the test will not be marked as a failure. You may include an optional comment to explain the problem or provide context.
+
+Mark a thrown error as known
+
+If an Error is caught by the closure passed to withKnownIssue(), the issue representing that caught error will be marked as known. Continuing the previous example, suppose the problem is that the startGrill() function is throwing an error. You can apply withKnownIssue() to this situation as well:
+
+@Test func grillHeating() {
+  var foodTruck = FoodTruck()
+  withKnownIssue {
+    try foodTruck.startGrill() // Known issue
+    #expect(foodTruck.grill.isHeating)
+  }
+}
+
+
+Because all errors thrown from the closure are caught and interpreted as known issues, the withKnownIssue() function is not throwing. Consequently, any subsequent code which depends on the throwing call having succeeded (such as the #expect after startGrill()) must be included in the closure to avoid additional issues.
+
+Note
+
+withKnownIssue() is recommended instead of #expect(throws:) for any error which is considered a known issue so that the test status and results will reflect the situation more accurately.
+
+Match a specific issue
+
+By default, withKnownIssue() considers all issues recorded while invoking the body closure known. If multiple issues may be recorded, you can pass a trailing closure labeled matching: which will be called once for each recorded issue to determine whether it should be treated as known:
+
+@Test func batteryLevel() throws {
+  var foodTruck = FoodTruck()
+  try withKnownIssue {
+    let batteryLevel = try #require(foodTruck.batteryLevel) // Known
+    #expect(batteryLevel >= 0.8) // Not considered known
+  } matching: { issue in
+    guard case .expectationFailed(let expectation) = issue.kind else {
+      return false
+    }
+    return expectation.isRequired
+  }
+}
+
+Resolve a known issue
+
+If there are no issues recorded while calling function, withKnownIssue() will record a distinct issue about the lack of any issues having been recorded. This notifies you that the underlying problem may have been resolved so that you can investigate and consider removing withKnownIssue() if it's no longer necessary.
+
+Handle a nondeterministic failure
+
+If withKnownIssue() sometimes succeeds but other times records an issue indicating there were no known issues, this may indicate a nondeterministic failure or a "flaky" test.
+
+The first step in resolving a nondeterministic test failure is to analyze the code being tested and determine the source of the unpredictable behavior. If you discover a bug such as a race condition, the ideal resolution is to fix the underlying problem so that the code always behaves consistently even if it continues to exhibit the known issue.
+
+If the underlying problem only occurs in certain circumstances, consider including a precondition. For example, if the grill only fails to heat when there's no propane, you can pass a trailing closure labeled when: which determines whether issues recorded in the body closure should be considered known:
+
+@Test func grillHeating() throws {
+  var foodTruck = FoodTruck()
+  try foodTruck.startGrill()
+  withKnownIssue {
+    // Only considered known when hasPropane == false
+    #expect(foodTruck.grill.isHeating)
+  } when: {
+    !hasPropane
+  }
+}
+
+
+If the underlying problem is unpredictable and fails at random, you can pass isIntermittent: true to let the testing library know that it will not always occur. Then, the testing library will not record an issue when zero known issues are recorded:
+
+@Test func grillHeating() throws {
+  var foodTruck = FoodTruck()
+  try foodTruck.startGrill()
+  withKnownIssue(isIntermittent: true) {
+    #expect(foodTruck.grill.isHeating)
+  }
+}
+
+Topics
+Recording known issues in tests
+func withKnownIssue(Comment?, isIntermittent: Bool, sourceLocation: SourceLocation, () throws -> Void)
+Invoke a function that has a known issue that is expected to occur during its execution.
+func withKnownIssue(Comment?, isIntermittent: Bool, isolation: isolated (any Actor)?, sourceLocation: SourceLocation, () async throws -> Void) async
+Invoke a function that has a known issue that is expected to occur during its execution.
+func withKnownIssue(Comment?, isIntermittent: Bool, sourceLocation: SourceLocation, () throws -> Void, when: () -> Bool, matching: KnownIssueMatcher) rethrows
+Invoke a function that has a known issue that is expected to occur during its execution.
+func withKnownIssue(Comment?, isIntermittent: Bool, isolation: isolated (any Actor)?, sourceLocation: SourceLocation, () async throws -> Void, when: () async -> Bool, matching: KnownIssueMatcher) async rethrows
+Invoke a function that has a known issue that is expected to occur during its execution.
+typealias KnownIssueMatcher
+A function that is used to match known issues.
+Describing a failure or warning
+struct Issue
+A type describing a failure or warning which occurred during a test.
+See Also
+Behavior validation
+Expectations and confirmations
+Check for expected values, outcomes, and asynchronous events in tests.
+--- END FILE ---
+
+--- FILE: swift-testing-apple-developer-documentation.md ---
+---
+title: Swift Testing | Apple Developer Documentation
+source_url: https://developer.apple.com/documentation/testing
+scraped_date: '2025-10-25T18:04:03.314919Z'
+extraction_method: Chrome DevTools MCP Server
+content_length: 2541
+filename: swift-testing-apple-developer-documentation.md
+---
+
+# Swift Testing | Apple Developer Documentation
+
+Framework
+Swift Testing
+Create and run tests for your Swift packages and Xcode projects.
+Swift 6.0+
+Xcode 16.0+
+Overview
+
+With Swift Testing you leverage powerful and expressive capabilities of the Swift programming language to develop tests with more confidence and less code. The library integrates seamlessly with Swift Package Manager testing workflow, supports flexible test organization, customizable metadata, and scalable test execution.
+
+Define test functions almost anywhere with a single attribute.
+
+Group related tests into hierarchies using Swift's type system.
+
+Integrate seamlessly with Swift concurrency.
+
+Parameterize test functions across wide ranges of inputs.
+
+Enable tests dynamically depending on runtime conditions.
+
+Parallelize tests in-process.
+
+Categorize tests using tags.
+
+Associate bugs directly with the tests that verify their fixes or reproduce their problems.
+
+Related videos
+Meet Swift Testing
+Go further with Swift Testing
+Topics
+Essentials
+Defining test functions
+Define a test function to validate that code is working correctly.
+Organizing test functions with suite types
+Organize tests into test suites.
+Migrating a test from XCTest
+Migrate an existing test method or test class written using XCTest.
+macro Test(String?, any TestTrait...)
+Declare a test.
+struct Test
+A type representing a test or suite.
+macro Suite(String?, any SuiteTrait...)
+Declare a test suite.
+Test parameterization
+Implementing parameterized tests
+Specify different input parameters to generate multiple test cases from a test function.
+macro Test<C>(String?, any TestTrait..., arguments: C)
+Declare a test parameterized over a collection of values.
+macro Test<C1, C2>(String?, any TestTrait..., arguments: C1, C2)
+Declare a test parameterized over two collections of values.
+macro Test<C1, C2>(String?, any TestTrait..., arguments: Zip2Sequence<C1, C2>)
+Declare a test parameterized over two zipped collections of values.
+protocol CustomTestArgumentEncodable
+A protocol for customizing how arguments passed to parameterized tests are encoded, which is used to match against when running specific arguments.
+struct Case
+A single test case from a parameterized Test.
+Behavior validation
+Expectations and confirmations
+Check for expected values, outcomes, and asynchronous events in tests.
+Known issues
+Mark issues as known when running tests.
+Test customization
+Traits
+Annotate test functions and suites, and customize their behavior.
+Data collection
+Attachments
+Attach values to tests to help diagnose issues and gather feedback.
+--- END FILE ---
+
+--- FILE: traits-apple-developer-documentation.md ---
+---
+title: Traits | Apple Developer Documentation
+source_url: https://developer.apple.com/documentation/testing/traits
+scraped_date: '2025-10-25T18:04:03.301564Z'
+extraction_method: Chrome DevTools MCP Server
+content_length: 3943
+filename: traits-apple-developer-documentation.md
+---
+
+# Traits | Apple Developer Documentation
+
+Swift Testing
+Traits
+API Collection
+Traits
+Annotate test functions and suites, and customize their behavior.
+Overview
+
+Pass built-in traits to test functions or suite types to comment, categorize, classify, and modify the runtime behavior of test suites and test functions. Implement the TestTrait, and SuiteTrait protocols to create your own types that customize the behavior of your tests.
+
+Topics
+Customizing runtime behaviors
+Enabling and disabling tests
+Conditionally enable or disable individual tests before they run.
+Limiting the running time of tests
+Set limits on how long a test can run for until it fails.
+static func enabled(if: @autoclosure () throws -> Bool, Comment?, sourceLocation: SourceLocation) -> Self
+Constructs a condition trait that disables a test if it returns false.
+static func enabled(Comment?, sourceLocation: SourceLocation, () async throws -> Bool) -> Self
+Constructs a condition trait that disables a test if it returns false.
+static func disabled(Comment?, sourceLocation: SourceLocation) -> Self
+Constructs a condition trait that disables a test unconditionally.
+static func disabled(if: @autoclosure () throws -> Bool, Comment?, sourceLocation: SourceLocation) -> Self
+Constructs a condition trait that disables a test if its value is true.
+static func disabled(Comment?, sourceLocation: SourceLocation, () async throws -> Bool) -> Self
+Constructs a condition trait that disables a test if its value is true.
+static func timeLimit(TimeLimitTrait.Duration) -> Self
+Construct a time limit trait that causes a test to time out if it runs for too long.
+Running tests serially or in parallel
+Running tests serially or in parallel
+Control whether tests run serially or in parallel.
+static var serialized: ParallelizationTrait
+A trait that serializes the test to which it is applied.
+Annotating tests
+Adding tags to tests
+Use tags to provide semantic information for organization, filtering, and customizing appearances.
+Adding comments to tests
+Add comments to provide useful information about tests.
+Associating bugs with tests
+Associate bugs uncovered or verified by tests.
+Interpreting bug identifiers
+Examine how the testing library interprets bug identifiers provided by developers.
+macro Tag()
+Declare a tag that can be applied to a test function or test suite.
+static func bug(String, Comment?) -> Self
+Constructs a bug to track with a test.
+static func bug(String?, id: String, Comment?) -> Self
+Constructs a bug to track with a test.
+static func bug(String?, id: some Numeric, Comment?) -> Self
+Constructs a bug to track with a test.
+Handling issues
+static func compactMapIssues((Issue) -> Issue?) -> Self
+Constructs an trait that transforms issues recorded by a test.
+static func filterIssues((Issue) -> Bool) -> Self
+Constructs a trait that filters issues recorded by a test.
+Creating custom traits
+protocol Trait
+A protocol describing traits that can be added to a test function or to a test suite.
+protocol TestTrait
+A protocol describing a trait that you can add to a test function.
+protocol SuiteTrait
+A protocol describing a trait that you can add to a test suite.
+protocol TestScoping
+A protocol that tells the test runner to run custom code before or after it runs a test suite or test function.
+Supporting types
+struct Bug
+A type that represents a bug report tracked by a test.
+struct Comment
+A type that represents a comment related to a test.
+struct ConditionTrait
+A type that defines a condition which must be satisfied for the testing library to enable a test.
+struct IssueHandlingTrait
+A type that allows transforming or filtering the issues recorded by a test.
+struct ParallelizationTrait
+A type that defines whether the testing library runs this test serially or in parallel.
+struct Tag
+A type representing a tag that can be applied to a test.
+struct List
+A type representing one or more tags applied to a test.
+struct TimeLimitTrait
+A type that defines a time limit to apply to a test.
+--- END FILE ---
+
+--- FILE: live-viewing-apps.md ---
+---
+title: Live-viewing apps | Apple Developer Documentation
+source_url: https://developer.apple.com/design/human-interface-guidelines/live-viewing-apps
+scraped_date: '2025-10-25T18:04:03.303339Z'
+extraction_method: Chrome DevTools MCP Server
+content_length: 6242
+filename: live-viewing-apps.md
+---
+
+# Live-viewing apps | Apple Developer Documentation
+
+Live-viewing apps
+As you design a live-viewing app, prioritize the content and create fun, fluid interactions that encourage immersion in the live-viewing experience.
+
+Live-viewing apps need to elevate and prioritize live content. In every screen, draw people's attention to live content and make sure they can distinguish it from video-on-demand (VOD) content at a glance.
+
+Best practices
+
+Feature live content prominently and make it easy to access. People come to your app to watch content, so you want to minimize the interval between starting your app and playing content. When live content is in the first tab, people don't have to tap more than once to start viewing it.
+
+Let people tap once — or not at all — to start playback. For example, you might display a Watch Now button on top of featured or recently viewed live content. When people tap this button, it immediately disappears and playback begins, replacing your app's UI with a full-screen, immersive viewing experience.
+
+Make sure live content looks live. People need to be able to distinguish live content from VOD content. Although simply playing live content is the best way to make it feel live, you can also help people recognize live content by marking it in some way. For example, you might display other channels in a collection row titled "Live" and give each item a visual indicator — such as a badge, symbol, or sash — that identifies it as live.
+
+Consider indicating the progress of currently playing live content. People appreciate knowing where they'll land when they jump into in-progress live content. You can use a progress bar or other indicator to show people how much content remains.
+
+Give people additional actions and viewing alternatives. In addition to playback, which always needs to be the primary action, make it easy for people to record, restart, download, and perform other actions that you support. Display these actions in the same order throughout your app — for example, Watch, Start Over, Record, and Favorite. Also, if the currently playing content is playing again at other times, show this information so that people can schedule their viewing.
+
+Consider using a content footer for browsing channels during playback. A content footer lets people browse without taking them out of the live playback experience. If you decide to use a content footer, be sure to:
+
+Give it a subtle treatment, such as a darkening, to keep text legible and help all items remain visually distinct from the content playing behind it.
+
+Make it easy for people to identify the thumbnail that represents the currently playing content by, for example, badging the thumbnail or tinting its progress bar.
+
+Match the categories in the content footer to those in your electronic program guide (for related guidance, see EPG experience).
+
+Design a simple, predictable way for people to invoke and dismiss the content footer — for example, if swiping up invokes the footer, people would expect swiping down to dismiss it.
+
+Provide instant visual feedback when people change channels. This is essential for two reasons: people need confirmation that they've arrived at the channel they want, and providing feedback can give the streaming content some time to load.
+
+Match audio to the current context. When people start playing live content, they expect the audio to match even if they switch to browsing while the content plays in the background. However, when people navigate away from the live tab in your app, they leave the live-viewing context, so audio needs to stop.
+
+EPG experience
+
+Live-viewing apps typically provide an electronic program guide (EPG) that contains information about scheduled programming. Follow these guidelines to give people a streamlined EPG experience that feels designed specifically for your live-viewing app.
+
+Prominently display current information and make it easy to return to playback. When people first open the EPG, the current program, channel, and time needs to be easy to spot so they can instantly return to the current channel.
+
+Make browsing the EPG effortless. A typical EPG contains a lot of information, so it's important to help people page, scroll, or jump through it easily. Also consider providing a My Channels group or a Favorites group that gives people quick access to the content they view most often.
+
+Group content into familiar categories to help people find it more easily. For example, you might use categories like Movies, TV Shows, Kids, Sports, and Popular. If your app includes a content footer, organize content thumbnails using the same categories as in the EPG.
+
+Let people browse the EPG without leaving their current content. For example, you can continue playing content in a picture-in-picture (PiP) mode or in the background while people browse the EPG.
+
+Cloud DVR
+
+If you support digital video recording (DVR) in the cloud, follow these guidelines to provide a great recording experience in your live-viewing app.
+
+Let people start and stop recording from the info panel. While live-streaming, people want to reveal the info panel to start recording immediately.
+
+Let people record a future program in a view that provides details about the content. Also, give people the option to record only that program or all future episodes.
+
+Help people adapt the recording experience to their needs. Let people specify precisely what they want to record, such as only the current episode, only new episodes, or only games that involve specific teams.
+
+Allow playback and other content-specific actions within your cloud DVR area. When people open a view that displays content details in your cloud DVR section, let them play or delete content and, if applicable, adjust recording settings.
+
+Consider offering a control that lets people manage cloud DVR settings. For example, you might let people delete recordings they've already watched or content that's older than a certain number of days. Ideally, help people avoid running out of space by letting them set up automatic storage management, which overwrites the oldest or already viewed content.
+
+Platform considerations
+
+No additional considerations for iOS, iPadOS, macOS, tvOS, visionOS, or watchOS.
+
+Resources
+Related
+
+Remotes
+
+Playing video
+--- END FILE ---
+
+--- FILE: organizing-test-functions-with-suite-types-apple-developer-documentation.md ---
+---
+title: Organizing test functions with suite types | Apple Developer Documentation
+source_url: https://developer.apple.com/documentation/testing/organizingtests
+scraped_date: '2025-10-25T18:04:03.306985Z'
+extraction_method: Chrome DevTools MCP Server
+content_length: 4719
+filename: organizing-test-functions-with-suite-types-apple-developer-documentation.md
+---
+
+# Organizing test functions with suite types | Apple Developer Documentation
+
+Swift Testing
+Organizing test functions with suite types
+Article
+Organizing test functions with suite types
+Organize tests into test suites.
+Overview
+
+When working with a large selection of test functions, it can be helpful to organize them into test suites.
+
+A test function can be added to a test suite in one of two ways:
+
+By placing it in a Swift type.
+
+By placing it in a Swift type and annotating that type with the @Suite attribute.
+
+The @Suite attribute isn't required for the testing library to recognize that a type contains test functions, but adding it allows customization of a test suite's appearance in the IDE and at the command line. If a trait such as tags(_:) or disabled(_:sourceLocation:) is applied to a test suite, it's automatically inherited by the tests contained in the suite.
+
+In addition to containing test functions and any other members that a Swift type might contain, test suite types can also contain additional test suites nested within them. To add a nested test suite type, simply declare an additional type within the scope of the outer test suite type.
+
+By default, tests contained within a suite run in parallel with each other. For more information about test parallelization, see Running tests serially or in parallel.
+
+Customize a suite's name
+
+To customize a test suite's name, supply a string literal as an argument to the @Suite attribute:
+
+@Suite("Food truck tests") struct FoodTruckTests {
+  @Test func foodTruckExists() { ... }
+}
+
+
+To further customize the appearance and behavior of a test function, use traits such as tags(_:).
+
+Test functions in test suite types
+
+If a type contains a test function declared as an instance method (that is, without either the static or class keyword), the testing library calls that test function at runtime by initializing an instance of the type, then calling the test function on that instance. If a test suite type contains multiple test functions declared as instance methods, each one is called on a distinct instance of the type. Therefore, the following test suite and test function:
+
+@Suite struct FoodTruckTests {
+  @Test func foodTruckExists() { ... }
+}
+
+
+Are equivalent to:
+
+@Suite struct FoodTruckTests {
+  func foodTruckExists() { ... }
+
+
+  @Test static func staticFoodTruckExists() {
+    let instance = FoodTruckTests()
+    instance.foodTruckExists()
+  }
+}
+
+Constraints on test suite types
+
+When using a type as a test suite, it's subject to some constraints that are not otherwise applied to Swift types.
+
+An initializer may be required
+
+If a type contains test functions declared as instance methods, it must be possible to initialize an instance of the type with a zero-argument initializer. The initializer may be any combination of:
+
+implicit or explicit
+
+synchronous or asynchronous
+
+throwing or non-throwing
+
+private, fileprivate, internal, package, or public
+
+For example:
+
+@Suite struct FoodTruckTests {
+  var batteryLevel = 100
+
+
+  @Test func foodTruckExists() { ... } // ✅ OK: The type has an implicit init().
+}
+
+
+@Suite struct CashRegisterTests {
+  private init(cashOnHand: Decimal = 0.0) async throws { ... }
+
+
+  @Test func calculateSalesTax() { ... } // ✅ OK: The type has a callable init().
+}
+
+
+struct MenuTests {
+  var foods: [Food]
+  var prices: [Food: Decimal]
+
+
+  @Test static func specialOfTheDay() { ... } // ✅ OK: The function is static.
+  @Test func orderAllFoods() { ... } // ❌ ERROR: The suite type requires init().
+}
+
+
+The compiler emits an error when presented with a test suite that doesn't meet this requirement.
+
+Test suite types must always be available
+
+Although @available can be applied to a test function to limit its availability at runtime, a test suite type (and any types that contain it) must not be annotated with the @available attribute:
+
+@Suite struct FoodTruckTests { ... } // ✅ OK: The type is always available.
+
+
+@available(macOS 11.0, *) // ❌ ERROR: The suite type must always be available.
+@Suite struct CashRegisterTests { ... }
+
+
+@available(macOS 11.0, *) struct MenuItemTests { // ❌ ERROR: The suite type's
+                                                 // containing type must always
+                                                 // be available too.
+  @Suite struct BurgerTests { ... }
+}
+
+
+The compiler emits an error when presented with a test suite that doesn't meet this requirement.
+
+See Also
+Essentials
+Defining test functions
+Define a test function to validate that code is working correctly.
+Migrating a test from XCTest
+Migrate an existing test method or test class written using XCTest.
+macro Test(String?, any TestTrait...)
+Declare a test.
+struct Test
+A type representing a test or suite.
+macro Suite(String?, any SuiteTrait...)
+Declare a test suite.
+--- END FILE ---
+
+--- FILE: implementing-parameterized-tests-apple-developer-documentation.md ---
+---
+title: Implementing parameterized tests | Apple Developer Documentation
+source_url: https://developer.apple.com/documentation/testing/parameterizedtesting
+scraped_date: '2025-10-25T18:04:03.295212Z'
+extraction_method: Chrome DevTools MCP Server
+content_length: 7252
+filename: implementing-parameterized-tests-apple-developer-documentation.md
+---
+
+# Implementing parameterized tests | Apple Developer Documentation
+
+Swift Testing
+Implementing parameterized tests
+Article
+Implementing parameterized tests
+Specify different input parameters to generate multiple test cases from a test function.
+Overview
+
+Some tests need to be run over many different inputs. For instance, a test might need to validate all cases of an enumeration. The testing library lets developers specify one or more collections to iterate over during testing, with the elements of those collections being forwarded to a test function. An invocation of a test function with a particular set of argument values is called a test case.
+
+By default, the test cases of a test function run in parallel with each other. For more information about test parallelization, see Running tests serially or in parallel.
+
+Parameterize over an array of values
+
+It is very common to want to run a test n times over an array containing the values that should be tested. Consider the following test function:
+
+enum Food {
+  case burger, iceCream, burrito, noodleBowl, kebab
+}
+
+
+@Test("All foods available")
+func foodsAvailable() async throws {
+  for food: Food in [.burger, .iceCream, .burrito, .noodleBowl, .kebab] {
+    let foodTruck = FoodTruck(selling: food)
+    #expect(await foodTruck.cook(food))
+  }
+}
+
+
+If this test function fails for one of the values in the array, it may be unclear which value failed. Instead, the test function can be parameterized over the various inputs:
+
+enum Food {
+  case burger, iceCream, burrito, noodleBowl, kebab
+}
+
+
+@Test("All foods available", arguments: [Food.burger, .iceCream, .burrito, .noodleBowl, .kebab])
+func foodAvailable(_ food: Food) async throws {
+  let foodTruck = FoodTruck(selling: food)
+  #expect(await foodTruck.cook(food))
+}
+
+
+When passing a collection to the @Test attribute for parameterization, the testing library passes each element in the collection, one at a time, to the test function as its first (and only) argument. Then, if the test fails for one or more inputs, the corresponding diagnostics can clearly indicate which inputs to examine.
+
+Parameterize over the cases of an enumeration
+
+The previous example includes a hard-coded list of Food cases to test. If Food is an enumeration that conforms to CaseIterable, you can instead write:
+
+enum Food: CaseIterable {
+  case burger, iceCream, burrito, noodleBowl, kebab
+}
+
+
+@Test("All foods available", arguments: Food.allCases)
+func foodAvailable(_ food: Food) async throws {
+  let foodTruck = FoodTruck(selling: food)
+  #expect(await foodTruck.cook(food))
+}
+
+
+This way, if a new case is added to the Food enumeration, it's automatically tested by this function.
+
+Parameterize over a range of integers
+
+It is possible to parameterize a test function over a closed range of integers:
+
+@Test("Can make large orders", arguments: 1 ... 100)
+func makeLargeOrder(count: Int) async throws {
+  let foodTruck = FoodTruck(selling: .burger)
+  #expect(await foodTruck.cook(.burger, quantity: count))
+}
+
+
+Note
+
+Very large ranges such as 0 ..< .max may take an excessive amount of time to test, or may never complete due to resource constraints.
+
+Pass the same arguments to multiple test functions
+
+If you want to pass the same collection of arguments to two or more parameterized test functions, you can extract the arguments to a separate function or property and pass it to each @Test attribute. For example:
+
+extension Food {
+  static var bestSelling: [Food] {
+    get async throws { /* ... */ }
+  }
+}
+
+
+@Test(arguments: try await Food.bestSelling)
+func `Order entree`(food: Food) {
+  let foodTruck = FoodTruck()
+  #expect(foodTruck.order(food))
+}
+
+
+@Test(arguments: try await Food.bestSelling)
+func `Package leftovers`(food: Food) throws {
+  let foodTruck = FoodTruck()
+  let container = try #require(foodTruck.container(fitting: food))
+  try container.add(food)
+}
+
+
+Tip
+
+You can prefix expressions passed to arguments: with try or await. The testing library evaluates them lazily only if it determines that the associated test will run.
+
+Test with more than one collection
+
+It's possible to test more than one collection. Consider the following test function:
+
+@Test("Can make large orders", arguments: Food.allCases, 1 ... 100)
+func makeLargeOrder(of food: Food, count: Int) async throws {
+  let foodTruck = FoodTruck(selling: food)
+  #expect(await foodTruck.cook(food, quantity: count))
+}
+
+
+Elements from the first collection are passed as the first argument to the test function, elements from the second collection are passed as the second argument, and so forth.
+
+Assuming there are five cases in the Food enumeration, this test function will, when run, be invoked 500 times (5 x 100) with every possible combination of food and order size. These combinations are referred to as the collections' Cartesian product.
+
+To avoid the combinatoric semantics shown above, use zip():
+
+@Test("Can make large orders", arguments: zip(Food.allCases, 1 ... 100))
+func makeLargeOrder(of food: Food, count: Int) async throws {
+  let foodTruck = FoodTruck(selling: food)
+  #expect(await foodTruck.cook(food, quantity: count))
+}
+
+
+The zipped sequence will be "destructured" into two arguments automatically, then passed to the test function for evaluation.
+
+This revised test function is invoked once for each tuple in the zipped sequence, for a total of five invocations instead of 500 invocations. In other words, this test function is passed the inputs (.burger, 1), (.iceCream, 2), …, (.kebab, 5) instead of (.burger, 1), (.burger, 2), (.burger, 3), …, (.kebab, 99), (.kebab, 100).
+
+Run selected test cases
+
+If a parameterized test meets certain requirements, the testing library allows people to run specific test cases it contains. This can be useful when a test has many cases but only some are failing since it enables re-running and debugging the failing cases in isolation.
+
+To support running selected test cases, it must be possible to deterministically match the test case's arguments. When someone attempts to run selected test cases of a parameterized test function, the testing library evaluates each argument of the tests' cases for conformance to one of several known protocols, and if all arguments of a test case conform to one of those protocols, that test case can be run selectively. The following lists the known protocols, in precedence order (highest to lowest):
+
+CustomTestArgumentEncodable
+
+RawRepresentable, where RawValue conforms to Encodable
+
+Encodable
+
+Identifiable, where ID conforms to Encodable
+
+If any argument of a test case doesn't meet one of the above requirements, then the overall test case cannot be run selectively.
+
+See Also
+Test parameterization
+macro Test<C>(String?, any TestTrait..., arguments: C)
+Declare a test parameterized over a collection of values.
+macro Test<C1, C2>(String?, any TestTrait..., arguments: C1, C2)
+Declare a test parameterized over two collections of values.
+macro Test<C1, C2>(String?, arguments: Zip2Sequence<C1, C2>)
+Declare a test parameterized over two zipped collections of values.
+protocol CustomTestArgumentEncodable
+A protocol for customizing how arguments passed to parameterized tests are encoded, which is used to match against when running specific arguments.
+struct Case
+A single test case from a parameterized Test.
+--- END FILE ---
+
+--- FILE: defining-test-functions-apple-developer-documentation.md ---
+---
+title: Defining test functions | Apple Developer Documentation
+source_url: https://developer.apple.com/documentation/testing/definingtests
+scraped_date: '2025-10-25T18:04:03.300617Z'
+extraction_method: Chrome DevTools MCP Server
+content_length: 2978
+filename: defining-test-functions-apple-developer-documentation.md
+---
+
+# Defining test functions | Apple Developer Documentation
+
+Swift Testing
+Defining test functions
+Article
+Defining test functions
+Define a test function to validate that code is working correctly.
+Overview
+
+Defining a test function for a Swift package or project is straightforward.
+
+Import the testing library
+
+To import the testing library, add the following to the Swift source file that contains the test:
+
+import Testing
+
+
+Note
+
+Only import the testing library into a test target. Importing the testing library into an application, library, or binary target isn't supported or recommended. Test functions aren't stripped from binaries when building for release, so logic and fixtures of a test may be visible to anyone who inspects a build product that contains a test function.
+
+Declare a test function
+
+To declare a test function, write a Swift function declaration that doesn't take any arguments, then prefix its name with the @Test attribute:
+
+@Test func foodTruckExists() {
+  // Test logic goes here.
+}
+
+
+This test function can be present at file scope or within a type. A type containing test functions is automatically a test suite and can be optionally annotated with the @Suite attribute. For more information about suites, see Organizing test functions with suite types.
+
+Note that, while this function is a valid test function, it doesn't actually perform any action or test any code. To check for expected values and outcomes in test functions, add expectations to the test function.
+
+Customize a test's name
+
+To customize a test function's name as presented in an IDE or at the command line, supply a string literal as an argument to the @Test attribute:
+
+@Test("Food truck exists") func foodTruckExists() { ... }
+
+
+To further customize the appearance and behavior of a test function, use traits such as tags(_:).
+
+Write concurrent or throwing tests
+
+As with other Swift functions, test functions can be marked async and throws to annotate them as concurrent or throwing, respectively. If a test is only safe to run in the main actor's execution context (that is, from the main thread of the process), it can be annotated @MainActor:
+
+@Test @MainActor func foodTruckExists() async throws { ... }
+
+Limit the availability of a test
+
+If a test function can only run on newer versions of an operating system or of the Swift language, use the @available attribute when declaring it. Use the message argument of the @available attribute to specify a message to log if a test is unable to run due to limited availability:
+
+@available(macOS 11.0, *)
+@available(swift, introduced: 8.0, message: "Requires Swift 8.0 features to run")
+@Test func foodTruckExists() { ... }
+
+See Also
+Essentials
+Organizing test functions with suite types
+Organize tests into test suites.
+Migrating a test from XCTest
+Migrate an existing test method or test class written using XCTest.
+macro Test(String?, any TestTrait...)
+Declare a test.
+struct Test
+A type representing a test or suite.
+macro Suite(String?, any SuiteTrait...)
+Declare a test suite.
+--- END FILE ---
+
+--- FILE: migrating-a-test-from-xctest-apple-developer-documentation.md ---
+---
+title: Migrating a test from XCTest | Apple Developer Documentation
+source_url: https://developer.apple.com/documentation/testing/migratingfromxctest
+scraped_date: '2025-10-25T18:04:03.310615Z'
+extraction_method: Chrome DevTools MCP Server
+content_length: 20059
+filename: migrating-a-test-from-xctest-apple-developer-documentation.md
+---
+
+# Migrating a test from XCTest | Apple Developer Documentation
+
+Swift Testing
+Migrating a test from XCTest
+Article
+Migrating a test from XCTest
+Migrate an existing test method or test class written using XCTest.
+Overview
+
+The testing library provides much of the same functionality of XCTest, but uses its own syntax to declare test functions and types. Here, you'll learn how to convert XCTest-based content to use the testing library instead.
+
+Import the testing library
+
+XCTest and the testing library are available from different modules. Instead of importing the XCTest module, import the Testing module:
+
+// Before
+import XCTest
+
+// After
+import Testing
+
+
+A single source file can contain tests written with XCTest as well as other tests written with the testing library. Import both XCTest and Testing if a source file contains mixed test content.
+
+Convert test classes
+
+XCTest groups related sets of test methods in test classes: classes that inherit from the XCTestCase class provided by the XCTest framework. The testing library doesn't require that test functions be instance members of types. Instead, they can be free or global functions, or can be static or class members of a type.
+
+If you want to group your test functions together, you can do so by placing them in a Swift type. The testing library refers to such a type as a suite. These types do not need to be classes, and they don't inherit from XCTestCase.
+
+To convert a subclass of XCTestCase to a suite, remove the XCTestCase conformance. It's also generally recommended that a Swift structure or actor be used instead of a class because it allows the Swift compiler to better-enforce concurrency safety:
+
+// Before
+class FoodTruckTests: XCTestCase {
+  ...
+}
+
+// After
+struct FoodTruckTests {
+  ...
+}
+
+
+For more information about suites and how to declare and customize them, see Organizing test functions with suite types.
+
+Convert setup and teardown functions
+
+In XCTest, code can be scheduled to run before and after a test using the setUp() and tearDown() family of functions. When writing tests using the testing library, implement init() and/or deinit instead:
+
+// Before
+class FoodTruckTests: XCTestCase {
+  var batteryLevel: NSNumber!
+  override func setUp() async throws {
+    batteryLevel = 100
+  }
+  ...
+}
+
+// After
+struct FoodTruckTests {
+  var batteryLevel: NSNumber
+  init() async throws {
+    batteryLevel = 100
+  }
+  ...
+}
+
+
+The use of async and throws is optional. If teardown is needed, declare your test suite as a class or as an actor rather than as a structure and implement deinit:
+
+// Before
+class FoodTruckTests: XCTestCase {
+  var batteryLevel: NSNumber!
+  override func setUp() async throws {
+    batteryLevel = 100
+  }
+  override func tearDown() {
+    batteryLevel = 0 // drain the battery
+  }
+  ...
+}
+
+// After
+final class FoodTruckTests {
+  var batteryLevel: NSNumber
+  init() async throws {
+    batteryLevel = 100
+  }
+  deinit {
+    batteryLevel = 0 // drain the battery
+  }
+  ...
+}
+
+Convert test methods
+
+The testing library represents individual tests as functions, similar to how they are represented in XCTest. However, the syntax for declaring a test function is different. In XCTest, a test method must be a member of a test class and its name must start with test. The testing library doesn't require a test function to have any particular name. Instead, it identifies a test function by the presence of the @Test attribute:
+
+// Before
+class FoodTruckTests: XCTestCase {
+  func testEngineWorks() { ... }
+  ...
+}
+
+// After
+struct FoodTruckTests {
+  @Test func engineWorks() { ... }
+  ...
+}
+
+
+As with XCTest, the testing library allows test functions to be marked async, throws, or async-throws, and to be isolated to a global actor (for example, by using the @MainActor attribute.)
+
+Note
+
+XCTest runs synchronous test methods on the main actor by default, while the testing library runs all test functions on an arbitrary task. If a test function must run on the main thread, isolate it to the main actor with @MainActor, or run the thread-sensitive code inside a call to MainActor.run(resultType:body:).
+
+For more information about test functions and how to declare and customize them, see Defining test functions.
+
+Check for expected values and outcomes
+
+XCTest uses a family of approximately 40 functions to assert test requirements. These functions are collectively referred to as XCTAssert(). The testing library has two replacements, expect(_:_:sourceLocation:) and require(_:_:sourceLocation:). They both behave similarly to XCTAssert() except that require(_:_:sourceLocation:) throws an error if its condition isn't met:
+
+// Before
+func testEngineWorks() throws {
+  let engine = FoodTruck.shared.engine
+  XCTAssertNotNil(engine.parts.first)
+  XCTAssertGreaterThan(engine.batteryLevel, 0)
+  try engine.start()
+  XCTAssertTrue(engine.isRunning)
+}
+
+// After
+@Test func engineWorks() throws {
+  let engine = FoodTruck.shared.engine
+  try #require(engine.parts.first != nil)
+  #expect(engine.batteryLevel > 0)
+  try engine.start()
+  #expect(engine.isRunning)
+}
+
+Check for optional values
+
+XCTest also has a function, XCTUnwrap(), that tests if an optional value is nil and throws an error if it is. When using the testing library, you can use require(_:_:sourceLocation:) with optional expressions to unwrap them:
+
+// Before
+func testEngineWorks() throws {
+  let engine = FoodTruck.shared.engine
+  let part = try XCTUnwrap(engine.parts.first)
+  ...
+}
+
+// After
+@Test func engineWorks() throws {
+  let engine = FoodTruck.shared.engine
+  let part = try #require(engine.parts.first)
+  ...
+}
+
+Record issues
+
+XCTest has a function, XCTFail(), that causes a test to fail immediately and unconditionally. This function is useful when the syntax of the language prevents the use of an XCTAssert() function. To record an unconditional issue using the testing library, use the record(_:sourceLocation:) function:
+
+// Before
+func testEngineWorks() {
+  let engine = FoodTruck.shared.engine
+  guard case .electric = engine else {
+    XCTFail("Engine is not electric")
+    return
+  }
+  ...
+}
+
+// After
+@Test func engineWorks() {
+  let engine = FoodTruck.shared.engine
+  guard case .electric = engine else {
+    Issue.record("Engine is not electric")
+    return
+  }
+  ...
+}
+
+
+The following table includes a list of the various XCTAssert() functions and their equivalents in the testing library:
+
+XCTest
+
+	
+
+Swift Testing
+
+
+
+
+XCTAssert(x), XCTAssertTrue(x)
+
+	
+
+#expect(x)
+
+
+
+
+XCTAssertFalse(x)
+
+	
+
+#expect(!x)
+
+
+
+
+XCTAssertNil(x)
+
+	
+
+#expect(x == nil)
+
+
+
+
+XCTAssertNotNil(x)
+
+	
+
+#expect(x != nil)
+
+
+
+
+XCTAssertEqual(x, y)
+
+	
+
+#expect(x == y)
+
+
+
+
+XCTAssertNotEqual(x, y)
+
+	
+
+#expect(x != y)
+
+
+
+
+XCTAssertIdentical(x, y)
+
+	
+
+#expect(x === y)
+
+
+
+
+XCTAssertNotIdentical(x, y)
+
+	
+
+#expect(x !== y)
+
+
+
+
+XCTAssertGreaterThan(x, y)
+
+	
+
+#expect(x > y)
+
+
+
+
+XCTAssertGreaterThanOrEqual(x, y)
+
+	
+
+#expect(x >= y)
+
+
+
+
+XCTAssertLessThanOrEqual(x, y)
+
+	
+
+#expect(x <= y)
+
+
+
+
+XCTAssertLessThan(x, y)
+
+	
+
+#expect(x < y)
+
+
+
+
+XCTAssertThrowsError(try f())
+
+	
+
+#expect(throws: (any Error).self) { try f() }
+
+
+
+
+XCTAssertThrowsError(try f()) { error in … }
+
+	
+
+let error = #expect(throws: (any Error).self) { try f() }
+
+
+
+
+XCTAssertNoThrow(try f())
+
+	
+
+#expect(throws: Never.self) { try f() }
+
+
+
+
+try XCTUnwrap(x)
+
+	
+
+try #require(x)
+
+
+
+
+XCTFail("…")
+
+	
+
+Issue.record("…")
+
+The testing library doesn't provide an equivalent of XCTAssertEqual(_:_:accuracy:_:file:line:). To compare two numeric values within a specified accuracy, use isApproximatelyEqual() from swift-numerics.
+
+Continue or halt after test failures
+
+An instance of an XCTestCase subclass can set its continueAfterFailure property to false to cause a test to stop running after a failure occurs. XCTest stops an affected test by throwing an Objective-C exception at the time the failure occurs.
+
+Note
+
+continueAfterFailure isn't fully supported when using the swift-corelibs-xctest library on non-Apple platforms.
+
+The behavior of an exception thrown through a Swift stack frame is undefined. If an exception is thrown through an async Swift function, it typically causes the process to terminate abnormally, preventing other tests from running.
+
+The testing library doesn't use exceptions to stop test functions. Instead, use the require(_:_:sourceLocation:) macro, which throws a Swift error on failure:
+
+// Before
+func testTruck() async {
+  continueAfterFailure = false
+  XCTAssertTrue(FoodTruck.shared.isLicensed)
+  ...
+}
+
+// After
+@Test func truck() throws {
+  try #require(FoodTruck.shared.isLicensed)
+  ...
+}
+
+
+When using either continueAfterFailure or require(_:_:sourceLocation:), other tests will continue to run after the failed test method or test function.
+
+Validate asynchronous behaviors
+
+XCTest has a class, XCTestExpectation, that represents some asynchronous condition. You create an instance of this class (or a subclass like XCTKeyPathExpectation) using an initializer or a convenience method on XCTestCase. When the condition represented by an expectation occurs, the developer fulfills the expectation. Concurrently, the developer waits for the expectation to be fulfilled using an instance of XCTWaiter or using a convenience method on XCTestCase.
+
+Wherever possible, prefer to use Swift concurrency to validate asynchronous conditions. For example, if it's necessary to determine the result of an asynchronous Swift function, it can be awaited with await. For a function that takes a completion handler but which doesn't use await, a Swift continuation can be used to convert the call into an async-compatible one.
+
+Some tests, especially those that test asynchronously-delivered events, cannot be readily converted to use Swift concurrency. The testing library offers functionality called confirmations which can be used to implement these tests. Instances of Confirmation are created and used within the scope of the functions confirmation(_:expectedCount:isolation:sourceLocation:_:) and confirmation(_:expectedCount:isolation:sourceLocation:_:).
+
+Confirmations function similarly to the expectations API of XCTest, however, they don't block or suspend the caller while waiting for a condition to be fulfilled. Instead, the requirement is expected to be confirmed (the equivalent of fulfilling an expectation) before confirmation() returns, and records an issue otherwise:
+
+// Before
+func testTruckEvents() async {
+  let soldFood = expectation(description: "…")
+  FoodTruck.shared.eventHandler = { event in
+    if case .soldFood = event {
+      soldFood.fulfill()
+    }
+  }
+  await Customer().buy(.soup)
+  await fulfillment(of: [soldFood])
+  ...
+}
+
+// After
+@Test func truckEvents() async {
+  await confirmation("…") { soldFood in
+    FoodTruck.shared.eventHandler = { event in
+      if case .soldFood = event {
+        soldFood()
+      }
+    }
+    await Customer().buy(.soup)
+  }
+  ...
+}
+
+
+By default, XCTestExpectation expects to be fulfilled exactly once, and will record an issue in the current test if it is not fulfilled or if it is fulfilled more than once. Confirmation behaves the same way and expects to be confirmed exactly once by default. You can configure the number of times an expectation should be fulfilled by setting its expectedFulfillmentCount property, and you can pass a value for the expectedCount argument of confirmation(_:expectedCount:isolation:sourceLocation:_:) for the same purpose.
+
+XCTestExpectation has a property, assertForOverFulfill, which when set to false allows an expectation to be fulfilled more times than expected without causing a test failure. When using a confirmation, you can pass a range to confirmation(_:expectedCount:isolation:sourceLocation:_:) as its expected count to indicate that it must be confirmed at least some number of times:
+
+// Before
+func testRegularCustomerOrders() async {
+  let soldFood = expectation(description: "…")
+  soldFood.expectedFulfillmentCount = 10
+  soldFood.assertForOverFulfill = false
+  FoodTruck.shared.eventHandler = { event in
+    if case .soldFood = event {
+      soldFood.fulfill()
+    }
+  }
+  for customer in regularCustomers() {
+    await customer.buy(customer.regularOrder)
+  }
+  await fulfillment(of: [soldFood])
+  ...
+}
+
+// After
+@Test func regularCustomerOrders() async {
+  await confirmation(
+    "…",
+    expectedCount: 10...
+  ) { soldFood in
+    FoodTruck.shared.eventHandler = { event in
+      if case .soldFood = event {
+        soldFood()
+      }
+    }
+    for customer in regularCustomers() {
+      await customer.buy(customer.regularOrder)
+    }
+  }
+  ...
+}
+
+
+Any range expression with a lower bound (that is, whose type conforms to both RangeExpression<Int> and Sequence<Int>) can be used with confirmation(_:expectedCount:isolation:sourceLocation:_:). You must specify a lower bound for the number of confirmations because, without one, the testing library cannot tell if an issue should be recorded when there have been zero confirmations.
+
+Control whether a test runs
+
+When using XCTest, the XCTSkip error type can be thrown to bypass the remainder of a test function. As well, the XCTSkipIf() and XCTSkipUnless() functions can be used to conditionalize the same action. The testing library allows developers to skip a test function or an entire test suite before it starts running using the ConditionTrait trait type. Annotate a test suite or test function with an instance of this trait type to control whether it runs:
+
+// Before
+class FoodTruckTests: XCTestCase {
+  func testArepasAreTasty() throws {
+    try XCTSkipIf(CashRegister.isEmpty)
+    try XCTSkipUnless(FoodTruck.sells(.arepas))
+    ...
+  }
+  ...
+}
+
+// After
+@Suite(.disabled(if: CashRegister.isEmpty))
+struct FoodTruckTests {
+  @Test(.enabled(if: FoodTruck.sells(.arepas)))
+  func arepasAreTasty() {
+    ...
+  }
+  ...
+}
+
+Annotate known issues
+
+A test may have a known issue that sometimes or always prevents it from passing. When written using XCTest, such tests can call XCTExpectFailure(_:options:failingBlock:) to tell XCTest and its infrastructure that the issue shouldn't cause the test to fail. The testing library has an equivalent function with synchronous and asynchronous variants:
+
+withKnownIssue(_:isIntermittent:sourceLocation:_:)
+
+withKnownIssue(_:isIntermittent:isolation:sourceLocation:_:)
+
+This function can be used to annotate a section of a test as having a known issue:
+
+// Before
+func testGrillWorks() async {
+  XCTExpectFailure("Grill is out of fuel") {
+    try FoodTruck.shared.grill.start()
+  }
+  ...
+}
+
+// After
+@Test func grillWorks() async {
+  withKnownIssue("Grill is out of fuel") {
+    try FoodTruck.shared.grill.start()
+  }
+  ...
+}
+
+
+Note
+
+The XCTest function XCTExpectFailure(_:options:), which doesn't take a closure and which affects the remainder of the test, doesn't have a direct equivalent in the testing library. To mark an entire test as having a known issue, wrap its body in a call to withKnownIssue().
+
+If a test may fail intermittently, the call to XCTExpectFailure(_:options:failingBlock:) can be marked non-strict. When using the testing library, specify that the known issue is intermittent instead:
+
+// Before
+func testGrillWorks() async {
+  XCTExpectFailure(
+    "Grill may need fuel",
+    options: .nonStrict()
+  ) {
+    try FoodTruck.shared.grill.start()
+  }
+  ...
+}
+
+// After
+@Test func grillWorks() async {
+  withKnownIssue(
+    "Grill may need fuel", 
+    isIntermittent: true
+  ) {
+    try FoodTruck.shared.grill.start()
+  }
+  ...
+}
+
+
+Additional options can be specified when calling XCTExpectFailure():
+
+isEnabled can be set to false to skip known-issue matching (for instance, if a particular issue only occurs under certain conditions)
+
+issueMatcher can be set to a closure to allow marking only certain issues as known and to allow other issues to be recorded as test failures
+
+The testing library includes overloads of withKnownIssue() that take additional arguments with similar behavior:
+
+withKnownIssue(_:isIntermittent:sourceLocation:_:when:matching:)
+
+withKnownIssue(_:isIntermittent:isolation:sourceLocation:_:when:matching:)
+
+To conditionally enable known-issue matching or to match only certain kinds of issues:
+
+// Before
+func testGrillWorks() async {
+  let options = XCTExpectedFailure.Options()
+  options.isEnabled = FoodTruck.shared.hasGrill
+  options.issueMatcher = { issue in
+    issue.type == thrownError
+  }
+  XCTExpectFailure(
+    "Grill is out of fuel",
+    options: options
+  ) {
+    try FoodTruck.shared.grill.start()
+  }
+  ...
+}
+
+// After
+@Test func grillWorks() async {
+  withKnownIssue("Grill is out of fuel") {
+    try FoodTruck.shared.grill.start()
+  } when: {
+    FoodTruck.shared.hasGrill
+  } matching: { issue in
+    issue.error != nil 
+  }
+  ...
+}
+
+Run tests sequentially
+
+By default, the testing library runs all tests in a suite in parallel. The default behavior of XCTest is to run each test in a suite sequentially. If your tests use shared state such as global variables, you may see unexpected behavior including unreliable test outcomes when you run tests in parallel.
+
+Annotate your test suite with serialized to run tests within that suite serially:
+
+// Before
+class RefrigeratorTests : XCTestCase {
+  func testLightComesOn() throws {
+    try FoodTruck.shared.refrigerator.openDoor()
+    XCTAssertEqual(FoodTruck.shared.refrigerator.lightState, .on)
+  }
+  
+  func testLightGoesOut() throws {
+    try FoodTruck.shared.refrigerator.openDoor()
+    try FoodTruck.shared.refrigerator.closeDoor()
+    XCTAssertEqual(FoodTruck.shared.refrigerator.lightState, .off)
+  }
+}
+
+// After
+@Suite(.serialized)
+class RefrigeratorTests {
+  @Test func lightComesOn() throws {
+    try FoodTruck.shared.refrigerator.openDoor()
+    #expect(FoodTruck.shared.refrigerator.lightState == .on)
+  }
+  
+  @Test func lightGoesOut() throws {
+    try FoodTruck.shared.refrigerator.openDoor()
+    try FoodTruck.shared.refrigerator.closeDoor()
+    #expect(FoodTruck.shared.refrigerator.lightState == .off)
+  }
+}
+
+
+For more information, see Running tests serially or in parallel.
+
+Attach values
+
+In XCTest, you can create an instance of XCTAttachment representing arbitrary data, files, property lists, encodable objects, images, and other types of information that would be useful to have available if a test fails. Swift Testing has an Attachment type that serves much the same purpose.
+
+To attach a value from a test to the output of a test run, that value must conform to the Attachable protocol. The testing library provides default conformances for various standard library and Foundation types.
+
+If you want to attach a value of another type, and that type already conforms to Encodable or to NSSecureCoding, the testing library automatically provides a default implementation when you import Foundation:
+
+// Before
+import Foundation
+
+
+class Tortilla: NSSecureCoding { /* ... */ }
+
+
+func testTortillaIntegrity() async {
+  let tortilla = Tortilla(diameter: .large)
+  ...
+  let attachment = XCTAttachment(
+    archivableObject: tortilla
+  )
+  self.add(attachment)
+}
+
+// After
+import Foundation
+
+
+struct Tortilla: Codable, Attachable { /* ... */ }
+
+
+@Test func tortillaIntegrity() async {
+  let tortilla = Tortilla(diameter: .large)
+  ...
+  Attachment.record(tortilla)
+}
+
+
+If you have a type that does not (or cannot) conform to Encodable or NSSecureCoding, or if you want fine-grained control over how it is serialized when attaching it to a test, you can provide your own implementation of withUnsafeBytes(for:_:).
+
+See Also
+Related Documentation
+Defining test functions
+Define a test function to validate that code is working correctly.
+Organizing test functions with suite types
+Organize tests into test suites.
+Expectations and confirmations
+Check for expected values, outcomes, and asynchronous events in tests.
+Known issues
+Mark issues as known when running tests.
+Essentials
+Defining test functions
+Define a test function to validate that code is working correctly.
+Organizing test functions with suite types
+Organize tests into test suites.
+macro Test(String?, any TestTrait...)
+Declare a test.
+struct Test
+A type representing a test or suite.
+macro Suite(String?, any SuiteTrait...)
+Declare a test suite.
+--- END FILE ---
+
+--- FILE: CB-CM-API-AVAILABLE.md ---
+# CB_CM_API_AVAILABLE
+
+## Availability
+
+- **iOS** 5.0+
+- **iPadOS** 5.0+
+- **Mac Catalyst** 13.0+
+- **macOS** 10.10+
+- **tvOS** 9.0+
+- **visionOS** 1.0+
+- **watchOS** 4.0+
+
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.corebluetooth/documentation/CoreBluetooth/CB_CM_API_AVAILABLE](https://developer.apple.com/documentation/com.apple.corebluetooth/documentation/CoreBluetooth/CB_CM_API_AVAILABLE)*
+--- END FILE ---
+
+--- FILE: CMFallDetectionManager.md ---
+# CMFallDetectionManager
+
+**An object for managing fall detection events.**
+
+## Availability
+
+- **watchOS** 7.2+
+
+
+## Overview
+
+In Series 4 and later, Apple Watch can detect when a wearer falls, and contact emergency services if necessary. Using the `CMFallDetectionManager`, your app can request the user’s authorization, and set up a delegate to receive notifications about these *fall detection events*. For more information, see [https://support.apple.com/en-us/HT208944](https://support.apple.com/en-us/HT208944).
+
+
+> **IMPORTANT**:  To use this API, you must include the [doc://com.apple.documentation/documentation/BundleResources/Information-Property-List/NSFallDetectionUsageDescription](https://developer.apple.com/documentation/BundleResources/Information-Property-List/NSFallDetectionUsageDescription) key in your app’s `Info.plist` file and provide a usage description string for the key. The description appears in the prompt that the user receives when the system asks to access fall detection data for your app. If you don’t include a usage description string, your app crashes when you call this API.
+
+
+`CMFallDetectionManager` requires an entitlement from Apple. To apply for the entitlement, see [https://developer.apple.com/contact/request/fall-detection-api](https://developer.apple.com/contact/request/fall-detection-api). This entitlement allows the app to run in the background without requiring any additional capabilities. However, you can add capabilities for other background modes, as needed by your app.
+
+There are two approaches to detecting falls in your app. You can either query for [doc://com.apple.documentation/documentation/HealthKit/HKQuantityTypeIdentifier/numberOfTimesFallen](https://developer.apple.com/documentation/HealthKit/HKQuantityTypeIdentifier/numberOfTimesFallen) samples in HealthKit, or you can use Core Motion’s `CMFallDetectionManager`.
+
+
+### Detect and Respond to Falls
+
+The Core Motion fall detection manager is particularly useful for apps that need to respond to falls in a timely manner so that the app can provide help to the person who fell.
+
+The fall detection manager:
+
+- Notifies the app in real time
+
+- Notifies the app of all fall events
+
+- Provides background runtime so that your app can respond to the fall
+
+
+### Detect and Monitor Falls Over Time
+
+The HealthKit sample is particularly useful for apps that monitor falls over longer time periods, because there can be a delay between the fall event and HealthKit updating its samples.
+
+HealthKit provides:
+
+- Samples that are available on all devices that can access the person’s HealthKit data—not just the device that detected the fall
+
+- Samples for falls where the person who fell confirmed the fall, or the system escalated the fall to emergency services. If the person who fell dismisses the fall alert, HealthKit doesn’t record the fall.
+
+
+### Create the Manager
+
+To receive fall detection notifications, ensure that the feature is available on the current device. If the feature is available, create the manager and set its delegate.
+
+```swift
+if CMFallDetectionManager.isAvailable  {
+    
+    // Create the manager.
+    let manager = CMFallDetectionManager()
+    
+    // Assign a delegate that adopts the CMFallDetectionDelegte protocol.
+    manager.delegate = myDelegate
+    
+    // Keep a reference to the manager.
+    myManager = manager
+}
+```
+
+Set the delegate as early as possible, ideally in your extension delegate’s [doc://com.apple.documentation/documentation/WatchKit/WKExtensionDelegate/applicationDidFinishLaunching()](https://developer.apple.com/documentation/WatchKit/WKExtensionDelegate/applicationDidFinishLaunching()) method. The system may not instantiate your app’s user interface when launching your app in the background, so you can’t set the delegate from your user interface code, such as when an interface controller activates, or in response to a change in SwiftUI’s [doc://com.apple.documentation/documentation/SwiftUI/ScenePhase](https://developer.apple.com/documentation/SwiftUI/ScenePhase) state.
+
+
+> **IMPORTANT**:  Create only a single instance of the detection manager. Store the manager in a variable so you can access it later. Be sure to use a variable that remains in memory throughout your app’s lifetime—for example, add the variable to your extension delegate.
+
+
+
+### Request User Authorization
+
+After your user interface loads, check if you previously requested approval. If you haven’t, call [doc://com.apple.coremotion/documentation/CoreMotion/CMFallDetectionManager/requestAuthorization(handler:)](https://developer.apple.com/documentation/CoreMotion/CMFallDetectionManager/requestAuthorization(handler:)) to initiate a request.
+
+```swift
+// Check to see if you have already asked the user to
+// authorize fall detection event notifications.
+if myManager?.authorizationStatus == .notDetermined {
+    
+    // Request Authorization.
+    myManager?.requestAuthorization { (authorizationStatus) in
+        
+        // Respond to the authorization status.
+    }
+}
+```
+
+Your delegate only receives fall detection event notifications if the user authorizes your app. The user can change your app’s authorization state at any time from Settings > Privacy > Fall Detection.
+
+After you set the delegate and the user grants authorization, your app checks for recent fall events. If the system finds an event, it calls your delegate’s [doc://com.apple.coremotion/documentation/CoreMotion/CMFallDetectionDelegate/fallDetectionManager(_:didDetect:completionHandler:)](https://developer.apple.com/documentation/CoreMotion/CMFallDetectionDelegate/fallDetectionManager(_:didDetect:completionHandler:)) method and passes the most recent event. On subsequent launches, as long as your app remains authorized and the system has detected a recent fall event, the system calls `fallDetectionManager(_:didDetect:completionHandler:)` as soon as you set the delegate.
+
+The system also wakes your app in the background to respond to any new fall detection events. The system only gives your app a short amount of time to respond to the event and call the completion handler. If the app exceeds the allotted time, the system may suspend it.
+
+## Topics
+
+### Checking Availability
+
+- [isAvailable](https://developer.apple.com/documentation/coremotion/cmfalldetectionmanager/isavailable) — A Boolean value that indicates whether the current device supports fall detection.
+### Requesting Authorization
+
+- [requestAuthorization(handler:)](https://developer.apple.com/documentation/coremotion/cmfalldetectionmanager/requestauthorization(handler:)) — Requests authorization to receive notifications about fall detection events.
+- [authorizationStatus](https://developer.apple.com/documentation/coremotion/cmfalldetectionmanager/authorizationstatus) — The authorization status for receiving fall detection event notifications.
+- [CMAuthorizationStatus](https://developer.apple.com/documentation/coremotion/cmauthorizationstatus) — The authorization status for motion-related features.
+### Handling Events
+
+- [delegate](https://developer.apple.com/documentation/coremotion/cmfalldetectionmanager/delegate) — A delegate that can receive notifications about fall detection events.
+- [CMFallDetectionDelegate](https://developer.apple.com/documentation/coremotion/cmfalldetectiondelegate) — A delegate that receives information about fall detection events and authorization status changes.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.coremotion/documentation/CoreMotion/CMFallDetectionManager](https://developer.apple.com/documentation/com.apple.coremotion/documentation/CoreMotion/CMFallDetectionManager)*
+--- END FILE ---
+
+--- FILE: Advanced-Commerce-API.md ---
+# Advanced Commerce API
+
+**Support In-App Purchases through the App Store for exceptionally large catalogs of custom one-time purchases, subscriptions, and subscriptions with optional add-ons.**
+
+## Availability
+
+- **Advanced Commerce API** 1.0+
+
+
+## Overview
+
+Use this framework to offer an exceptionally large catalog of one-time purchases, subscriptions, and subscriptions with optional add-ons while using the App Store commerce system. Apps that use this API host and manage their own catalog of In-App Purchases, or SKUs. The App Store commerce system handles the end-to-end payment processing, global distribution, tax support, and customer service.
+
+You can use the Advanced Commerce API and the StoreKit [doc://com.apple.documentation/documentation/StoreKit/in-app-purchase](https://developer.apple.com/documentation/StoreKit/in-app-purchase) API in the same app. Both APIs use the App Store commerce system, including the same signed JWS transactions and JWS renewal info. For products that you offer using the In-App Purchase API, you set up product identifiers in App Store Connect. For products that you offer using the Advanced Commerce API, you host and manage your own catalog of SKUs and add product details dynamically at runtime. For complete setup information, see [doc://com.apple.advancedcommerceapi/documentation/AdvancedCommerceAPI/setting-up-your-project-for-advanced-commerce](https://developer.apple.com/documentation/AdvancedCommerceAPI/setting-up-your-project-for-advanced-commerce).
+
+Advanced Commerce API features are available through requests you make using StoreKit in your app and endpoint requests from your server. To authorize these requests, you generate JSON Web Tokens (JWTs). The App Store Server Library provides a client that makes it easier to create JWTs to authorize calls. For more information about the library, see [doc://com.apple.documentation/documentation/AppStoreServerAPI/simplifying-your-implementation-by-using-the-app-store-server-library](https://developer.apple.com/documentation/AppStoreServerAPI/simplifying-your-implementation-by-using-the-app-store-server-library). For more information about authorizing calls, see  [doc://com.apple.advancedcommerceapi/documentation/AdvancedCommerceAPI/authorizing-server-calls](https://developer.apple.com/documentation/AdvancedCommerceAPI/authorizing-server-calls).
+
+Your server must support the Transport Layer Security (TLS) protocol 1.2 or later to call the Advanced Commerce API.
+
+
+> **IMPORTANT**: To learn more about eligiblity and apply for access to the Advanced Commerce API, see [https://developer.apple.com/in-app-purchase/advanced-commerce-api/](https://developer.apple.com/in-app-purchase/advanced-commerce-api/).
+
+
+## Topics
+
+### Essentials
+
+- [Setting up your project for Advanced Commerce API](https://developer.apple.com/documentation/advancedcommerceapi/setting-up-your-project-for-advanced-commerce) — Configure your app in App Store Connect, set up your server, and prepare your SKUs.
+- [Creating SKUs for your In-App Purchases](https://developer.apple.com/documentation/advancedcommerceapi/creating-your-purchases) — Define and manage one-time charges, subscriptions, and bundled subscriptions within your app.
+- [Setting up a link to manage subscriptions](https://developer.apple.com/documentation/advancedcommerceapi/setupmanagesubscriptions) — Create a deep link to a subscription-management page for your app.
+- [Advanced Commerce API changelog](https://developer.apple.com/documentation/advancedcommerceapi/changelog) — Learn about new features and updates in the Advanced Commerce API.
+### Tax codes and pricing
+
+- [Specifying prices for Advanced Commerce SKUs](https://developer.apple.com/documentation/advancedcommerceapi/prices) — Provide prices for SKUs with the supported number of decimal places, in milliunits of currency.
+- [Choosing tax codes for your SKUs](https://developer.apple.com/documentation/advancedcommerceapi/taxcodes) — Select a tax code for each SKU that represents a product your app offers as an in-app purchase.
+- [Handling subscription price changes](https://developer.apple.com/documentation/advancedcommerceapi/handling-subscription-price-changes) — Provide necessary customer communications to notify and gather applicable consent before you initiate a price change.
+### API authorization and rate limits
+
+- [Authorizing API requests from your server](https://developer.apple.com/documentation/advancedcommerceapi/authorizing-server-calls) — Create JSON Web Tokens (JWTs) to authorize Advanced Commerce requests from your server.
+- [Identifying rate limits for Advanced Commerce APIs](https://developer.apple.com/documentation/advancedcommerceapi/ratelimits) — Recognize and handle the rate limits that apply to Advanced Commerce API endpoints.
+### In-app API requests
+
+- [Sending Advanced Commerce API requests from your app](https://developer.apple.com/documentation/StoreKit/sending-advanced-commerce-api-requests-from-your-app) — Send Advanced Commerce API requests from your app that you authorize with a JSON Web Signature (JWS) you generate on your server.
+- [Generating JWS to sign App Store requests](https://developer.apple.com/documentation/StoreKit/generating-jws-to-sign-app-store-requests) — Create signed JSON Web Signature (JWS) strings on your server to authorize your API requests in your app.
+### One-time charge creation in the app
+
+- [OneTimeChargeCreateRequest](https://developer.apple.com/documentation/advancedcommerceapi/onetimechargecreaterequest) — The request data your app provides when a customer purchases a one-time-charge product.
+- [OneTimeChargeItem](https://developer.apple.com/documentation/advancedcommerceapi/onetimechargeitem) — The details of a one-time charge product, including its display name, price, SKU, and metadata.
+### Subscription creation in the app
+
+- [SubscriptionCreateRequest](https://developer.apple.com/documentation/advancedcommerceapi/subscriptioncreaterequest) — The request data your app provides when a customer purchases an auto-renewable subscription.
+- [SubscriptionCreateItem](https://developer.apple.com/documentation/advancedcommerceapi/subscriptioncreateitem) — The data that describes a subscription item.
+### Subscription modification in the app
+
+- [SubscriptionModifyInAppRequest](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionmodifyinapprequest) — The request data your app provides to make changes to an auto-renewable subscription.
+- [SubscriptionModifyAddItem](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionmodifyadditem) — The data your app provides to add items when it makes changes to an auto-renewable subscription.
+- [SubscriptionModifyChangeItem](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionmodifychangeitem) — The data your app provides to change an item of an auto-renewable subscription.
+- [SubscriptionModifyRemoveItem](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionmodifyremoveitem) — The data your app provides to remove an item from an auto-renewable subscription.
+- [SubscriptionModifyPeriodChange](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionmodifyperiodchange) — The data your app provides to change the period of an auto-renewable subscription.
+### Subscription reactivation in the app
+
+- [SubscriptionReactivateInAppRequest](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionreactivateinapprequest) — The request your app provides to reactivate a subscription that has automatic renewal turned off.
+- [SubscriptionReactivateItem](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionreactivateitem) — An item in a subscription to reactive.
+### Subscription price change from the server
+
+- [Change Subscription Price](https://developer.apple.com/documentation/advancedcommerceapi/change-subscription-price) — Increase or decrease the price of an auto-renewable subscription, a bundle, or individual items within a subscription at the next renewal.
+- [SubscriptionPriceChangeRequest](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionpricechangerequest) — The request body you use to change the price of an auto-renewable subscription.
+- [SubscriptionPriceChangeResponse](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionpricechangeresponse) — A response that contains signed JWS renewal and JWS transaction information after a subscription price change request.
+### Subscription cancellation from the server
+
+- [Cancel a Subscription](https://developer.apple.com/documentation/advancedcommerceapi/cancel-a-subscription) — Turn off automatic renewal to cancel a customer’s auto-renewable subscription.
+- [SubscriptionCancelRequest](https://developer.apple.com/documentation/advancedcommerceapi/subscriptioncancelrequest) — The request body for turning off automatic renewal of a subscription.
+- [SubscriptionCancelResponse](https://developer.apple.com/documentation/advancedcommerceapi/subscriptioncancelresponse) — The response body for a successful subscription cancellation.
+### Subscription revocation from the server
+
+- [Revoke Subscription](https://developer.apple.com/documentation/advancedcommerceapi/revoke-subscription) — Immediately cancel a customer’s subscription and all the items that are included in the subscription, and request a full or prorated refund.
+- [SubscriptionRevokeRequest](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionrevokerequest) — The request body you provide to terminate a subscription and all its items immediately.
+- [SubscriptionRevokeResponse](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionrevokeresponse) — The response body for a successful revoke-subscription request.
+### Refund request from the server
+
+- [Request Transaction Refund](https://developer.apple.com/documentation/advancedcommerceapi/request-transaction-refund) — Request a refund for a one-time charge or subscription transaction.
+- [RequestRefundRequest](https://developer.apple.com/documentation/advancedcommerceapi/requestrefundrequest) — The request body for requesting a refund for a transaction.
+- [RequestRefundResponse](https://developer.apple.com/documentation/advancedcommerceapi/requestrefundresponse) — The response body for a transaction refund request.
+- [RequestRefundItem](https://developer.apple.com/documentation/advancedcommerceapi/requestrefunditem) — Information about the refund request for an item, such as its SKU, the refund amount, reason, and type.
+### Subscription metadata changes from the server
+
+- [Change Subscription Metadata](https://developer.apple.com/documentation/advancedcommerceapi/change-subscription-metadata) — Update the SKU, display name, and description associated with a subscription, without affecting the subscription’s billing or its service.
+- [SubscriptionChangeMetadataRequest](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionchangemetadatarequest) — The request body you provide to change the metadata of a subscription.
+- [SubscriptionChangeMetadataResponse](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionchangemetadataresponse) — The response body for a successful subscription metadata change.
+- [SubscriptionChangeMetadataDescriptors](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionchangemetadatadescriptors) — The subscription metadata to change, specifically the description and display name.
+- [SubscriptionChangeMetadataItem](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionchangemetadataitem) — The metadata to change for an item, specifically its SKU, description, and display name.
+### Migration from the server
+
+- [Migrate a Subscription to Advanced Commerce API](https://developer.apple.com/documentation/advancedcommerceapi/migrate-subscription-to-advanced-commerce-api) — Migrate a subscription that a customer purchased through In-App Purchase to a subscription you manage using the Advanced Commerce API.
+- [SubscriptionMigrateRequest](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionmigraterequest) — The subscription details you provide to migrate a subscription from In-App Purchase to the Advanced Commerce API, such as descriptors, items, storefront, and more.
+- [SubscriptionMigrateResponse](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionmigrateresponse) — A response that contains signed renewal and transaction information after a subscription successfully migrates to the Advanced Commerce API.
+- [SubscriptionMigrateItem](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionmigrateitem) — The SKU, description, and display name to use for a migrated subscription item.
+- [SubscriptionMigrateRenewalItem](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionmigraterenewalitem) — The item information that replaces a migrated subscription item when the subscription renews.
+- [SubscriptionMigrateDescriptors](https://developer.apple.com/documentation/advancedcommerceapi/subscriptionmigratedescriptors) — The description and display name of the subscription to migrate to that you manage.
+### Objects and types
+
+- [Data types](https://developer.apple.com/documentation/advancedcommerceapi/datatypes) — Objects and data types for the Advanced Commerce API.
+### Signed transaction information
+
+- [JWSRenewalInfo](https://developer.apple.com/documentation/advancedcommerceapi/jwsrenewalinfo) — Subscription renewal information signed by the App Store, in JSON Web Signature (JWS) format.
+- [JWSTransaction](https://developer.apple.com/documentation/advancedcommerceapi/jwstransaction) — Transaction information signed by the App Store, in JSON Web Signature (JWS) Compact Serialization format.
+### Error handling
+
+- [Error messages and codes](https://developer.apple.com/documentation/advancedcommerceapi/errorcodes) — Error messages and codes for the Advanced Commerce API.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.advancedcommerceapi/documentation/AdvancedCommerceAPI](https://developer.apple.com/documentation/com.apple.advancedcommerceapi/documentation/AdvancedCommerceAPI)*
+--- END FILE ---
+
+--- FILE: App-Store-Connect-API.md ---
+# App Store Connect API
+
+**Automate the tasks you perform on the Apple Developer website and in App Store Connect.**
+
+## Availability
+
+- **App Store Connect API** 1.0+
+
+
+## Overview
+
+The App Store Connect API is a REST API that enables the automation of actions you take in App Store Connect. Click [https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip](https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip) to download the specification file.
+
+Calls to the API require JSON Web Tokens (JWT) for authorization; you obtain keys to create the tokens from your organization’s App Store Connect account. See [doc://com.apple.appstoreconnectapi/documentation/AppStoreConnectAPI/creating-api-keys-for-app-store-connect-api](https://developer.apple.com/documentation/AppStoreConnectAPI/creating-api-keys-for-app-store-connect-api) to create your keys and tokens.
+
+
+> **IMPORTANT**:  Changes you make using the App Store Connect API affect the production data you use for development and distribution.
+
+
+The API provides resources to automate these areas of App Store Connect:
+
+- **In-App Purchases and Subscriptions.** Manage in-app purchases and auto-renewable subscriptions for your app.
+
+- **TestFlight.** Manage beta builds of your app, testers, and groups.
+
+- **Xcode Cloud.** Read Xcode Cloud data, manage workflows, and start builds.
+
+- **Users and Access.** Send invitations for users to join your team. Adjust their level of access or remove users.
+
+- **Provisioning.** Manage bundle IDs, capabilities, signing certificates, devices, and provisioning profiles.
+
+- **App Metadata.** Create new versions, manage App Store information, and submit your app to the App Store.
+
+- **App Clip Experiences.** Create an App Clip and manage App Clip experiences.
+
+- **Reporting.** Download sales and financial reports.
+
+- **Power and Performance Metrics.** Download aggregate metrics and diagnostics for App Store versions of your app.
+
+- **Customer Reviews and Review Responses.** Get the customer reviews for your app and manage your responses to the customer reviews.
+
+The App Store Connect API returns responses from resources that are consistent JSON data and contain links to additional related resources. Use these relationships to navigate to the related resources—for example, to find beta testers within specific beta groups in TestFlight. Apply filtering to requests on specific resources to refine the response.
+
+## Topics
+
+### Essentials
+
+- [Creating API Keys for App Store Connect API](https://developer.apple.com/documentation/appstoreconnectapi/creating-api-keys-for-app-store-connect-api) — Create API keys to sign JSON Web Tokens (JWTs) and authorize API requests.
+- [Generating Tokens for API Requests](https://developer.apple.com/documentation/appstoreconnectapi/generating-tokens-for-api-requests) — Create JSON Web Tokens (JWTs) signed with your private key to authorize API requests.
+- [Revoking API Keys](https://developer.apple.com/documentation/appstoreconnectapi/revoking-api-keys) — Revoke unused, lost, or compromised private keys.
+- [Identifying Rate Limits](https://developer.apple.com/documentation/appstoreconnectapi/identifying-rate-limits) — Recognize the rate limits that REST API responses provide and handle them in your code.
+- [Uploading Assets to App Store Connect](https://developer.apple.com/documentation/appstoreconnectapi/uploading-assets-to-app-store-connect) — Upload screenshots, app previews, attachments for App Review, and routing app coverage files to App Store Connect.
+- [App Store Connect API Release Notes](https://developer.apple.com/documentation/appstoreconnectapi/app-store-connect-api-release-notes) — Learn about new features and updates in the App Store Connect API.
+### App Store
+
+- [App Store](https://developer.apple.com/documentation/appstoreconnectapi/app-store) — Manage all aspects of your app, App Clips, in-app purchases, and customer reviews in the App Store.
+### TestFlight
+
+- [Prerelease Versions and Beta Testers](https://developer.apple.com/documentation/appstoreconnectapi/prerelease-versions-and-beta-testers) — Manage your beta testing program, including beta testers and groups, apps, App Clips, and builds.
+### Game Center
+
+- [Game Center](https://developer.apple.com/documentation/appstoreconnectapi/game-center) — Manage Game Center data and configurations for your apps.
+### Provisioning
+
+- [Bundle IDs](https://developer.apple.com/documentation/appstoreconnectapi/bundle-ids) — Manage the bundle IDs that uniquely identify your apps.
+- [Bundle ID Capabilities](https://developer.apple.com/documentation/appstoreconnectapi/bundle-id-capabilities) — Manage the app capabilities for a bundle ID.
+- [Certificates](https://developer.apple.com/documentation/appstoreconnectapi/certificates) — Create, download, and revoke signing certificates for app development and distribution.
+- [Devices](https://developer.apple.com/documentation/appstoreconnectapi/devices) — Register devices for development and testing.
+- [Profiles](https://developer.apple.com/documentation/appstoreconnectapi/profiles) — Create, delete, and download provisioning profiles that enable app installations for development and distribution.
+- [Merchant ID](https://developer.apple.com/documentation/appstoreconnectapi/merchantids) — Manage your merchant ID for Apple Pay.
+- [Pass type Ids](https://developer.apple.com/documentation/appstoreconnectapi/pass-type-id) — Create, download, and revoke pass type ids for app development and distribution.
+### Xcode Cloud
+
+- [Xcode Cloud Workflows and Builds](https://developer.apple.com/documentation/appstoreconnectapi/xcode-cloud-workflows-and-builds) — Automate reading Xcode Cloud data, managing workflows, and starting builds.
+### Webhooks
+
+- [Webhook notifications](https://developer.apple.com/documentation/appstoreconnectapi/webhook-notifications) — Manage notifications from App Store about your apps and their statuses.
+### Reporting
+
+- [Sales and Finance](https://developer.apple.com/documentation/appstoreconnectapi/sales-and-finance) — Download your sales and financial reports.
+- [Power and Performance Metrics and Logs](https://developer.apple.com/documentation/appstoreconnectapi/power-and-performance-metrics-and-logs) — Get power and performance metrics, logs, and signatures.
+- [Analytics](https://developer.apple.com/documentation/appstoreconnectapi/analytics) — Get data about your apps and usage.
+### Users and Access
+
+- [Users](https://developer.apple.com/documentation/appstoreconnectapi/users) — Manage users on your App Store Connect team.
+- [User Invitations](https://developer.apple.com/documentation/appstoreconnectapi/user-invitations) — Email invitations to join your App Store Connect team.
+- [Sandbox Testers](https://developer.apple.com/documentation/appstoreconnectapi/sandbox-testers) — Manage sandbox testers on your App Store Connect team.
+### Error Handling
+
+- [Interpreting and Handling Errors](https://developer.apple.com/documentation/appstoreconnectapi/interpreting-and-handling-errors) — Learn how the App Store Connect API returns errors and handle them in your code.
+### Paging
+
+- [Large Data Sets](https://developer.apple.com/documentation/appstoreconnectapi/large-data-sets) — Retrieve large data sets with paging information.
+### Alternative App Distribution
+
+- [Alternative Marketplaces and Web Distribution](https://developer.apple.com/documentation/appstoreconnectapi/alternative-marketplaces-and-web-distribution) — Manage keys, packages, and search for alternative app distribution.
+### Dictionaries
+
+- [CiBranchStartCondition](https://developer.apple.com/documentation/appstoreconnectapi/cibranchstartcondition) — Settings for a start condition that starts a build if a branch changes.
+- [CiFilesAndFoldersRule](https://developer.apple.com/documentation/appstoreconnectapi/cifilesandfoldersrule) — Settings Xcode Cloud uses to determine whether a change should start a new build or not.
+- [CiGitUser](https://developer.apple.com/documentation/appstoreconnectapi/cigituser) — The data structure that represents a Git Users resource.
+- [CiIssueCounts](https://developer.apple.com/documentation/appstoreconnectapi/ciissuecounts) — The data structure that represents an Issue Counts resource.
+- [CiPullRequestStartCondition](https://developer.apple.com/documentation/appstoreconnectapi/cipullrequeststartcondition) — Settings for a start condition that starts a build if a pull request changes.
+- [CiScheduledStartCondition](https://developer.apple.com/documentation/appstoreconnectapi/cischeduledstartcondition) — Settings for a start condition that starts a build based on a schedule.
+- [CiTagStartCondition](https://developer.apple.com/documentation/appstoreconnectapi/citagstartcondition) — Settings for a start condition that starts a build if a Git tag changes.
+- [CiTestDestination](https://developer.apple.com/documentation/appstoreconnectapi/citestdestination) — The test destination of a test action that Xcode Cloud performs.
+- [JsonPointer](https://developer.apple.com/documentation/appstoreconnectapi/jsonpointer) — An object that contains the JSON pointer that indicates the location of the error.
+- [Parameter](https://developer.apple.com/documentation/appstoreconnectapi/parameter) — An object that contains the query parameter that produced the error.
+### Type Aliases
+
+- [BuildAudienceType](https://developer.apple.com/documentation/appstoreconnectapi/buildaudiencetype) — A string that represents the App Store Connect audience for a build.
+- [CiActionType](https://developer.apple.com/documentation/appstoreconnectapi/ciactiontype) — A string that represents the type of an Xcode Cloud workflow’s action.
+- [CiCompletionStatus](https://developer.apple.com/documentation/appstoreconnectapi/cicompletionstatus) — A string that represents the completion status of an Xcode Cloud build.
+- [CiExecutionProgress](https://developer.apple.com/documentation/appstoreconnectapi/ciexecutionprogress) — A string that represents the progress of an ongoing Xcode Cloud build.
+- [CiTestDestinationKind](https://developer.apple.com/documentation/appstoreconnectapi/citestdestinationkind) — The string that represents the kind of a test destination.
+- [CiTestStatus](https://developer.apple.com/documentation/appstoreconnectapi/citeststatus) — A string that represents test status information.
+- [DiagnosticInsightDirection](https://developer.apple.com/documentation/appstoreconnectapi/diagnosticinsightdirection) — A string that describes the diagnostic insight direction.
+- [DiagnosticInsightType](https://developer.apple.com/documentation/appstoreconnectapi/diagnosticinsighttype) — A string that desribes the diagnostic insight type.
+- [GameCenterLeaderboardFormatter](https://developer.apple.com/documentation/appstoreconnectapi/gamecenterleaderboardformatter) — The values you can select to describe the format of a leaderboard.
+- [TerritoryCode](https://developer.apple.com/documentation/appstoreconnectapi/territorycode) — The App Store territory codes.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.appstoreconnectapi/documentation/AppStoreConnectAPI](https://developer.apple.com/documentation/com.apple.appstoreconnectapi/documentation/AppStoreConnectAPI)*
+--- END FILE ---
+
+--- FILE: App-Store-Server-Notifications.md ---
+# App Store Server Notifications
+
+**Monitor In-App Purchase events in real time and learn of unreported external purchase tokens, with server notifications from the App Store.**
+
+## Availability
+
+- **App Store Server Notifications** 1.0+
+
+
+## Overview
+
+App Store Server Notifications is a server-to-server service that sends real-time notifications for In-App Purchase events, and notifications for unreported external purchase tokens. Use the data in the notifications to update your user-account database, and to monitor and respond to in-app purchase refunds. For notifications related to the [doc://com.apple.documentation/documentation/StoreKit/external-purchase](https://developer.apple.com/documentation/StoreKit/external-purchase) API, see [doc://com.apple.appstoreservernotifications/documentation/AppStoreServerNotifications/externalPurchaseToken](https://developer.apple.com/documentation/AppStoreServerNotifications/externalPurchaseToken).
+
+
+> **IMPORTANT**:  The [doc://com.apple.appstoreservernotifications/documentation/AppStoreServerNotifications/App-Store-Server-Notifications-V1](https://developer.apple.com/documentation/AppStoreServerNotifications/App-Store-Server-Notifications-V1) endpoint and version 1 notifications, [doc://com.apple.appstoreservernotifications/documentation/AppStoreServerNotifications/notification_type](https://developer.apple.com/documentation/AppStoreServerNotifications/notification_type), are deprecated. Implement the [doc://com.apple.appstoreservernotifications/documentation/AppStoreServerNotifications/App-Store-Server-Notifications-V2](https://developer.apple.com/documentation/AppStoreServerNotifications/App-Store-Server-Notifications-V2) endpoint on your server to receive version 2 notifications instead.
+
+
+To receive server notifications from the App Store, provide your server’s HTTPS URL in App Store Connect. Opt in to receive notifications for the production environment and the sandbox environment. For more information, see [doc://com.apple.appstoreservernotifications/documentation/AppStoreServerNotifications/enabling-app-store-server-notifications](https://developer.apple.com/documentation/AppStoreServerNotifications/enabling-app-store-server-notifications).
+
+Your server is responsible for parsing, interpreting, and responding to all server-to-server notification posts. For more information, see [doc://com.apple.appstoreservernotifications/documentation/AppStoreServerNotifications/receiving-app-store-server-notifications](https://developer.apple.com/documentation/AppStoreServerNotifications/receiving-app-store-server-notifications) and [doc://com.apple.appstoreservernotifications/documentation/AppStoreServerNotifications/responding-to-app-store-server-notifications](https://developer.apple.com/documentation/AppStoreServerNotifications/responding-to-app-store-server-notifications).
+
+
+### Process in-app purchase notifications
+
+Notifications cover events in the in-app purchase life cycle, including purchases, subscription renewals, offer redemptions, refunds, and more. For a complete list of notification types, see [doc://com.apple.appstoreservernotifications/documentation/AppStoreServerNotifications/notificationType](https://developer.apple.com/documentation/AppStoreServerNotifications/notificationType) for [doc://com.apple.appstoreservernotifications/documentation/AppStoreServerNotifications/App-Store-Server-Notifications-V2](https://developer.apple.com/documentation/AppStoreServerNotifications/App-Store-Server-Notifications-V2).
+
+Use the notification type, along with the transaction and subscription renewal information, to update a customer’s service or to present promotional offers according to your business logic.
+
+
+### Process external purchase token notifications
+
+A [doc://com.apple.appstoreservernotifications/documentation/AppStoreServerNotifications/notificationType](https://developer.apple.com/documentation/AppStoreServerNotifications/notificationType) of `EXTERNAL_PURCHASE_TOKEN` with an `UNREPORTED` [doc://com.apple.appstoreservernotifications/documentation/AppStoreServerNotifications/subtype](https://developer.apple.com/documentation/AppStoreServerNotifications/subtype) indicates that Apple generated an external purchase token for your app but hasn’t received a report for the token. The notification includes the token in the [doc://com.apple.appstoreservernotifications/documentation/AppStoreServerNotifications/externalPurchaseToken](https://developer.apple.com/documentation/AppStoreServerNotifications/externalPurchaseToken) field of the [doc://com.apple.appstoreservernotifications/documentation/AppStoreServerNotifications/responseBodyV2DecodedPayload](https://developer.apple.com/documentation/AppStoreServerNotifications/responseBodyV2DecodedPayload). Use the token information to report it to Apple, including if you don’t recognize the token in your system. To report tokens, with or without associated transactions, call the [doc://com.apple.documentation/documentation/ExternalPurchaseServerAPI](https://developer.apple.com/documentation/ExternalPurchaseServerAPI)’s [doc://com.apple.documentation/documentation/ExternalPurchaseServerAPI/Send-External-Purchase-Report](https://developer.apple.com/documentation/ExternalPurchaseServerAPI/Send-External-Purchase-Report) endpoint.
+
+For more information about token reporting requirements, see [https://developer.apple.com/support/apps-using-alternative-payment-providers-in-the-eu/](https://developer.apple.com/support/apps-using-alternative-payment-providers-in-the-eu/).
+
+
+### Test your server setup
+
+To determine whether your server is receiving notifications, call the [doc://com.apple.documentation/documentation/AppStoreServerAPI/Request-a-Test-Notification](https://developer.apple.com/documentation/AppStoreServerAPI/Request-a-Test-Notification) endpoint in the [doc://com.apple.documentation/documentation/AppStoreServerAPI](https://developer.apple.com/documentation/AppStoreServerAPI) to ask the App Store server to send a notification with the [doc://com.apple.appstoreservernotifications/documentation/AppStoreServerNotifications/notificationType](https://developer.apple.com/documentation/AppStoreServerNotifications/notificationType) `TEST`. Use the `testNotificationToken` you receive to call the [doc://com.apple.documentation/documentation/AppStoreServerAPI/Get-Test-Notification-Status](https://developer.apple.com/documentation/AppStoreServerAPI/Get-Test-Notification-Status) endpoint to learn how your server responds to the test notification.
+
+The App Store server sends the `TEST` notification in the version 2 notification format, however, it sends it to your server regardless of whether you configure a version 1 or version 2 notification URL in App Store Connect. For more information about configuring your URL in App Store Connect, see [https://help.apple.com/app-store-connect/#/dev0067a330b](https://help.apple.com/app-store-connect/#/dev0067a330b).
+
+## Topics
+
+### Essentials
+
+- [Enabling App Store Server Notifications](https://developer.apple.com/documentation/appstoreservernotifications/enabling-app-store-server-notifications) — Configure your server and provide an HTTPS URL to receive notifications about in-app purchase events and unreported external purchase tokens.
+- [Receiving App Store Server Notifications](https://developer.apple.com/documentation/appstoreservernotifications/receiving-app-store-server-notifications) — Implement server-side code to receive and parse notification posts.
+- [Responding to App Store Server Notifications](https://developer.apple.com/documentation/appstoreservernotifications/responding-to-app-store-server-notifications) — Send HTTP status codes to indicate the success of a notification post.
+- [App Store Server Notifications changelog](https://developer.apple.com/documentation/appstoreservernotifications/app-store-server-notifications-changelog) — Learn about changes to the App Store Server Notifications service.
+### Server notifications version 2
+
+- [App Store Server Notifications V2](https://developer.apple.com/documentation/appstoreservernotifications/app-store-server-notifications-v2) — Specify your secure server’s URL in App Store Connect to receive version 2 notifications.
+- [responseBodyV2](https://developer.apple.com/documentation/appstoreservernotifications/responsebodyv2) — The response body the App Store sends in a version 2 server notification.
+- [responseBodyV2DecodedPayload](https://developer.apple.com/documentation/appstoreservernotifications/responsebodyv2decodedpayload) — A decoded payload that contains the version 2 notification data.
+- [notificationType](https://developer.apple.com/documentation/appstoreservernotifications/notificationtype) — The type that describes the in-app purchase or external purchase event for which the App Store sends the version 2 notification.
+- [subtype](https://developer.apple.com/documentation/appstoreservernotifications/subtype) — A string that provides details about select notification types in version 2.
+### Deprecated
+
+- [App Store Server Notifications Version 1](https://developer.apple.com/documentation/appstoreservernotifications/app-store-server-notifications-version-1) — Receive, parse, and interpret App Store Server Notifications version 1.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.appstoreservernotifications/documentation/AppStoreServerNotifications](https://developer.apple.com/documentation/com.apple.appstoreservernotifications/documentation/AppStoreServerNotifications)*
+--- END FILE ---
+
+--- FILE: Explore-testing-in-app-purchases.md ---
+Hemant: Hi, I am Hemant, a Commerce Developer Advocate for the App Store. I'm excited to discuss App Store's tools to help you test and validate your in-app purchase experience. I'll cover benefits for each of these tools and when it's best to use which. I will also cover all the great new features we are introducing this year for testing in-app purchases. So let's get started. App Store offers three tools to help you test in-app purchases. There is StoreKit Testing in Xcode, where you can test in-app purchases locally, and then there's sandbox, which uses products you have set up in App Store Connect, and TestFlight for performing end-to-end beta testing and to gather feedback from testers. These tools are available to help you build, test, and optimize your app's in-app purchase experience. I'll briefly describe each of these tools to help you determine the appropriate tool for your in-app purchase testing.
+
+Starting with StoreKit Testing in Xcode. We introduced StoreKit Testing in Xcode at WWDC20. It enables you to test in-app purchases without setting up your products in App Store Connect. You can test your in-app purchases fully offline, without requiring a server. It provides you with the ability to create and manage your in-app purchases in the StoreKit configuration file. So you can test your code changes locally and in real-time. As you began your StoreKit integration, you can test your in-app purchase experience using simulator or a device. You can build automations to continuously test your in-app purchases by using a dedicated StoreKitTest framework. In addition, you can sync your in-app purchase products from App Store Connect to Xcode. This alleviates the need to set up a StoreKit configuration file manually. And you have ability to test advanced subscription use cases, such as offer code redemptions, price increase sheet, and subscriptions entering and exiting billing retry, all locally without having any dependency on a server. And one unique capability is the flexible subscription renewal rates, where you have option to choose a rate that fits your needs, from real-time to every two seconds. And now we have new options available with Xcode 15, giving you a set of renewal rates that are static and independent of the subscription duration. So a monthly product or annual product would renew at that same rate. You can simulate StoreKit errors that your app may encounter, which will help you build error handling into your app, errors such as if a product is not available for sale or if a user cancels the purchase. And now, if you are running multiple instances of your app, the transaction manager will display transactions for each app instance, allowing you to test on multiple devices. Transaction manager has added the ability to buy in-app purchases directly, all without opening your app, so you can test how your app handles external transactions. These new capabilities are available with Xcode 15. For more details, please see WWDC23 session "What's new in StoreKit 2 and StoreKit Testing in Xcode." Now, let's take a look at App Store sandbox. The App Store sandbox enables you to test and validate your end-to-end in-app purchase implementation on both client and server. This is important when building and qualifying your complete app experience and ensuring you are successfully delivering content to your users. To test in-app purchases in sandbox, your developer account needs to have a paid application agreement. You can test the app and in-app purchases on a registered device with your developer account. To make a purchase in sandbox, you'll first need to create a sandbox Apple ID in the Users and Access section of App Store Connect. To run your app on an iOS device running iOS 16 or greater, you will need to enable developer mode in Privacy Settings. The installed app is intended to be used for development and testing.
+
+Sandbox helps you validate your logic to handle production-like scenarios such as purchases, restores, and subscription offer and provides you confidence to launch your app in production. To test your app in sandbox, you need a device, and you can distribute your app using two options, such as you can tether your device to your Mac and download the app on the device or using either of the distribution method like Release Testing, Debugging, and Custom to generate an IPA file. These methods help you deliver the app for testing purposes to your teams without a need to provide source code. We have been listening to your feedback and we understand sandbox is important to you for testing the customer experience. We continue to improve sandbox and add new testing features, and this year, we added support to simulate scenarios around involuntary churn such as subscription billing problem messaging and billing grace period. Later this year, we are releasing support for testing Family Sharing in-app purchases, and we have added new options to the iOS sandbox Account Settings page. Let's deep-dive into all of these features. Billing problem message simulation is available to you in sandbox, and later this year, it will be presented to customers in production when they enter billing retry. Billing problem messaging helps customers to resolve the payment issue without leaving your app and stay subscribed to your content and service. The billing problem sheet uses StoreKit 2 message API with reason billingIssue. The StoreKit message API is displayed by default when the customer launches your app or brings it to the foreground. Your can choose to defer or suppress the message by implementing a message listener in views, where a billing problem sheet presentation might confuse the customer. You can simulate the message API reason billingIssue in sandbox to test how your app handles the message presentation. To learn more about implementing StoreKit 2 Message API, please see WWDC22 session "What's new with in-app purchase." Now, let's review the steps for simulating a billing problem message in sandbox. To test billing problem message, your sandbox Apple ID needs to be subscribed to an auto-renewable subscription with status active. Then you can simulate billing issue by navigating to your sandbox account settings page on device in App Store settings and disable the switch "Allow Purchases & Renewals." Disabling the switch will simulate billing issue for the Sandbox Apple ID, and the existing auto-renewable subscriptions will fail to renew as per the configured subscription renewal rate and will go into billing retry state. And when you navigate back to your app, App Store will send the billingIssue message once the subscription fails to renew, and the billing problem message will appear. When you tap the Continue button, it will open the iOS sandbox Account Settings page, and you can now toggle ON the "Allow Purchases & Renewals" switch to successfully renew the subscription. Once the subscription renews successfully, you will no longer get the billing problem message. This helps you simulate a customer recovering from billing issue without leaving your app when they update their payment method for their Apple ID. Enabling grace period allows customers to retain full access to your app's paid content and service while Apple attempts to collect the payment. This also helps you as a developer to avoid interruption to your paid days of service if an auto-renewable subscription is recovered within the grace period. To enable and simulate billing grace period in sandbox, navigate to your App Subscriptions section in App Store Connect. In the Billing Grace Period section, click "Set Up Billing Grace Period." This will open a dialog, which will allow you to configure billing grace period for your app. You can than select from available grace period durations. Remember, these durations apply to production only, so when testing in sandbox, the duration of billing retry and billing grace period are pre-set according to your sandbox account's renewal rate. You can also select the eligible subscriber for billing grace period and select the environment. You can choose to enable it first in sandbox or choose to enable in both sandbox and production, then click Confirm. You'll see your selection visible in App Store Connect. And now let's discuss Family Sharing. Family Sharing is a powerful tool that makes it easy for customers to share their digital purchases with their family members. Enabling Family Sharing for your auto-renewable subscriptions and non-consumable products can help you attract new customers, increase user engagement, and improve retention. We wanted to provide you with an ability to test Family Sharing in-app purchases in sandbox.
+
+To test Family Sharing in sandbox, you will need to log in to App Store Connect and navigate to the subscription or non-consumable products for which you need to enable Family Sharing. Then you will need to organize sandbox Family Sharing Members in App Store Connect. And lastly, make a purchase with your sandbox Apple ID which is enabled for Family Sharing. Let's walk through the testing details. Once you have enabled your in-app purchase product to be family-sharable, you can now navigate to "User and Access" section of App Store Connect, and there, you will see a new section labelled "Family Sharing." In that section, you will be able to organize and view your sandbox family members for a storefront. Let's illustrate what the in-app purchase experience looks like in sandbox. Here, you initiate a purchase on device, just like any other normal sandbox purchase. As Family Sharing is enabled, transactions will be created for each family member. Your app will now see these new transactions upon launch or in real-time from StoreKit. At this point, you can test your app logic to make sure it validates and entitles service for the transaction. Additionally, you can also simulate a family member losing access to the service. For that, on iOS sandbox Account Settings, tap Family Sharing. This will present you a view of all the family members in sandbox, and you can choose to stop Family Sharing. The Family Sharing in sandbox will allow you to verify and validate use cases such as: merchandising family-sharable products using isFamilySharable property of StoreKit. Validate your app logic to entitle service to a family member, for a new or existing purchase. Each family member can turn off sharing, enabling you to test when family members lose access to a previously shared purchase. For a scenario when a purchaser stops Family Sharing, you will be able to validate revoking access to services by using revocationDate available in JWSTransactions. And lastly, you will receive App Store Server Notifications for family members. To learn more about implementing Family Sharing, please see Tech Talk session "Explore Family Sharing for in-app purchases." Later this year, we are adding options to iOS sandbox Account Settings. The iOS sandbox Account Settings is available once you have made an initial in-app purchase in your sandbox app. Your signed-in sandbox account is visible in App Store settings. Scroll down this page to view your Sandbox Apple ID. When you tap on Sandbox Apple ID, a dialog appears. Tap the Manage button, and you'll navigate to your sandbox Account Settings. Later this year, you'll see three options, which were earlier available in App Store Connect and are now available to you on-device for testing. Now through the Account Settings page, you'll be to adjust subscription renewal rate, test interrupted purchases, and clear purchase history. When you tap on Renewal Rate, you can adjust the subscription renewal rate for your sandbox account. And you'll also be able to clear purchase history of the sandbox Apple ID, to refresh your sandbox Apple ID and re-test your use cases. Lastly, let's take a look at TestFlight. TestFlight helps you to test your app's end-to-end experience, distribute your apps, and gather feedback from a wider tester audience. This helps you to validate and improve your app experience before releasing it on the App Store.
+
+TestFlight allows you to distribute your app across all Apple platforms. You can add both internal and external testers, create multiple groups of testers, and add different builds to each group depending on the features you want each group to test. Testers can allow latest builds to be installed automatically, and each build remains available for 90 days after upload. For more information, please watch the Tech Talks session "Get started with TestFlight." When testing in-app purchases, testers need to download your app builds using the TestFlight app. When buying an in-app purchase for an app downloaded through TestFlight, it uses your Apple ID, which is signed in to Media & Purchases settings of the device. Similar to sandbox, you won't be charged for testing in-app purchases for an app downloaded through TestFlight. For testing auto-renewable subscriptions, the renewal rates in TestFlight are equivalent to default renewal rate of sandbox. And if your app has implemented showManageSubscription API of the StoreKit, it gives you the ability to test subscription cancellation or change subscription. This year, we are making it easier to manage testers in TestFlight. You can filter by tester data like status, sessions, and bulk select group of testers to add or remove from a group. And to streamline your TestFlight app distribution, a new method is added for you to distribute the build, Internal Only. Using this method ensures the build can be available to internal testers and cannot be submitted for the App Store review. To learn more, please see session "What's new in App Store Connect" and "Simplify distribution in Xcode and Xcode Cloud." Now that I have reviewed the tools available for testing in-app purchases, it's important for you to know that these tools have their own benefits and differences but also have a lot in common, such as they support testing all in-app purchase types, and the subscriptions renew at an accelerated rate. However, some of these tools may be ideal for specific feature implementations or use cases. For example, subscription offer code redemption and price increase sheet can be tested using StoreKit Testing in Xcode. Billing retry and grace period can be tested using both StoreKit Testing in Xcode and sandbox. To validate your server side implementation, both sandbox and TestFlight support App Store Server Notifications and App Store Server API, while TestFlight provides you with a streamlined process to receive feedback from internal and external testers about your app's performance and overall experience. Consider leveraging these tools for testing in-app purchases depending upon your use cases, feature implementation, and your organization's team structure. We have covered a lot today, and I hope this session helped you better understand all the available tools for you to test in-app purchases. To learn more, please see available documentation on developer.apple.com. And we would love to hear your feedback on how we can improve your in-app purchase testing experience. Please let us know through Feedback Assistant. Thank you for taking time to watch this session.
+--- END FILE ---
+
+--- FILE: Requesting-App-Store-reviews.md ---
+# Requesting App Store reviews
+
+**Implement best practices for prompting users to review your app in the App Store.**
+
+## Availability
+
+- **iOS** 17.0+
+- **iPadOS** 17.0+
+- **macOS** 14.0+
+- **Xcode** 15.0+
+
+
+## Overview
+
+Present your users with a request for an App Store review using [doc://com.apple.storekit/documentation/StoreKit/RequestReviewAction](https://developer.apple.com/documentation/StoreKit/RequestReviewAction) to get feedback on your app. Be aware that the system displays the review prompt to a user a maximum of three times within a 365-day period. You can determine when and where your app displays the prompt to request a review. Consider the best places and conditions in your app to show the request, and when it might be appropriate to delay it. Here are some best practices:
+
+- Make the request at a time that doesn’t interrupt what someone is trying to achieve in your app, for example, at the end of a sequence of events that they successfully complete.
+
+- Avoid showing a request for a review immediately when a user launches your app, even if it isn’t the first time it launches.
+
+- Avoid requesting a review as the result of a user action.
+
+Also, remember that people can disable requests for reviews from *ever* appearing on their device.
+
+
+### Present the review request
+
+This sample project demonstrates a simulated three-step process. A person taps the Start Process button, and then taps Continue Process twice, after which the app presents a Process Completed scene. The request for review appears from this scene only.
+
+In addition, the app and its use meets the following conditions before displaying the prompt:
+
+- The app hasn’t shown a review prompt for a version of the app bundle that matches the current bundle version. This ensures that a person doesn’t receive a prompt to review the same version of an app multiple times.
+
+- The person successfully completes the three-step process at least four times. This number is arbitrary and developers can choose something that fits well with how many times someone is likely to complete a process in their apps.
+
+- A person must pause on the Process Completed scene for a few seconds. This requirement limits the possibility of the prompt interrupting them before they move to a different task in the app.
+
+To present a review request, the app reads the [doc://com.apple.documentation/documentation/SwiftUI/EnvironmentValues/requestReview](https://developer.apple.com/documentation/SwiftUI/EnvironmentValues/requestReview) environment value to get an instance of `RequestReviewAction` and calls it as a function:
+
+```swift
+@Environment(\.requestReview) private var requestReview
+```
+
+The conditions above exist purely to delay the call to `requestReview`, so days, weeks, or even months can elapse without the app prompting a user for a review.
+
+```swift
+/// Presents the rating and review request view after a two-second delay.
+private func presentReview() {
+    Task {
+        // Delay for two seconds to avoid interrupting the person using the app.
+        try await Task.sleep(for: .seconds(2))
+        await requestReview()
+    }
+}
+```
+
+Techniques to delay the call are valuable because they cause an app to show a review request when people are more experienced at using the app and can provide better feedback.
+
+```swift
+/*
+    The lastVersionPromptedForReview property stores the version of the app that last prompts for a review.
+    The app presents the rating and review request view if the person completed the three-step process at least four times and
+    its current version is different from the version that last prompted them for review.
+*/
+if processCompletedCount >= 4, currentAppVersion != lastVersionPromptedForReview {
+    presentReview()
+        
+    // The app already displayed the rating and review request view. Store this current version.
+    lastVersionPromptedForReview = currentAppVersion
+}
+```
+
+In the following code, the app stores the usage data that delays the review request in [doc://com.apple.documentation/documentation/SwiftUI/AppStorage](https://developer.apple.com/documentation/SwiftUI/AppStorage):
+
+```swift
+/// An identifier for the three-step process the person completes before this app chooses to request a review.
+@AppStorage("processCompletedCount") var processCompletedCount = 0
+
+/// The most recent app version that prompts for a review.
+@AppStorage("lastVersionPromptedForReview") var lastVersionPromptedForReview = ""
+```
+
+In other apps, there might be more appropriate on-device storage options. For more information about best practices for requesting reviews, see [https://developer.apple.com/design/human-interface-guidelines/ratings-and-reviews](https://developer.apple.com/design/human-interface-guidelines/ratings-and-reviews) in Human Interface Guidelines.
+
+
+### Manually request a review
+
+To enable a person to initiate a review as a result of an action in the UI, the sample code uses a deep link to the App Store page for the app with the query parameter `action=write-review` appended to the URL:
+
+```swift
+// Replace the YOURAPPSTOREID value below with the App Store ID for your app.
+// You can find the App Store ID in your app's product URL.
+let url = "https://apps.apple.com/app/idYOURAPPSTOREID?action=write-review"
+
+guard let writeReviewURL = URL(string: url) else {
+    fatalError("Expected a valid URL")
+}
+
+openURL(writeReviewURL)
+```
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.storekit/documentation/StoreKit/requesting-app-store-reviews](https://developer.apple.com/documentation/com.apple.storekit/documentation/StoreKit/requesting-app-store-reviews)*
+--- END FILE ---
+
+--- FILE: In-App-Purchase.md ---
+# In-App Purchase
+
+**Offer content and services in your app across Apple platforms using a Swift-based interface.**
+
+
+## Overview
+
+With the In-App Purchase API, you can offer customers the opportunity to purchase digital content and services in your app. Customers can make the purchases within your app, and find your promoted products on the App Store.
+
+The StoreKit framework connects to the App Store on your app’s behalf to prompt for, and securely process, payments. The framework then notifies your app, making the transactions for In-App Purchases available to your app on all of the customer’s devices. For each transaction that represents a current purchase, your app delivers the purchased products. To validate purchases, you can verify transactions on your server, or rely on StoreKit’s verification.
+
+![Image](media-4447232)
+
+The App Store can also communicate with your server. It notifies your server of transactions and auto-renewable subscription events through [doc://com.apple.documentation/documentation/AppStoreServerNotifications](https://developer.apple.com/documentation/AppStoreServerNotifications), and provides the same transaction information, and more, through the [doc://com.apple.documentation/documentation/AppStoreServerAPI](https://developer.apple.com/documentation/AppStoreServerAPI).
+
+To learn how adding In-App Purchases fits in an overall app development workflow for the App Store, see [https://developer.apple.com/app-store/pathway/](https://developer.apple.com/app-store/pathway/). For an overview of In-App Purchases and its features, including its configuration, testing capabilities, marketing for your products, and more, see [https://developer.apple.com/in-app-purchase/](https://developer.apple.com/in-app-purchase/). For an overview on subscriptions, including creating subscription groups, Family Sharing, and more, see [https://developer.apple.com/app-store/subscriptions/](https://developer.apple.com/app-store/subscriptions/).
+
+
+### Configure In-App Purchases
+
+To use the In-App Purchase API, you first need to configure the products that your app merchandises.
+
+- In the early stages of development, you can configure the products in the StoreKit configuration file in Xcode, and test your code without any dependency on App Store Connect. For more information, see [doc://com.apple.documentation/documentation/Xcode/setting-up-storekit-testing-in-xcode](https://developer.apple.com/documentation/Xcode/setting-up-storekit-testing-in-xcode).
+
+- When you’re ready for sandbox testing and production, configure the products in App Store Connect. You can add or remove products and refine or reconfigure existing products as you develop your app. For more information, see [https://developer.apple.com/help/app-store-connect/configure-in-app-purchase-settings/overview-for-configuring-in-app-purchases](https://developer.apple.com/help/app-store-connect/configure-in-app-purchase-settings/overview-for-configuring-in-app-purchases).
+
+You can also offer apps and In-App Purchases that run on multiple platforms as a single purchase. For more information on universal purchase, see [https://developer.apple.com/help/app-store-connect/create-an-app-record/add-platforms/](https://developer.apple.com/help/app-store-connect/create-an-app-record/add-platforms/).
+
+
+### Support a store in your app
+
+The In-App Purchase API takes advantage of Swift features like concurrency to simplify your In-App Purchase workflows, and SwiftUI to build stores with [doc://com.apple.storekit/documentation/StoreKit/storekit-views](https://developer.apple.com/documentation/StoreKit/storekit-views). Use the API to manage access to content and subscriptions, receive App Store-signed transaction information, get the history of all In-App Purchase transactions, and more.
+
+
+> **NOTE**:  Session 10114: [https://developer.apple.com/videos/play/wwdc2021/10114/](https://developer.apple.com/videos/play/wwdc2021/10114/)
+
+
+The In-App Purchase API offers:
+
+- Transaction information that’s App Store-signed in JSON Web Signature (JWS) format.
+
+- Transaction and subscription status information that’s simple to parse in your app.
+
+- An entitlements API, [doc://com.apple.storekit/documentation/StoreKit/Transaction/currentEntitlements](https://developer.apple.com/documentation/StoreKit/Transaction/currentEntitlements), that simplifies determining entitlements to unlock content and services for your customers.
+
+
+> **NOTE**:  Session 110404: [https://developer.apple.com/videos/play/wwdc2022/110404/](https://developer.apple.com/videos/play/wwdc2022/110404/)
+
+
+To support a store in your app, implement the following functionality:
+
+- Listen for transaction state changes using the transaction listener, [doc://com.apple.storekit/documentation/StoreKit/Transaction/updates](https://developer.apple.com/documentation/StoreKit/Transaction/updates), to provide up-to-date service and content while your app is running.
+
+- Use [doc://com.apple.storekit/documentation/StoreKit/storekit-views](https://developer.apple.com/documentation/StoreKit/storekit-views) to merchandise your products; or request products to display from the App Store with [doc://com.apple.storekit/documentation/StoreKit/Product/products(for:)](https://developer.apple.com/documentation/StoreKit/Product/products(for:)) and enable purchases using [doc://com.apple.storekit/documentation/StoreKit/Product/purchase(options:)](https://developer.apple.com/documentation/StoreKit/Product/purchase(options:)). Unlock purchased content and services based on the purchase result, [doc://com.apple.storekit/documentation/StoreKit/Product/PurchaseResult](https://developer.apple.com/documentation/StoreKit/Product/PurchaseResult).
+
+- Iterate through a customer’s purchases anytime using the transaction sequence [doc://com.apple.storekit/documentation/StoreKit/Transaction/all](https://developer.apple.com/documentation/StoreKit/Transaction/all), and unlock the purchased content and services.
+
+- Optionally, validate the signed transactions and signed subscription status information that you receive from the API.
+
+## Topics
+
+### In-App Purchase merchandising
+
+- [StoreKit views](https://developer.apple.com/documentation/storekit/storekit-views) — Display a customizable In-App Purchase store using StoreKit views for SwiftUI.
+### Product and subscription information
+
+- [Implementing a store in your app using the StoreKit API](https://developer.apple.com/documentation/storekit/implementing-a-store-in-your-app-using-the-storekit-api) — Offer In-App Purchases and manage entitlements using signed transactions and status information.
+- [Product](https://developer.apple.com/documentation/storekit/product) — Information about a product that you configure in App Store Connect.
+- [Product.SubscriptionInfo](https://developer.apple.com/documentation/storekit/product/subscriptioninfo) — Information about an auto-renewable subscription, such as its status, period, subscription group, and subscription offer details.
+- [SubscriptionInfo](https://developer.apple.com/documentation/storekit/subscriptioninfo) — Information about an auto-renewable subscription.
+- [SubscriptionStatus](https://developer.apple.com/documentation/storekit/subscriptionstatus) — Represents the renewal status information for an auto-renewable subscription.
+### Purchase requests and results
+
+- [PurchaseAction](https://developer.apple.com/documentation/storekit/purchaseaction) — An action that starts an In-App Purchase.
+- [purchase(options:)](https://developer.apple.com/documentation/storekit/product/purchase(options:)) — Initiates a purchase for the product with the App Store and displays the confirmation sheet.
+- [Product.PurchaseResult](https://developer.apple.com/documentation/storekit/product/purchaseresult) — The result of a purchase.
+### Transaction history and entitlements
+
+- [Transaction](https://developer.apple.com/documentation/storekit/transaction) — Information that represents the customer’s purchase of a product in your app.
+- [updates](https://developer.apple.com/documentation/storekit/transaction/updates) — The asynchronous sequence that emits a transaction when the system creates or updates transactions that occur outside the app or on other devices.
+- [all](https://developer.apple.com/documentation/storekit/transaction/all) — A sequence that emits all the customer’s transactions for your app.
+- [currentEntitlements](https://developer.apple.com/documentation/storekit/transaction/currententitlements) — A sequence of the latest transactions that entitle a customer to In-App Purchases and subscriptions.
+### JWS verification
+
+- [VerificationResult](https://developer.apple.com/documentation/storekit/verificationresult) — A type that describes the result of a StoreKit verification.
+- [VerificationResult.VerificationError](https://developer.apple.com/documentation/storekit/verificationresult/verificationerror) — Error cases for StoreKit JWS verification.
+### Subscription status and renewal information
+
+- [Product.SubscriptionInfo.Status](https://developer.apple.com/documentation/storekit/product/subscriptioninfo/status-swift.struct) — The renewal status information for an auto-renewable subscription.
+- [Product.SubscriptionInfo.RenewalInfo](https://developer.apple.com/documentation/storekit/product/subscriptioninfo/renewalinfo) — The renewal information for an auto-renewable subscription.
+- [SubscriptionRenewalInfo](https://developer.apple.com/documentation/storekit/subscriptionrenewalinfo) — Represents the renewal information for an auto-renewable subscription.
+- [Product.SubscriptionInfo.RenewalState](https://developer.apple.com/documentation/storekit/product/subscriptioninfo/renewalstate) — The renewal states of auto-renewable subscriptions.
+- [SubscriptionRenewalState](https://developer.apple.com/documentation/storekit/subscriptionrenewalstate) — The renewal states of auto-renewable subscriptions.
+- [SubscriptionPeriod](https://developer.apple.com/documentation/storekit/subscriptionperiod) — Represents the duration of time between subscription renewals.
+### Subscription offers and offer codes
+
+- [Supporting win-back offers in your app](https://developer.apple.com/documentation/storekit/supporting-win-back-offers-in-your-app) — Re-engage previous subscribers with a free or discounted offer for an auto-renewable subscription, for a specific duration.
+- [Merchandising win-back offers in your app](https://developer.apple.com/documentation/storekit/merchandising-win-back-offers-in-your-app) — Present win-back offers to eligible customers in your app with the win-back offer sheet or by implementing custom merchandising.
+- [Supporting subscription offer codes in your app](https://developer.apple.com/documentation/storekit/supporting-subscription-offer-codes-in-your-app) — Provide subscription service for customers who redeem offer codes through the App Store or within your app.
+- [Product.SubscriptionOffer](https://developer.apple.com/documentation/storekit/product/subscriptionoffer) — Information about a subscription offer that you configure in App Store Connect.
+- [Product.SubscriptionOffer.OfferType](https://developer.apple.com/documentation/storekit/product/subscriptionoffer/offertype) — The types of offers for auto-renewable subscriptions.
+### Promoted In-App Purchases
+
+- [Supporting promoted In-App Purchases in your app](https://developer.apple.com/documentation/storekit/supporting-promoted-in-app-purchases-in-your-app) — Display promoted In-App Purchases on your product page and handle purchases that users initiate on the App Store.
+- [PurchaseIntent](https://developer.apple.com/documentation/storekit/purchaseintent) — An instance that emits purchase intents, which indicate that the customer initiated a purchase outside of your app, for your app to complete.
+- [Product.PromotionInfo](https://developer.apple.com/documentation/storekit/product/promotioninfo) — Information about a promoted In-App Purchase that customizes its order and visibility on the device.
+- [Testing promoted In-App Purchases](https://developer.apple.com/documentation/storekit/testing-promoted-in-app-purchases) — Test your In-App Purchases before making your app available in the App Store.
+### App Store interactions
+
+- [AppStore](https://developer.apple.com/documentation/storekit/appstore) — Interactions with the App Store, such as managing subscriptions, verifying devices, authorizing payments, synchronizing transactions, getting the environment, and more.
+- [AppTransaction](https://developer.apple.com/documentation/storekit/apptransaction) — Information that represents the customer’s purchase of the app, cryptographically signed by the App Store.
+### Storefront information
+
+- [Storefront](https://developer.apple.com/documentation/storekit/storefront) — The region and unique identifier of the App Store storefront for the device.
+- [current](https://developer.apple.com/documentation/storekit/storefront/current) — The current App Store storefront for product purchases.
+- [updates](https://developer.apple.com/documentation/storekit/storefront/updates) — The asynchronous sequence that emits storefront information when the system updates the storefront.
+### In-App Purchase Testing
+
+- [Testing at all stages of development with Xcode and the sandbox](https://developer.apple.com/documentation/storekit/testing-at-all-stages-of-development-with-xcode-and-the-sandbox) — Verify your implementation of In-App Purchases by testing your code throughout its development.
+- [Testing In-App Purchases with sandbox](https://developer.apple.com/documentation/storekit/testing-in-app-purchases-with-sandbox) — Test your implementation of In-App Purchases using real product information and server-to-server transactions in the sandbox environment.
+- [Testing refund requests](https://developer.apple.com/documentation/storekit/testing-refund-requests) — Test your app’s implementation of refund requests, and your app’s and server’s handling of approved and declined refunds.
+- [Testing win-back offers in Xcode](https://developer.apple.com/documentation/storekit/testing-win-back-offers-in-xcode) — Validate your app’s handling of win-back offers that you configure for the testing environment.
+### Advanced Commerce API interactions
+
+- [AdvancedCommerceProduct](https://developer.apple.com/documentation/storekit/advancedcommerceproduct) — A product configured as a generic SKU in App Store Connect for use with the Advanced Commerce API.
+- [Sending Advanced Commerce API requests from your app](https://developer.apple.com/documentation/storekit/sending-advanced-commerce-api-requests-from-your-app) — Send Advanced Commerce API requests from your app that you authorize with a JSON Web Signature (JWS) you generate on your server.
+- [Generating JWS to sign App Store requests](https://developer.apple.com/documentation/storekit/generating-jws-to-sign-app-store-requests) — Create signed JSON Web Signature (JWS) strings on your server to authorize your API requests in your app.
+### Errors
+
+- [StoreKitError](https://developer.apple.com/documentation/storekit/storekiterror) — StoreKit In-App Purchase error codes.
+### Deprecated
+
+- [Choosing a StoreKit API for In-App Purchases](https://developer.apple.com/documentation/storekit/choosing-a-storekit-api-for-in-app-purchases) — Use the latest API to support In-App Purchases in new or existing apps, or the original API to support In-App Purchases in earlier operating systems.
+- [Original API for In-App Purchase](https://developer.apple.com/documentation/storekit/original-api-for-in-app-purchase) — Offer additional content and services in your app using the Original In-App Purchase API.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.storekit/documentation/StoreKit/in-app-purchase](https://developer.apple.com/documentation/com.apple.storekit/documentation/StoreKit/in-app-purchase)*
+--- END FILE ---
+
+--- FILE: PaymentMethodBinding.md ---
+# PaymentMethodBinding
+
+**A binding that makes payment methods available in apps for an Apple Account.**
+
+## Availability
+
+- **iOS** 16.4+
+- **iPadOS** 16.4+
+- **visionOS** 1.0+
+
+
+## Overview
+
+This functionality is available only to eligible apps with server entitlements. The initializer [doc://com.apple.storekit/documentation/StoreKit/PaymentMethodBinding/init(id:)](https://developer.apple.com/documentation/StoreKit/PaymentMethodBinding/init(id:)) throws an error if your app doesn’t have the appropriate entitlement to use this API, or if the user isn’t eligible.
+
+
+> **IMPORTANT**:  The [doc://com.apple.storekit/documentation/StoreKit/PaymentMethodBinding/init(id:)](https://developer.apple.com/documentation/StoreKit/PaymentMethodBinding/init(id:)) and [doc://com.apple.storekit/documentation/StoreKit/PaymentMethodBinding/bind()](https://developer.apple.com/documentation/StoreKit/PaymentMethodBinding/bind()) methods may display a system prompt that asks users to authenticate with their Apple Account. Call these methods only after an explicit user action, like tapping or clicking a button.
+
+
+Initialize this structure using the in-app binding identifier that your server receives from the Apple server when your server initiates payment method binding. Call the [doc://com.apple.storekit/documentation/StoreKit/PaymentMethodBinding/bind()](https://developer.apple.com/documentation/StoreKit/PaymentMethodBinding/bind()) method to prompt users to confirm adding the payment method and making it their primary payment method.
+
+## Topics
+
+### Determining eligiblity
+
+- [init(id:)](https://developer.apple.com/documentation/storekit/paymentmethodbinding/init(id:)) — Creates the payment method binding for eligible apps and users.
+### Creating and identifying bindings
+
+- [id](https://developer.apple.com/documentation/storekit/paymentmethodbinding/id) — The in-app binding identifier.
+### Binding payment methods
+
+- [bind()](https://developer.apple.com/documentation/storekit/paymentmethodbinding/bind()) — Asks the user to confirm whether to add the payment method to their Apple payment methods.
+### Reading errors
+
+- [PaymentMethodBinding.PaymentMethodBindingError](https://developer.apple.com/documentation/storekit/paymentmethodbinding/paymentmethodbindingerror) — Error information for payment method binding.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.storekit/documentation/StoreKit/PaymentMethodBinding](https://developer.apple.com/documentation/com.apple.storekit/documentation/StoreKit/PaymentMethodBinding)*
+--- END FILE ---
+=== END SWIFT DOCUMENTATION ===
+=== END CONTEXT ===
+
+=== BUILD ATTEMPT 2 FAILED ===
+The previous implementation failed with the following errors:
+
+Build failed but no detailed error log available.
+
+=== INSTRUCTIONS FOR ATTEMPT 3 ===
+1. Analyze what went wrong in the previous approach
+2. Try a DIFFERENT approach or fix the specific issues
+3. Do NOT repeat the same mistakes
+4. If the same approach keeps failing, consider an alternative implementation strategy
+5. Write the corrected code directly - do not explain, just implement
+
+Please fix the issues and provide the corrected implementation.

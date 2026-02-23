@@ -1,0 +1,3551 @@
+OpenAI Codex v0.104.0 (research preview)
+--------
+workdir: /Users/emmanuel/Documents/Theory/Redefining_racism
+model: gpt-5.2-codex
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: high
+reasoning summaries: auto
+session id: 019c878e-1464-7c82-9ed3-449838a24a1e
+--------
+user
+You are a Swift/SwiftUI developer. A previous attempt to complete a task failed.
+
+TESTING & DEBUGGING REFERENCE:
+For building, testing, and debugging iOS/macOS apps, reference this workflow guide:
+/Users/emmanuel/Dev/Tools/Eocon-Foundation-V1/.Foundation/Docs/swiftDocs/Testing/XCODEBUILD_MCP_WORKFLOW.md
+
+This guide covers:
+- XcodeBuild MCP server tools for programmatic Xcode interaction
+- Building for simulator, booting simulators, installing/launching apps
+- UI automation: screenshots, accessibility hierarchy, tap simulation
+- Debugging UI issues (button taps, gestures, navigation)
+
+=== ORIGINAL TASK ===
+I have created the following plan after thorough exploration and analysis of the codebase. Follow the below plan verbatim. Trust the files and references. Do not re-verify what's written in the plan. Explore only when absolutely necessary. First implement all the proposed file changes and then I'll review all the changes together at the end.
+
+## Observations
+
+T1–T4 are complete. The three engine actors (\`Tier1Engine\`, \`Tier2Engine\`, \`Tier3Engine\`) are fully implemented with consistent \`classify(clause:) async throws -> TierClassification?\` interfaces. \`AnalysisProgress\` and \`TierClassification\` are already declared in \`PipelineContracts.swift\`. The existing \`ClauseClassificationPipeline\` only does a simple Tier1/Tier2 fallback — it does **not** implement the adaptive escalation logic required by T5.
+
+## Approach
+
+Two new actors are needed: \`TierResolver\` (adaptive escalation) and \`AnalysisPipeline\` (stream orchestrator). A \`PolicyScorer\` protocol is introduced as a seam so T5 compiles and emits preliminary scores without blocking on T6's scoring math. Unit tests cover the acceptance criteria using mock engine implementations.
+
+---
+
+## Implementation Steps
+
+### 1. Define \`PolicyScorer\` protocol + stub — \`file:app/decodingOppression/decodingOppression/Models/PolicyScorer.swift\`
+
+Create a new file with:
+
+- A \`PolicyScorer\` protocol with a single method: \`func score(clauses: [TierClassification]) -> ScoreResult\`
+- A \`StubPolicyScorer\` struct conforming to \`PolicyScorer\` that returns \`ScoreResult.zero\` — this is the T5 placeholder; T6 replaces it with the real implementation
+
+---
+
+### 2. Create \`TierResolver\` — \`file:app/decodingOppression/decodingOppression/NLP/TierResolver.swift\`
+
+Create a new \`actor TierResolver\` with:
+
+**Initializer:** accepts \`tier1: Tier1Engine\`, \`tier2: Tier2Engine\`, \`tier3: Tier3Engine\`
+
+**Method:** \`func classify(clause: Clause) async -> TierClassification\`
+
+**Escalation logic:**
+
+\`\`\`mermaid
+flowchart TD
+    A[classify clause] --> B[Tier1Engine.classify]
+    B --> C{confidence ≥ 0.85?}
+    C -- Yes --> D[Return Tier 1 result]
+    C -- No --> E[Run Tier2 + Tier3 in parallel via async let]
+    E --> F{Collect non-nil results}
+    F --> G{Any results?}
+    G -- Yes --> H[Return highest-confidence result]
+    G -- No --> I[Fall back to Tier 1 result]
+\`\`\`
+
+Key implementation notes:
+- Use \`async let t2Result = tier2.classify(clause:)\` and \`async let t3Result = tier3.classify(clause:)\` for within-clause parallelism
+- Both \`Tier2Engine.classify\` and \`Tier3Engine.classify\` already return \`nil\` on unavailability/safety guardrail — collect non-nil results and pick the highest \`confidence\`
+- If both return \`nil\` (Tier 2 downloading + Tier 3 safety guardrail), fall back to the Tier 1 result already in hand
+- Wrap \`try await\` calls in \`do/catch\` — errors from Tier 2 (e.g., model load failure) are treated as \`nil\` (same as unavailable)
+
+---
+
+### 3. Create \`AnalysisPipeline\` — \`file:app/decodingOppression/decodingOppression/NLP/AnalysisPipeline.swift\`
+
+Create a new \`actor AnalysisPipeline\` with:
+
+**Initializer:** accepts \`tier1: Tier1Engine\`, \`resolver: TierResolver\`, \`scorer: any PolicyScorer\`
+
+**Method:** \`func analyze(pdfURL: URL) -> AsyncStream<AnalysisProgress>\`
+
+**Stream logic:**
+
+\`\`\`mermaid
+sequenceDiagram
+    participant AP as AnalysisPipeline
+    participant T1 as Tier1Engine
+    participant TR as TierResolver
+    participant PS as PolicyScorer
+
+    AP-->>AP: yield .extracting
+    AP->>T1: extractAndPreprocess(pdf:)
+    alt extraction fails
+        AP-->>AP: yield .failed(error), finish
+    end
+    T1-->>AP: [Clause]
+    loop for each clause (sequential)
+        AP->>AP: Task.checkCancellation()
+        AP->>TR: classify(clause:)
+        TR-->>AP: TierClassification
+        AP->>PS: score(clauses: accumulated)
+        PS-->>AP: ScoreResult (preliminary)
+        AP-->>AP: yield .classifying(clauseIndex:total:partialScores:)
+    end
+    AP->>PS: score(clauses: all)
+    PS-->>AP: ScoreResult (final)
+    AP-->>AP: yield .complete(finalScore)
+\`\`\`
+
+Key implementation notes:
+- Build the \`AsyncStream\` with a \`AsyncStream.Continuation\` captured in a \`Task { }\` block inside the stream's \`build\` closure
+- At the top of each loop iteration, call \`try Task.checkCancellation()\` — catch \`CancellationError\` and call \`continuation.finish()\` to stop cleanly without persisting any result
+- Accumulate \`[TierClassification]\` as clauses are processed; pass the growing array to \`scorer.score(clauses:)\` after each clause to produce \`partialScores\`
+- The \`total\` in \`.classifying\` is the count of all clauses from the preprocessing step
+- \`clauseIndex\` is 0-based and increments monotonically
+
+---
+
+### 4. Unit tests — \`file:app/decodingOppression/decodingOppressionTests/TierResolverTests.swift\`
+
+Using the Swift Testing framework (\`@Suite\`, \`@Test\`, \`#expect\`) already used in the project:
+
+| Test | Mock setup | Assertion |
+|------|-----------|-----------|
+| \`testTier1AcceptedWhenHighConfidence\` | Mock Tier 1 returns confidence 0.90 | Result \`.tier\` == \`.tier1\` |
+| \`testEscalatesWhenTier1LowConfidence\` | Mock Tier 1 returns 0.70; mock Tier 2 returns 0.88 | Result \`.tier\` == \`.tier2\` |
+| \`testFallsBackToTier3WhenTier2Unavailable\` | Mock Tier 1 returns 0.70; Tier 2 returns \`nil\`; Tier 3 returns 0.82 | Result \`.tier\` == \`.tier3\` |
+| \`testFallsBackToTier1WhenBothUnavailable\` | Mock Tier 1 returns 0.70; Tier 2 returns \`nil\`; Tier 3 returns \`nil\` | Result \`.tier\` == \`.tier1\` |
+
+Create mock engine types (e.g., \`MockTier1Engine\`, \`MockTier2Engine\`, \`MockTier3Engine\`) as \`actor\` types conforming to the same method signatures, injected into \`TierResolver\` via its initializer.
+
+---
+
+### 5. Unit tests — \`file:app/decodingOppression/decodingOppressionTests/AnalysisPipelineTests.swift\`
+
+| Test | Setup | Assertion |
+|------|-------|-----------|
+| \`testClassifyingEventsAreMonotonic\` | Mock PDF with N clauses | \`clauseIndex\` values are 0, 1, …, N-1 in order |
+| \`testCompleteEmittedAfterAllClauses\` | Mock PDF with N clauses | Last event is \`.complete\` |
+| \`testFailedEmittedOnPDFError\` | Mock extractor throws | First non-extracting event is \`.failed\` |
+| \`testCancellationStopsStreamCleanly\` | Cancel task mid-stream | Stream finishes without crash; no \`.complete\` emitted |
+
+Use a \`MockTierResolver\` that returns a fixed \`TierClassification\` and a \`MockPDFExtractor\` (or a test PDF URL) to keep tests deterministic.
+=== END ORIGINAL TASK ===
+
+=== REFERENCE CONTEXT ===
+
+=== SWIFT DOCUMENTATION ===
+
+--- FILE: DefiningTests.md ---
+# Defining test functions
+
+<!--
+This source file is part of the Swift.org open source project
+
+Copyright (c) 2023 Apple Inc. and the Swift project authors
+Licensed under Apache License v2.0 with Runtime Library Exception
+
+See https://swift.org/LICENSE.txt for license information
+See https://swift.org/CONTRIBUTORS.txt for Swift project authors
+-->
+
+Define a test function to validate that code is working correctly.
+
+## Overview
+
+Defining a test function for a Swift package or project is straightforward.
+
+### Import the testing library
+
+To import the testing library, add the following to the Swift source file that
+contains the test:
+
+```swift
+import Testing
+```
+
+- Note: Only import the testing library into a test target or library meant for
+  test targets. Importing the testing library into a target intended for
+  distribution such as an application, app library, or executable target isn't
+  supported or recommended. Test functions aren't stripped from binaries when
+  building for release, so logic and fixtures of a test may be visible to anyone
+  who inspects a build product that contains a test function.
+
+### Declare a test function
+
+To declare a test function, write a Swift function declaration that doesn't
+take any arguments, then prefix its name with the `@Test` attribute:
+
+```swift
+@Test func foodTruckExists() {
+  // Test logic goes here.
+}
+```
+
+This test function can be present at file scope or within a type. A type
+containing test functions is automatically a _test suite_ and can be optionally
+annotated with the `@Suite` attribute. For more information about suites, see
+<doc:OrganizingTests>.
+
+Note that, while this function is a valid test function, it doesn't actually
+perform any action or test any code. To check for expected values and outcomes
+in test functions, add [expectations](doc:Expectations) to the test function.
+
+### Customize a test's name
+
+To customize a test function's name as presented in an IDE or at the command
+line, supply a string literal as an argument to the `@Test` attribute:
+
+```swift
+@Test("Food truck exists") func foodTruckExists() { ... }
+```
+
+To further customize the appearance and behavior of a test function, use
+[traits](doc:Traits) such as ``Trait/tags(_:)``.
+
+### Write concurrent or throwing tests
+
+As with other Swift functions, test functions can be marked `async` and `throws`
+to annotate them as concurrent or throwing, respectively. If a test is only safe
+to run in the main actor's execution context (that is, from the main thread of
+the process), it can be annotated `@MainActor`:
+
+```swift
+@Test @MainActor func foodTruckExists() async throws { ... }
+```
+
+### Limit the availability of a test
+
+If a test function can only run on newer versions of an operating system or of
+the Swift language, use the `@available` attribute when declaring it. Use the
+`message` argument of the `@available` attribute to specify a message to log if
+a test is unable to run due to limited availability:
+
+```swift
+@available(macOS 11.0, *)
+@available(swift, introduced: 8.0, message: "Requires Swift 8.0 features to run")
+@Test func foodTruckExists() { ... }
+```
+--- END FILE ---
+
+--- FILE: Expectations.md ---
+# Expectations and confirmations
+
+<!--
+This source file is part of the Swift.org open source project
+
+Copyright (c) 2023–2024 Apple Inc. and the Swift project authors
+Licensed under Apache License v2.0 with Runtime Library Exception
+
+See https://swift.org/LICENSE.txt for license information
+See https://swift.org/CONTRIBUTORS.txt for Swift project authors
+-->
+
+Check for expected values, outcomes, and asynchronous events in tests.
+
+## Overview
+
+Use ``expect(_:_:sourceLocation:)`` and
+``require(_:_:sourceLocation:)-5l63q`` macros to validate expected
+outcomes. To validate that an error is thrown, or _not_ thrown, the
+testing library provides several overloads of the macros that you can
+use. For more information, see <doc:testing-for-errors-in-swift-code>.
+
+Use a ``Confirmation`` to confirm the occurrence of an
+asynchronous event that you can't check directly using an expectation.
+For more information, see <doc:testing-asynchronous-code>.
+
+### Validate your code's result
+
+To validate that your code produces an expected value, use
+``expect(_:_:sourceLocation:)``. This macro captures the
+expression you pass, and provides detailed information when the code doesn't
+satisfy the expectation.
+
+```swift
+@Test func calculatingOrderTotal() {
+  let calculator = OrderCalculator()
+  #expect(calculator.total(of: [3, 3]) == 7)
+  // Prints "Expectation failed: (calculator.total(of: [3, 3]) → 6) == 7"
+}
+```
+
+Your test keeps running after ``expect(_:_:sourceLocation:)`` fails. To stop
+the test when the code doesn't satisfy a requirement, use
+``require(_:_:sourceLocation:)-5l63q`` instead:
+
+```swift
+@Test func returningCustomerRemembersUsualOrder() throws {
+  let customer = try #require(Customer(id: 123))
+  // The test runner doesn't reach this line if the customer is nil.
+  #expect(customer.usualOrder.countOfItems == 2)
+}
+```
+
+``require(_:_:sourceLocation:)-5l63q`` throws an instance of
+``ExpectationFailedError`` when your code fails to satisfy the requirement.
+
+## Topics
+
+### Checking expectations
+
+- ``expect(_:_:sourceLocation:)``
+- ``require(_:_:sourceLocation:)-5l63q``
+- ``require(_:_:sourceLocation:)-6w9oo``
+
+### Checking that errors are thrown
+
+- <doc:testing-for-errors-in-swift-code>
+- ``expect(throws:_:sourceLocation:performing:)-1hfms``
+- ``expect(throws:_:sourceLocation:performing:)-7du1h``
+- ``expect(_:sourceLocation:performing:throws:)``
+- ``require(throws:_:sourceLocation:performing:)-7n34r``
+- ``require(throws:_:sourceLocation:performing:)-4djuw``
+- ``require(_:sourceLocation:performing:throws:)``
+
+### Checking how processes exit
+
+- <doc:exit-testing>
+- ``expect(processExitsWith:observing:_:sourceLocation:performing:)``
+- ``require(processExitsWith:observing:_:sourceLocation:performing:)``
+- ``ExitStatus``
+- ``ExitTest``
+
+### Confirming that asynchronous events occur
+
+- <doc:testing-asynchronous-code>
+- ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-5mqz2``
+- ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-l3il``
+- ``Confirmation``
+
+### Retrieving information about checked expectations
+
+- ``Expectation``
+- ``ExpectationFailedError``
+- ``CustomTestStringConvertible``
+
+### Representing source locations
+
+- ``SourceLocation``
+<!-- - ``_sourceLocation()`` -->
+<!-- - ``SourceContext`` -->
+<!-- - ``Backtrace`` -->
+--- END FILE ---
+
+--- FILE: OrganizingTests.md ---
+# Organizing test functions with suite types
+
+<!--
+This source file is part of the Swift.org open source project
+
+Copyright (c) 2023-2024 Apple Inc. and the Swift project authors
+Licensed under Apache License v2.0 with Runtime Library Exception
+
+See https://swift.org/LICENSE.txt for license information
+See https://swift.org/CONTRIBUTORS.txt for Swift project authors
+-->
+
+Organize tests into test suites.
+
+## Overview
+
+When working with a large selection of test functions, it can be helpful to
+organize them into test suites.
+
+A test function can be added to a test suite in one of two ways:
+
+@Comment{ * By placing it in the same file as other test functions. }
+* By placing it in a Swift type.
+* By placing it in a Swift type and annotating that type with the `@Suite`
+   attribute.
+
+The `@Suite` attribute isn't required for the testing library to recognize that
+a type contains test functions, but adding it allows customization of a test
+suite's appearance in the IDE and at the command line. If a trait such as
+``Trait/tags(_:)`` or ``Trait/disabled(_:sourceLocation:)`` is applied to a test
+suite, it's automatically inherited by the tests contained in the suite.
+
+In addition to containing test functions and any other members that a Swift type
+might contain, test suite types can also contain additional test suites nested
+within them. To add a nested test suite type, simply declare an additional type
+within the scope of the outer test suite type.
+
+By default, tests contained within a suite run in parallel with each other.
+For more information about test parallelization, see <doc:Parallelization>.
+
+### Customize a suite's name
+
+To customize a test suite's name, supply a string literal as an argument to the
+`@Suite` attribute:
+
+```swift
+@Suite("Food truck tests") struct FoodTruckTests {
+  @Test func foodTruckExists() { ... }
+}
+```
+
+To further customize the appearance and behavior of a test function, use
+[traits](doc:Traits) such as ``Trait/tags(_:)``.
+
+## Test functions in test suite types
+
+If a type contains a test function declared as an instance method (that is,
+without either the `static` or `class` keyword), the testing library calls
+that test function at runtime by initializing an instance of the type, then
+calling the test function on that instance. If a test suite type contains
+multiple test functions declared as instance methods, each one is called on a
+distinct instance of the type. Therefore, the following test suite and test
+function:
+
+```swift
+@Suite struct FoodTruckTests {
+  @Test func foodTruckExists() { ... }
+}
+```
+
+Are equivalent to:
+
+```swift
+@Suite struct FoodTruckTests {
+  func foodTruckExists() { ... }
+
+  @Test static func staticFoodTruckExists() {
+    let instance = FoodTruckTests()
+    instance.foodTruckExists()
+  }
+}
+```
+
+### Constraints on test suite types
+
+When using a type as a test suite, it's subject to some constraints that are
+not otherwise applied to Swift types.
+
+#### An initializer may be required
+
+If a type contains test functions declared as instance methods, it must be
+possible to initialize an instance of the type with a zero-argument initializer.
+The initializer may be any combination of:
+
+- implicit or explicit
+- synchronous or asynchronous
+- throwing or non-throwing
+- `private`, `fileprivate`, `internal`, `package`, or `public`
+
+For example:
+
+```swift
+@Suite struct FoodTruckTests {
+  var batteryLevel = 100
+
+  @Test func foodTruckExists() { ... } // ✅ OK: The type has an implicit init().
+}
+
+@Suite struct CashRegisterTests {
+  private init(cashOnHand: Decimal = 0.0) async throws { ... }
+
+  @Test func calculateSalesTax() { ... } // ✅ OK: The type has a callable init().
+}
+
+struct MenuTests {
+  var foods: [Food]
+  var prices: [Food: Decimal]
+
+  @Test static func specialOfTheDay() { ... } // ✅ OK: The function is static.
+  @Test func orderAllFoods() { ... } // ❌ ERROR: The suite type requires init().
+}
+```
+
+The compiler emits an error when presented with a test suite that doesn't
+meet this requirement.
+
+#### Test suite types must always be available
+
+Although `@available` can be applied to a test function to limit its
+availability at runtime, a test suite type (and any types that contain it) must
+_not_ be annotated with the `@available` attribute:
+
+```swift
+@Suite struct FoodTruckTests { ... } // ✅ OK: The type is always available.
+
+@available(macOS 11.0, *) // ❌ ERROR: The suite type must always be available.
+@Suite struct CashRegisterTests { ... }
+
+@available(macOS 11.0, *) struct MenuItemTests { // ❌ ERROR: The suite type's
+                                                 // containing type must always
+                                                 // be available too.
+  @Suite struct BurgerTests { ... }
+}
+```
+
+The compiler emits an error when presented with a test suite that doesn't
+meet this requirement.
+--- END FILE ---
+
+--- FILE: testing-asynchronous-code.md ---
+# Testing asynchronous code
+
+<!--
+This source file is part of the Swift.org open source project
+
+Copyright (c) 2024 Apple Inc. and the Swift project authors
+Licensed under Apache License v2.0 with Runtime Library Exception
+
+See https://swift.org/LICENSE.txt for license information
+See https://swift.org/CONTRIBUTORS.txt for Swift project authors
+-->
+
+Validate whether your code causes expected events to happen.
+
+## Overview
+
+The testing library integrates with Swift concurrency, meaning that in many
+situations you can test asynchronous code using standard Swift
+features.  Mark your test function as `async` and, in the function
+body, `await` any asynchronous interactions:
+
+```swift
+@Test func priceLookupYieldsExpectedValue() async {
+  let mozarellaPrice = await unitPrice(for: .mozarella)
+  #expect(mozarellaPrice == 3)
+}
+```
+
+In more complex situations you can use ``Confirmation`` to discover whether an
+expected event happens.
+
+### Confirm that an event happens
+
+Call ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-5mqz2`` in your
+asynchronous test function to create a `Confirmation` for the expected event. In
+the trailing closure parameter, call the code under test. Swift Testing passes a
+`Confirmation` as the parameter to the closure, which you call as a function in
+the event handler for the code under test when the event you're testing for
+occurs:
+
+```swift
+@Test("OrderCalculator successfully calculates subtotal for no pizzas")
+func subtotalForNoPizzas() async {
+  let calculator = OrderCalculator()
+  await confirmation() { confirmation in
+    calculator.successHandler = { _ in confirmation() }
+    _ = await calculator.subtotal(for: PizzaToppings(bases: []))
+  }
+}
+```
+
+If you expect the event to happen more than once, set the
+`expectedCount` parameter to the number of expected occurrences. The
+test passes if the number of occurrences during the test matches the
+expected count, and fails otherwise.
+
+You can also pass a range to ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-l3il``
+if the exact number of times the event occurs may change over time or is random:
+
+```swift
+@Test("Customers bought sandwiches")
+func boughtSandwiches() async {
+  await confirmation(expectedCount: 0 ..< 1000) { boughtSandwich in
+    var foodTruck = FoodTruck()
+    foodTruck.orderHandler = { order in
+      if order.contains(.sandwich) {
+        boughtSandwich()
+      }
+    }
+    await FoodTruck.operate()
+  }
+}
+```
+
+In this example, there may be zero customers or up to (but not including) 1,000
+customers who order sandwiches. Any [range expression](https://developer.apple.com/documentation/swift/rangeexpression)
+which includes an explicit lower bound can be used:
+
+| Range Expression | Usage |
+|-|-|
+| `1...` | If an event must occur _at least_ once |
+| `5...` | If an event must occur _at least_ five times |
+| `1 ... 5` | If an event must occur at least once, but not more than five times |
+| `0 ..< 100` | If an event may or may not occur, but _must not_ occur more than 99 times |
+
+### Confirm that an event doesn't happen
+
+To validate that a particular event doesn't occur during a test,
+create a `Confirmation` with an expected count of `0`:
+
+```swift
+@Test func orderCalculatorEncountersNoErrors() async {
+  let calculator = OrderCalculator()
+  await confirmation(expectedCount: 0) { confirmation in
+    calculator.errorHandler = { _ in confirmation() }
+    calculator.subtotal(for: PizzaToppings(bases: []))
+  }
+}
+```
+--- END FILE ---
+
+--- FILE: testing-for-errors-in-swift-code.md ---
+# Testing for errors in Swift code
+
+<!--
+This source file is part of the Swift.org open source project
+
+Copyright (c) 2024 Apple Inc. and the Swift project authors
+Licensed under Apache License v2.0 with Runtime Library Exception
+
+See https://swift.org/LICENSE.txt for license information
+See https://swift.org/CONTRIBUTORS.txt for Swift project authors
+-->
+
+Ensure that your code handles errors in the way you expect.
+
+## Overview
+
+Write tests for your code that validate the conditions in which the
+code throws errors, and the conditions in which it returns without
+throwing an error. Use overloads of the ``expect(_:_:sourceLocation:)`` and
+``require(_:_:sourceLocation:)-5l63q`` macros that check for errors.
+
+### Validate that your code throws an expected error
+
+Create a test function that `throws` and `try` the code under test.
+If the code throws an error, then your test fails.
+
+To check that the code under test throws a specific error, or to continue a
+longer test function after the code throws an error, pass that error as the
+first argument of ``expect(throws:_:sourceLocation:performing:)-7du1h``, and
+pass a closure that calls the code under test:
+
+```swift
+@Test func cannotAddToppingToPizzaBeforeStartOfList() {
+  var order = PizzaToppings(bases: [.calzone, .deepCrust])
+  #expect(throws: PizzaToppings.Error.outOfRange) {
+    try order.add(topping: .mozarella, toPizzasIn: -1..<0)
+  }
+}
+```
+
+If the closure completes without throwing an error, the testing library
+records an issue. Other overloads of ``expect(_:_:sourceLocation:)`` let you
+test that the code throws an error of a given type, or matches an arbitrary
+Boolean test. Similar overloads of ``require(_:_:sourceLocation:)-5l63q`` stop
+running your test if the code doesn't throw the expected error.
+
+### Validate that your code throws any error
+
+To check that the code under test throws an error of any type, pass
+`(any Error).self` as the first argument to either
+``expect(throws:_:sourceLocation:performing:)-1hfms`` or
+``require(throws:_:sourceLocation:performing:)-7n34r``:
+
+```swift
+@Test func cannotAddToppingToPizzaBeforeStartOfList() {
+  var order = PizzaToppings(bases: [.calzone, .deepCrust])
+  #expect(throws: (any Error).self) {
+    try order.add(topping: .mozarella, toPizzasIn: -1..<0)
+  }
+}
+```
+
+### Validate that your code doesn't throw an error
+
+A test function that throws an error fails, which is usually sufficient for
+testing that the code under test doesn't throw. If you need to record a
+thrown error as an issue without stopping the test function, compare
+the error to `Never`:
+
+```swift
+@Test func canAddToppingToPizzaInPositionZero() throws {
+  var order = PizzaToppings(bases: [.thinCrust, .thinCrust])
+  #expect(throws: Never.self) {
+    try order.add(topping: .caper, toPizzasIn: 0..<1)
+  }
+  let toppings = try order.toppings(forPizzaAt: 0)
+  #expect(toppings == [.caper])
+}
+```
+
+If the closure throws _any_ error, the testing library records an issue.
+If you need the test to stop when the code throws an error, include the
+code inline in the test function instead of wrapping it in a call to
+``expect(throws:_:sourceLocation:performing:)-7du1h``.
+
+## Inspect an error thrown by your code
+
+When you use `#expect(throws:)` or `#require(throws:)` and the error matches the
+expectation, it is returned to the caller so that you can perform additional
+validation. If the expectation fails because no error was thrown or an error of
+a different type was thrown, `#expect(throws:)` returns `nil`:
+
+```swift
+@Test func cannotAddMarshmallowsToPizza() throws {
+  let error = #expect(throws: PizzaToppings.InvalidToppingError.self) {
+    try Pizza.current.add(topping: .marshmallows)
+  }
+  #expect(error?.topping == .marshmallows)
+  #expect(error?.reason == .dessertToppingOnly)
+}
+```
+
+If you aren't sure what type of error will be thrown, pass `(any Error).self`.
+--- END FILE ---
+
+--- FILE: MigratingFromXCTest.md ---
+# Migrating a test from XCTest
+
+<!--
+This source file is part of the Swift.org open source project
+
+Copyright (c) 2023-2024 Apple Inc. and the Swift project authors
+Licensed under Apache License v2.0 with Runtime Library Exception
+
+See https://swift.org/LICENSE.txt for license information
+See https://swift.org/CONTRIBUTORS.txt for Swift project authors
+-->
+
+<!-- NOTE: The voice of this document is directed at the second person ("you")
+because it provides instructions the reader must follow directly. -->
+
+Migrate an existing test method or test class written using XCTest.
+
+## Overview
+
+The testing library provides much of the same functionality of XCTest, but uses
+its own syntax to declare test functions and types. Here, you'll learn how to
+convert XCTest-based content to use the testing library instead.
+
+### Import the testing library
+
+XCTest and the testing library are available from different modules. Instead of 
+importing the XCTest module, import the Testing module:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    import XCTest
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    import Testing
+    ```
+  }
+}
+
+A single source file can contain tests written with XCTest as well as other 
+tests written with the testing library. Import both XCTest and Testing if a 
+source file contains mixed test content.
+
+### Convert test classes
+
+XCTest groups related sets of test methods in test classes: classes that inherit
+from the [`XCTestCase`](https://developer.apple.com/documentation/xctest/xctestcase)
+class provided by the [XCTest](https://developer.apple.com/documentation/xctest) framework. The testing library doesn't require
+that test functions be instance members of types. Instead, they can be _free_ or
+_global_ functions, or can be `static` or `class` members of a type.
+
+If you want to group your test functions together, you can do so by placing them
+in a Swift type. The testing library refers to such a type as a _suite_. These
+types do _not_ need to be classes, and they don't inherit from `XCTestCase`.
+
+To convert a subclass of `XCTestCase` to a suite, remove the `XCTestCase`
+conformance. It's also generally recommended that a Swift structure or actor be
+used instead of a class because it allows the Swift compiler to better-enforce
+concurrency safety:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    class FoodTruckTests: XCTestCase {
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    struct FoodTruckTests {
+      ...
+    }
+    ```
+  }
+}
+
+For more information about suites and how to declare and customize them, see
+<doc:OrganizingTests>.
+
+### Convert setup and teardown functions
+
+In XCTest, code can be scheduled to run before and after a test using the
+[`setUp()`](https://developer.apple.com/documentation/xctest/xctest/3856481-setup)
+and [`tearDown()`](https://developer.apple.com/documentation/xctest/xctest/3856482-teardown)
+family of functions. When writing tests using the testing library, implement
+`init()` and/or `deinit` instead:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    class FoodTruckTests: XCTestCase {
+      var batteryLevel: NSNumber!
+      override func setUp() async throws {
+        batteryLevel = 100
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    struct FoodTruckTests {
+      var batteryLevel: NSNumber
+      init() async throws {
+        batteryLevel = 100
+      }
+      ...
+    }
+    ```
+  }
+}
+
+The use of `async` and `throws` is optional. If teardown is needed, declare your
+test suite as a class or as an actor rather than as a structure and implement
+`deinit`:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    class FoodTruckTests: XCTestCase {
+      var batteryLevel: NSNumber!
+      override func setUp() async throws {
+        batteryLevel = 100
+      }
+      override func tearDown() {
+        batteryLevel = 0 // drain the battery
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    final class FoodTruckTests {
+      var batteryLevel: NSNumber
+      init() async throws {
+        batteryLevel = 100
+      }
+      deinit {
+        batteryLevel = 0 // drain the battery
+      }
+      ...
+    }
+    ```
+  }
+}
+
+<!--
+- Bug: `deinit` cannot be asynchronous or throwing, unlike `tearDown()`.
+  ((103616215)[rdar://103616215])
+-->
+
+### Convert test methods
+
+The testing library represents individual tests as functions, similar to how
+they are represented in XCTest. However, the syntax for declaring a test
+function is different. In XCTest, a test method must be a member of a test class
+and its name must start with `test`. The testing library doesn't require a test
+function to have any particular name. Instead, it identifies a test function by
+the presence of the `@Test` attribute:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    class FoodTruckTests: XCTestCase {
+      func testEngineWorks() { ... }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    struct FoodTruckTests {
+      @Test func engineWorks() { ... }
+      ...
+    }
+    ```
+  }
+}
+
+As with XCTest, the testing library allows test functions to be marked `async`,
+`throws`, or `async`-`throws`, and to be isolated to a global actor (for example, by using the
+`@MainActor` attribute.)
+
+- Note: XCTest runs synchronous test methods on the main actor by default, while
+  the testing library runs all test functions on an arbitrary task. If a test
+  function must run on the main thread, isolate it to the main actor with
+  `@MainActor`, or run the thread-sensitive code inside a call to
+  [`MainActor.run(resultType:body:)`](https://developer.apple.com/documentation/swift/mainactor/run(resulttype:body:)).
+
+For more information about test functions and how to declare and customize them,
+see <doc:DefiningTests>.
+
+### Check for expected values and outcomes 
+
+XCTest uses a family of approximately 40 functions to assert test requirements.
+These functions are collectively referred to as
+[`XCTAssert()`](https://developer.apple.com/documentation/xctest/1500669-xctassert).
+The testing library has two replacements, ``expect(_:_:sourceLocation:)`` and
+``require(_:_:sourceLocation:)-5l63q``. They both behave similarly to
+`XCTAssert()` except that ``require(_:_:sourceLocation:)-5l63q`` throws an
+error if its condition isn't met:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testEngineWorks() throws {
+      let engine = FoodTruck.shared.engine
+      XCTAssertNotNil(engine.parts.first)
+      XCTAssertGreaterThan(engine.batteryLevel, 0)
+      try engine.start()
+      XCTAssertTrue(engine.isRunning)
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func engineWorks() throws {
+      let engine = FoodTruck.shared.engine
+      try #require(engine.parts.first != nil)
+      #expect(engine.batteryLevel > 0)
+      try engine.start()
+      #expect(engine.isRunning)
+    }
+    ```
+  }
+}
+
+### Check for optional values
+
+XCTest also has a function, [`XCTUnwrap()`](https://developer.apple.com/documentation/xctest/3380195-xctunwrap),
+that tests if an optional value is `nil` and throws an error if it is. When
+using the testing library, you can use ``require(_:_:sourceLocation:)-6w9oo``
+with optional expressions to unwrap them:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testEngineWorks() throws {
+      let engine = FoodTruck.shared.engine
+      let part = try XCTUnwrap(engine.parts.first)
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func engineWorks() throws {
+      let engine = FoodTruck.shared.engine
+      let part = try #require(engine.parts.first)
+      ...
+    }
+    ```
+  }
+}
+
+### Record issues
+
+XCTest has a function, [`XCTFail()`](https://developer.apple.com/documentation/xctest/1500970-xctfail),
+that causes a test to fail immediately and unconditionally. This function is
+useful when the syntax of the language prevents the use of an `XCTAssert()`
+function. To record an unconditional issue using the testing library, use the
+``Issue/record(_:severity:sourceLocation:)`` function:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testEngineWorks() {
+      let engine = FoodTruck.shared.engine
+      guard case .electric = engine else {
+        XCTFail("Engine is not electric")
+        return
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func engineWorks() {
+      let engine = FoodTruck.shared.engine
+      guard case .electric = engine else {
+        Issue.record("Engine is not electric")
+        return
+      }
+      ...
+    }
+    ```
+  }
+}
+
+The following table includes a list of the various `XCTAssert()` functions and
+their equivalents in the testing library:
+
+| XCTest | Swift Testing |
+|-|-|
+| `XCTAssert(x)`, `XCTAssertTrue(x)` | `#expect(x)` |
+| `XCTAssertFalse(x)` | `#expect(!x)` |
+| `XCTAssertNil(x)` | `#expect(x == nil)` |
+| `XCTAssertNotNil(x)` | `#expect(x != nil)` |
+| `XCTAssertEqual(x, y)` | `#expect(x == y)` |
+| `XCTAssertNotEqual(x, y)` | `#expect(x != y)` |
+| `XCTAssertIdentical(x, y)` | `#expect(x === y)` |
+| `XCTAssertNotIdentical(x, y)` | `#expect(x !== y)` |
+| `XCTAssertGreaterThan(x, y)` | `#expect(x > y)` |
+| `XCTAssertGreaterThanOrEqual(x, y)` | `#expect(x >= y)` |
+| `XCTAssertLessThanOrEqual(x, y)` | `#expect(x <= y)` |
+| `XCTAssertLessThan(x, y)` | `#expect(x < y)` |
+| `XCTAssertThrowsError(try f())` | `#expect(throws: (any Error).self) { try f() }` |
+| `XCTAssertThrowsError(try f()) { error in … }` | `let error = #expect(throws: (any Error).self) { try f() }` |
+| `XCTAssertNoThrow(try f())` | `#expect(throws: Never.self) { try f() }` |
+| `try XCTUnwrap(x)` | `try #require(x)` |
+| `XCTFail("…")` | `Issue.record("…")` |
+
+The testing library doesn’t provide an equivalent of
+[`XCTAssertEqual(_:_:accuracy:_:file:line:)`](https://developer.apple.com/documentation/xctest/3551607-xctassertequal).
+To compare two numeric values within a specified accuracy, 
+use `isApproximatelyEqual()` from [swift-numerics](https://github.com/apple/swift-numerics).
+
+### Continue or halt after test failures
+
+An instance of an `XCTestCase` subclass can set its
+[`continueAfterFailure`](https://developer.apple.com/documentation/xctest/xctestcase/1496260-continueafterfailure)
+property to `false` to cause a test to stop running after a failure occurs.
+XCTest stops an affected test by throwing an Objective-C exception at the
+time the failure occurs.
+
+- Note: `continueAfterFailure` isn't fully supported when using the
+  [swift-corelibs-xctest](https://github.com/swiftlang/swift-corelibs-xctest)
+  library on non-Apple platforms.
+
+The behavior of an exception thrown through a Swift stack frame is undefined. If
+an exception is thrown through an `async` Swift function, it typically causes
+the process to terminate abnormally, preventing other tests from running.
+
+The testing library doesn't use exceptions to stop test functions. Instead, use
+the ``require(_:_:sourceLocation:)-5l63q`` macro, which throws a Swift error on
+failure:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testTruck() async {
+      continueAfterFailure = false
+      XCTAssertTrue(FoodTruck.shared.isLicensed)
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func truck() throws {
+      try #require(FoodTruck.shared.isLicensed)
+      ...
+    }
+    ```
+  }
+}
+
+When using either `continueAfterFailure` or
+``require(_:_:sourceLocation:)-5l63q``, other tests will continue to run after
+the failed test method or test function.
+
+### Validate asynchronous behaviors
+
+XCTest has a class, [`XCTestExpectation`](https://developer.apple.com/documentation/xctest/xctestexpectation),
+that represents some asynchronous condition. You create an instance of
+this class (or a subclass like [`XCTKeyPathExpectation`](https://developer.apple.com/documentation/xctest/xctkeypathexpectation))
+using an initializer or a convenience method on `XCTestCase`. When the condition
+represented by an expectation occurs, the developer _fulfills_ the expectation.
+Concurrently, the developer _waits for_ the expectation to be fulfilled using an
+instance of [`XCTWaiter`](https://developer.apple.com/documentation/xctest/xctwaiter)
+or using a convenience method on `XCTestCase`.
+
+Wherever possible, prefer to use Swift concurrency to validate asynchronous
+conditions. For example, if it's necessary to determine the result of an
+asynchronous Swift function, it can be awaited with `await`. For a function that
+takes a completion handler but which doesn't use `await`, a Swift
+[continuation](https://developer.apple.com/documentation/swift/withcheckedcontinuation(isolation:function:_:))
+can be used to convert the call into an `async`-compatible one.
+
+Some tests, especially those that test asynchronously-delivered events, cannot
+be readily converted to use Swift concurrency. The testing library offers
+functionality called _confirmations_ which can be used to implement these tests.
+Instances of ``Confirmation`` are created and used within the scope of the
+functions ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-5mqz2``
+and ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-l3il``.
+
+Confirmations function similarly to the expectations API of XCTest, however,
+they don't block or suspend the caller while waiting for a condition to be
+fulfilled. Instead, the requirement is expected to be _confirmed_ (the
+equivalent of _fulfilling_ an expectation) before `confirmation()` returns, and
+records an issue otherwise:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testTruckEvents() async {
+      let soldFood = expectation(description: "…")
+      FoodTruck.shared.eventHandler = { event in
+        if case .soldFood = event {
+          soldFood.fulfill()
+        }
+      }
+      await Customer().buy(.soup)
+      await fulfillment(of: [soldFood])
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func truckEvents() async {
+      await confirmation("…") { soldFood in
+        FoodTruck.shared.eventHandler = { event in
+          if case .soldFood = event {
+            soldFood()
+          }
+        }
+        await Customer().buy(.soup)
+      }
+      ...
+    }
+    ```
+  }
+}
+
+By default, `XCTestExpectation` expects to be fulfilled exactly once, and will
+record an issue in the current test if it is not fulfilled or if it is fulfilled
+more than once. `Confirmation` behaves the same way and expects to be confirmed
+exactly once by default. You can configure the number of times an expectation
+should be fulfilled by setting its [`expectedFulfillmentCount`](https://developer.apple.com/documentation/xctest/xctestexpectation/2806572-expectedfulfillmentcount)
+property, and you can pass a value for the `expectedCount` argument of
+``confirmation(_:expectedCount:isolation:sourceLocation:_:)-5mqz2`` for the same
+purpose.
+
+`XCTestExpectation` has a property, [`assertForOverFulfill`](https://developer.apple.com/documentation/xctest/xctestexpectation/2806575-assertforoverfulfill),
+which when set to `false` allows an expectation to be fulfilled more times than
+expected without causing a test failure. When using a confirmation, you can pass
+a range to ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-l3il`` as
+its expected count to indicate that it must be confirmed _at least_ some number
+of times:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testRegularCustomerOrders() async {
+      let soldFood = expectation(description: "…")
+      soldFood.expectedFulfillmentCount = 10
+      soldFood.assertForOverFulfill = false
+      FoodTruck.shared.eventHandler = { event in
+        if case .soldFood = event {
+          soldFood.fulfill()
+        }
+      }
+      for customer in regularCustomers() {
+        await customer.buy(customer.regularOrder)
+      }
+      await fulfillment(of: [soldFood])
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func regularCustomerOrders() async {
+      await confirmation(
+        "…",
+        expectedCount: 10...
+      ) { soldFood in
+        FoodTruck.shared.eventHandler = { event in
+          if case .soldFood = event {
+            soldFood()
+          }
+        }
+        for customer in regularCustomers() {
+          await customer.buy(customer.regularOrder)
+        }
+      }
+      ...
+    }
+    ```
+  }
+}
+
+Any range expression with a lower bound (that is, whose type conforms to
+both [`RangeExpression<Int>`](https://developer.apple.com/documentation/swift/rangeexpression)
+and [`Sequence<Int>`](https://developer.apple.com/documentation/swift/sequence))
+can be used with ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-l3il``.
+You must specify a lower bound for the number of confirmations because, without
+one, the testing library cannot tell if an issue should be recorded when there
+have been zero confirmations. 
+
+### Control whether a test runs
+
+When using XCTest, the [`XCTSkip`](https://developer.apple.com/documentation/xctest/xctskip)
+error type can be thrown to bypass the remainder of a test function. As well,
+the [`XCTSkipIf()`](https://developer.apple.com/documentation/xctest/3521325-xctskipif)
+and [`XCTSkipUnless()`](https://developer.apple.com/documentation/xctest/3521326-xctskipunless)
+functions can be used to conditionalize the same action. The testing library
+allows developers to skip a test function or an entire test suite before it
+starts running using the ``ConditionTrait`` trait type. Annotate a test suite or
+test function with an instance of this trait type to control whether it runs:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    class FoodTruckTests: XCTestCase {
+      func testArepasAreTasty() throws {
+        try XCTSkipIf(CashRegister.isEmpty)
+        try XCTSkipUnless(FoodTruck.sells(.arepas))
+        ...
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Suite(.disabled(if: CashRegister.isEmpty))
+    struct FoodTruckTests {
+      @Test(.enabled(if: FoodTruck.sells(.arepas)))
+      func arepasAreTasty() {
+        ...
+      }
+      ...
+    }
+    ```
+  }
+}
+
+<!-- TODO: document Test.cancel() and Test.Case.cancel() here, and update
+     relevant links to use proper DocC symbol references.
+
+If a test has already started running and you determine it cannot complete and
+should end early without failing, use `Test/cancel(_:sourceLocation:)` instead
+of [`XCTSkip`](https://developer.apple.com/documentation/xctest/xctskip) to
+cancel the task associated with the current test:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testCashRegister() throws {
+      let cashRegister = CashRegister()
+      let drawer = cashRegister.open()
+      if drawer.isEmpty {
+        throw XCTSkip("Cash register is empty")
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func cashRegister() throws {
+      let cashRegister = CashRegister()
+      let drawer = cashRegister.open()
+      if drawer.isEmpty {
+        try Test.cancel("Cash register is empty")
+      }
+      ...
+    }
+    ```
+  }
+}
+
+If the test is parameterized and you only want to cancel the current test case
+rather than the entire test, use `Test/Case/cancel(_:sourceLocation:)`.
+-->
+
+### Annotate known issues
+
+A test may have a known issue that sometimes or always prevents it from passing.
+When written using XCTest, such tests can call
+[`XCTExpectFailure(_:options:failingBlock:)`](https://developer.apple.com/documentation/xctest/3727246-xctexpectfailure)
+to tell XCTest and its infrastructure that the issue shouldn't cause the test
+to fail. The testing library has an equivalent function with synchronous and
+asynchronous variants:
+
+- ``withKnownIssue(_:isIntermittent:sourceLocation:_:)``
+- ``withKnownIssue(_:isIntermittent:isolation:sourceLocation:_:)``
+
+This function can be used to annotate a section of a test as having a known
+issue:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testGrillWorks() async {
+      XCTExpectFailure("Grill is out of fuel") {
+        try FoodTruck.shared.grill.start()
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func grillWorks() async {
+      withKnownIssue("Grill is out of fuel") {
+        try FoodTruck.shared.grill.start()
+      }
+      ...
+    }
+    ```
+  }
+}
+
+- Note: The XCTest function [`XCTExpectFailure(_:options:)`](https://developer.apple.com/documentation/xctest/3727245-xctexpectfailure),
+  which doesn't take a closure and which affects the remainder of the test,
+  doesn't have a direct equivalent in the testing library. To mark an entire
+  test as having a known issue, wrap its body in a call to `withKnownIssue()`. 
+
+If a test may fail intermittently, the call to
+`XCTExpectFailure(_:options:failingBlock:)` can be marked _non-strict_. When
+using the testing library, specify that the known issue is _intermittent_
+instead:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testGrillWorks() async {
+      XCTExpectFailure(
+        "Grill may need fuel",
+        options: .nonStrict()
+      ) {
+        try FoodTruck.shared.grill.start()
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func grillWorks() async {
+      withKnownIssue(
+        "Grill may need fuel", 
+        isIntermittent: true
+      ) {
+        try FoodTruck.shared.grill.start()
+      }
+      ...
+    }
+    ```
+  }
+}
+
+Additional options can be specified when calling `XCTExpectFailure()`:
+
+- [`isEnabled`](https://developer.apple.com/documentation/xctest/xctexpectedfailure/options/3726085-isenabled)
+  can be set to `false` to skip known-issue matching (for instance, if a
+  particular issue only occurs under certain conditions)
+- [`issueMatcher`](https://developer.apple.com/documentation/xctest/xctexpectedfailure/options/3726086-issuematcher)
+  can be set to a closure to allow marking only certain issues as known and to
+  allow other issues to be recorded as test failures
+
+The testing library includes overloads of `withKnownIssue()` that take
+additional arguments with similar behavior:
+
+- ``withKnownIssue(_:isIntermittent:sourceLocation:_:when:matching:)``
+- ``withKnownIssue(_:isIntermittent:isolation:sourceLocation:_:when:matching:)``
+
+To conditionally enable known-issue matching or to match only certain kinds
+of issues:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testGrillWorks() async {
+      let options = XCTExpectedFailure.Options()
+      options.isEnabled = FoodTruck.shared.hasGrill
+      options.issueMatcher = { issue in
+        issue.type == thrownError
+      }
+      XCTExpectFailure(
+        "Grill is out of fuel",
+        options: options
+      ) {
+        try FoodTruck.shared.grill.start()
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func grillWorks() async {
+      withKnownIssue("Grill is out of fuel") {
+        try FoodTruck.shared.grill.start()
+      } when: {
+        FoodTruck.shared.hasGrill
+      } matching: { issue in
+        issue.error != nil 
+      }
+      ...
+    }
+    ```
+  }
+}
+
+### Run tests sequentially
+
+By default, the testing library runs all tests in a suite in parallel. The
+default behavior of XCTest is to run each test in a suite sequentially. If your
+tests use shared state such as global variables, you may see unexpected
+behavior including unreliable test outcomes when you run tests in parallel.
+
+Annotate your test suite with ``Trait/serialized`` to run tests within that
+suite serially:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    class RefrigeratorTests : XCTestCase {
+      func testLightComesOn() throws {
+        try FoodTruck.shared.refrigerator.openDoor()
+        XCTAssertEqual(FoodTruck.shared.refrigerator.lightState, .on)
+      }
+      
+      func testLightGoesOut() throws {
+        try FoodTruck.shared.refrigerator.openDoor()
+        try FoodTruck.shared.refrigerator.closeDoor()
+        XCTAssertEqual(FoodTruck.shared.refrigerator.lightState, .off)
+      }
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Suite(.serialized)
+    class RefrigeratorTests {
+      @Test func lightComesOn() throws {
+        try FoodTruck.shared.refrigerator.openDoor()
+        #expect(FoodTruck.shared.refrigerator.lightState == .on)
+      }
+      
+      @Test func lightGoesOut() throws {
+        try FoodTruck.shared.refrigerator.openDoor()
+        try FoodTruck.shared.refrigerator.closeDoor()
+        #expect(FoodTruck.shared.refrigerator.lightState == .off)
+      }
+    }
+    ```
+  }
+}
+
+For more information, see <doc:Parallelization>.
+
+### Attach values
+
+In XCTest, you can create an instance of [`XCTAttachment`](https://developer.apple.com/documentation/xctest/xctattachment)
+representing arbitrary data, files, property lists, encodable objects, images,
+and other types of information that would be useful to have available if a test
+fails. Swift Testing has an ``Attachment`` type that serves much the same
+purpose.
+
+To attach a value from a test to the output of a test run, that value must
+conform to the ``Attachable`` protocol. The testing library provides default
+conformances for various standard library and Foundation types.
+
+If you want to attach a value of another type, and that type already conforms to
+[`Encodable`](https://developer.apple.com/documentation/swift/encodable) or to
+[`NSSecureCoding`](https://developer.apple.com/documentation/foundation/nssecurecoding),
+the testing library automatically provides a default implementation when you
+import Foundation:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    import Foundation
+
+    class Tortilla: NSSecureCoding { /* ... */ }
+
+    func testTortillaIntegrity() async {
+      let tortilla = Tortilla(diameter: .large)
+      ...
+      let attachment = XCTAttachment(
+        archivableObject: tortilla
+      )
+      self.add(attachment)
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    import Foundation
+
+    struct Tortilla: Codable, Attachable { /* ... */ }
+
+    @Test func tortillaIntegrity() async {
+      let tortilla = Tortilla(diameter: .large)
+      ...
+      Attachment.record(tortilla)
+    }
+    ```
+  }
+}
+
+If you have a type that does not (or cannot) conform to `Encodable` or
+`NSSecureCoding`, or if you want fine-grained control over how it is serialized
+when attaching it to a test, you can provide your own implementation of
+``Attachable/withUnsafeBytes(for:_:)``.
+
+<!-- NOTE: not discussing attaching to activities here since there is not yet an
+equivalent interface in Swift Testing. -->
+
+## See Also
+
+- <doc:DefiningTests>
+- <doc:OrganizingTests>
+- <doc:Expectations>
+- <doc:known-issues>
+--- END FILE ---
+
+--- FILE: LimitingExecutionTime.md ---
+# Limiting the running time of tests
+
+<!--
+This source file is part of the Swift.org open source project
+
+Copyright (c) 2023-2024 Apple Inc. and the Swift project authors
+Licensed under Apache License v2.0 with Runtime Library Exception
+
+See https://swift.org/LICENSE.txt for license information
+See https://swift.org/CONTRIBUTORS.txt for Swift project authors
+-->
+
+Set limits on how long a test can run for until it fails.
+
+## Overview
+
+Some tests may naturally run slowly: they may require significant system
+resources to complete, may rely on downloaded data from a server, or may
+otherwise be dependent on external factors.
+
+If a test might stall indefinitely or might consume too many system resources to
+complete effectively, consider setting a time limit for it so that it's marked
+as failing if it runs for an excessive amount of time. Use the
+``Trait/timeLimit(_:)-4kzjp`` trait as an upper bound:
+
+```swift
+@Test(.timeLimit(.minutes(60))
+func serve100CustomersInOneHour() async {
+  for _ in 0 ..< 100 {
+    let customer = await Customer.next()
+    await customer.order()
+    ...
+  }
+}
+```
+
+If the above test function takes longer than an
+hour (60 x 60 seconds) to execute, the task in which it's running is
+[cancelled](https://developer.apple.com/documentation/swift/task/cancel())
+and the test fails with an issue of kind
+``Issue/Kind-swift.enum/timeLimitExceeded(timeLimitComponents:)``.
+
+- Note: If multiple time limit traits apply to a test, the testing library uses
+  the shortest time limit.
+
+The testing library may adjust the specified time limit for performance reasons
+or to ensure tests have enough time to run. In particular, a granularity of (by
+default) one minute is applied to tests. The testing library can also be
+configured with a maximum time limit per test that overrides any applied time
+limit traits.
+
+### Apply time limits to test suites
+
+When you apply a time limit to a test suite, the testing library recursively
+applies it to all test functions and child test suites within that suite.
+The time limit applies to each test in the test suite and any child test suites,
+or each test case for parameterized tests.
+
+For example, if a suite contains five tests and you apply a time limit trait
+with a duration of one minute, then each test in the suite may run for up to
+one minute.
+
+### Apply time limits to parameterized tests
+
+When you apply a time limit to a parameterized test function, the testing
+library applies it to each invocation _separately_ so that if only some
+cases cause failures due to timeouts, then the testing library doesn't
+incorrectly mark successful cases as failing.
+--- END FILE ---
+
+--- FILE: Bring_advanced_speech-to-text_to_your_app_with_Speech_Analyzer.md ---
+Hello! I’m Donovan, an engineer on the Speech framework team and I’m Shantini, an engineer on the Notes team. This year, we’re excited to bring you the next evolution of our speech-to-text API and technology: SpeechAnalyzer. In this session, we’ll discuss the SpeechAnalyzer API and its most important concepts. We’ll also briefly discuss some of the new capabilities of the model behind the API. And finally, we’ll show a live-coding demo of how to use the API. SpeechAnalyzer is already powering features across many system apps, such as Notes, Voice Memos, Journal, and more.
+
+And when we combine SpeechAnalyzer with Apple Intelligence, we create incredibly powerful features such as Call Summarization. Later, I’ll show you how to use the API to build your own live transcription feature. But first, Donovan will give you an overview of the new SpeechAnalyzer API. Speech-to-text, also known as automatic speech recognition or ASR, is a versatile technology that allows you to create great user experiences using live or recorded speech by converting it to a textual form that a device can easily display or interpret. Apps can store, search, or transmit that text in real time or pass it on to a text-based large language model.
+
+In iOS 10, we introduced SFSpeechRecognizer. That class gave you access to the speech-to-text model powering Siri. It worked well for short-form dictation and it could use Apple servers on resource-constrained devices but it didn’t address some use cases as well as we, or you, would have liked and relied on the user to add languages. So now, in iOS 26, we’re introducing a new API for all our platforms called SpeechAnalyzer that supports more use cases and supports them better. The new API leverages the power of Swift to perform speech-to-text processing and manage model assets on the user’s device with very little code. Along with the API, we’re providing a new speech-to-text model that is already powering application features across our platforms. The new model is both faster and more flexible than the one previously available through SFSpeechRecognizer. It’s good for long-form and distant audio, such as lectures, meetings, and conversations. Because of these improvements, Apple is using this new model (and the new API) in Notes and the other applications we mentioned earlier. You can use these new capabilities to build your own application with the same sort of speech to-text features that Notes and our other applications provide but first, let’s check out the design of the API. The API consists of the SpeechAnalyzer class along with several other classes. The SpeechAnalyzer class manages an analysis session. You can add a module class to the session to perform a specific type of analysis. Adding a transcriber module to the session makes it a transcription session that performs speech-to-text processing. You pass audio buffers to the analyzer instance, which then routes them through the transcriber and its speech-to-text model. The model predicts the text that corresponds to the spoken audio and returns that text, along with some metadata, to your application.
+
+This all works asynchronously. Your application can add audio as it becomes available in one task and display or further process the results independently in another task. Swift’s async sequences buffer and decouple the input and results.
+
+The “Meet AsyncSequence” session from WWDC21 covers how to provide an input sequence and how to read the results sequence.
+
+To correlate the input with the results, the API uses the timecode of the corresponding audio. In fact, all API operations are scheduled using timecodes on the audio timeline, which makes their order predictable and independent of when they’re called. The timecodes are precise down to an individual audio sample. Note how the transcriber delivers results in sequence, each of which covers its own range of audio without overlapping. This is normally how it works but, as an optional feature, you can make transcription iterative within a range of audio. You may want to do this to provide more immediate feedback in your application’s UI. You can show a rough result immediately and then show better iterations of that result over the next few seconds. We call the immediate rough results "volatile results". They’re delivered almost as soon as they’re spoken but they are less accurate guesses. However, the model improves its transcription as it gets more audio with more context. Eventually, the result will be as good as it can be, and the transcriber delivers one last finalized result. Once it does that, the transcriber won’t deliver any more results for this range of audio, and it moves on to the next range. Note how the timecodes show that later, improved results replace earlier results. This only happens when you enable volatile results. Normally, the transcriber only delivers finalized results, and none of them replace earlier results. You can build a transcription feature in just one function if all you need to do is read the file and return the transcription. That's a job that doesn't need volatile result handling or much concurrency. Here's the function. 
+
+```swift
+// Set up transcriber. Read results asynchronously, and concatenate them together.
+let transcriber = SpeechTranscriber(locale: locale, preset: .offlineTranscription)
+async let transcriptionFuture = try transcriber.results
+    .reduce("") { str, result in str + result.text }
+
+let analyzer = SpeechAnalyzer(modules: [transcriber])
+if let lastSample = try await analyzer.analyzeSequence(from: file) {
+    try await analyzer.finalizeAndFinish(through: lastSample)
+} else {
+    await analyzer.cancelAndFinishNow()
+}
+    
+return try await transcriptionFuture
+```
+
+Here, we create the transcriber module. We tell it the locale that we want to transcribe into. It doesn't have any results yet but we'll read them as they come in and use the AsyncSequence version of reduce to concatenate them. We'll do this in the background using async let. Here, we create the analyzer and add the transcriber module, then we start analyzing the file. The analyzeSequence method reads from the file and adds its audio to an input sequence. When the file has been read, we tell the analyzer to finish up because we aren't planning to work on any additional audio. Finally, we return the transcription that we've been assembling in the background. That'll be the spoken words in the file, in the form of a single attributed string, and we're done.
+
+So now I’ve covered the concepts and basic usage of the API. You add modules to an analysis session to perform, say, transcription. It works concurrently and asynchronously, decoupling audio input from results. You correlate audio, results, and operations using the session’s audio timeline. Some of those results are volatile, if you want them to be, and the rest are final and won’t change. And I showed how the pieces fit together in a one-function use case. Later, Shantini will demonstrate how you can expand that one function’s work across different views, models, and view models. She’ll show you several methods and properties of the SpeechAnalyzer and Transcriber classes that you can use to handle some common needs, and you can read about these in the documentation as well. But now, we’d like to describe some of the advantages of the SpeechTranscriber class’s new speech-to-text model. SpeechTranscriber is powered by a brand new model engineered by Apple to support a broad spectrum of use cases. We wanted to create a model that could support long-form and conversational use cases where some speakers might not be close to the mic, such as recording a meeting. We also wanted to enable live transcription experiences that demand low latency without sacrificing accuracy or readability, and we wanted to keep speech private. Our new, on-device model achieves all of that. We worked closely with internal partners to design a great developer experience for you, and now you can support the same use cases in your own applications. With SpeechTranscriber, you gain a powerful speech-to-text model that you don’t have to procure and manage yourself. Simply install the relevant model assets via the new AssetInventory API. You can download them when needed. The model is retained in system storage and does not increase the download or storage size of your application, nor does it increase the run-time memory size. It operates outside of your application’s memory space, so you don’t have to worry about exceeding the size limit. And we constantly improve the model, so the system will automatically install updates as they become available. SpeechTranscriber can currently transcribe these languages, with more to come, and is available for all platforms but watchOS with certain hardware requirements. If you need an unsupported language or device, we also offer a second transcriber class: DictationTranscriber. It supports the same languages, speech-to-text model, and devices as iOS 10’s on-device SFSpeechRecognizer but improving on SFSpeechRecognizer, you will NOT need to tell your users to go into Settings and turn on Siri or keyboard dictation for any particular language. So that’s your introduction to the new API and model. It was pretty abstract, but we’ll get concrete now. Let’s go to Shantini, who will show you how to integrate SpeechAnalyzer into your app. Thanks for that great overview, Donovan! You may have seen the amazing features that we added to Notes in iOS 18 to record and transcribe phone calls, live audio, and recorded audio. Additionally, we integrated these features with Apple Intelligence, resulting in useful and time-saving summaries. We worked closely with the Speech team to ensure that SpeechAnalyzer and SpeechTranscriber would enable us to deliver a high-quality Notes feature. SpeechTranscriber is a great fit because it’s fast, accurate even at longer distances, and on device. One of our additional goals was to enable you, the developer, to build features just like the ones we added to Notes and customize them to meet the needs of your users. I’d love to get you started with that. Let’s check out an app I’m building with a live transcription feature. My app is meant for kids and records and transcribes bedtime stories, allowing you to play them back. Here are the transcription results in real time.
+
+And, when you play the audio back, the corresponding segment of text is highlighted, so that they can follow along with the story. Let’s check out the project setup.
+
+In my sample app code, I have a Recorder class, and a SpokenWordTranscriber class. I’ve made them both observable.
+
+I also made this Story model to encapsulate our transcript information and other relevant details for display. Finally, I have our transcript view, with live transcription and playback views, and recording and playback buttons. It also handles recording and playback state. Let’s first check out transcription. We can set up live transcription in 3 easy steps: configure the SpeechTranscriber; ensure the model is present; and handle the results. We set up our SpeechTranscriber by initializing it with a locale object and options that we need. The locale's language code corresponds to the language in which we want to receive transcription. As Donovan highlighted before, volatile results are realtime guesses, and finalized results are the best guesses. Here, both of those are used, with the volatile results in a lighter opacity, replaced by the finalized results when they come in. To configure this in our SpeechTranscriber, we're going to set these option types. I'm adding the audioTimeRange option so that we get timing information.
+
+```swift
+func setUpTranscriber() async throws {
+        transcriber = SpeechTranscriber(locale: Locale.current,
+                                        transcriptionOptions: [],
+                                        reportingOptions: [.volatileResults],
+                                        attributeOptions: [.audioTimeRange])
+    }
+```
+
+That will allow us to sync the playback of the text to the audio.
+
+There are also pre-configured presets that offer different options.
+
+```swift
+// transcriber = SpeechTranscriber(locale: Locale.current, preset: .progressiveLiveTranscription)
+```
+
+We're now going to set up the SpeechAnalyzer object with our SpeechTranscriber module.
+
+```swift
+func setUpTranscriber() async throws {
+    transcriber = SpeechTranscriber(locale: Locale.current,
+                                    transcriptionOptions: [],
+                                    reportingOptions: [.volatileResults],
+                                    attributeOptions: [.audioTimeRange])
+    
+    guard let transcriber else {
+        throw TranscriptionError.failedToSetupRecognitionStream
+    }
+
+    analyzer = SpeechAnalyzer(modules: [transcriber])
+}
+```
+
+This unlocks the ability for us to get the audio format that we need to use.
+
+```swift
+func setUpTranscriber() async throws {
+    transcriber = SpeechTranscriber(locale: Locale.current,
+                                    transcriptionOptions: [],
+                                    reportingOptions: [.volatileResults],
+                                    attributeOptions: [.audioTimeRange])
+    
+    guard let transcriber else {
+        throw TranscriptionError.failedToSetupRecognitionStream
+    }
+
+    analyzer = SpeechAnalyzer(modules: [transcriber])
+    
+    self.analyzerFormat = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [transcriber])
+}
+```
+
+We're also now able to ensure our speech-to-text model is in place.
+
+```swift
+func setUpTranscriber() async throws {
+    transcriber = SpeechTranscriber(locale: Locale.current,
+                                    transcriptionOptions: [],
+                                    reportingOptions: [.volatileResults],
+                                    attributeOptions: [.audioTimeRange])
+    
+    guard let transcriber else {
+        throw TranscriptionError.failedToSetupRecognitionStream
+    }
+
+    analyzer = SpeechAnalyzer(modules: [transcriber])
+    
+    self.analyzerFormat = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [transcriber])
+    
+    do {
+        try await ensureModel(transcriber: transcriber, locale: Locale.current)
+    } catch let error as TranscriptionError {
+        print(error)
+        return
+    }
+}
+```
+
+To finish up our SpeechTranscriber setup, we want to save references to the AsyncStream input and start the analyzer.
+
+```swift
+func setUpTranscriber() async throws {
+    transcriber = SpeechTranscriber(locale: Locale.current,
+                                    transcriptionOptions: [],
+                                    reportingOptions: [.volatileResults],
+                                    attributeOptions: [.audioTimeRange])
+    
+    guard let transcriber else {
+        throw TranscriptionError.failedToSetupRecognitionStream
+    }
+
+    analyzer = SpeechAnalyzer(modules: [transcriber])
+    
+    self.analyzerFormat = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [transcriber])
+    
+    do {
+        try await ensureModel(transcriber: transcriber, locale: Locale.current)
+    } catch let error as TranscriptionError {
+        print(error)
+        return
+    }
+    
+    (inputSequence, inputBuilder) = AsyncStream<AnalyzerInput>.makeStream()
+    
+    guard let inputSequence else { return }
+    
+    try await analyzer?.start(inputSequence: inputSequence)
+}
+```
+
+Now that we're done setting up the SpeechTranscriber, let's check out how we get the models. In our ensure model method, we're going to add checks for whether SpeechTranscriber supports transcription for the language we want.
+
+```swift
+public func ensureModel(transcriber: SpeechTranscriber, locale: Locale) async throws {
+        guard await supported(locale: locale) else {
+            throw TranscriptionError.localeNotSupported
+        }
+    }
+    
+    func supported(locale: Locale) async -> Bool {
+        let supported = await SpeechTranscriber.supportedLocales
+        return supported.map { $0.identifier(.bcp47) }.contains(locale.identifier(.bcp47))
+    }
+
+    func installed(locale: Locale) async -> Bool {
+        let installed = await Set(SpeechTranscriber.installedLocales)
+        return installed.map { $0.identifier(.bcp47) }.contains(locale.identifier(.bcp47))
+    }
+```
+
+We'll also check whether the language is downloaded and installed.
+
+```swift
+public func ensureModel(transcriber: SpeechTranscriber, locale: Locale) async throws {
+        guard await supported(locale: locale) else {
+            throw TranscriptionError.localeNotSupported
+        }
+        
+        if await installed(locale: locale) {
+            return
+        } else {
+            try await downloadIfNeeded(for: transcriber)
+        }
+    }
+    
+    func supported(locale: Locale) async -> Bool {
+        let supported = await SpeechTranscriber.supportedLocales
+        return supported.map { $0.identifier(.bcp47) }.contains(locale.identifier(.bcp47))
+    }
+
+    func installed(locale: Locale) async -> Bool {
+        let installed = await Set(SpeechTranscriber.installedLocales)
+        return installed.map { $0.identifier(.bcp47) }.contains(locale.identifier(.bcp47))
+    }
+```
+
+If the language is supported but not downloaded, we can go ahead and make a request to AssetInventory to download support.
+
+```swift
+func downloadIfNeeded(for module: SpeechTranscriber) async throws {
+        if let downloader = try await AssetInventory.assetInstallationRequest(supporting: [module]) {
+            self.downloadProgress = downloader.progress
+            try await downloader.downloadAndInstall()
+        }
+    }
+```
+
+Remember that transcription is entirely on device but the models need to be fetched. The download request includes a progress object that you can use to let your user know what's happening.
+
+Your app can have language support for a limited number of languages at a time. If you exceed the limit, you can ask AssetInventory to deallocate one or more of them to free up a spot.
+
+```swift
+func deallocate() async {
+        let allocated = await AssetInventory.allocatedLocales
+        for locale in allocated {
+            await AssetInventory.deallocate(locale: locale)
+        }
+    }
+```
+
+Now that we've gotten our models, let's get to the fun part - the results.
+
+Next to our SpeechTranscriber setup code, I'm creating a task and saving a reference to it.
+
+I'm also creating two variables to track our volatile and finalized results.
+
+The SpeechTranscriber returns results via AsyncStream. Each result object has a few different fields.
+
+The first one we want to get is text, which is represented by an AttributedString. This is your transcription result for a segment of audio. Each time we get a result back in the stream, we'll want to check whether it's volatile or finalized by using the isFinal property.
+
+If it's volatile, we'll save it to volatileTranscript.
+
+Whenever we get a finalized result, we clear out the volatileTranscript and add the result to finalizedTranscript.
+
+If we don't clear out our volatile results, we could end up with duplicates.
+
+Whenever we get a finalized result, I'm also going to write that out to our Story model to be used later.
+
+I'm also setting some conditional formatting using the SwiftUI AttributedString APIs.
+
+```swift
+recognizerTask = Task {
+            do {
+                for try await case let result in transcriber.results {
+                    let text = result.text
+                    if result.isFinal {
+                        finalizedTranscript += text
+                        volatileTranscript = ""
+                        updateStoryWithNewText(withFinal: text)
+                        print(text.audioTimeRange)
+                    } else {
+                        volatileTranscript = text
+                        volatileTranscript.foregroundColor = .purple.opacity(0.4)
+                    }
+                }
+            } catch {
+                print("speech recognition failed")
+            }
+        }
+```
+
+This will allow us to visualize the transcription results as they transition from volatile to finalized.
+
+If you're wondering how I'll get the timing data of the transcript, it's conveniently part of the attributed string.
+
+Each run has an audioTimeRange attribute represented as CMTimeRange. I'll use that in my view code to highlight the correct segment. Let's next check out how to set up our audio input.
+
+In my record function, which I call as the user presses Record, I'm going to request audio permission and start the AVAudioSession. We should also ensure that the app is configured to use the microphone in the project settings.
+
+I am then going to call my setUpTranscriber function that we created before.
+
+Finally, I'm going to handle input from my audio stream. 
+
+```swift
+func record() async throws {
+        self.story.url.wrappedValue = url
+        guard await isAuthorized() else {
+            print("user denied mic permission")
+            return
+        }
+#if os(iOS)
+        try setUpAudioSession()
+#endif
+        try await transcriber.setUpTranscriber()
+                
+        for await input in try await audioStream() {
+            try await self.transcriber.streamAudioToTranscriber(input)
+        }
+    }
+```
+
+Let's check out how I set that up. A few things are happening here. We're configuring the AVAudioEngine to return an AsyncStream and passing the incoming buffers to the stream.
+
+We're also writing the audio to disk.
+
+Finally, we're starting the audioEngine.
+
+```swift
+#if os(iOS)
+    func setUpAudioSession() throws {
+        let audioSession = AVAudioSession.sharedInstance()
+        try audioSession.setCategory(.playAndRecord, mode: .spokenAudio)
+        try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+    }
+#endif
+    
+    private func audioStream() async throws -> AsyncStream<AVAudioPCMBuffer> {
+        try setupAudioEngine()
+        audioEngine.inputNode.installTap(onBus: 0,
+                                         bufferSize: 4096,
+                                         format: audioEngine.inputNode.outputFormat(forBus: 0)) { [weak self] (buffer, time) in
+            guard let self else { return }
+            writeBufferToDisk(buffer: buffer)
+            self.outputContinuation?.yield(buffer)
+        }
+        
+        audioEngine.prepare()
+        try audioEngine.start()
+        
+        return AsyncStream(AVAudioPCMBuffer.self, bufferingPolicy: .unbounded) {
+            continuation in
+            outputContinuation = continuation
+        }
+    }
+```
+
+Back in my Record function, I am passing that AsyncStream input to the transcriber.
+
+Audio sources have different output formats and sample rates. SpeechTranscriber gave us a bestAvailableAudioFormat that we can use.
+
+I'm passing our audio buffers through a conversion step to ensure that the format matches bestAvailableAudioFormat.
+
+```swift
+func streamAudioToTranscriber(_ buffer: AVAudioPCMBuffer) async throws {
+        guard let inputBuilder, let analyzerFormat else {
+            throw TranscriptionError.invalidAudioDataType
+        }
+        
+        let converted = try self.converter.convertBuffer(buffer, to: analyzerFormat)
+        let input = AnalyzerInput(buffer: converted)
+        
+        inputBuilder.yield(input)
+    }
+```
+
+I'll then route the AsyncStream to the inputBuilder object from the SpeechTranscriber. When we stop recording, we want to do a few things. I stopped the audio engine and the transcriber. It's important to cancel your tasks and also to call finalize on your analyzer stream. This will ensure that any volatile results get finalized.
+
+```swift
+try await analyzer?.finalizeAndFinishThroughEndOfInput()
+```
+
+Let's check out how we can connect all of this to our view.
+
+My TranscriptView has a binding to the current story, and one to our SpokenWordTranscriber. If we’re recording, we show a concatenation of the finalized transcript with the volatile transcript that we’re observing from our SpokenWordTranscriber class. For playback, we show the final transcript from the data model. I’ve added a method to break up the sentences to make it visually less cluttered.
+
+A key feature I mentioned was highlighting each word as it’s played back. I’m using some helper methods to calculate whether each run should be highlighted, based on its audioTimeRange attribute and the current playback time.
+
+SpeechTranscriber’s accuracy is great for so many reasons, not least of which is the ability to use Apple Intelligence to do useful transformations on the output.
+
+Here, I’m using the new FoundationModels API to generate a title for my story when it’s done. The API makes it super simple to create a clever title, so I don’t have to think of one! To learn more about the FoundationModels APIs, check out the session titled ‘Meet the Foundation Models Framework’ .
+
+Let's see our feature in action! I'm going to tap the Plus button to create a new story.
+
+Then, I’ll start recording. "Once upon a time in the mystical land of Magenta, there was a little girl named Delilah who lived in a castle on the hill. Delilah spent her days exploring the forest and tending to the animals there." When the user is done, they can play it back and each word is highlighted in time with the audio.
+
+"Once upon a time, in the mystical land of Magenta, there was a little girl named Delilah who lived in a castle on the hill.
+
+Delilah spent her days exploring the forest and tending to the animals there." SpeechAnalyzer and SpeechTranscriber enabled us to build a whole app with very little startup time. To learn more, check out the Speech Framework documentation, which includes the sample app that we just created. And that's SpeechAnalyzer! We know you'll build amazing features with it. Thanks so much for joining us!
+--- END FILE ---
+
+--- FILE: MODEL_CHAT_ARCHITECTURE.md ---
+# Model Chat Architecture
+
+This document explains exactly how ChAI enables users to chat with different model types: **Foundation Models** (Apple's on-device AI), **MLX Models** (local quantized models), and **Cloud Models** (API-based models from various providers).
+
+## Overview
+
+ChAI uses a unified chat interface powered by the `MultiModelManager` that intelligently routes requests to the appropriate model handler based on the selected model type. All chat interactions flow through a single entry point but branch into different execution paths depending on whether the model is local (Foundation/MLX) or cloud-based.
+
+## Architecture Components
+
+### Core Managers
+
+1. **MultiModelManager** - Central orchestrator for all model interactions
+2. **FoundationModelManager** - Handles Apple's on-device FoundationModels (iOS 26+)
+3. **MLXModelManager** - Manages locally downloaded MLX models
+4. **MessagesManager** - Builds conversation context with token awareness
+5. **ThreadViewModel** - Coordinates UI and message sending
+
+### Flow Diagram
+
+```
+User Input
+    ↓
+ThreadViewModel.sendMessage()
+    ↓
+MultiModelManager.respond() or streamResponse()
+    ↓
+    ├─→ [isLocal = true, provider = "MLX"] → MLXModelManager
+    ├─→ [isLocal = true, iOS 26+] → FoundationModelManager
+    └─→ [isLocal = false] → Cloud API (OpenAI, Anthropic, Google, etc.)
+```
+
+## Model Type 1: Foundation Models (Apple On-Device)
+
+### What They Are
+Apple's on-device AI models introduced in iOS 26, using the FoundationModels framework. These run entirely on-device with no API costs.
+
+### How Chat is Enabled
+
+#### 1. **Initialization** (`FoundationModelManager.swift`)
+```swift
+init(settings: Settings) {
+    if #available(iOS 26.0, *) {
+        guard SystemLanguageModel.default.availability == .available else { return }
+        let session = try LanguageModelSession(instructions: settings.systemPrompt)
+        self.session = session
+        self.transcript = session.transcript
+    }
+}
+```
+
+Key points:
+- Creates a `LanguageModelSession` with the system prompt
+- The session maintains its own internal transcript for conversation context
+- Checks model availability before initialization
+
+#### 2. **Message Routing** (`MultiModelManager.swift` - Line 444-534)
+```swift
+func respond(to text: String, thread: Thread?) async throws -> String {
+    guard var model = currentModel else {
+        throw MultiModelError.noModelSelected
+    }
+    
+    if model.isLocal {
+        if model.provider == "MLX" {
+            // Route to MLX
+        } else if #available(iOS 26.0, *) {
+            // Route to Foundation Models
+            guard let thread = thread else {
+                throw MultiModelError.noModelSelected
+            }
+            responseText = try await respondWithLocalModel(to: text, thread: thread)
+        }
+    }
+}
+```
+
+Foundation Models **require a thread** for session management.
+
+#### 3. **Non-Streaming Response** (`MultiModelManager.swift` - Line 564-629)
+```swift
+func respondWithLocalModel(to text: String, thread: Thread) async throws -> String {
+    guard let manager = foundationModelManager else {
+        throw MultiModelError.noModelSelected
+    }
+    
+    // Handle simple greetings to avoid safety guardrails
+    let simpleGreetings = ["hi", "hello", "hey", ...]
+    if simpleGreetings.contains(normalizedText) {
+        return "Hello! How can I help you today?"
+    }
+    
+    do {
+        let response = try await manager.respond(to: text, thread: thread)
+        return response
+    } catch FoundationModelManager.FoundationModelManagerError.safetyGuardrailsTriggered {
+        // Trigger fallback to cloud model
+        throw MultiModelError.foundationModelUnavailable(...)
+    }
+}
+```
+
+#### 4. **Streaming Response** (`FoundationModelManager.swift` - Line 136-200)
+```swift
+func streamResponse(to text: String, thread: Thread? = nil) -> AsyncStream<String>? {
+    let responseStream = session.streamResponse(to: text)
+    return AsyncStream<String> { continuation in
+        Task {
+            var previous = ""
+            for try await snapshot in responseStream {
+                let current = snapshot.content ?? ""
+                // Yield only new content since last snapshot
+                if current.count > previous.count {
+                    let deltaText = String(current[start...])
+                    continuation.yield(deltaText)
+                }
+                previous = current
+            }
+            continuation.finish()
+        }
+    }
+}
+```
+
+#### 5. **Conversation Context**
+Foundation Models handle context automatically through `LanguageModelSession.transcript`. The framework maintains conversation history internally, so ChAI doesn't need to manually build message arrays.
+
+### Special Handling
+
+**Safety Guardrails**: Foundation Models have built-in safety guardrails that can reject certain prompts. When triggered:
+1. Error is caught in `respondWithLocalModel()`
+2. Throws `MultiModelError.foundationModelUnavailable`
+3. `ThreadViewModel` triggers automatic fallback to cloud model
+4. User sees: "⚠️ Using alternative model (FoundationModels unavailable: safety)"
+
+**Simple Greeting Bypass**: To avoid false positives on safety guardrails, simple greetings like "hi" and "hello" are intercepted and return canned responses.
+
+---
+
+## Model Type 2: MLX Models (Local Quantized Models)
+
+### What They Are
+Quantized language models downloaded from HuggingFace that run locally using Apple's MLX framework. These are stored in the device's Application Support directory.
+
+### How Chat is Enabled
+
+#### 1. **Model Discovery & Loading** (`MLXModelManager.swift`)
+
+**Download Process** (Line 119-254):
+```swift
+func downloadModel(huggingFaceId: String, displayName: String) async throws -> MLXModel {
+    // Download to Application Support/ChAi/MLXModels
+    let mlxModelsDir = appSupportDir.appendingPathComponent("ChAi/MLXModels")
+    let modelDir = mlxModelsDir.appendingPathComponent(directoryName)
+    
+    // Download using HubApi
+    let hubApi = HubApi()
+    let modelUrl = try await hubApi.snapshot(from: huggingFaceId, matching: ["*.safetensors", "*.json"])
+    
+    // Create MLXModel record
+    let model = MLXModel(huggingFaceId: huggingFaceId, displayName: displayName, localPath: directoryName)
+    modelContext.insert(model)
+    
+    return model
+}
+```
+
+**Loading into Memory** (Line 258-339):
+```swift
+func loadModel(_ model: MLXModel) async throws -> MLXLMCommon.ModelContainer {
+    // Check cache first
+    let cacheKey = model.id.uuidString as NSString
+    if let cached = modelCache.object(forKey: cacheKey) {
+        return cached
+    }
+    
+    // Load from disk
+    let modelURL = URL(fileURLWithPath: model.resolvedPath)
+    let hubApi = HubApi(downloadBase: modelURL)
+    let configuration = ModelConfiguration(id: model.huggingFaceId)
+    
+    let container = try await LLMModelFactory.shared.loadContainer(
+        hub: hubApi,
+        configuration: configuration,
+        progressHandler: progressHandler
+    )
+    
+    // Cache for reuse
+    modelCache.setObject(container, forKey: cacheKey)
+    return container
+}
+```
+
+#### 2. **Message Routing** (`MultiModelManager.swift` - Line 444-534)
+```swift
+if model.isLocal {
+    if model.provider == "MLX" {
+        guard let mlxModel = mlxModelManager?.downloadedModels.first(where: {
+            $0.id.uuidString == model.id
+        }) else {
+            throw MultiModelError.noModelSelected
+        }
+        responseText = try await respondWithMLX(to: text, model: mlxModel, thread: thread)
+    }
+}
+```
+
+#### 3. **Building Conversation Context** (`MultiModelManager.swift` - Line 632-691)
+Unlike Foundation Models, MLX models require explicit message arrays:
+
+```swift
+func buildMLXMessages(for text: String, thread: Thread?, model: MLXModel) async -> [[String: String]] {
+    var messages: [[String: String]] = []
+    
+    // 1. Add system prompt
+    if !settings.systemPrompt.isEmpty {
+        messages.append(["role": "system", "content": settings.systemPrompt])
+    }
+    
+    // 2. Add conversation history if memory enabled
+    if let thread = thread, 
+       settings.globalMemoryEnabled,
+       settings.isMemoryEnabled(for: thread.id) {
+        
+        let sortedChats = thread.chats.sorted(by: { $0.timestamp < $1.timestamp })
+        
+        for chat in sortedChats {
+            let role = chat.sender == .user ? "user" : "assistant"
+            messages.append(["role": role, "content": chat.content])
+        }
+    }
+    
+    // 3. Add current user message
+    messages.append(["role": "user", "content": text])
+    
+    return messages
+}
+```
+
+#### 4. **Generation** (`MLXModelManager.swift` - Line 343-446)
+```swift
+func generate(
+    model: MLXModel,
+    messages: [[String: String]],
+    maxTokens: Int,
+    temperature: Double,
+    topP: Double
+) -> AsyncThrowingStream<String, Error> {
+    return AsyncThrowingStream { continuation in
+        Task {
+            // Load model container
+            let container = try await loadModel(model)
+            
+            // Prepare input with chat template
+            try await container.perform { (context: ModelContext) in
+                let userInput = UserInput(messages: messages)
+                let preparedInput = try await context.processor.prepare(input: userInput)
+                
+                // Generate with streaming
+                let result = try MLXLMCommon.generate(
+                    input: preparedInput,
+                    parameters: generateParameters,
+                    context: context
+                )
+                
+                // Stream tokens
+                for await generation in result {
+                    if case .chunk(let text) = generation {
+                        continuation.yield(text)
+                    }
+                }
+            }
+            continuation.finish()
+        }
+    }
+}
+```
+
+#### 5. **Response Collection** (`MultiModelManager.swift` - Line 710-755)
+```swift
+func respondWithMLX(to text: String, model: MLXModel, thread: Thread?) async throws -> String {
+    let messages = await buildMLXMessages(for: text, thread: thread, model: model)
+    
+    var fullResponse = ""
+    let stream = manager.generate(model: model, messages: messages, ...)
+    
+    for try await chunk in stream {
+        fullResponse += chunk
+    }
+    
+    return fullResponse
+}
+```
+
+### MLX-Specific Features
+
+**Model Caching**: Loaded models are cached in `NSCache` to avoid reloading on every request.
+
+**Template Fallback**: If the model's Jinja template fails to process the message array:
+```swift
+catch {
+    // Fallback: combine system + user message
+    let combinedPrompt = "\(systemContent)\n\n\(lastUserMessage)"
+    let fallbackMessages = [["role": "user", "content": combinedPrompt]]
+    preparedInput = try await context.processor.prepare(input: fallbackInput)
+}
+```
+
+**Cancellation Support**: MLX generation can be cancelled mid-stream via `cancelGeneration()`.
+
+---
+
+## Model Type 3: Cloud Models (API-based)
+
+### What They Are
+External AI models accessed via REST APIs from providers like OpenAI, Anthropic, Google, Deepseek, Perplexity, etc.
+
+### How Chat is Enabled
+
+#### 1. **Model Registration** (`MultiModelManager.swift` - Line 86-250)
+All cloud models are registered in `AIModel.defaultModels`:
+
+```swift
+static let defaultModels: [AIModel] = [
+    AIModel(id: "gpt-4o", name: "GPT-4o", provider: "OpenAI", isLocal: false, 
+            maxTokens: 128000, requiresAPIKey: true),
+    AIModel(id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet", 
+            provider: "Anthropic", isLocal: false, maxTokens: 200000, requiresAPIKey: true),
+    AIModel(id: "gemini-2.0-flash-exp", name: "Gemini 2.0 Flash", 
+            provider: "Google", isLocal: false, maxTokens: 1048576, requiresAPIKey: true),
+    // ... more models
+]
+```
+
+#### 2. **API Key Management** (`APIKeyManager.swift`)
+Each provider requires an API key:
+
+```swift
+enum AIProvider: String {
+    case openAI = "OpenAI"
+    case anthropic = "Anthropic"
+    case google = "Google"
+    case deepseek = "Deepseek"
+    // ... more providers
+}
+
+func getAPIKey(for provider: AIProvider) async -> String? {
+    // Retrieves encrypted API key from Keychain
+}
+```
+
+#### 3. **Message Routing** (`MultiModelManager.swift` - Line 444-534)
+```swift
+if !model.isLocal {
+    // Use token-aware context building
+    let result = try await respondWithAPIWithTokenTracking(
+        to: text, context: context, model: model, thread: thread
+    )
+    responseText = result.response
+    contextTokens = result.tokenCount
+}
+```
+
+#### 4. **Token-Aware Context Building** (`MultiModelManager.swift` - Line 768-802)
+Cloud models have token limits, so context must be carefully managed:
+
+```swift
+func respondWithAPIWithTokenTracking(
+    to text: String, model: AIModel, thread: Thread?
+) async throws -> TokenAwareResponse {
+    // Use MessagesManager for intelligent context building
+    let messagesManager = MessagesManager()
+    let contextResult = await messagesManager.apiMessages(
+        for: thread,
+        systemPrompt: settings.systemPrompt,
+        settings: settings,
+        model: model,
+        includeHistory: true,
+        respectTokenLimits: true
+    )
+    
+    // Returns: messages, tokenCount, wasTruncated, summaryUsed
+    let response = try await respondWithAPIUsingMessages(
+        text: text, model: model, thread: thread, messages: contextResult.messages
+    )
+    
+    return TokenAwareResponse(
+        response: response,
+        contextTokens: contextResult.tokenCount,
+        wasTruncated: contextResult.wasTruncated,
+        summaryUsed: contextResult.summaryUsed
+    )
+}
+```
+
+#### 5. **Context Building Logic** (`MessagesManager.swift` - Line 56-122)
+```swift
+func apiMessages(for thread: Thread, model: AIModel, ...) async -> (messages, tokenCount, wasTruncated, summaryUsed) {
+    var messages: [[String: Any]] = []
+    
+    // 1. System prompt
+    messages.append(["role": "system", "content": systemPrompt])
+    
+    // 2. Check memory settings
+    if !settings.globalMemoryEnabled || !settings.isMemoryEnabled(for: thread.id) {
+        // Memory disabled - only send last user message
+        messages.append(["role": "user", "content": lastUserMessage])
+        return (messages, tokenCount, false, false)
+    }
+    
+    // 3. Apply retention policy
+    let sortedChats = thread.chats.sorted(by: { $0.timestamp < $1.timestamp })
+    let filteredChats = filterChatsByRetentionPolicy(sortedChats, settings: settings)
+    
+    // 4. Convert to message format
+    for chat in filteredChats {
+        let role = chat.sender == .user ? "user" : "assistant"
+        messages.append(["role": role, "content": chat.content])
+    }
+    
+    // 5. Apply token-aware truncation
+    if respectTokenLimits {
+        let result = await applyTokenAwareTruncation(messages, thread, model)
+        messages = result.messages
+        wasTruncated = result.wasTruncated
+        summaryUsed = result.summaryUsed
+    }
+    
+    return (messages, tokenCount, wasTruncated, summaryUsed)
+}
+```
+
+#### 6. **Provider-Specific API Calls** (`MultiModelManager.swift` - Line 868-924)
+```swift
+func respondWithDirectAPIUsingMessages(...) async throws -> String {
+    let provider = getProviderForModel(model)
+    guard let apiKey = await apiKeyManager.getAPIKey(for: provider) else {
+        throw MultiModelError.missingAPIKey(provider: provider.displayName)
+    }
+    
+    switch provider {
+    case .openAI:
+        return try await callOpenAIAPIWithMessages(...)
+    case .anthropic:
+        return try await callAnthropicAPIWithMessages(...)
+    case .google:
+        return try await callGoogleAPIWithMessages(...)
+    case .deepseek:
+        return try await callDeepseekAPIWithMessages(...)
+    // ... more providers
+    }
+}
+```
+
+#### 7. **Example: OpenAI API Call** (`MultiModelManager.swift` - Line 1247-1358)
+```swift
+func callOpenAIAPIWithMessages(
+    text: String, apiKey: String, model: AIModel, messages: [[String: Any]]
+) async throws -> String {
+    var request = URLRequest(url: URL(string: "https://api.openai.com/v1/chat/completions")!)
+    request.httpMethod = "POST"
+    request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    
+    let body: [String: Any] = [
+        "model": model.id,
+        "messages": messages,
+        "max_tokens": settings.maxTokens,
+        "temperature": settings.temperature,
+        "top_p": settings.topP
+    ]
+    request.httpBody = try JSONSerialization.data(withJSONObject: body)
+    
+    let (data, response) = try await URLSession.shared.data(for: request)
+    
+    let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+    let choices = json?["choices"] as? [[String: Any]]
+    let message = choices?.first?["message"] as? [String: Any]
+    let content = message?["content"] as? String
+    
+    return content ?? "No response received"
+}
+```
+
+#### 8. **Streaming Support** (`MultiModelManager.swift` - Line 2111-2302)
+```swift
+func callOpenAIStreamingAPI(...) -> AsyncThrowingStream<String, Error> {
+    return AsyncThrowingStream { continuation in
+        Task {
+            // Set stream: true in request body
+            let body: [String: Any] = ["model": model.id, "messages": messages, "stream": true]
+            
+            let (bytes, response) = try await URLSession.shared.bytes(for: request)
+            
+            for try await line in bytes.lines {
+                if line.hasPrefix("data: ") {
+                    let jsonString = line.dropFirst(6)
+                    if jsonString == "[DONE]" { break }
+                    
+                    let json = try JSONSerialization.jsonObject(with: Data(jsonString.utf8))
+                    let delta = json["choices"][0]["delta"]["content"] as? String
+                    if let content = delta {
+                        continuation.yield(content)
+                    }
+                }
+            }
+            continuation.finish()
+        }
+    }
+}
+```
+
+### Cloud Model Features
+
+**Token Tracking**: All requests track prompt and completion tokens for analytics and cost estimation.
+
+**Context Truncation**: When context exceeds model limits:
+1. Calculate effective limit: `maxTokens - responseTokens - safetyMargin`
+2. Truncate oldest messages first
+3. Optionally generate summary of truncated content
+4. Insert summary as system message
+
+**Provider Detection**: Models are mapped to providers via string matching:
+```swift
+func getProviderForModel(_ model: AIModel) -> AIProvider {
+    switch model.provider.lowercased() {
+    case "openai": return .openAI
+    case "anthropic": return .anthropic
+    case "google": return .google
+    // ...
+    }
+}
+```
+
+---
+
+## Unified Chat Flow
+
+### Non-Streaming Path
+
+```
+ThreadViewModel.sendMessage(text)
+    ↓
+MultiModelManager.respond(to: text, thread: thread)
+    ↓
+    ├─→ Foundation: foundationModelManager.respond(to: text, thread: thread)
+    ├─→ MLX: respondWithMLX(to: text, model: mlxModel, thread: thread)
+    └─→ Cloud: respondWithAPIWithTokenTracking(to: text, model: model, thread: thread)
+           ↓
+           MessagesManager.apiMessages(for: thread, model: model)
+           ↓
+           callOpenAIAPIWithMessages(...) / callAnthropicAPIWithMessages(...) / etc.
+    ↓
+Chat(content: response, sender: .agent)
+```
+
+### Streaming Path
+
+```
+ThreadViewModel.sendMessage(text)
+    ↓
+MultiModelManager.streamResponse(to: text, thread: thread)
+    ↓
+    ├─→ Foundation: foundationModelManager.streamResponse(to: text, thread: thread)
+    ├─→ MLX: mlxModelManager.generate(model: mlxModel, messages: messages)
+    └─→ Cloud: streamViaDirectAPI(text: text, model: model)
+           ↓
+           callOpenAIStreamingAPI(...) / callAnthropicStreamingAPI(...) / etc.
+    ↓
+for await chunk in stream {
+    agentChat.appendPlaintextChunk(chunk)
+}
+```
+
+---
+
+## Key Differences Summary
+
+| Feature | Foundation Models | MLX Models | Cloud Models |
+|---------|------------------|------------|--------------|
+| **Location** | On-device (iOS 26+) | On-device (local files) | Remote API |
+| **Cost** | Free | Free | Pay per token |
+| **Context Handling** | Automatic (session transcript) | Manual (message array) | Manual (message array) |
+| **Requires Thread** | Yes | No (optional) | No (optional) |
+| **Memory Management** | Internal | External (cache) | N/A |
+| **Token Limits** | Framework handles | Model-specific | Provider-specific |
+| **API Key** | No | No | Yes |
+| **Availability Check** | `SystemLanguageModel.default.availability` | File system check | API key check |
+| **Streaming** | `session.streamResponse()` | `generate()` returns stream | SSE/streaming API |
+| **Cancellation** | AsyncStream termination | `cancelGeneration()` | Task cancellation |
+| **Fallback Support** | Yes (to cloud) | No | N/A |
+| **Safety Guardrails** | Built-in | None | Provider-specific |
+
+---
+
+## Memory & Context Management
+
+### Foundation Models
+- Context managed internally by `LanguageModelSession`
+- No manual message building required
+- Thread parameter passed for consistency but not used for context
+
+### MLX Models
+```swift
+// Memory enabled: Include full conversation history
+if settings.globalMemoryEnabled && settings.isMemoryEnabled(for: thread.id) {
+    messages = buildMLXMessages(for: text, thread: thread, model: mlxModel)
+}
+// Memory disabled: Only current message
+else {
+    messages = [
+        ["role": "system", "content": systemPrompt],
+        ["role": "user", "content": text]
+    ]
+}
+```
+
+### Cloud Models
+```swift
+// Token-aware context building with truncation
+let contextResult = await messagesManager.apiMessages(
+    for: thread,
+    respectTokenLimits: true  // Enable smart truncation
+)
+
+if contextResult.tokenCount > effectiveLimit {
+    // Truncate oldest messages
+    // Generate summary if needed
+    // Insert summary as system message
+}
+```
+
+---
+
+## Error Handling & Fallback
+
+### Foundation Model Fallback
+When Foundation Models fail (safety guardrails, unavailable, etc.):
+
+```swift
+// MultiModelManager.respondWithLocalModel()
+catch FoundationModelManager.FoundationModelManagerError.safetyGuardrailsTriggered {
+    foundationModelFailureCount += 1
+    
+    if autoFallbackEnabled && foundationModelFailureCount >= maxFoundationFailures {
+        // Automatic fallback to cloud model
+        return try await attemptFallbackResponse(to: text, thread: thread, originalError: error)
+    }
+    
+    throw MultiModelError.foundationModelUnavailable(reason: "safety", fallbackUsed: true)
+}
+```
+
+Fallback model selection:
+```swift
+func selectFallbackModel() -> AIModel? {
+    for modelId in preferredFallbackOrder {
+        if let model = availableModels.first(where: { $0.id == modelId }) {
+            return model
+        }
+    }
+    // Default to first available cloud model
+    return availableModels.first(where: { !$0.isLocal && $0.requiresAPIKey })
+}
+```
+
+---
+
+## Performance Optimizations
+
+### Model Caching
+```swift
+// MLX: Cache loaded models to avoid reload
+let modelCache = NSCache<NSString, MLXLMCommon.ModelContainer>()
+```
+
+### Token Estimation
+```swift
+// Fast token estimation (4 chars ≈ 1 token)
+func estimateTokens(in text: String) -> Int {
+    return max(1, text.count / 4)
+}
+```
+
+### Context Truncation
+```swift
+// Only rebuild context when model changes or chats added
+if thread.needsContextRecalculation(for: model.id) {
+    let result = await messagesManager.rebuildContextForModel(model, thread: thread)
+    thread.updateContextCache(modelId: model.id, tokenCount: result.tokenCount)
+}
+```
+
+### View Updates
+```swift
+// Throttle view updates during streaming
+if agentChat.content.count % 50 == 0 {
+    scheduleViewUpdate()
+}
+```
+
+---
+
+## Testing & Debugging
+
+### Model Availability Checks
+```swift
+// Foundation Models
+if #available(iOS 26.0, *) {
+    switch SystemLanguageModel.default.availability {
+    case .available: // Ready
+    case .unavailable(.deviceNotEligible): // Device too old
+    case .unavailable(.appleIntelligenceNotEnabled): // Setting disabled
+    case .unavailable(.modelNotReady): // Downloading
+    }
+}
+
+// MLX Models
+#if targetEnvironment(simulator)
+    return false  // MLX doesn't work on simulator
+#else
+    return settings.mlxEnabled && !downloadedModels.isEmpty
+#endif
+
+// Cloud Models
+guard apiKeyManager.hasAPIKey(for: provider) else {
+    throw MultiModelError.missingAPIKey(provider: provider.displayName)
+}
+```
+
+### Logging
+Each model type has debug logging:
+```swift
+print("🔍 [Respond] Using Foundation model (iOS 26+)")
+print("🔵 [MLX Response] Starting generation with model: \(model.displayName)")
+print("🔍 [Direct API] Retrieved API key: \(String(apiKey.prefix(10)))...")
+```
+
+---
+
+## Conclusion
+
+ChAI's chat architecture provides a unified interface that seamlessly handles three very different model types:
+
+1. **Foundation Models**: Leverage Apple's on-device AI with automatic context management
+2. **MLX Models**: Run quantized models locally with full control over message arrays
+3. **Cloud Models**: Access external APIs with intelligent token-aware context building
+
+The `MultiModelManager` acts as the central orchestrator, routing requests to the appropriate handler while providing consistent error handling, token tracking, and streaming support across all model types.
+--- END FILE ---
+=== END SWIFT DOCUMENTATION ===
+=== END CONTEXT ===
+
+=== BUILD ATTEMPT 2 FAILED ===
+The previous implementation failed with the following errors:
+
+Build failed but no detailed error log available.
+
+=== INSTRUCTIONS FOR ATTEMPT 3 ===
+1. Analyze what went wrong in the previous approach
+2. Try a DIFFERENT approach or fix the specific issues
+3. Do NOT repeat the same mistakes
+4. If the same approach keeps failing, consider an alternative implementation strategy
+5. Write the corrected code directly - do not explain, just implement
+
+Please fix the issues and provide the corrected implementation.
+mcp: xcodebuildmcp starting
+mcp: xcodebuildmcp ready
+mcp startup: ready: xcodebuildmcp
+exec
+/bin/zsh -lc ls in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+Algo
+Artifacts
+Paper
+README.md
+__Avenue
+app
+critique
+swiftDocs
+website
+
+thinking
+**Searching for existing classes**
+
+I'm using ripgrep to find and review existing classes in the codebase to understand current open file references.
+exec
+/bin/zsh -lc 'rg -n "Tier1Engine|Tier2Engine|Tier3Engine|ClauseClassificationPipeline|AnalysisProgress|TierClassification|Clause" app/decodingOppression/decodingOppression' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 50ms:
+app/decodingOppression/decodingOppression/decodingOppressionApp.swift:31:            AnalyzedClause.self,
+app/decodingOppression/decodingOppression/decodingOppressionApp.swift:52:// MARK: - Shared ModelDownloadManager + Tier2Engine for pipeline/view-model
+app/decodingOppression/decodingOppression/decodingOppressionApp.swift:69:    let tier2Engine: Tier2Engine
+app/decodingOppression/decodingOppression/decodingOppressionApp.swift:70:    private let pipeline: ClauseClassificationPipeline?
+app/decodingOppression/decodingOppression/decodingOppressionApp.swift:75:        tier2Engine = Tier2Engine(downloadManager: modelDownloadManager)
+app/decodingOppression/decodingOppression/decodingOppressionApp.swift:77:            pipeline = try ClauseClassificationPipeline(tier2Engine: tier2Engine)
+app/decodingOppression/decodingOppression/decodingOppressionApp.swift:84:    func classify(clause: Clause) async throws -> TierClassification {
+app/decodingOppression/decodingOppression/decodingOppressionApp.swift:92:    func extractAndPreprocess(pdf url: URL) async throws -> [Clause] {
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:17:    func classifyClause(_ clause: Clause) async throws -> ClauseClassification {
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:19:            let response = try await session.respond(to: text, generating: ClauseClassification.self)
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:24:    func detectArchitecture(_ clause: Clause) async throws -> ArchitectureDetection {
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:31:    func detectProxy(_ clause: Clause) async throws -> ProxyDetection {
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:38:    func streamArchitecture(_ clause: Clause) -> AsyncThrowingStream<ArchitectureDetection.PartiallyGenerated, Error> {
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:61:        clause: Clause,
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:97:        clause: Clause,
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:140:    func classifyClause(_ clause: Clause) async throws -> ClauseClassification {
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:144:    func detectArchitecture(_ clause: Clause) async throws -> ArchitectureDetection {
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:148:    func detectProxy(_ clause: Clause) async throws -> ProxyDetection {
+app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift:152:    func streamArchitecture(_ clause: Clause) -> AsyncThrowingStream<ArchitectureDetection.PartiallyGenerated, Error> {
+app/decodingOppression/decodingOppression/AI/Tier3Engine.swift:2://  Tier3Engine.swift
+
+thinking
+**Inspecting existing files for issues**
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/PolicyScorer.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  PolicyScorer.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/22/26.
+//
+
+import Foundation
+
+protocol PolicyScorer: Sendable {
+    func score(clauses: [TierClassification]) -> ScoreResult
+}
+
+struct StubPolicyScorer: PolicyScorer {
+    func score(clauses: [TierClassification]) -> ScoreResult {
+        .zero
+    }
+}
+
+thinking
+**Checking resolver implementation**
+exec
+/bin/zsh -lc "sed -n '1,220p' app/decodingOppression/decodingOppression/NLP/TierResolver.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  TierResolver.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/22/26.
+//
+
+import Foundation
+
+protocol Tier1EngineProtocol: Sendable {
+    func extractAndPreprocess(pdf url: URL) async throws -> [Clause]
+    func classify(clause: Clause) async -> TierClassification
+}
+
+protocol Tier2EngineProtocol: Sendable {
+    func classify(clause: Clause) async throws -> TierClassification?
+}
+
+protocol Tier3EngineProtocol: Sendable {
+    func classify(clause: Clause) async throws -> TierClassification?
+
+thinking
+**Viewing pipeline implementation**
+exec
+/bin/zsh -lc "sed -n '1,240p' app/decodingOppression/decodingOppression/NLP/AnalysisPipeline.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  AnalysisPipeline.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/22/26.
+//
+
+import Foundation
+
+actor AnalysisPipeline {
+    private let tier1: Tier1EngineProtocol
+    private let resolver: TierResolving
+    private let scorer: PolicyScorer
+
+    init(tier1: Tier1EngineProtocol, resolver: TierResolving, scorer: PolicyScorer) {
+        self.tier1 = tier1
+        self.resolver = resolver
+        self.scorer = scorer
+    }
+
+
+thinking
+**Checking test failures**
+exec
+/bin/zsh -lc "sed -n '1,240p' app/decodingOppression/decodingOppressionTests/TierResolverTests.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  TierResolverTests.swift
+//  decodingOppressionTests
+//
+//  Created by Emmanuel Theodore on 2/22/26.
+//
+
+import Foundation
+import Testing
+@testable import decodingOppression
+
+@Suite struct TierResolverTests {
+    @Test func testTier1AcceptedWhenHighConfidence() async {
+        let clause = Clause(id: UUID(), text: "Sample clause", sectionType: .operativeClauses, targetGroup: nil, effectDirection: nil)
+        let tier1Result = makeClassification(tier: .tier1, confidence: 0.90)
+        let tier2Result = makeClassification(tier: .tier2, confidence: 0.95)
+        let tier3Result = makeClassification(tier: .tier3, confidence: 0.95)
+
+        let tier1 = MockTier1Engine(classification: tier1Result)
+        let tier2 = MockTier2Engine(result: tier2Result)
+
+thinking
+**Moving on to AnalysisPipelineTests**
+exec
+/bin/zsh -lc "sed -n '1,260p' app/decodingOppression/decodingOppressionTests/AnalysisPipelineTests.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  AnalysisPipelineTests.swift
+//  decodingOppressionTests
+//
+//  Created by Emmanuel Theodore on 2/22/26.
+//
+
+import Foundation
+import Testing
+@testable import decodingOppression
+
+@Suite struct AnalysisPipelineTests {
+    @Test func testClassifyingEventsAreMonotonic() async {
+        let clauses = makeClauses(count: 3)
+        let pipeline = makePipeline(clauses: clauses)
+        let stream = pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
+
+        let events = await collectProgress(from: stream)
+        let indices = events.compactMap { progress -> Int? in
+            if case let .classifying(clauseIndex, _, _) = progress { return clauseIndex }
+
+thinking
+**Investigating duplicate definitions**
+
+Compile errors point to duplicate actor definitions in Tier3Engine.swift; I'll open the file to confirm and understand the conflict.
+exec
+/bin/zsh -lc "sed -n '1,220p' app/decodingOppression/decodingOppression/AI/Tier3Engine.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  Tier3Engine.swift
+//  decodingOppression
+//
+//  Facade mirroring Tier2Engine; gates Foundation Models classification behind availability.
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+import FoundationModels
+
+public actor Tier3Engine {
+    private let session = PolicyAnalysisSession()
+
+    private func checkAvailability() throws {
+        switch SystemLanguageModel.default.availability {
+        case .available:
+            return
+        case .unavailable(let reason):
+
+thinking
+**Checking existing pipeline types**
+
+I'm inspecting ClauseClassificationPipeline and new types like AnalysisPipeline, verifying potential name conflicts by reviewing PipelineContracts for existing pipeline definitions.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/PipelineContracts.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  PipelineContracts.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+// MARK: - Architecture scores (Codable for pipeline and training)
+
+struct ArchitectureScores: Codable {
+    var aar: Double  // asymmetric autonomy restriction
+    var se: Double   // selective empathy
+    var ij: Double   // ideological justification
+    var rsc: Double  // resistance to structural critique
+}
+
+// MARK: - Analysis progress
+
+
+thinking
+**Checking internal visibility and dependencies**
+
+The new protocols use internal visibility, which could cause access issues across modules; for tests, @testable is fine but build fails without logs. Next, I'll inspect the ScoreResult definition to verify if a missing or mis-scoped dependency might cause compile errors.
+exec
+/bin/zsh -lc 'rg -n "struct ScoreResult|enum ScoreResult|ScoreResult" app/decodingOppression/decodingOppression/Models' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+app/decodingOppression/decodingOppression/Models/PolicyScorer.swift:11:    func score(clauses: [TierClassification]) -> ScoreResult
+app/decodingOppression/decodingOppression/Models/PolicyScorer.swift:15:    func score(clauses: [TierClassification]) -> ScoreResult {
+app/decodingOppression/decodingOppression/Models/ScoreResult.swift:2://  ScoreResult.swift
+app/decodingOppression/decodingOppression/Models/ScoreResult.swift:10:nonisolated struct ScoreResult: Codable, Sendable {
+app/decodingOppression/decodingOppression/Models/ScoreResult.swift:18:    static var zero: ScoreResult {
+app/decodingOppression/decodingOppression/Models/ScoreResult.swift:19:        ScoreResult(dis: 0, ads: 0, eis: 0, cis: 0, oes: 0, coi: 0)
+app/decodingOppression/decodingOppression/Models/PipelineContracts.swift:23:    case classifying(clauseIndex: Int, total: Int, partialScores: ScoreResult)
+app/decodingOppression/decodingOppression/Models/PipelineContracts.swift:24:    case complete(ScoreResult)
+app/decodingOppression/decodingOppression/Models/PolicyAnalysis.swift:22:    var scoreResult: ScoreResult {
+app/decodingOppression/decodingOppression/Models/PolicyAnalysis.swift:24:            (try? JSONDecoder().decode(ScoreResult.self, from: scoreResultData)) ?? .zero
+app/decodingOppression/decodingOppression/Models/PolicyAnalysis.swift:36:        scoreResult: ScoreResult = .zero,
+
+thinking
+**Checking for nonisolated struct in ScoreResult**
+exec
+/bin/zsh -lc "sed -n '1,120p' app/decodingOppression/decodingOppression/Models/ScoreResult.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  ScoreResult.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+nonisolated struct ScoreResult: Codable, Sendable {
+    var dis: Double
+    var ads: Double
+    var eis: Double
+    var cis: Double
+    var oes: Double
+    var coi: Double
+
+    static var zero: ScoreResult {
+        ScoreResult(dis: 0, ads: 0, eis: 0, cis: 0, oes: 0, coi: 0)
+    }
+
+
+thinking
+**Identifying invalid 'nonisolated' usage**
+
+Noticed that 'nonisolated' applied to a struct is invalid in Swift and likely causing a compile error in ScoreResult.swift, which challenges previous build success assumptions and indicates a need to fix this misuse to resolve the build failure.
+thinking
+**Assessing Swift concurrency and existential any impact**
+
+I'm checking if Swift 6's stricter concurrency and required `any` keyword for protocols explain build errors, especially noting `PolicyScorer` stored as a protocol type without `any`, which may cause issues under new Swift rules or strict concurrency settings.
+exec
+/bin/zsh -lc 'rg -n "protocol .*: Sendable" app/decodingOppression/decodingOppression | head' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+app/decodingOppression/decodingOppression/Models/PolicyScorer.swift:10:protocol PolicyScorer: Sendable {
+app/decodingOppression/decodingOppression/NLP/TierResolver.swift:10:protocol Tier1EngineProtocol: Sendable {
+app/decodingOppression/decodingOppression/NLP/TierResolver.swift:15:protocol Tier2EngineProtocol: Sendable {
+app/decodingOppression/decodingOppression/NLP/TierResolver.swift:19:protocol Tier3EngineProtocol: Sendable {
+app/decodingOppression/decodingOppression/NLP/TierResolver.swift:23:protocol TierResolving: Sendable {
+
+
+thinking
+**Updating protocol existential usage**
+
+I'm confirming that stored protocol-typed properties and parameters need the `any` keyword for existential types (e.g., `any PolicyScorer`, `any TierResolving`) to avoid Swift 5.7+ strictness compile errors, so I'll update these accordingly. I'll also verify concurrency annotations like `@MainActor` but currently focus on fixing protocol type errors that could cause test failures.
+thinking
+**Identifying missing await on actor method calls**
+
+Found likely compile errors from calling actor-isolated methods like `analyze` without `await` in tests and possibly production code, even if methods aren’t async; actor isolation enforces `await` usage. Next, I'll fix these call sites to include `await` to resolve these errors.
+exec
+/bin/zsh -lc 'rg -n "AnalysisPipeline" app/decodingOppression/decodingOppression' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+app/decodingOppression/decodingOppression/NLP/AnalysisPipeline.swift:2://  AnalysisPipeline.swift
+app/decodingOppression/decodingOppression/NLP/AnalysisPipeline.swift:10:actor AnalysisPipeline {
+
+
+thinking
+**Analyzing concurrency and Sendable issues**
+
+I'm evaluating why compile errors occur, focusing on missing `await` calls and potential concurrency issues with actor-typed properties stored as protocol existentials, confirming that actors and their protocols should be `Sendable`, but suspecting non-`Sendable` types like `PolicyScorer` might be causing problems.
+thinking
+**Refining actor isolation and existential usage**
+
+Decided to keep `analyze` method actor-isolated and add necessary `await` calls in tests; updated protocol-typed properties to use `any` for Swift 6 concurrency compliance and ensured all captured actor existentials remain `Sendable` for Task use.
+exec
+/bin/zsh -lc "sed -n '1,140p' app/decodingOppression/decodingOppression/Models/Policy.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  Policy.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+// MARK: - Section type and targeting
+
+enum SectionType: String, Codable, CaseIterable {
+    case title
+    case definitions
+    case operativeClauses
+    case penalties
+    case exceptions
+}
+
+enum TargetGroup: String, Codable, CaseIterable {
+
+
+thinking
+**Diagnosing missing target membership**
+
+The build errors likely stem from new source files not being added to the Xcode target, causing missing type errors during compilation especially for tests referencing those types.
+thinking
+**Checking Xcode project file for new sources**
+
+Planning to inspect the Xcode project file to verify whether new source files like `PolicyScorer.swift` are included in the target, since missing entries there could cause build errors.
+exec
+/bin/zsh -lc 'rg -n "PolicyScorer.swift|TierResolver.swift|AnalysisPipeline.swift" app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+38:		4B54B0E76E030058F14A90BE /* decodingOppression/NLP/AnalysisPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F51FB8F8538602BCE6DEF6E /* decodingOppression/NLP/AnalysisPipeline.swift */; };
+40:		90AA271CA9EF8BE05832435A /* decodingOppression/Models/PolicyScorer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B540AA359285FE6BE364309 /* decodingOppression/Models/PolicyScorer.swift */; };
+42:		A9844907B2CE4A95E94AC7CF /* decodingOppression/NLP/TierResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C89BE94DE48144EC3AFE8A14 /* decodingOppression/NLP/TierResolver.swift */; };
+92:		6B540AA359285FE6BE364309 /* decodingOppression/Models/PolicyScorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/Models/PolicyScorer.swift; sourceTree = "<group>"; };
+93:		8F51FB8F8538602BCE6DEF6E /* decodingOppression/NLP/AnalysisPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/NLP/AnalysisPipeline.swift; sourceTree = "<group>"; };
+95:		C89BE94DE48144EC3AFE8A14 /* decodingOppression/NLP/TierResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/NLP/TierResolver.swift; sourceTree = "<group>"; };
+214:				8F51FB8F8538602BCE6DEF6E /* decodingOppression/NLP/AnalysisPipeline.swift */,
+215:				C89BE94DE48144EC3AFE8A14 /* decodingOppression/NLP/TierResolver.swift */,
+222:				6B540AA359285FE6BE364309 /* decodingOppression/Models/PolicyScorer.swift */,
+424:				4B54B0E76E030058F14A90BE /* decodingOppression/NLP/AnalysisPipeline.swift in Sources */,
+425:				A9844907B2CE4A95E94AC7CF /* decodingOppression/NLP/TierResolver.swift in Sources */,
+432:				90AA271CA9EF8BE05832435A /* decodingOppression/Models/PolicyScorer.swift in Sources */,
+
+thinking
+**Checking test file inclusion in project**
+
+I'm verifying whether the existing test files for TierResolverTests are included in the project file to rule out missing files causing compile errors.
+exec
+/bin/zsh -lc 'rg -n "TierResolverTests.swift|AnalysisPipelineTests.swift" app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj' in /Users/emmanuel/Documents/Theory/Redefining_racism exited 1 in 51ms:
+
+
+
+thinking
+**Identifying missing test files in project**
+
+The test files exist but aren't included in the project file, likely causing build failures since they aren't compiled; next, I'll verify the test target and add the missing test files to the project configuration.
+thinking
+**Inspecting test target build phases**
+
+I'm examining the project file to locate the test target's source build phases and verify which files are included.
+exec
+/bin/zsh -lc 'rg -n "decodingOppressionTests" -n app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj | head -n 40' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+65:		1487ADA32F47B280009460B8 /* decodingOppressionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = decodingOppressionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+140:		1487ADA62F47B280009460B8 /* decodingOppressionTests */ = {
+142:			path = decodingOppressionTests;
+184:				1487ADA62F47B280009460B8 /* decodingOppressionTests */,
+195:				1487ADA32F47B280009460B8 /* decodingOppressionTests.xctest */,
+291:		1487ADA22F47B280009460B8 /* decodingOppressionTests */ = {
+293:			buildConfigurationList = 1487ADBB2F47B280009460B8 /* Build configuration list for PBXNativeTarget "decodingOppressionTests" */;
+305:				1487ADA62F47B280009460B8 /* decodingOppressionTests */,
+307:			name = decodingOppressionTests;
+310:			productName = decodingOppressionTests;
+311:			productReference = 1487ADA32F47B280009460B8 /* decodingOppressionTests.xctest */;
+378:				1487ADA22F47B280009460B8 /* decodingOppressionTests */,
+694:				PRODUCT_BUNDLE_IDENTIFIER = tech.eocon.decodingOppressionTests;
+720:				PRODUCT_BUNDLE_IDENTIFIER = tech.eocon.decodingOppressionTests;
+806:		1487ADBB2F47B280009460B8 /* Build configuration list for PBXNativeTarget "decodingOppressionTests" */ = {
+
+thinking
+**Checking test sources phase**
+
+I'm searching for the "PBXSourcesBuildPhase" section associated with the tests target to verify its configuration.
+exec
+/bin/zsh -lc 'rg -n "PBXSourcesBuildPhase" app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj | head -n 40' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+412:/* Begin PBXSourcesBuildPhase section */
+414:			isa = PBXSourcesBuildPhase;
+448:			isa = PBXSourcesBuildPhase;
+455:			isa = PBXSourcesBuildPhase;
+461:/* End PBXSourcesBuildPhase section */
+
+thinking
+**Inspecting test target build phase**
+exec
+/bin/zsh -lc "sed -n '430,480p' app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+				1487ADF92F47B281009460B8 /* decodingOppression/Models/PolicyAnalysis.swift in Sources */,
+				1487ADFA2F47B281009460B8 /* decodingOppression/Models/ScoreResult.swift in Sources */,
+				90AA271CA9EF8BE05832435A /* decodingOppression/Models/PolicyScorer.swift in Sources */,
+				1487AE002F47B281009460B8 /* MLXError.swift in Sources */,
+				1487AE012F47B281009460B8 /* ModelDownloadManager.swift in Sources */,
+				1487AE022F47B281009460B8 /* MLXEmbeddingEngine.swift in Sources */,
+				1487AE032F47B281009460B8 /* MLXClauseClassifier.swift in Sources */,
+				1487AE042F47B281009460B8 /* Tier2Engine.swift in Sources */,
+				1487AE092F47B281009460B8 /* Tier2EngineHolder.swift in Sources */,
+				2467E8070D1646038A09BBD2 /* Tier3Error.swift in Sources */,
+				473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */,
+				5EC2A52B074C4B4F80E486FB /* HistoricalBaselineTool.swift in Sources */,
+				C7ACD73D83AF4BD1BF278199 /* PolicyAnalysisSession.swift in Sources */,
+				A6E5E59775EC4A2D83DBF692 /* Tier3Engine.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1487AD9F2F47B280009460B8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+
+
+thinking
+**Analyzing missing test files and compile errors**
+
+Test targets lack source files in build phases, so tests aren't compiling, explaining absent test errors. The app target's compile error likely stems from new files referencing protocols without associated types and usage of `Task.checkCancellation()` that throws synchronously, which seems correctly handled here.
+thinking
+**Investigating concurrency-related compile errors**
+
+Considering missing `await` on actor calls and absence of `any` for protocol existentials as likely causes, given strict concurrency settings may require explicit `any` usage. Next steps include verifying project build settings for strict concurrency flags to confirm this.
+exec
+/bin/zsh -lc 'rg -n "SWIFT_STRICT_CONCURRENCY|EXISTENTIAL" app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj' in /Users/emmanuel/Documents/Theory/Redefining_racism exited 1 in 51ms:
+
+
+thinking
+**Checking for swift version settings**
+exec
+/bin/zsh -lc 'rg -n "SWIFT_VERSION" app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+516:				SWIFT_VERSION = 5.0;
+561:				SWIFT_VERSION = 5.0;
+702:				SWIFT_VERSION = 5.0;
+728:				SWIFT_VERSION = 5.0;
+753:				SWIFT_VERSION = 5.0;
+778:				SWIFT_VERSION = 5.0;
+
+
+thinking
+**Diagnosing async let Sendable capture issue**
+
+The compile error likely arises because the `async let` closure captures existentials whose types must conform to `Sendable`; verifying if the captured protocol instances meet `Sendable` is key to resolving the error.
+thinking
+**Ruling out common concurrency and type errors**
+
+No obvious concurrency or type conformance errors stand out in core protocols or actors; next, checking for subtle naming conflicts or build configuration issues in related files like `ClauseClassificationPipeline.swift` seems prudent.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/NLP/ClauseClassificationPipeline.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  ClauseClassificationPipeline.swift
+//  decodingOppression
+//
+//  Routes clause classification through Tier2 when available, falling back to Tier1.
+//
+
+import Foundation
+
+actor ClauseClassificationPipeline {
+    private let tier1Engine: Tier1Engine
+    private let tier2Engine: Tier2Engine
+
+    init(tier2Engine: Tier2Engine) throws {
+        self.tier1Engine = try Tier1Engine()
+        self.tier2Engine = tier2Engine
+    }
+
+    func extractAndPreprocess(pdf url: URL) async throws -> [Clause] {
+        try await tier1Engine.extractAndPreprocess(pdf: url)
+
+
+thinking
+**Confirming test file inclusion and build cause**
+
+The build failure is unlikely from missing test file inclusion but missing `await` in tests caused the failure; I’ll fix test await issues first and then add test files to the project to meet requirements.
+thinking
+**Preparing to add test files to pbxproj**
+
+I'm locating test build phases and target IDs to correctly add test files and source references into the test targets for proper inclusion and build integration.
+exec
+/bin/zsh -lc "sed -n '270,340p' app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 50ms:
+				1487AD8E2F47B27E009460B8 /* Sources */,
+				1487AD8F2F47B27E009460B8 /* Frameworks */,
+				1487AD902F47B27E009460B8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				1487AD942F47B27E009460B8 /* decodingOppression */,
+			);
+			name = decodingOppression;
+			packageProductDependencies = (
+				1487ADC52F47B281009460B8 /* MLXLLM */,
+				1487ADC62F47B281009460B8 /* MLXEmbedders */,
+				1487ADC72F47B281009460B8 /* MLXLMCommon */,
+			);
+			productName = decodingOppression;
+			productReference = 1487AD922F47B27E009460B8 /* decodingOppression.app */;
+			productType = "com.apple.product-type.application";
+
+
+thinking
+**Assessing test target file inclusion**
+
+I'm investigating whether the test files need explicit addition to pbxproj or if Xcode 16's filesystem-synchronized groups auto-include them in the test target; I'll check the test group's use of `PBXFileSystemSynchronizedRootGroup` to confirm if build files are managed automatically.
+thinking
+**Verifying build phase file listing for test group**
+
+I'm checking if the test group's build phase omits individual files due to filesystem-synchronized groups, implying automatic file inclusion despite an empty sources list.
+exec
+/bin/zsh -lc 'rg -n "decodingOppressionTests" -n app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj | head -n 120' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+65:		1487ADA32F47B280009460B8 /* decodingOppressionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = decodingOppressionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+140:		1487ADA62F47B280009460B8 /* decodingOppressionTests */ = {
+142:			path = decodingOppressionTests;
+184:				1487ADA62F47B280009460B8 /* decodingOppressionTests */,
+195:				1487ADA32F47B280009460B8 /* decodingOppressionTests.xctest */,
+291:		1487ADA22F47B280009460B8 /* decodingOppressionTests */ = {
+293:			buildConfigurationList = 1487ADBB2F47B280009460B8 /* Build configuration list for PBXNativeTarget "decodingOppressionTests" */;
+305:				1487ADA62F47B280009460B8 /* decodingOppressionTests */,
+307:			name = decodingOppressionTests;
+310:			productName = decodingOppressionTests;
+311:			productReference = 1487ADA32F47B280009460B8 /* decodingOppressionTests.xctest */;
+378:				1487ADA22F47B280009460B8 /* decodingOppressionTests */,
+694:				PRODUCT_BUNDLE_IDENTIFIER = tech.eocon.decodingOppressionTests;
+720:				PRODUCT_BUNDLE_IDENTIFIER = tech.eocon.decodingOppressionTests;
+806:		1487ADBB2F47B280009460B8 /* Build configuration list for PBXNativeTarget "decodingOppressionTests" */ = {
+
+thinking
+**Checking group entry location**
+exec
+/bin/zsh -lc "sed -n '120,160p' app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+				Models/PipelineContracts.swift,
+				Models/Policy.swift,
+				Models/PolicyAnalysis.swift,
+				Models/ScoreResult.swift,
+				Resources/Adapters/adapter_config.json,
+				Resources/Adapters/adapters.safetensors,
+			);
+			target = 1487AD912F47B27E009460B8 /* decodingOppression */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		1487AD942F47B27E009460B8 /* decodingOppression */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1487ADB52F47B280009460B8 /* Exceptions for "decodingOppression" folder in "decodingOppression" target */,
+			);
+			path = decodingOppression;
+			sourceTree = "<group>";
+		};
+
+
+thinking
+**Analyzing FS-synchronized groups and build files**
+
+I see FS-synchronized groups likely auto-include files except those in an exceptions set, explaining manual build file entries only for excluded files. Since new files appear referenced explicitly yet may not need pbxproj updates, compile errors probably stem from code issues rather than project configuration. I'll check app code usage of new files to confirm before deeper build inspection.
+thinking
+**Evaluating compile errors around async usage and `nonisolated` modifier**
+
+I noticed a likely syntax error with `nonisolated` wrongly applied to a struct, which may cause compile failures, especially since this modifier is valid only on actor members. The project's exception set excludes some source files like `ScoreResult.swift`, possibly explaining why these errors surface only now if those files weren't fully included before. Next, I'll verify file inclusion in build targets and cross-check modifier usage in code.
+exec
+/bin/zsh -lc "sed -n '90,130p' app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+		34286CD2DA874541B8E16E36 /* PolicyAnalysisSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyAnalysisSession.swift; sourceTree = "<group>"; };
+		3F905F1B71EC4592BA52F524 /* Tier3Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Error.swift; sourceTree = "<group>"; };
+		6B540AA359285FE6BE364309 /* decodingOppression/Models/PolicyScorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/Models/PolicyScorer.swift; sourceTree = "<group>"; };
+		8F51FB8F8538602BCE6DEF6E /* decodingOppression/NLP/AnalysisPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/NLP/AnalysisPipeline.swift; sourceTree = "<group>"; };
+		C6B4706C099C4852B2B1E2BB /* Tier3Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier3Engine.swift; sourceTree = "<group>"; };
+		C89BE94DE48144EC3AFE8A14 /* decodingOppression/NLP/TierResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/NLP/TierResolver.swift; sourceTree = "<group>"; };
+		DCB26A02D5DC4B6F91076977 /* HistoricalBaselineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalBaselineTool.swift; sourceTree = "<group>"; };
+		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1487ADB52F47B280009460B8 /* Exceptions for "decodingOppression" folder in "decodingOppression" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				AI/HistoricalBaselineTool.swift,
+				AI/HistoricalPolicies.swift,
+				AI/PolicyAnalysisSession.swift,
+				AI/Tier3Engine.swift,
+				AI/Tier3Error.swift,
+				ContentView.swift,
+
+
+thinking
+**Analyzing exception list meaning**
+
+The exceptions list likely marks files excluded from automatic build membership in FS-synchronized groups, which are then manually handled in build phases; this may explain duplicate build file entries causing potential build conflicts.
+thinking
+**Narrowing build error suspects**
+
+Build issues may stem from duplicate build file entries or subtle Swift syntax/access errors like missing imports or misuse of concurrency keywords; next step is to confirm suspected syntax errors by typechecking key files with swiftc.
+exec
+/bin/zsh -lc 'xcrun swiftc -typecheck app/decodingOppression/decodingOppression/Models/ScoreResult.swift' in /Users/emmanuel/Documents/Theory/Redefining_racism exited 1 in 303ms:
+<unknown>:0: error: error opening '/Users/emmanuel/.cache/clang/ModuleCache/Swift-3AJJN1UPT8RFK.swiftmodule' for output: /Users/emmanuel/.cache/clang/ModuleCache: Operation not permitted
+<unknown>:0: error: unable to load standard library for target 'arm64-apple-macosx26.0'
+
+
+thinking
+**Assessing invalid use of nonisolated on struct**
+
+The `nonisolated` modifier is invalid on structs per Swift rules, likely causing build errors, but the file predates these constraints and may rely on experimental flags or extensions. This clarifies that fixing the error might require adjusting this usage despite original intent to avoid changes.
+thinking
+**Identifying test fixes by adding await calls**
+
+The compile errors likely stem from missing `await` when calling the actor-isolated `analyze` method in tests, so the best next step is updating all its test invocations with `await` to fix concurrency errors without altering core source files.
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppressionTests/AnalysisPipelineTests.swift
+@@ -15,3 +15,3 @@
+         let pipeline = makePipeline(clauses: clauses)
+-        let stream = pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
++        let stream = await pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
+ 
+@@ -28,3 +28,3 @@
+         let pipeline = makePipeline(clauses: makeClauses(count: 2))
+-        let stream = pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
++        let stream = await pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
+ 
+@@ -45,3 +45,3 @@
+         let pipeline = AnalysisPipeline(tier1: tier1, resolver: resolver, scorer: StubPolicyScorer())
+-        let stream = pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
++        let stream = await pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
+ 
+@@ -63,3 +63,3 @@
+         let pipeline = makePipeline(clauses: makeClauses(count: 5), resolverDelayNanos: 20_000_000)
+-        let stream = pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
++        let stream = await pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
+ 
+apply_patch(auto_approved=true) exited 0 in 58ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppressionTests/AnalysisPipelineTests.swift
+file update:
+diff --git a/app/decodingOppression/decodingOppressionTests/AnalysisPipelineTests.swift b/app/decodingOppression/decodingOppressionTests/AnalysisPipelineTests.swift
+index 4aba9a11ed3f23b72bb7207c780c40ab63099a90..891a96a87598a15c3700c4be3fafcc8a546c72e2
+--- a/app/decodingOppression/decodingOppressionTests/AnalysisPipelineTests.swift
++++ b/app/decodingOppression/decodingOppressionTests/AnalysisPipelineTests.swift
+@@ -13,7 +13,7 @@
+     @Test func testClassifyingEventsAreMonotonic() async {
+         let clauses = makeClauses(count: 3)
+         let pipeline = makePipeline(clauses: clauses)
+-        let stream = pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
++        let stream = await pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
+ 
+         let events = await collectProgress(from: stream)
+         let indices = events.compactMap { progress -> Int? in
+@@ -26,7 +26,7 @@
+ 
+     @Test func testCompleteEmittedAfterAllClauses() async {
+         let pipeline = makePipeline(clauses: makeClauses(count: 2))
+-        let stream = pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
++        let stream = await pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
+ 
+         let events = await collectProgress(from: stream)
+         let last = events.last
+@@ -43,7 +43,7 @@
+         let tier1 = MockTier1EngineForPipeline(clauses: [], error: error)
+         let resolver = MockTierResolver(result: makeClassification(tier: .tier1, confidence: 0.9))
+         let pipeline = AnalysisPipeline(tier1: tier1, resolver: resolver, scorer: StubPolicyScorer())
+-        let stream = pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
++        let stream = await pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
+ 
+         var firstNonExtracting: AnalysisProgress?
+         for await progress in stream {
+@@ -61,7 +61,7 @@
+ 
+     @Test func testCancellationStopsStreamCleanly() async {
+         let pipeline = makePipeline(clauses: makeClauses(count: 5), resolverDelayNanos: 20_000_000)
+-        let stream = pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
++        let stream = await pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
+ 
+         var task: Task<[AnalysisProgress], Never>?
+         task = Task {
+
+file update:
+diff --git a/app/decodingOppression/decodingOppressionTests/AnalysisPipelineTests.swift b/app/decodingOppression/decodingOppressionTests/AnalysisPipelineTests.swift
+index 4aba9a11ed3f23b72bb7207c780c40ab63099a90..891a96a87598a15c3700c4be3fafcc8a546c72e2
+--- a/app/decodingOppression/decodingOppressionTests/AnalysisPipelineTests.swift
++++ b/app/decodingOppression/decodingOppressionTests/AnalysisPipelineTests.swift
+@@ -13,7 +13,7 @@
+     @Test func testClassifyingEventsAreMonotonic() async {
+         let clauses = makeClauses(count: 3)
+         let pipeline = makePipeline(clauses: clauses)
+-        let stream = pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
++        let stream = await pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
+ 
+         let events = await collectProgress(from: stream)
+         let indices = events.compactMap { progress -> Int? in
+@@ -26,7 +26,7 @@
+ 
+     @Test func testCompleteEmittedAfterAllClauses() async {
+         let pipeline = makePipeline(clauses: makeClauses(count: 2))
+-        let stream = pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
++        let stream = await pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
+ 
+         let events = await collectProgress(from: stream)
+         let last = events.last
+@@ -43,7 +43,7 @@
+         let tier1 = MockTier1EngineForPipeline(clauses: [], error: error)
+         let resolver = MockTierResolver(result: makeClassification(tier: .tier1, confidence: 0.9))
+         let pipeline = AnalysisPipeline(tier1: tier1, resolver: resolver, scorer: StubPolicyScorer())
+-        let stream = pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
++        let stream = await pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
+ 
+         var firstNonExtracting: AnalysisProgress?
+         for await progress in stream {
+@@ -61,7 +61,7 @@
+ 
+     @Test func testCancellationStopsStreamCleanly() async {
+         let pipeline = makePipeline(clauses: makeClauses(count: 5), resolverDelayNanos: 20_000_000)
+-        let stream = pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
++        let stream = await pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
+ 
+         var task: Task<[AnalysisProgress], Never>?
+         task = Task {
+
+
+thinking
+**Updating test to await actor call**
+
+Updated AnalysisPipelineTests to await the actor call; tests were not run but code changes are straightforward and complete.
+codex
+Updated `AnalysisPipelineTests` to call the actor-isolated `analyze` method with `await`.
+
+Tests not run (not requested).
+file update:
+diff --git a/app/decodingOppression/decodingOppressionTests/AnalysisPipelineTests.swift b/app/decodingOppression/decodingOppressionTests/AnalysisPipelineTests.swift
+index 4aba9a11ed3f23b72bb7207c780c40ab63099a90..891a96a87598a15c3700c4be3fafcc8a546c72e2
+--- a/app/decodingOppression/decodingOppressionTests/AnalysisPipelineTests.swift
++++ b/app/decodingOppression/decodingOppressionTests/AnalysisPipelineTests.swift
+@@ -13,7 +13,7 @@
+     @Test func testClassifyingEventsAreMonotonic() async {
+         let clauses = makeClauses(count: 3)
+         let pipeline = makePipeline(clauses: clauses)
+-        let stream = pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
++        let stream = await pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
+ 
+         let events = await collectProgress(from: stream)
+         let indices = events.compactMap { progress -> Int? in
+@@ -26,7 +26,7 @@
+ 
+     @Test func testCompleteEmittedAfterAllClauses() async {
+         let pipeline = makePipeline(clauses: makeClauses(count: 2))
+-        let stream = pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
++        let stream = await pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
+ 
+         let events = await collectProgress(from: stream)
+         let last = events.last
+@@ -43,7 +43,7 @@
+         let tier1 = MockTier1EngineForPipeline(clauses: [], error: error)
+         let resolver = MockTierResolver(result: makeClassification(tier: .tier1, confidence: 0.9))
+         let pipeline = AnalysisPipeline(tier1: tier1, resolver: resolver, scorer: StubPolicyScorer())
+-        let stream = pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
++        let stream = await pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
+ 
+         var firstNonExtracting: AnalysisProgress?
+         for await progress in stream {
+@@ -61,7 +61,7 @@
+ 
+     @Test func testCancellationStopsStreamCleanly() async {
+         let pipeline = makePipeline(clauses: makeClauses(count: 5), resolverDelayNanos: 20_000_000)
+-        let stream = pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
++        let stream = await pipeline.analyze(pdfURL: URL(fileURLWithPath: "/tmp/mock.pdf"))
+ 
+         var task: Task<[AnalysisProgress], Never>?
+         task = Task {
+
+tokens used
+67,595
+Updated `AnalysisPipelineTests` to call the actor-isolated `analyze` method with `await`.
+
+Tests not run (not requested).

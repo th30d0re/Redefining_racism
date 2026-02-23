@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { storyChapters } from '../data/storyData';
+import { storyChapters, type VennDiagramData, type TimelineEvent } from '../data/storyData';
 import VennDiagram from './visualizations/VennDiagram';
 import Timeline from './visualizations/Timeline';
 import './StoryMode.css';
@@ -76,11 +76,11 @@ const StoryMode = ({ onComplete }: StoryModeProps) => {
             ))}
 
             {/* Visualization */}
-            {chapter.visualization === 'venn' && (
-              <VennDiagram data={chapter.visualizationData} />
+            {chapter.visualization === 'venn' && chapter.visualizationData && (
+              <VennDiagram data={chapter.visualizationData as VennDiagramData} />
             )}
-            {chapter.visualization === 'timeline' && (
-              <Timeline data={chapter.visualizationData} />
+            {chapter.visualization === 'timeline' && chapter.visualizationData && (
+              <Timeline data={chapter.visualizationData as TimelineEvent[]} />
             )}
 
             {/* Key Concepts */}

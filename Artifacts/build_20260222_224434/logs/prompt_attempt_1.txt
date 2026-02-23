@@ -1,0 +1,3252 @@
+You are a Swift/SwiftUI developer. Your task is to implement the following requirements.
+
+IMPORTANT INSTRUCTIONS:
+1. Write clean, production-ready Swift code
+2. Follow Apple's Swift API Design Guidelines
+3. Use SwiftUI for UI components where appropriate
+4. Include proper error handling
+5. The code must compile without errors
+6. After writing code, the build will be verified automatically
+7. If the build fails, you will receive error feedback and should try a DIFFERENT approach
+
+TESTING & DEBUGGING REFERENCE:
+For building, testing, and debugging iOS/macOS apps, reference this workflow guide:
+/Users/emmanuel/Dev/Tools/Eocon-Foundation-V1/.Foundation/Docs/swiftDocs/Testing/XCODEBUILD_MCP_WORKFLOW.md
+
+This guide covers:
+- XcodeBuild MCP server tools for programmatic Xcode interaction
+- Building for simulator, booting simulators, installing/launching apps
+- UI automation: screenshots, accessibility hierarchy, tap simulation
+- Debugging UI issues (button taps, gestures, navigation)
+
+=== TASK/REQUIREMENTS ===
+I have the following verification comments after thorough review and exploration of the codebase. Implement the comments by following the instructions in the comments verbatim.
+
+---
+## Comment 1: CompoundingCalculator maps neutral or low-oppression policies to strongly negative CIS values, inverting the intended meaning.
+
+In \`app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift\` ensure \`score(clauses:)\` maps a zero capacity reduction to \`0.0\`, not \`-1.0\`, and that increasing \`pNew\` monotonically increases the returned CIS. Use a linear normalization that leaves \`normalized\` in \`[0,1]\` (or center it around 0 only if you redefine the range symmetrically), and clamp to \`[-1,1]\` after mapping. Add a test in \`app/decodingOppression/decodingOppressionTests/ScoringEngineTests.swift\` asserting a clause set with \`aar = 0\` and \`rsc = 0\` yields \`cis == 0.0\`.
+
+### Referred Files
+- /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift
+- /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppressionTests/ScoringEngineTests.swift
+---
+=== END TASK ===
+
+
+=== REFERENCE CONTEXT ===
+Use the following documentation and context as reference:
+
+=== SWIFT DOCUMENTATION ===
+
+--- FILE: DefiningTests.md ---
+# Defining test functions
+
+<!--
+This source file is part of the Swift.org open source project
+
+Copyright (c) 2023 Apple Inc. and the Swift project authors
+Licensed under Apache License v2.0 with Runtime Library Exception
+
+See https://swift.org/LICENSE.txt for license information
+See https://swift.org/CONTRIBUTORS.txt for Swift project authors
+-->
+
+Define a test function to validate that code is working correctly.
+
+## Overview
+
+Defining a test function for a Swift package or project is straightforward.
+
+### Import the testing library
+
+To import the testing library, add the following to the Swift source file that
+contains the test:
+
+```swift
+import Testing
+```
+
+- Note: Only import the testing library into a test target or library meant for
+  test targets. Importing the testing library into a target intended for
+  distribution such as an application, app library, or executable target isn't
+  supported or recommended. Test functions aren't stripped from binaries when
+  building for release, so logic and fixtures of a test may be visible to anyone
+  who inspects a build product that contains a test function.
+
+### Declare a test function
+
+To declare a test function, write a Swift function declaration that doesn't
+take any arguments, then prefix its name with the `@Test` attribute:
+
+```swift
+@Test func foodTruckExists() {
+  // Test logic goes here.
+}
+```
+
+This test function can be present at file scope or within a type. A type
+containing test functions is automatically a _test suite_ and can be optionally
+annotated with the `@Suite` attribute. For more information about suites, see
+<doc:OrganizingTests>.
+
+Note that, while this function is a valid test function, it doesn't actually
+perform any action or test any code. To check for expected values and outcomes
+in test functions, add [expectations](doc:Expectations) to the test function.
+
+### Customize a test's name
+
+To customize a test function's name as presented in an IDE or at the command
+line, supply a string literal as an argument to the `@Test` attribute:
+
+```swift
+@Test("Food truck exists") func foodTruckExists() { ... }
+```
+
+To further customize the appearance and behavior of a test function, use
+[traits](doc:Traits) such as ``Trait/tags(_:)``.
+
+### Write concurrent or throwing tests
+
+As with other Swift functions, test functions can be marked `async` and `throws`
+to annotate them as concurrent or throwing, respectively. If a test is only safe
+to run in the main actor's execution context (that is, from the main thread of
+the process), it can be annotated `@MainActor`:
+
+```swift
+@Test @MainActor func foodTruckExists() async throws { ... }
+```
+
+### Limit the availability of a test
+
+If a test function can only run on newer versions of an operating system or of
+the Swift language, use the `@available` attribute when declaring it. Use the
+`message` argument of the `@available` attribute to specify a message to log if
+a test is unable to run due to limited availability:
+
+```swift
+@available(macOS 11.0, *)
+@available(swift, introduced: 8.0, message: "Requires Swift 8.0 features to run")
+@Test func foodTruckExists() { ... }
+```
+--- END FILE ---
+
+--- FILE: Expectations.md ---
+# Expectations and confirmations
+
+<!--
+This source file is part of the Swift.org open source project
+
+Copyright (c) 2023–2024 Apple Inc. and the Swift project authors
+Licensed under Apache License v2.0 with Runtime Library Exception
+
+See https://swift.org/LICENSE.txt for license information
+See https://swift.org/CONTRIBUTORS.txt for Swift project authors
+-->
+
+Check for expected values, outcomes, and asynchronous events in tests.
+
+## Overview
+
+Use ``expect(_:_:sourceLocation:)`` and
+``require(_:_:sourceLocation:)-5l63q`` macros to validate expected
+outcomes. To validate that an error is thrown, or _not_ thrown, the
+testing library provides several overloads of the macros that you can
+use. For more information, see <doc:testing-for-errors-in-swift-code>.
+
+Use a ``Confirmation`` to confirm the occurrence of an
+asynchronous event that you can't check directly using an expectation.
+For more information, see <doc:testing-asynchronous-code>.
+
+### Validate your code's result
+
+To validate that your code produces an expected value, use
+``expect(_:_:sourceLocation:)``. This macro captures the
+expression you pass, and provides detailed information when the code doesn't
+satisfy the expectation.
+
+```swift
+@Test func calculatingOrderTotal() {
+  let calculator = OrderCalculator()
+  #expect(calculator.total(of: [3, 3]) == 7)
+  // Prints "Expectation failed: (calculator.total(of: [3, 3]) → 6) == 7"
+}
+```
+
+Your test keeps running after ``expect(_:_:sourceLocation:)`` fails. To stop
+the test when the code doesn't satisfy a requirement, use
+``require(_:_:sourceLocation:)-5l63q`` instead:
+
+```swift
+@Test func returningCustomerRemembersUsualOrder() throws {
+  let customer = try #require(Customer(id: 123))
+  // The test runner doesn't reach this line if the customer is nil.
+  #expect(customer.usualOrder.countOfItems == 2)
+}
+```
+
+``require(_:_:sourceLocation:)-5l63q`` throws an instance of
+``ExpectationFailedError`` when your code fails to satisfy the requirement.
+
+## Topics
+
+### Checking expectations
+
+- ``expect(_:_:sourceLocation:)``
+- ``require(_:_:sourceLocation:)-5l63q``
+- ``require(_:_:sourceLocation:)-6w9oo``
+
+### Checking that errors are thrown
+
+- <doc:testing-for-errors-in-swift-code>
+- ``expect(throws:_:sourceLocation:performing:)-1hfms``
+- ``expect(throws:_:sourceLocation:performing:)-7du1h``
+- ``expect(_:sourceLocation:performing:throws:)``
+- ``require(throws:_:sourceLocation:performing:)-7n34r``
+- ``require(throws:_:sourceLocation:performing:)-4djuw``
+- ``require(_:sourceLocation:performing:throws:)``
+
+### Checking how processes exit
+
+- <doc:exit-testing>
+- ``expect(processExitsWith:observing:_:sourceLocation:performing:)``
+- ``require(processExitsWith:observing:_:sourceLocation:performing:)``
+- ``ExitStatus``
+- ``ExitTest``
+
+### Confirming that asynchronous events occur
+
+- <doc:testing-asynchronous-code>
+- ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-5mqz2``
+- ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-l3il``
+- ``Confirmation``
+
+### Retrieving information about checked expectations
+
+- ``Expectation``
+- ``ExpectationFailedError``
+- ``CustomTestStringConvertible``
+
+### Representing source locations
+
+- ``SourceLocation``
+<!-- - ``_sourceLocation()`` -->
+<!-- - ``SourceContext`` -->
+<!-- - ``Backtrace`` -->
+--- END FILE ---
+
+--- FILE: MigratingFromXCTest.md ---
+# Migrating a test from XCTest
+
+<!--
+This source file is part of the Swift.org open source project
+
+Copyright (c) 2023-2024 Apple Inc. and the Swift project authors
+Licensed under Apache License v2.0 with Runtime Library Exception
+
+See https://swift.org/LICENSE.txt for license information
+See https://swift.org/CONTRIBUTORS.txt for Swift project authors
+-->
+
+<!-- NOTE: The voice of this document is directed at the second person ("you")
+because it provides instructions the reader must follow directly. -->
+
+Migrate an existing test method or test class written using XCTest.
+
+## Overview
+
+The testing library provides much of the same functionality of XCTest, but uses
+its own syntax to declare test functions and types. Here, you'll learn how to
+convert XCTest-based content to use the testing library instead.
+
+### Import the testing library
+
+XCTest and the testing library are available from different modules. Instead of 
+importing the XCTest module, import the Testing module:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    import XCTest
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    import Testing
+    ```
+  }
+}
+
+A single source file can contain tests written with XCTest as well as other 
+tests written with the testing library. Import both XCTest and Testing if a 
+source file contains mixed test content.
+
+### Convert test classes
+
+XCTest groups related sets of test methods in test classes: classes that inherit
+from the [`XCTestCase`](https://developer.apple.com/documentation/xctest/xctestcase)
+class provided by the [XCTest](https://developer.apple.com/documentation/xctest) framework. The testing library doesn't require
+that test functions be instance members of types. Instead, they can be _free_ or
+_global_ functions, or can be `static` or `class` members of a type.
+
+If you want to group your test functions together, you can do so by placing them
+in a Swift type. The testing library refers to such a type as a _suite_. These
+types do _not_ need to be classes, and they don't inherit from `XCTestCase`.
+
+To convert a subclass of `XCTestCase` to a suite, remove the `XCTestCase`
+conformance. It's also generally recommended that a Swift structure or actor be
+used instead of a class because it allows the Swift compiler to better-enforce
+concurrency safety:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    class FoodTruckTests: XCTestCase {
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    struct FoodTruckTests {
+      ...
+    }
+    ```
+  }
+}
+
+For more information about suites and how to declare and customize them, see
+<doc:OrganizingTests>.
+
+### Convert setup and teardown functions
+
+In XCTest, code can be scheduled to run before and after a test using the
+[`setUp()`](https://developer.apple.com/documentation/xctest/xctest/3856481-setup)
+and [`tearDown()`](https://developer.apple.com/documentation/xctest/xctest/3856482-teardown)
+family of functions. When writing tests using the testing library, implement
+`init()` and/or `deinit` instead:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    class FoodTruckTests: XCTestCase {
+      var batteryLevel: NSNumber!
+      override func setUp() async throws {
+        batteryLevel = 100
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    struct FoodTruckTests {
+      var batteryLevel: NSNumber
+      init() async throws {
+        batteryLevel = 100
+      }
+      ...
+    }
+    ```
+  }
+}
+
+The use of `async` and `throws` is optional. If teardown is needed, declare your
+test suite as a class or as an actor rather than as a structure and implement
+`deinit`:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    class FoodTruckTests: XCTestCase {
+      var batteryLevel: NSNumber!
+      override func setUp() async throws {
+        batteryLevel = 100
+      }
+      override func tearDown() {
+        batteryLevel = 0 // drain the battery
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    final class FoodTruckTests {
+      var batteryLevel: NSNumber
+      init() async throws {
+        batteryLevel = 100
+      }
+      deinit {
+        batteryLevel = 0 // drain the battery
+      }
+      ...
+    }
+    ```
+  }
+}
+
+<!--
+- Bug: `deinit` cannot be asynchronous or throwing, unlike `tearDown()`.
+  ((103616215)[rdar://103616215])
+-->
+
+### Convert test methods
+
+The testing library represents individual tests as functions, similar to how
+they are represented in XCTest. However, the syntax for declaring a test
+function is different. In XCTest, a test method must be a member of a test class
+and its name must start with `test`. The testing library doesn't require a test
+function to have any particular name. Instead, it identifies a test function by
+the presence of the `@Test` attribute:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    class FoodTruckTests: XCTestCase {
+      func testEngineWorks() { ... }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    struct FoodTruckTests {
+      @Test func engineWorks() { ... }
+      ...
+    }
+    ```
+  }
+}
+
+As with XCTest, the testing library allows test functions to be marked `async`,
+`throws`, or `async`-`throws`, and to be isolated to a global actor (for example, by using the
+`@MainActor` attribute.)
+
+- Note: XCTest runs synchronous test methods on the main actor by default, while
+  the testing library runs all test functions on an arbitrary task. If a test
+  function must run on the main thread, isolate it to the main actor with
+  `@MainActor`, or run the thread-sensitive code inside a call to
+  [`MainActor.run(resultType:body:)`](https://developer.apple.com/documentation/swift/mainactor/run(resulttype:body:)).
+
+For more information about test functions and how to declare and customize them,
+see <doc:DefiningTests>.
+
+### Check for expected values and outcomes 
+
+XCTest uses a family of approximately 40 functions to assert test requirements.
+These functions are collectively referred to as
+[`XCTAssert()`](https://developer.apple.com/documentation/xctest/1500669-xctassert).
+The testing library has two replacements, ``expect(_:_:sourceLocation:)`` and
+``require(_:_:sourceLocation:)-5l63q``. They both behave similarly to
+`XCTAssert()` except that ``require(_:_:sourceLocation:)-5l63q`` throws an
+error if its condition isn't met:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testEngineWorks() throws {
+      let engine = FoodTruck.shared.engine
+      XCTAssertNotNil(engine.parts.first)
+      XCTAssertGreaterThan(engine.batteryLevel, 0)
+      try engine.start()
+      XCTAssertTrue(engine.isRunning)
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func engineWorks() throws {
+      let engine = FoodTruck.shared.engine
+      try #require(engine.parts.first != nil)
+      #expect(engine.batteryLevel > 0)
+      try engine.start()
+      #expect(engine.isRunning)
+    }
+    ```
+  }
+}
+
+### Check for optional values
+
+XCTest also has a function, [`XCTUnwrap()`](https://developer.apple.com/documentation/xctest/3380195-xctunwrap),
+that tests if an optional value is `nil` and throws an error if it is. When
+using the testing library, you can use ``require(_:_:sourceLocation:)-6w9oo``
+with optional expressions to unwrap them:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testEngineWorks() throws {
+      let engine = FoodTruck.shared.engine
+      let part = try XCTUnwrap(engine.parts.first)
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func engineWorks() throws {
+      let engine = FoodTruck.shared.engine
+      let part = try #require(engine.parts.first)
+      ...
+    }
+    ```
+  }
+}
+
+### Record issues
+
+XCTest has a function, [`XCTFail()`](https://developer.apple.com/documentation/xctest/1500970-xctfail),
+that causes a test to fail immediately and unconditionally. This function is
+useful when the syntax of the language prevents the use of an `XCTAssert()`
+function. To record an unconditional issue using the testing library, use the
+``Issue/record(_:severity:sourceLocation:)`` function:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testEngineWorks() {
+      let engine = FoodTruck.shared.engine
+      guard case .electric = engine else {
+        XCTFail("Engine is not electric")
+        return
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func engineWorks() {
+      let engine = FoodTruck.shared.engine
+      guard case .electric = engine else {
+        Issue.record("Engine is not electric")
+        return
+      }
+      ...
+    }
+    ```
+  }
+}
+
+The following table includes a list of the various `XCTAssert()` functions and
+their equivalents in the testing library:
+
+| XCTest | Swift Testing |
+|-|-|
+| `XCTAssert(x)`, `XCTAssertTrue(x)` | `#expect(x)` |
+| `XCTAssertFalse(x)` | `#expect(!x)` |
+| `XCTAssertNil(x)` | `#expect(x == nil)` |
+| `XCTAssertNotNil(x)` | `#expect(x != nil)` |
+| `XCTAssertEqual(x, y)` | `#expect(x == y)` |
+| `XCTAssertNotEqual(x, y)` | `#expect(x != y)` |
+| `XCTAssertIdentical(x, y)` | `#expect(x === y)` |
+| `XCTAssertNotIdentical(x, y)` | `#expect(x !== y)` |
+| `XCTAssertGreaterThan(x, y)` | `#expect(x > y)` |
+| `XCTAssertGreaterThanOrEqual(x, y)` | `#expect(x >= y)` |
+| `XCTAssertLessThanOrEqual(x, y)` | `#expect(x <= y)` |
+| `XCTAssertLessThan(x, y)` | `#expect(x < y)` |
+| `XCTAssertThrowsError(try f())` | `#expect(throws: (any Error).self) { try f() }` |
+| `XCTAssertThrowsError(try f()) { error in … }` | `let error = #expect(throws: (any Error).self) { try f() }` |
+| `XCTAssertNoThrow(try f())` | `#expect(throws: Never.self) { try f() }` |
+| `try XCTUnwrap(x)` | `try #require(x)` |
+| `XCTFail("…")` | `Issue.record("…")` |
+
+The testing library doesn’t provide an equivalent of
+[`XCTAssertEqual(_:_:accuracy:_:file:line:)`](https://developer.apple.com/documentation/xctest/3551607-xctassertequal).
+To compare two numeric values within a specified accuracy, 
+use `isApproximatelyEqual()` from [swift-numerics](https://github.com/apple/swift-numerics).
+
+### Continue or halt after test failures
+
+An instance of an `XCTestCase` subclass can set its
+[`continueAfterFailure`](https://developer.apple.com/documentation/xctest/xctestcase/1496260-continueafterfailure)
+property to `false` to cause a test to stop running after a failure occurs.
+XCTest stops an affected test by throwing an Objective-C exception at the
+time the failure occurs.
+
+- Note: `continueAfterFailure` isn't fully supported when using the
+  [swift-corelibs-xctest](https://github.com/swiftlang/swift-corelibs-xctest)
+  library on non-Apple platforms.
+
+The behavior of an exception thrown through a Swift stack frame is undefined. If
+an exception is thrown through an `async` Swift function, it typically causes
+the process to terminate abnormally, preventing other tests from running.
+
+The testing library doesn't use exceptions to stop test functions. Instead, use
+the ``require(_:_:sourceLocation:)-5l63q`` macro, which throws a Swift error on
+failure:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testTruck() async {
+      continueAfterFailure = false
+      XCTAssertTrue(FoodTruck.shared.isLicensed)
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func truck() throws {
+      try #require(FoodTruck.shared.isLicensed)
+      ...
+    }
+    ```
+  }
+}
+
+When using either `continueAfterFailure` or
+``require(_:_:sourceLocation:)-5l63q``, other tests will continue to run after
+the failed test method or test function.
+
+### Validate asynchronous behaviors
+
+XCTest has a class, [`XCTestExpectation`](https://developer.apple.com/documentation/xctest/xctestexpectation),
+that represents some asynchronous condition. You create an instance of
+this class (or a subclass like [`XCTKeyPathExpectation`](https://developer.apple.com/documentation/xctest/xctkeypathexpectation))
+using an initializer or a convenience method on `XCTestCase`. When the condition
+represented by an expectation occurs, the developer _fulfills_ the expectation.
+Concurrently, the developer _waits for_ the expectation to be fulfilled using an
+instance of [`XCTWaiter`](https://developer.apple.com/documentation/xctest/xctwaiter)
+or using a convenience method on `XCTestCase`.
+
+Wherever possible, prefer to use Swift concurrency to validate asynchronous
+conditions. For example, if it's necessary to determine the result of an
+asynchronous Swift function, it can be awaited with `await`. For a function that
+takes a completion handler but which doesn't use `await`, a Swift
+[continuation](https://developer.apple.com/documentation/swift/withcheckedcontinuation(isolation:function:_:))
+can be used to convert the call into an `async`-compatible one.
+
+Some tests, especially those that test asynchronously-delivered events, cannot
+be readily converted to use Swift concurrency. The testing library offers
+functionality called _confirmations_ which can be used to implement these tests.
+Instances of ``Confirmation`` are created and used within the scope of the
+functions ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-5mqz2``
+and ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-l3il``.
+
+Confirmations function similarly to the expectations API of XCTest, however,
+they don't block or suspend the caller while waiting for a condition to be
+fulfilled. Instead, the requirement is expected to be _confirmed_ (the
+equivalent of _fulfilling_ an expectation) before `confirmation()` returns, and
+records an issue otherwise:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testTruckEvents() async {
+      let soldFood = expectation(description: "…")
+      FoodTruck.shared.eventHandler = { event in
+        if case .soldFood = event {
+          soldFood.fulfill()
+        }
+      }
+      await Customer().buy(.soup)
+      await fulfillment(of: [soldFood])
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func truckEvents() async {
+      await confirmation("…") { soldFood in
+        FoodTruck.shared.eventHandler = { event in
+          if case .soldFood = event {
+            soldFood()
+          }
+        }
+        await Customer().buy(.soup)
+      }
+      ...
+    }
+    ```
+  }
+}
+
+By default, `XCTestExpectation` expects to be fulfilled exactly once, and will
+record an issue in the current test if it is not fulfilled or if it is fulfilled
+more than once. `Confirmation` behaves the same way and expects to be confirmed
+exactly once by default. You can configure the number of times an expectation
+should be fulfilled by setting its [`expectedFulfillmentCount`](https://developer.apple.com/documentation/xctest/xctestexpectation/2806572-expectedfulfillmentcount)
+property, and you can pass a value for the `expectedCount` argument of
+``confirmation(_:expectedCount:isolation:sourceLocation:_:)-5mqz2`` for the same
+purpose.
+
+`XCTestExpectation` has a property, [`assertForOverFulfill`](https://developer.apple.com/documentation/xctest/xctestexpectation/2806575-assertforoverfulfill),
+which when set to `false` allows an expectation to be fulfilled more times than
+expected without causing a test failure. When using a confirmation, you can pass
+a range to ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-l3il`` as
+its expected count to indicate that it must be confirmed _at least_ some number
+of times:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testRegularCustomerOrders() async {
+      let soldFood = expectation(description: "…")
+      soldFood.expectedFulfillmentCount = 10
+      soldFood.assertForOverFulfill = false
+      FoodTruck.shared.eventHandler = { event in
+        if case .soldFood = event {
+          soldFood.fulfill()
+        }
+      }
+      for customer in regularCustomers() {
+        await customer.buy(customer.regularOrder)
+      }
+      await fulfillment(of: [soldFood])
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func regularCustomerOrders() async {
+      await confirmation(
+        "…",
+        expectedCount: 10...
+      ) { soldFood in
+        FoodTruck.shared.eventHandler = { event in
+          if case .soldFood = event {
+            soldFood()
+          }
+        }
+        for customer in regularCustomers() {
+          await customer.buy(customer.regularOrder)
+        }
+      }
+      ...
+    }
+    ```
+  }
+}
+
+Any range expression with a lower bound (that is, whose type conforms to
+both [`RangeExpression<Int>`](https://developer.apple.com/documentation/swift/rangeexpression)
+and [`Sequence<Int>`](https://developer.apple.com/documentation/swift/sequence))
+can be used with ``confirmation(_:expectedCount:isolation:sourceLocation:_:)-l3il``.
+You must specify a lower bound for the number of confirmations because, without
+one, the testing library cannot tell if an issue should be recorded when there
+have been zero confirmations. 
+
+### Control whether a test runs
+
+When using XCTest, the [`XCTSkip`](https://developer.apple.com/documentation/xctest/xctskip)
+error type can be thrown to bypass the remainder of a test function. As well,
+the [`XCTSkipIf()`](https://developer.apple.com/documentation/xctest/3521325-xctskipif)
+and [`XCTSkipUnless()`](https://developer.apple.com/documentation/xctest/3521326-xctskipunless)
+functions can be used to conditionalize the same action. The testing library
+allows developers to skip a test function or an entire test suite before it
+starts running using the ``ConditionTrait`` trait type. Annotate a test suite or
+test function with an instance of this trait type to control whether it runs:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    class FoodTruckTests: XCTestCase {
+      func testArepasAreTasty() throws {
+        try XCTSkipIf(CashRegister.isEmpty)
+        try XCTSkipUnless(FoodTruck.sells(.arepas))
+        ...
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Suite(.disabled(if: CashRegister.isEmpty))
+    struct FoodTruckTests {
+      @Test(.enabled(if: FoodTruck.sells(.arepas)))
+      func arepasAreTasty() {
+        ...
+      }
+      ...
+    }
+    ```
+  }
+}
+
+<!-- TODO: document Test.cancel() and Test.Case.cancel() here, and update
+     relevant links to use proper DocC symbol references.
+
+If a test has already started running and you determine it cannot complete and
+should end early without failing, use `Test/cancel(_:sourceLocation:)` instead
+of [`XCTSkip`](https://developer.apple.com/documentation/xctest/xctskip) to
+cancel the task associated with the current test:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testCashRegister() throws {
+      let cashRegister = CashRegister()
+      let drawer = cashRegister.open()
+      if drawer.isEmpty {
+        throw XCTSkip("Cash register is empty")
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func cashRegister() throws {
+      let cashRegister = CashRegister()
+      let drawer = cashRegister.open()
+      if drawer.isEmpty {
+        try Test.cancel("Cash register is empty")
+      }
+      ...
+    }
+    ```
+  }
+}
+
+If the test is parameterized and you only want to cancel the current test case
+rather than the entire test, use `Test/Case/cancel(_:sourceLocation:)`.
+-->
+
+### Annotate known issues
+
+A test may have a known issue that sometimes or always prevents it from passing.
+When written using XCTest, such tests can call
+[`XCTExpectFailure(_:options:failingBlock:)`](https://developer.apple.com/documentation/xctest/3727246-xctexpectfailure)
+to tell XCTest and its infrastructure that the issue shouldn't cause the test
+to fail. The testing library has an equivalent function with synchronous and
+asynchronous variants:
+
+- ``withKnownIssue(_:isIntermittent:sourceLocation:_:)``
+- ``withKnownIssue(_:isIntermittent:isolation:sourceLocation:_:)``
+
+This function can be used to annotate a section of a test as having a known
+issue:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testGrillWorks() async {
+      XCTExpectFailure("Grill is out of fuel") {
+        try FoodTruck.shared.grill.start()
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func grillWorks() async {
+      withKnownIssue("Grill is out of fuel") {
+        try FoodTruck.shared.grill.start()
+      }
+      ...
+    }
+    ```
+  }
+}
+
+- Note: The XCTest function [`XCTExpectFailure(_:options:)`](https://developer.apple.com/documentation/xctest/3727245-xctexpectfailure),
+  which doesn't take a closure and which affects the remainder of the test,
+  doesn't have a direct equivalent in the testing library. To mark an entire
+  test as having a known issue, wrap its body in a call to `withKnownIssue()`. 
+
+If a test may fail intermittently, the call to
+`XCTExpectFailure(_:options:failingBlock:)` can be marked _non-strict_. When
+using the testing library, specify that the known issue is _intermittent_
+instead:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testGrillWorks() async {
+      XCTExpectFailure(
+        "Grill may need fuel",
+        options: .nonStrict()
+      ) {
+        try FoodTruck.shared.grill.start()
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func grillWorks() async {
+      withKnownIssue(
+        "Grill may need fuel", 
+        isIntermittent: true
+      ) {
+        try FoodTruck.shared.grill.start()
+      }
+      ...
+    }
+    ```
+  }
+}
+
+Additional options can be specified when calling `XCTExpectFailure()`:
+
+- [`isEnabled`](https://developer.apple.com/documentation/xctest/xctexpectedfailure/options/3726085-isenabled)
+  can be set to `false` to skip known-issue matching (for instance, if a
+  particular issue only occurs under certain conditions)
+- [`issueMatcher`](https://developer.apple.com/documentation/xctest/xctexpectedfailure/options/3726086-issuematcher)
+  can be set to a closure to allow marking only certain issues as known and to
+  allow other issues to be recorded as test failures
+
+The testing library includes overloads of `withKnownIssue()` that take
+additional arguments with similar behavior:
+
+- ``withKnownIssue(_:isIntermittent:sourceLocation:_:when:matching:)``
+- ``withKnownIssue(_:isIntermittent:isolation:sourceLocation:_:when:matching:)``
+
+To conditionally enable known-issue matching or to match only certain kinds
+of issues:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    func testGrillWorks() async {
+      let options = XCTExpectedFailure.Options()
+      options.isEnabled = FoodTruck.shared.hasGrill
+      options.issueMatcher = { issue in
+        issue.type == thrownError
+      }
+      XCTExpectFailure(
+        "Grill is out of fuel",
+        options: options
+      ) {
+        try FoodTruck.shared.grill.start()
+      }
+      ...
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Test func grillWorks() async {
+      withKnownIssue("Grill is out of fuel") {
+        try FoodTruck.shared.grill.start()
+      } when: {
+        FoodTruck.shared.hasGrill
+      } matching: { issue in
+        issue.error != nil 
+      }
+      ...
+    }
+    ```
+  }
+}
+
+### Run tests sequentially
+
+By default, the testing library runs all tests in a suite in parallel. The
+default behavior of XCTest is to run each test in a suite sequentially. If your
+tests use shared state such as global variables, you may see unexpected
+behavior including unreliable test outcomes when you run tests in parallel.
+
+Annotate your test suite with ``Trait/serialized`` to run tests within that
+suite serially:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    class RefrigeratorTests : XCTestCase {
+      func testLightComesOn() throws {
+        try FoodTruck.shared.refrigerator.openDoor()
+        XCTAssertEqual(FoodTruck.shared.refrigerator.lightState, .on)
+      }
+      
+      func testLightGoesOut() throws {
+        try FoodTruck.shared.refrigerator.openDoor()
+        try FoodTruck.shared.refrigerator.closeDoor()
+        XCTAssertEqual(FoodTruck.shared.refrigerator.lightState, .off)
+      }
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    @Suite(.serialized)
+    class RefrigeratorTests {
+      @Test func lightComesOn() throws {
+        try FoodTruck.shared.refrigerator.openDoor()
+        #expect(FoodTruck.shared.refrigerator.lightState == .on)
+      }
+      
+      @Test func lightGoesOut() throws {
+        try FoodTruck.shared.refrigerator.openDoor()
+        try FoodTruck.shared.refrigerator.closeDoor()
+        #expect(FoodTruck.shared.refrigerator.lightState == .off)
+      }
+    }
+    ```
+  }
+}
+
+For more information, see <doc:Parallelization>.
+
+### Attach values
+
+In XCTest, you can create an instance of [`XCTAttachment`](https://developer.apple.com/documentation/xctest/xctattachment)
+representing arbitrary data, files, property lists, encodable objects, images,
+and other types of information that would be useful to have available if a test
+fails. Swift Testing has an ``Attachment`` type that serves much the same
+purpose.
+
+To attach a value from a test to the output of a test run, that value must
+conform to the ``Attachable`` protocol. The testing library provides default
+conformances for various standard library and Foundation types.
+
+If you want to attach a value of another type, and that type already conforms to
+[`Encodable`](https://developer.apple.com/documentation/swift/encodable) or to
+[`NSSecureCoding`](https://developer.apple.com/documentation/foundation/nssecurecoding),
+the testing library automatically provides a default implementation when you
+import Foundation:
+
+@Row {
+  @Column {
+    ```swift
+    // Before
+    import Foundation
+
+    class Tortilla: NSSecureCoding { /* ... */ }
+
+    func testTortillaIntegrity() async {
+      let tortilla = Tortilla(diameter: .large)
+      ...
+      let attachment = XCTAttachment(
+        archivableObject: tortilla
+      )
+      self.add(attachment)
+    }
+    ```
+  }
+  @Column {
+    ```swift
+    // After
+    import Foundation
+
+    struct Tortilla: Codable, Attachable { /* ... */ }
+
+    @Test func tortillaIntegrity() async {
+      let tortilla = Tortilla(diameter: .large)
+      ...
+      Attachment.record(tortilla)
+    }
+    ```
+  }
+}
+
+If you have a type that does not (or cannot) conform to `Encodable` or
+`NSSecureCoding`, or if you want fine-grained control over how it is serialized
+when attaching it to a test, you can provide your own implementation of
+``Attachable/withUnsafeBytes(for:_:)``.
+
+<!-- NOTE: not discussing attaching to activities here since there is not yet an
+equivalent interface in Swift Testing. -->
+
+## See Also
+
+- <doc:DefiningTests>
+- <doc:OrganizingTests>
+- <doc:Expectations>
+- <doc:known-issues>
+--- END FILE ---
+
+--- FILE: Meet_swift_testing.md ---
+Hi! I’m Stuart Montgomery, and I’m thrilled to introduce Swift Testing to you. Quality and reliability are crucial for delivering a great user experience. Automated testing is a proven way to achieve and maintain software quality over time. That’s why this year we’re introducing a brand new set of tools which make testing Swift code easier and more powerful than ever. Meet Swift Testing, a new open source package for testing your code using Swift. It includes powerful capabilities for describing and organizing your tests; it gives actionable details when a failure occurs; and it scales to large codebases elegantly. Swift Testing was designed for Swift, embracing modern features like concurrency and macros. It supports all major platforms, including Linux and Windows. And it has an open development process, providing opportunities for you and the rest of the community to shape its evolution. In this session we’ll start by talking about the building blocks of Swift Testing, the core concepts you need to know. Then, we’ll discuss several common workflows, including ways to customize tests or repeat them with different arguments. We’ll cover how Swift Testing and XCTest relate to each other. And we’ll finish by talking about this new project’s role in the open source community. Let’s get started by taking a tour of the building blocks of Swift Testing. If you’ve never written tests for your app before, the first step is to add a test bundle target to your project. Choose File > New > Target.
+
+Then search for Unit Testing Bundle in the Test section.
+
+Swift Testing is now the default choice of testing system for this template in Xcode 16. Just choose a name for your new target and click Finish. This app already has a test target though, so let’s write our first test there. We'll start by importing the Testing module.
+
+Then, we'll write a global function.
+
+```swift
+import Testing
+
+@Test func videoMetadata() {
+    // ...
+}
+```
+
+And we'll add the @Test attribute to it.
+
+The @Test attribute is the first building block. It indicates that a function is a test. Once we add that, Xcode recognizes it and shows a Run button alongside it. Test functions are just ordinary Swift functions that have the @Test attribute. They can be global functions or methods in a type. They can be marked async or throws, or be isolated to a global actor if needed. Next, let's make our test actually validate something by filling out the body of the function. We'll make this test check that the metadata for a video file are what we expect. We'll start by initializing the video we want to check and its expected metadata. Now, we're getting an error because these types are declared this app's module so we need to import that first.
+
+```swift
+import Testing
+@testable import DestinationVideo
+
+@Test func videoMetadata() {
+    let video = Video(fileName: "By the Lake.mov")
+    let expectedMetadata = Metadata(duration: .seconds(90))
+    #expect(video.metadata == expectedMetadata)
+}
+```
+
+Note that we use the lowercase @testable attribute on this import.
+
+This is a general language feature, not part of Swift Testing, but it allows us to reference types like these whose access level is internal. Next, we'll use the #expect macro to check that the video metadata are correct.
+
+The #expect macro performs an expectation, and this is the second building block of Swift Testing. You can use an expectation like the #expect macro to validate that an expected condition is true. It accepts ordinary expressions and language operators. And it captures the source code and the values of subexpressions if it fails. Let's run our test for the first time and see how it goes.
+
+It looks like it failed, indicated by the red X icon. We can click the test failure message and choose Show to see more about what went wrong on this line.
+
+This results view shows details about the expression that was passed to the #expect macro, including its sub-values. If we expand the metadata, we can compare their properties.
+
+It looks like both the duration and resolution fields are non-equal. Looking at this gives me an idea: I think the Video type might not be loading the metadata after it's initialized. We can fix this by going to the Video initializer in a split editor, and ensure that property is assigned.
+
+```swift
+// In `Video.init(...)`
+self.metadata = Metadata(forContentsOfUrl: url)
+```
+
+Now, let's re-run the test.
+
+And it succeeded! Great. The #expect macro is really flexible. You can pass any expression, including operators or method calls, and it will show you detailed results if it fails. Here are a few examples. You can use the == operator, and the left and right hand sides will be captured and shown if there’s a failure. You can access properties like .isEmpty. And you can even call methods like .contains on an array. Notice how the error shows you the contents of the numbers array automatically. You don’t need to learn specialized APIs to do any of this — just use the #expect macro. Sometimes, you may want to end a test early if an expectation fails. For this, you can use the #require macro. Required expectations are similar to regular expectations. But they have the try keyword and throw an error if the expression is false, causing the test to fail and not proceed any further. Another way you can use the #require macro is to try unwrapping an optional value safely, and stop the test if it’s nil. This example shows using the #require macro to access the .first property of a collection, and afterward it checks a property on the element. The “first” property is optional, but the second line of our test relies on that value, so this test stops early because it doesn’t make sense to continue if the unwrapped value is nil. Required expectations are a great tool for this pattern. Before we commit this test to the project, let's make its purpose more clear. We can do that by passing a custom display name in the @Test attribute. That name will then be shown in the Test Navigator and other places in Xcode.
+
+```swift
+@Test("Check video metadata") func videoMetadata() {
+    let video = Video(fileName: "By the Lake.mov")
+    let expectedMetadata = Metadata(duration: .seconds(90))
+    #expect(video.metadata == expectedMetadata)
+}
+```
+
+A display name is an example of a trait, which is the third building block. Traits can do several things: they can add descriptive information about a test; they can customize when or whether a test runs; or they can modify how a test behaves.
+
+Here are some examples. In addition to adding information with the display name, you can also reference related bugs or add custom tags. When you only want to run a test in certain conditions, you can use traits to control that. And some traits influence how a test actually behaves, such as imposing a time limit or executing one at a time. We've finished writing our first test, and now let's add a second one to validate another aspect of the Video type. This time, let's use the built-in test snippet in Xcode 16 to quickly add an empty test function.
+
+Let's name this test rating.
+
+```swift
+@Test func rating() async throws {
+    let video = Video(fileName: "By the Lake.mov")
+    #expect(video.contentRating == "G")
+}
+```
+
+And in the body, we'll create a video just like before, and #expect that its contentRating is the default value. It would be nice to group these two tests together so we can find them more easily in the project. We can do that by wrapping them into a struct, which we'll call VideoTests.
+
+```swift
+struct VideoTests {
+    @Test("Check video metadata") func videoMetadata() {
+        let video = Video(fileName: "By the Lake.mov")
+        let expectedMetadata = Metadata(duration: .seconds(90))
+        #expect(video.metadata == expectedMetadata)
+    }
+
+    @Test func rating() async throws {
+        let video = Video(fileName: "By the Lake.mov")
+        #expect(video.contentRating == "G")
+    }
+}
+```
+
+As soon as we do that, the hierarchy is reflected in the Test Navigator, and we can even click to run them as a group. A type like this which contains tests is called a test suite, and that's the fourth and final building block. Suites are used to group related test functions or other suites. They can be annotated explicitly using the @Suite attribute, although any type which contains @Test functions or @Suites is considered a @Suite itself, implicitly. Suites can have stored instance properties. They can use init or deinit to perform logic before or after each test. And a separate @Suite instance is created for every instance @Test function it contains to avoid unintentional state sharing. These two tests start the same way: their first lines of code for creating a video are identical. Now that these tests are in a suite, we can reduce repetition by factoring out that line into a stored property like this.
+
+```swift
+struct VideoTests {
+    let video = Video(fileName: "By the Lake.mov")
+
+    @Test("Check video metadata") func videoMetadata() {
+        let expectedMetadata = Metadata(duration: .seconds(90))
+        #expect(video.metadata == expectedMetadata)
+    }
+
+    @Test func rating() async throws {
+        #expect(video.contentRating == "G")
+    }
+}
+```
+
+And now we can delete that line from the second test.
+
+Since each test function is called on a new instance of its containing suite type, each one will get its own video instance and they can never share state accidentally. So let’s review the building blocks. We talked about test functions, expectations, traits, and suites. They were designed to feel right at home in Swift, in several ways: Test functions integrate seamlessly with Swift concurrency by supporting async/await and actor isolation. Expectations can use async/await too, and they accept all the built-in language operators. Both expectations and traits leverage Swift macros, allowing you to see detailed failure results and specify per-test information directly in code. And suites embrace value semantics, encouraging the use of structs to isolate state.
+
+Let's now apply those building blocks to some common problems in testing and discuss workflows for addressing them. We'll discuss controlling when tests run; associating tests which have things in common; and repeating tests more than once with different arguments each time. First, tests with conditions. Some tests should only be run in certain circumstances — such as on specific devices or environments. For those, you can apply a condition trait such as .enabled(if: ...). You pass it a condition to be evaluated before the test runs, and if the condition is false, the test will be marked as skipped.
+
+```swift
+@Test(.enabled(if: AppFeatures.isCommentingEnabled))
+func videoCommenting() {
+    // ...
+}
+```
+
+Other times, you might want a test to never run. For this, you can use the .disabled(...) trait. Disabling a test is preferable over other techniques, like commenting out the test function, since it verifies the code inside the test still compiled. The .disabled(...) trait accepts a comment, which you can use to explain the reason why the test is disabled. And comments always appear in the structured results, so they can be shown in your CI system for visibility.
+
+```swift
+@Test(.disabled("Due to a known crash"))
+func example() {
+    // ...
+}
+```
+
+Oftentimes, the reason a test is disabled is because of an issue which is tracked in a bug-tracking system. In addition to a comment, you can include a .bug(...) trait along with any other trait to reference related issues with a URL. Then, you can see that bug trait in the Test Report in Xcode 16 and click to open its URL.
+
+```swift
+@Test(.disabled("Due to a known crash"),
+     .bug("example.org/bugs/1234", "Program crashes at <symbol>"))
+func example() {
+    // ...
+}
+```
+
+When the entire body of a test can only run on certain OS versions, you can place the @available(...) attribute on that test to control which versions it will run on. Use the @available(...) attribute rather than checking at runtime using #available. The @available(...) attribute allows the testing library to know that a test has an OS version condition, so this can be reflected in the results more accurately.
+
+```swift
+@Test
+@available(macOS 15, *)
+func usesNewAPIs() {
+    // ...
+}
+```
+
+**✗ Avoid checking availability at runtime using #available**
+```swift
+@Test func hasRuntimeVersionCheck() {
+    guard #available(macOS 15, *) else { return }
+    // ...
+}
+```
+
+**✓ Prefer @available attribute on test function**
+```swift
+@Test
+@available(macOS 15, *)
+func usesNewAPIs() {
+    // ...
+}
+```
+
+Next, let’s talk about how you can associate tests which have characteristics in common, even if they’re in different suites or files. Swift Testing supports assigning custom tags to tests. I've already begun using tags in this project. The Test Navigator shows all the tags at the bottom. To view the tests which each of these tags have been applied to, we can switch to the new Group By: Tag mode.
+
+Let's apply a tag to one of the tests we wrote earlier. To do this, we'll add a tags trait to the test via the @Test attribute. This test is validating some data formatting logic. There's already another test in this project which relates to formatting, so let's add the formatting tag to this test too.
+
+```swift
+@Test(.tags(.formatting)) func rating() async throws {
+    #expect(video.contentRating == "G")
+}
+```
+
+Once we do that, it shows in the Test Navigator under that tag.
+
+I wrote another test which also validates data formatting, which I'll add here.
+
+```swift
+@Test(.tags(.formatting)) func formattedDuration() async throws {
+    let videoLibrary = try await VideoLibrary()
+    let video = try #require(await videoLibrary.video(named: "By the Lake"))
+    #expect(video.formattedDuration == "0m 19s")
+}
+```
+
+Since these two tests are about the formatting of Video information, let's group them into a sub-suite.
+
+```swift
+struct MetadataPresentation {
+    let video = Video(fileName: "By the Lake.mov")
+
+    @Test(.tags(.formatting)) func rating() async throws {
+        #expect(video.contentRating == "G")
+    }
+
+    @Test(.tags(.formatting)) func formattedDuration() async throws {
+        let videoLibrary = try await VideoLibrary()
+        let video = try #require(await videoLibrary.video(named: "By the Lake"))
+        #expect(video.formattedDuration == "0m 19s")
+    }
+}
+```
+
+Now, we can move the formatting tag up to the @Suite, so it will be inherited by all the tests it contains. Finally, we can delete the tags from each individual @Test function, since they're now inherited.
+
+```swift
+@Suite(.tags(.formatting))
+struct MetadataPresentation {
+    let video = Video(fileName: "By the Lake.mov")
+
+    @Test func rating() async throws {
+        #expect(video.contentRating == "G")
+    }
+
+    @Test func formattedDuration() async throws {
+        let videoLibrary = try await VideoLibrary()
+        let video = try #require(await videoLibrary.video(named: "By the Lake"))
+        #expect(video.formattedDuration == "0m 19s")
+    }
+}
+```
+
+You can associate tags with tests which have things in common. As an example, you might apply a common tag to all the tests which validate a particular feature or subsystem. This lets you run all the tests with a particular tag. It also lets you filter them in the Test Report, and even see insights there such as when multiple tests with the same tag begin failing. Tags themselves can be applied to tests in different files, suites, or targets. They can even be shared among multiple projects.
+
+When using Swift Testing, prefer tags over specific names of tests when including or excluding them from a test plan. For best results, always use the most appropriate type of trait for each circumstance. Not every scenario should use tags. For example, if you’re trying to express a runtime condition, use .enabled(if ...) as we discussed earlier.
+
+To learn more about using test tags in Xcode, see "Go further with Swift Testing".
+
+The last workflow I'd like to show is my favorite. Repeating tests with different arguments each time. Here's an example of why that can be useful. In this project there are several tests which check the number of continents that various videos mention. Each of them follows a similar pattern: it creates a fresh videoLibrary, looks up a video by name, and then uses the #expect macro to check how many continents it mentions.
+
+```swift
+struct VideoContinentsTests {
+    @Test func mentionsFor_A_Beach() async throws {
+        let videoLibrary = try await VideoLibrary()
+        let video = try #require(await videoLibrary.video(named: "A Beach"))
+        #expect(!video.mentionedContinents.isEmpty)
+        #expect(video.mentionedContinents.count <= 3)
+    }
+
+    @Test func mentionsFor_By_the_Lake() async throws {
+        let videoLibrary = try await VideoLibrary()
+        let video = try #require(await videoLibrary.video(named: "By the Lake"))
+        #expect(!video.mentionedContinents.isEmpty)
+        #expect(video.mentionedContinents.count <= 3)
+    }
+
+    @Test func mentionsFor_Camping_in_the_Woods() async throws {
+        let videoLibrary = try await VideoLibrary()
+        let video = try #require(await videoLibrary.video(named: "Camping in the Woods"))
+        #expect(!video.mentionedContinents.isEmpty)
+        #expect(video.mentionedContinents.count <= 3)
+    }
+
+    // ...and more, similar test functions
+}
+```
+
+These tests work, but they're very repetitive and the more videos we add a test for, the harder it will be to maintain them due to all the duplicated code. Also, when using this pattern we're forced to give each test a unique function name, but these names are hard to read and they might get out-of-sync with the name of the video they're testing. Instead, we can write all of these as a single test using a feature called parameterized testing. Let's transform this first test into a parameterized one. The first step is to add a parameter to its signature.
+
+As soon as we do this, an error appears telling us that we must specify the arguments to pass to this test, so let’s fix that.
+
+For now, let's include the names of just three videos.
+
+```swift
+struct VideoContinentsTests {
+    @Test("Number of mentioned continents", arguments: [
+        "A Beach",
+        "By the Lake",
+        "Camping in the Woods",
+        "The Rolling Hills",
+        "Ocean Breeze",
+        "Patagonia Lake",
+        "Scotland Coast",
+        "China Paddy Field",
+    ])
+    func mentionedContinentCounts(videoName: String) async throws {
+        let videoLibrary = try await VideoLibrary()
+        let video = try #require(await videoLibrary.video(named: videoName))
+        #expect(!video.mentionedContinents.isEmpty)
+        #expect(video.mentionedContinents.count <= 3)
+    }
+}
+```
+
+I like to split arguments over multiple lines so they're easier to read, but you can format them however you like. The last step is to replace the name of the video being looked up with the passed-in argument.
+
+Since this test now covers multiple videos, let’s generalize its name.
+
+The full name of this test now includes its parameter label.
+
+But we can still give it a display name or other traits if we want, by passing them before the arguments.
+
+Now let's run the test and see how it goes.
+
+Great! It succeeded, and the Test Navigator shows each individual video below it as if it were a separate test. This structure makes it really easy to add more arguments and expand test coverage. Let’s add all the remaining videos to this list — and even a couple new ones.
+
+At this point, we can delete the old @Test functions since they're no longer necessary.
+
+Let's run the test one more time and make sure it's still passing.
+
+Hm, it looks like one of the new videos we added near the end is causing a failure now. By clicking the argument, we can see details about it, and the expectation which failed. To investigate this problem, it would help to re-run it with the debugger, but I'd prefer to only re-run the argument that failed to save some time. In Xcode 16 we can now run an individual argument by clicking its run button in the Test Navigator. But before we do this, let’s add a breakpoint to the beginning of the test.
+
+And now let’s re-run it.
+
+The videoName shown in the debugger is "Scotland Coast”, so we know we’re running this test with exactly the argument we're interested in. From here, we could continue debugging further and identify the reason for the failure. Conceptually, a parameterized test is similar to a single test that is repeated multiple times using a for…in loop. Here's an example: it has an array of videoNames that it loops over to perform the test. However, using a for...in loop like this has some downsides.
+
+```swift
+// Using a for...in loop to repeat a test (not recommended)
+@Test func mentionedContinentCounts() async throws {
+    let videoNames = [
+        "A Beach",
+        "By the Lake",
+        "Camping in the Woods",
+    ]
+    
+    let videoLibrary = try await VideoLibrary()
+    for videoName in videoNames {
+        let video = try #require(await videoLibrary.video(named: videoName))
+        #expect(!video.mentionedContinents.isEmpty)
+        #expect(video.mentionedContinents.count <= 3)
+    }
+}
+```
+
+Parameterized testing allows you see the details of each individual argument clearly in the results. The arguments can be re-run independently for fine-grained debugging. And they can be executed more efficiently by running each argument in parallel, so you can get results more quickly.
+
+Parameterized tests can be used in even more advanced ways than we saw here, such as by testing all combinations of two sets of inputs. Check out "Go further with Swift Testing" to learn more.
+
+Whenever you see a test using this pattern, it's best to transform it into a parameterized test function. Just add a parameter to the function, get rid of the for...in loop, move the arguments up to the @Test attribute, and you're done!
+
+```swift
+@Test(arguments: [
+    "A Beach",
+    "By the Lake",
+    "Camping in the Woods",
+])
+func mentionedContinentCounts(videoName: String) async throws {
+    let videoLibrary = try await VideoLibrary()
+    let video = try #require(await videoLibrary.video(named: videoName))
+    #expect(!video.mentionedContinents.isEmpty)
+    #expect(video.mentionedContinents.count <= 3)
+}
+```
+
+Next, let's talk about how Swift Testing and XCTest relate to one another. If you've already written some XCTests, you might be wondering how this new testing system compares, or how to migrate your tests. Swift Testing has some similarities to XCTest, but it also some important differences to be aware of. Let's compare three of the building blocks from earlier, test functions, expectations, and suites.
+
+Tests in XCTest are any method whose name begins with “test”. But Swift Testing uses the @Test attribute to denote them explicitly, so there’s no ambiguity.
+
+Swift Testing supports more kinds of functions, so you can still use instance methods in a type, but also static or global functions if you prefer. Unlike XCTest, Swift Testing supports traits for specifying information either per-test or per-suite. And Swift Testing takes a different approach to parallelization: it runs in-process using Swift Concurrency, and supports physical devices like iPhone and Apple Watch.
+
+Expectations are very different between these two systems. XCTest refers to this concept as assertions, and it uses many functions beginning with XCTAssert to denote them. Swift Testing takes a different approach: it has just two basic macros — #expect and #require. Instead of needing many specialized functions, you can pass in ordinary expressions and language operators to #expect or #require. For example, you can use double-equals to check equality, or the greater-than operator to compare two values.
+
+And you can easily use the opposite operator to negate any expectation.
+
+Halting a test after a test failure occurs is also handled differently. In XCTest, you assign the continueAfterFailure property to false, and then any subsequent assertion which fails will cause the test to halt. In Swift Testing, any expectation can be made into a required one by using #require instead of #expect, and it will throw an error upon failure. This lets you choose which expectations should halt the test, and even alternate as the test progresses.
+
+When it comes to suite types, XCTest only supports classes and they must inherit from XCTestCase. In Swift Testing, you can use a struct, actor, or class, and a struct is encouraged since it uses value semantics and avoids bugs due to unintentional state sharing.
+
+Suites may be denoted explicitly by the @Suite attribute, although it’s implicit for any type which contains test functions or nested suites. It is only required when specifying a display name or other trait.
+
+To perform logic before each test runs, XCTest offers several setUp methods, but Swift Testing uses the type’s initializer for this purpose, and it can be async or throws.
+
+If you need to perform logic after each test, you can include a de-initializer. Deinitializers can only be used when the suite type is an actor or class, and that’s the most common reason to use a reference type instead of a struct for a suite.
+
+Finally, in Swift Testing, you can group tests into subgroups via nested types.
+
+XCTest and Swift Testing tests can co-exist in a single target, so if you choose to migrate, you can do so incrementally and you don’t need to create a new target first. When migrating multiple XCTest methods which have a similar structure, you can consolidate them into one parameterized test as we discussed earlier. For any XCTest classes with only one test method, consider migrating them to a global @Test function. And when naming tests, the word “test” is no longer necessary at the beginning.
+
+Please continue using XCTest for any tests which use UI automation APIs like XCUIApplication or use performance testing APIs like XCTMetric as these are not supported in Swift Testing. You must also use XCTest for any tests which can only be written in Objective-C. You can use Swift Testing to write tests in Swift that validate code written in another language, however. Finally, avoid calling XCTest assertion functions from Swift Testing tests, or the opposite — the #expect macro from XCTests.
+
+Check out “Migrating a test from XCTest” in our documentation. It has lots of details about how to translate assertions, handle asynchronous waiting conditions, and more.
+
+We’ve gone over the features of Swift Testing and shown several ways to use it. This is just the beginning for this new package, and I’m so excited that it will continue to evolve in the community. Swift Testing is open source and hosted on GitHub. Soon it will transition to the recently announced swiftlang organization. It works on all Apple operating systems which support Swift Concurrency, as well as on Linux and Windows. And importantly, it has a common codebase across all these platforms! This is a significant improvement over XCTest which had multiple implementations. It means your tests behave much more consistently when moving between platforms, and there will be better functional parity between them.
+
+Swift Testing is integrated into major tools and IDEs in the Swift ecosystem, including Swift Package Manager on the command-line, as well as Xcode 16 and VS Code with recent versions of the Swift extension. Let's take a look at Swift Testing's command-line experience. Here's a simple package I created using the New Package template included in Xcode 16.
+
+```swift
+import Testing
+@testable import MyLibrary
+
+@Test func example() throws {
+    #expect("abc" == "abc")
+}
+
+@Test func failingExample() throws {
+    #expect(123 == 456)
+}
+```
+
+We can run the tests for this package from the Terminal by typing swift test.
+
+```bash
+> swift test
+```
+
+This causes both XCTest and Swift Testing tests to run. The console shows pass and fail results using colorful output, and includes detailed failure messages similar to the ones shown in Xcode. Swift Testing has an open feature proposal process and we discuss its evolution on the Swift Forums. We invite you to get involved by writing or participating in feature proposals, improving the documentation, or even filing bug reports. All contributions are welcome! So that's Swift Testing. Use its powerful features like expectations and parameterized testing to improve the quality of your code; customize your tests using traits; and join us on GitHub and the Forums to shape this package's future. Don't forget to check out "Go further with Swift Testing" to learn even more ways you can improve your tests. Thank you so much for watching!
+--- END FILE ---
+
+--- FILE: Equality-and-Inequality-Assertions.md ---
+# Equality and Inequality Assertions
+
+**Check whether two values are equal or unequal.**
+
+
+## Topics
+
+### Tests for Equality and Inequality
+
+- [XCTAssertEqual(_:_:_:file:line:)](https://developer.apple.com/documentation/xctest/xctassertequal(_:_:_:file:line:)) — Asserts that two values are equal.
+- [XCTAssertNotEqual(_:_:_:file:line:)](https://developer.apple.com/documentation/xctest/xctassertnotequal(_:_:_:file:line:)) — Asserts that two values are not equal.
+### Tests for Identical Objects
+
+- [XCTAssertIdentical(_:_:_:file:line:)](https://developer.apple.com/documentation/xctest/xctassertidentical(_:_:_:file:line:)) — Asserts that two values are identical.
+- [XCTAssertNotIdentical(_:_:_:file:line:)](https://developer.apple.com/documentation/xctest/xctassertnotidentical(_:_:_:file:line:)) — Asserts that two values aren’t identical.
+### Tests for Equality Within a Specified Accuracy
+
+- [XCTAssertEqual(_:_:accuracy:_:file:line:)](https://developer.apple.com/documentation/xctest/xctassertequal(_:_:accuracy:_:file:line:)-6frfw) — Asserts that two floating-point values are equal within a specified accuracy.
+- [XCTAssertEqual(_:_:accuracy:_:file:line:)](https://developer.apple.com/documentation/xctest/xctassertequal(_:_:accuracy:_:file:line:)-4epu5) — Asserts that two numeric values are equal within a specified accuracy.
+- [XCTAssertNotEqual(_:_:accuracy:_:file:line:)](https://developer.apple.com/documentation/xctest/xctassertnotequal(_:_:accuracy:_:file:line:)-7jcd6) — Asserts that two floating-point values aren’t equal within a specified accuracy.
+- [XCTAssertNotEqual(_:_:accuracy:_:file:line:)](https://developer.apple.com/documentation/xctest/xctassertnotequal(_:_:accuracy:_:file:line:)-326vc) — Asserts that two numeric values aren’t equal within a specified accuracy.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.xctest/documentation/XCTest/equality-and-inequality-assertions](https://developer.apple.com/documentation/com.apple.xctest/documentation/XCTest/equality-and-inequality-assertions)*
+--- END FILE ---
+
+--- FILE: Comparable-Value-Assertions.md ---
+# Comparable Value Assertions
+
+**Compare two values to determine whether one is larger or smaller than the other.**
+
+
+## Topics
+
+### Tests for Comparable Values
+
+- [XCTAssertGreaterThan(_:_:_:file:line:)](https://developer.apple.com/documentation/xctest/xctassertgreaterthan(_:_:_:file:line:)) — Asserts that the value of the first expression is greater than the value of the second expression.
+- [XCTAssertGreaterThanOrEqual(_:_:_:file:line:)](https://developer.apple.com/documentation/xctest/xctassertgreaterthanorequal(_:_:_:file:line:)) — Asserts that the value of the first expression is greater than or equal to the value of the second expression.
+- [XCTAssertLessThanOrEqual(_:_:_:file:line:)](https://developer.apple.com/documentation/xctest/xctassertlessthanorequal(_:_:_:file:line:)) — Asserts that the value of the first expression is less than or equal to the value of the second expression.
+- [XCTAssertLessThan(_:_:_:file:line:)](https://developer.apple.com/documentation/xctest/xctassertlessthan(_:_:_:file:line:)) — Asserts that the value of the first expression is less than the value of the second expression.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.xctest/documentation/XCTest/comparable-value-assertions](https://developer.apple.com/documentation/com.apple.xctest/documentation/XCTest/comparable-value-assertions)*
+--- END FILE ---
+
+--- FILE: Defining-Test-Cases-and-Test-Methods.md ---
+# Defining Test Cases and Test Methods
+
+**Add test cases and test methods to a test target to confirm that your code performs as expected.**
+
+
+## Overview
+
+Add tests to your Xcode project by writing one or more test methods, each of which verifies a specific aspect of your code. Group related test methods into test cases, each of which is a subclass of [doc://com.apple.xctest/documentation/XCTest/XCTestCase](https://developer.apple.com/documentation/XCTest/XCTestCase).
+
+To add tests to your project:
+
+- Create a new subclass of [doc://com.apple.xctest/documentation/XCTest/XCTestCase](https://developer.apple.com/documentation/XCTest/XCTestCase) within a test target.
+
+- Add one or more test methods to the test case.
+
+- Add one or more test assertions to each test method.
+
+A test method is an instance method on an [doc://com.apple.xctest/documentation/XCTest/XCTestCase](https://developer.apple.com/documentation/XCTest/XCTestCase) subclass, with no parameters, no return value, and a name that begins with the lowercase word *test*. Test methods are automatically detected by the XCTest framework in Xcode.
+
+Listing 1. Example test case and test method
+
+This example defines an [doc://com.apple.xctest/documentation/XCTest/XCTestCase](https://developer.apple.com/documentation/XCTest/XCTestCase) subclass, `TableValidationTests`, with a single test method, `testEmptyTableRowAndColumnCount()`. This test method creates a new instance of a class called `Table`, and checks that its `rowCount` and `columnCount` properties are both equal to 0 after initialization.
+
+
+> **TIP**:  Test case and test method names are used in Xcode’s test navigator and integration reports to group and identify tests.
+
+To help clarify the organization of your tests, give each test case a name that summarizes the tests within it, such as `TableValidationTests`, `NetworkReachabilityTests`, or `JSONParsingTests`.
+
+To help identify failing tests, give each test method a name that makes it clear what is tested by that method, such as `testEmptyTableRowAndColumnCount()`, `testUnreachableURLAccessThrowsAnError()`, or `testUserJSONFeedParsing()`.
+
+
+
+### Asserting Test Conditions
+
+You can check (or *assert*) conditions inside test methods to make sure that your code is behaving as expected. Use the `XCTAssert` family of functions to check for Boolean conditions, `nil` or non-`nil` values, expected values, errors, or thrown exceptions.
+
+For example, Listing 1 above uses the [doc://com.apple.xctest/documentation/XCTest/XCTAssertEqual](https://developer.apple.com/documentation/XCTest/XCTAssertEqual) macro to assert that two integers have the same value.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.xctest/documentation/XCTest/defining-test-cases-and-test-methods](https://developer.apple.com/documentation/com.apple.xctest/documentation/XCTest/defining-test-cases-and-test-methods)*
+--- END FILE ---
+
+--- FILE: expectations-and-confirmations-apple-developer-documentation.md ---
+---
+title: Expectations and confirmations | Apple Developer Documentation
+source_url: https://developer.apple.com/documentation/testing/expectations
+scraped_date: '2025-10-25T17:53:01.925286Z'
+extraction_method: Chrome DevTools MCP Server
+content_length: 5787
+filename: expectations-and-confirmations-apple-developer-documentation.md
+---
+
+# Expectations and confirmations | Apple Developer Documentation
+
+Swift Testing
+Expectations and confirmations
+API Collection
+Expectations and confirmations
+Check for expected values, outcomes, and asynchronous events in tests.
+Overview
+
+Use expect(_:_:sourceLocation:) and require(_:_:sourceLocation:) macros to validate expected outcomes. To validate that an error is thrown, or not thrown, the testing library provides several overloads of the macros that you can use. For more information, see Testing for errors in Swift code.
+
+Use a Confirmation to confirm the occurrence of an asynchronous event that you can't check directly using an expectation. For more information, see Testing asynchronous code.
+
+Validate your code's result
+
+To validate that your code produces an expected value, use expect(_:_:sourceLocation:). This macro captures the expression you pass, and provides detailed information when the code doesn't satisfy the expectation.
+
+@Test func calculatingOrderTotal() {
+  let calculator = OrderCalculator()
+  #expect(calculator.total(of: [3, 3]) == 7)
+  // Prints "Expectation failed: (calculator.total(of: [3, 3]) → 6) == 7"
+}
+
+
+Your test keeps running after expect(_:_:sourceLocation:) fails. To stop the test when the code doesn't satisfy a requirement, use require(_:_:sourceLocation:) instead:
+
+@Test func returningCustomerRemembersUsualOrder() throws {
+  let customer = try #require(Customer(id: 123))
+  // The test runner doesn't reach this line if the customer is nil.
+  #expect(customer.usualOrder.countOfItems == 2)
+}
+
+
+require(_:_:sourceLocation:) throws an instance of ExpectationFailedError when your code fails to satisfy the requirement.
+
+Topics
+Checking expectations
+macro expect(Bool, @autoclosure () -> Comment?, sourceLocation: SourceLocation)
+Check that an expectation has passed after a condition has been evaluated.
+macro require(Bool, @autoclosure () -> Comment?, sourceLocation: SourceLocation)
+Check that an expectation has passed after a condition has been evaluated and throw an error if it failed.
+macro require<T>(T?, @autoclosure () -> Comment?, sourceLocation: SourceLocation) -> T
+Unwrap an optional value or, if it is nil, fail and throw an error.
+Checking that errors are thrown
+Testing for errors in Swift code
+Ensure that your code handles errors in the way you expect.
+macro expect<E, R>(throws: E.Type, @autoclosure () -> Comment?, sourceLocation: SourceLocation, performing: () async throws -> R) -> E?
+Check that an expression always throws an error of a given type.
+macro expect<E, R>(throws: E, @autoclosure () -> Comment?, sourceLocation: SourceLocation, performing: () async throws -> R) -> E?
+Check that an expression always throws a specific error.
+macro expect<R>(@autoclosure () -> Comment?, sourceLocation: SourceLocation, performing: () async throws -> R, throws: (any Error) async throws -> Bool) -> (any Error)?
+Check that an expression always throws an error matching some condition.
+Deprecated
+macro require<E, R>(throws: E.Type, @autoclosure () -> Comment?, sourceLocation: SourceLocation, performing: () async throws -> R) -> E
+Check that an expression always throws an error of a given type, and throw an error if it does not.
+macro require<E, R>(throws: E, @autoclosure () -> Comment?, sourceLocation: SourceLocation, performing: () async throws -> R) -> E
+macro require<R>(@autoclosure () -> Comment?, sourceLocation: SourceLocation, performing: () async throws -> R, throws: (any Error) async throws -> Bool) -> any Error
+Check that an expression always throws an error matching some condition, and throw an error if it did not.
+Deprecated
+Checking how processes exit
+Exit testing
+Use exit tests to test functionality that might cause a test process to exit.
+macro expect(processExitsWith: ExitTest.Condition, observing: [any PartialKeyPath<ExitTest.Result> & Sendable], @autoclosure () -> Comment?, sourceLocation: SourceLocation, performing: () async throws -> Void) -> ExitTest.Result?
+Check that an expression causes the process to terminate in a given fashion.
+macro require(processExitsWith: ExitTest.Condition, observing: [any PartialKeyPath<ExitTest.Result> & Sendable], @autoclosure () -> Comment?, sourceLocation: SourceLocation, performing: () async throws -> Void) -> ExitTest.Result
+Check that an expression causes the process to terminate in a given fashion and throw an error if it did not.
+enum ExitStatus
+An enumeration describing possible status a process will report on exit.
+struct ExitTest
+A type describing an exit test.
+Confirming that asynchronous events occur
+Testing asynchronous code
+Validate whether your code causes expected events to happen.
+func confirmation<R>(Comment?, expectedCount: Int, isolation: isolated (any Actor)?, sourceLocation: SourceLocation, (Confirmation) async throws -> sending R) async rethrows -> R
+Confirm that some event occurs during the invocation of a function.
+func confirmation<R>(Comment?, expectedCount: some RangeExpression<Int> & Sendable & Sequence<Int>, isolation: isolated (any Actor)?, sourceLocation: SourceLocation, (Confirmation) async throws -> sending R) async rethrows -> R
+Confirm that some event occurs during the invocation of a function.
+struct Confirmation
+A type that can be used to confirm that an event occurs zero or more times.
+Retrieving information about checked expectations
+struct Expectation
+A type describing an expectation that has been evaluated.
+struct ExpectationFailedError
+A type describing an error thrown when an expectation fails during evaluation.
+protocol CustomTestStringConvertible
+A protocol describing types with a custom string representation when presented as part of a test's output.
+Representing source locations
+struct SourceLocation
+A type representing a location in source code.
+See Also
+Behavior validation
+Known issues
+Mark issues as known when running tests.
+--- END FILE ---
+
+--- FILE: defining-test-functions-apple-developer-documentation.md ---
+---
+title: Defining test functions | Apple Developer Documentation
+source_url: https://developer.apple.com/documentation/testing/definingtests
+scraped_date: '2025-10-25T17:53:01.922334Z'
+extraction_method: Chrome DevTools MCP Server
+content_length: 2978
+filename: defining-test-functions-apple-developer-documentation.md
+---
+
+# Defining test functions | Apple Developer Documentation
+
+Swift Testing
+Defining test functions
+Article
+Defining test functions
+Define a test function to validate that code is working correctly.
+Overview
+
+Defining a test function for a Swift package or project is straightforward.
+
+Import the testing library
+
+To import the testing library, add the following to the Swift source file that contains the test:
+
+import Testing
+
+
+Note
+
+Only import the testing library into a test target. Importing the testing library into an application, library, or binary target isn't supported or recommended. Test functions aren't stripped from binaries when building for release, so logic and fixtures of a test may be visible to anyone who inspects a build product that contains a test function.
+
+Declare a test function
+
+To declare a test function, write a Swift function declaration that doesn't take any arguments, then prefix its name with the @Test attribute:
+
+@Test func foodTruckExists() {
+  // Test logic goes here.
+}
+
+
+This test function can be present at file scope or within a type. A type containing test functions is automatically a test suite and can be optionally annotated with the @Suite attribute. For more information about suites, see Organizing test functions with suite types.
+
+Note that, while this function is a valid test function, it doesn't actually perform any action or test any code. To check for expected values and outcomes in test functions, add expectations to the test function.
+
+Customize a test's name
+
+To customize a test function's name as presented in an IDE or at the command line, supply a string literal as an argument to the @Test attribute:
+
+@Test("Food truck exists") func foodTruckExists() { ... }
+
+
+To further customize the appearance and behavior of a test function, use traits such as tags(_:).
+
+Write concurrent or throwing tests
+
+As with other Swift functions, test functions can be marked async and throws to annotate them as concurrent or throwing, respectively. If a test is only safe to run in the main actor's execution context (that is, from the main thread of the process), it can be annotated @MainActor:
+
+@Test @MainActor func foodTruckExists() async throws { ... }
+
+Limit the availability of a test
+
+If a test function can only run on newer versions of an operating system or of the Swift language, use the @available attribute when declaring it. Use the message argument of the @available attribute to specify a message to log if a test is unable to run due to limited availability:
+
+@available(macOS 11.0, *)
+@available(swift, introduced: 8.0, message: "Requires Swift 8.0 features to run")
+@Test func foodTruckExists() { ... }
+
+See Also
+Essentials
+Organizing test functions with suite types
+Organize tests into test suites.
+Migrating a test from XCTest
+Migrate an existing test method or test class written using XCTest.
+macro Test(String?, any TestTrait...)
+Declare a test.
+struct Test
+A type representing a test or suite.
+macro Suite(String?, any SuiteTrait...)
+Declare a test suite.
+--- END FILE ---
+
+--- FILE: Adding-Tests-to-Your-Xcode-Project.md ---
+# Adding Tests to Your Xcode Project
+
+This comprehensive guide covers how to add and configure tests in your Xcode project, including both XCTest and Swift Testing frameworks.
+
+## Overview
+
+Testing is a crucial part of software development that helps ensure your code works correctly and continues to work as you make changes. Xcode provides powerful testing tools that integrate seamlessly with your development workflow.
+
+## Creating Test Targets
+
+### Adding a Test Target
+
+1. **Open your Xcode project**
+2. **Select your project** in the navigator
+3. **Click the "+" button** at the bottom of the target list
+4. **Choose "Unit Testing Bundle"** from the template list
+5. **Configure the target**:
+   - **Product Name**: Choose a descriptive name (e.g., "MyAppTests")
+   - **Target to be Tested**: Select your main app target
+   - **Language**: Choose Swift or Objective-C
+   - **Use Core Data**: Check if your app uses Core Data
+
+### Test Target Configuration
+
+```swift
+// Package.swift example for Swift Package
+let package = Package(
+    name: "MyPackage",
+    products: [
+        .library(name: "MyPackage", targets: ["MyPackage"]),
+    ],
+    targets: [
+        .target(name: "MyPackage"),
+        .testTarget(
+            name: "MyPackageTests",
+            dependencies: ["MyPackage"]
+        ),
+    ]
+)
+```
+
+## Test Types
+
+### Unit Tests
+
+Unit tests verify that individual components of your app work correctly in isolation.
+
+```swift
+import XCTest
+@testable import MyApp
+
+class UserManagerTests: XCTestCase {
+    var userManager: UserManager!
+    
+    override func setUp() {
+        super.setUp()
+        userManager = UserManager()
+    }
+    
+    override func tearDown() {
+        userManager = nil
+        super.tearDown()
+    }
+    
+    func testUserCreation() {
+        // Test user creation logic
+        let user = userManager.createUser(name: "John", email: "john@example.com")
+        XCTAssertNotNil(user)
+        XCTAssertEqual(user.name, "John")
+    }
+}
+```
+
+### Swift Testing Unit Tests
+
+```swift
+import Testing
+@testable import MyApp
+
+struct UserManagerTests {
+    let userManager = UserManager()
+    
+    @Test func userCreation() {
+        let user = userManager.createUser(name: "John", email: "john@example.com")
+        #expect(user != nil)
+        #expect(user?.name == "John")
+    }
+}
+```
+
+### UI Tests
+
+UI tests verify that your app's user interface works correctly by simulating user interactions.
+
+```swift
+import XCTest
+
+class MyAppUITests: XCTestCase {
+    var app: XCUIApplication!
+    
+    override func setUp() {
+        super.setUp()
+        continueAfterFailure = false
+        app = XCUIApplication()
+        app.launch()
+    }
+    
+    func testLoginFlow() {
+        // Test the login flow
+        let emailTextField = app.textFields["email"]
+        emailTextField.tap()
+        emailTextField.typeText("user@example.com")
+        
+        let passwordTextField = app.secureTextFields["password"]
+        passwordTextField.tap()
+        passwordTextField.typeText("password123")
+        
+        let loginButton = app.buttons["login"]
+        loginButton.tap()
+        
+        // Verify login success
+        XCTAssertTrue(app.staticTexts["Welcome"].exists)
+    }
+}
+```
+
+## Test Organization
+
+### File Structure
+
+Organize your tests logically:
+
+```
+MyAppTests/
+├── UnitTests/
+│   ├── Models/
+│   │   ├── UserTests.swift
+│   │   └── ProductTests.swift
+│   ├── Services/
+│   │   ├── NetworkServiceTests.swift
+│   │   └── DataServiceTests.swift
+│   └── ViewModels/
+│       └── HomeViewModelTests.swift
+├── UITests/
+│   ├── LoginFlowTests.swift
+│   ├── NavigationTests.swift
+│   └── SettingsTests.swift
+└── TestUtilities/
+    ├── MockData.swift
+    └── TestHelpers.swift
+```
+
+### Test Classes and Suites
+
+#### XCTest Organization
+
+```swift
+class AuthenticationTests: XCTestCase {
+    // Authentication-related tests
+}
+
+class DataModelTests: XCTestCase {
+    // Data model tests
+}
+
+class NetworkTests: XCTestCase {
+    // Network-related tests
+}
+```
+
+#### Swift Testing Organization
+
+```swift
+struct AuthenticationTests {
+    @Test func login() { }
+    @Test func logout() { }
+    @Test func passwordReset() { }
+}
+
+struct DataModelTests {
+    @Test func userCreation() { }
+    @Test func userValidation() { }
+}
+
+@Suite(.tags(.network))
+struct NetworkTests {
+    @Test func apiCall() { }
+    @Test func errorHandling() { }
+}
+```
+
+## Test Configuration
+
+### Build Settings
+
+Configure your test target's build settings:
+
+1. **Deployment Target**: Match your app's deployment target
+2. **Swift Version**: Use the same Swift version as your app
+3. **Code Signing**: Configure for your development team
+4. **Bundle Identifier**: Use a unique identifier (e.g., `com.yourcompany.MyAppTests`)
+
+### Scheme Configuration
+
+1. **Edit Scheme**: Product > Scheme > Edit Scheme
+2. **Test Action**: Configure test settings
+3. **Arguments**: Add launch arguments if needed
+4. **Environment Variables**: Set up test environment
+
+```swift
+// Example of using launch arguments in tests
+func testWithLaunchArguments() {
+    let app = XCUIApplication()
+    app.launchArguments = ["--uitesting", "--reset-data"]
+    app.launch()
+    
+    // Test with specific configuration
+}
+```
+
+## Test Data and Mocking
+
+### Test Data Setup
+
+```swift
+struct TestData {
+    static let sampleUser = User(
+        id: "123",
+        name: "Test User",
+        email: "test@example.com"
+    )
+    
+    static let sampleProducts = [
+        Product(id: "1", name: "Product 1", price: 9.99),
+        Product(id: "2", name: "Product 2", price: 19.99)
+    ]
+}
+```
+
+### Mock Objects
+
+```swift
+class MockNetworkService: NetworkServiceProtocol {
+    var shouldSucceed = true
+    var mockData: Data?
+    var mockError: Error?
+    
+    func fetchData(completion: @escaping (Result<Data, Error>) -> Void) {
+        if shouldSucceed {
+            completion(.success(mockData ?? Data()))
+        } else {
+            completion(.failure(mockError ?? NetworkError.unknown))
+        }
+    }
+}
+
+// Using mocks in tests
+func testDataFetching() {
+    let mockService = MockNetworkService()
+    mockService.shouldSucceed = true
+    mockService.mockData = "test data".data(using: .utf8)
+    
+    let viewModel = MyViewModel(networkService: mockService)
+    // Test with mock
+}
+```
+
+## Async Testing
+
+### XCTest Async Testing
+
+```swift
+func testAsyncOperation() async throws {
+    let expectation = XCTestExpectation(description: "Async operation")
+    
+    Task {
+        let result = await performAsyncOperation()
+        XCTAssertNotNil(result)
+        expectation.fulfill()
+    }
+    
+    await fulfillment(of: [expectation], timeout: 5.0)
+}
+```
+
+### Swift Testing Async
+
+```swift
+@Test func asyncOperation() async throws {
+    let result = try await performAsyncOperation()
+    #expect(result != nil)
+}
+```
+
+## Performance Testing
+
+### XCTest Performance Tests
+
+```swift
+func testPerformance() {
+    measure(metrics: [XCTClockMetric(), XCTMemoryMetric()]) {
+        // Code to measure
+        let array = Array(0..<1000000)
+        let sorted = array.sorted()
+    }
+}
+```
+
+### Custom Performance Metrics
+
+```swift
+func testCustomPerformance() {
+    measure(metrics: [XCTClockMetric()]) {
+        // Measure specific operation
+        let result = expensiveOperation()
+        XCTAssertNotNil(result)
+    }
+}
+```
+
+## Test Coverage
+
+### Enabling Code Coverage
+
+1. **Edit Scheme**: Product > Scheme > Edit Scheme
+2. **Test Action**: Check "Gather coverage data"
+3. **Run Tests**: Execute your test suite
+4. **View Coverage**: Report Navigator > Coverage
+
+### Coverage Analysis
+
+```swift
+// Example of testing edge cases for better coverage
+func testEdgeCases() {
+    // Test with empty input
+    let emptyResult = processData([])
+    XCTAssertTrue(emptyResult.isEmpty)
+    
+    // Test with nil input
+    let nilResult = processData(nil)
+    XCTAssertNil(nilResult)
+    
+    // Test with maximum values
+    let maxResult = processData(Array(repeating: 1, count: 10000))
+    XCTAssertNotNil(maxResult)
+}
+```
+
+## Continuous Integration
+
+### Xcode Cloud
+
+Configure tests for Xcode Cloud:
+
+1. **Create Workflow**: Add test action
+2. **Configure Environment**: Set up test environment
+3. **Add Test Plans**: Include test plans in workflow
+4. **Monitor Results**: View test results in Xcode Cloud
+
+### Command Line Testing
+
+```bash
+# Run all tests
+xcodebuild test -scheme MyApp -destination 'platform=iOS Simulator,name=iPhone 15'
+
+# Run specific test class
+xcodebuild test -scheme MyApp -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:MyAppTests/UserManagerTests
+
+# Run with coverage
+xcodebuild test -scheme MyApp -destination 'platform=iOS Simulator,name=iPhone 15' -enableCodeCoverage YES
+```
+
+## Best Practices
+
+### Test Naming
+
+- **Descriptive Names**: Use clear, descriptive test names
+- **Consistent Format**: Follow a consistent naming convention
+- **Include Context**: Include what you're testing and expected outcome
+
+```swift
+// Good test names
+func testUserCreationWithValidData() { }
+func testUserCreationWithInvalidEmailThrowsError() { }
+func testUserDeletionRemovesUserFromDatabase() { }
+
+// Swift Testing
+@Test func userCreationWithValidData() { }
+@Test func userCreationWithInvalidEmailThrowsError() { }
+@Test func userDeletionRemovesUserFromDatabase() { }
+```
+
+### Test Structure
+
+Follow the Arrange-Act-Assert pattern:
+
+```swift
+func testUserValidation() {
+    // Arrange
+    let validEmail = "user@example.com"
+    let validPassword = "SecurePassword123"
+    
+    // Act
+    let isValid = UserValidator.validate(email: validEmail, password: validPassword)
+    
+    // Assert
+    XCTAssertTrue(isValid)
+}
+```
+
+### Test Independence
+
+```swift
+class IndependentTests: XCTestCase {
+    override func setUp() {
+        super.setUp()
+        // Set up fresh state for each test
+        UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier!)
+    }
+    
+    override func tearDown() {
+        // Clean up after each test
+        super.tearDown()
+    }
+}
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Tests Not Running**
+   - Check target membership
+   - Verify build settings
+   - Ensure proper imports
+
+2. **Import Errors**
+   - Use `@testable import` for internal types
+   - Check module names
+   - Verify target dependencies
+
+3. **UI Test Failures**
+   - Check element accessibility
+   - Verify timing issues
+   - Use proper waits
+
+### Debugging Tests
+
+```swift
+func testWithDebugging() {
+    print("Starting test...")
+    
+    // Add breakpoints
+    let result = performOperation()
+    
+    print("Result: \(result)")
+    XCTAssertNotNil(result)
+}
+```
+
+## Migration from XCTest to Swift Testing
+
+### Gradual Migration
+
+You can run both XCTest and Swift Testing side by side:
+
+```swift
+// Keep existing XCTest
+class LegacyTests: XCTestCase {
+    func testLegacyFunctionality() { }
+}
+
+// Add new Swift Testing
+struct NewTests {
+    @Test func newFunctionality() { }
+}
+```
+
+### Converting Tests
+
+```swift
+// XCTest
+func testUserCreation() {
+    let user = User(name: "John")
+    XCTAssertEqual(user.name, "John")
+}
+
+// Swift Testing
+@Test func userCreation() {
+    let user = User(name: "John")
+    #expect(user.name == "John")
+}
+```
+
+## References
+
+- [Apple Developer Documentation - Adding Tests](https://developer.apple.com/documentation/xcode/adding-tests-to-your-xcode-project)
+- [XCTest Framework Documentation](https://developer.apple.com/documentation/xctest)
+- [Swift Testing GitHub Repository](https://github.com/swiftlang/swift-testing)
+- [WWDC Testing Sessions](https://developer.apple.com/videos/wwdc2024)
+
+---
+
+*This comprehensive guide covers all aspects of adding and configuring tests in your Xcode project, from basic setup to advanced testing strategies.*
+--- END FILE ---
+
+--- FILE: Double.md ---
+# Double
+
+**A double-precision, floating-point value type.**
+
+## Availability
+
+- **iOS** 8.0+
+- **iPadOS** 8.0+
+- **Mac Catalyst** 13.0+
+- **macOS** 10.10+
+- **tvOS** 9.0+
+- **visionOS** 1.0+
+- **watchOS** 2.0+
+
+
+## Topics
+
+### Converting Integers
+
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-5blrp) — Creates a new value, rounded to the closest possible representation.
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-84ohu) — Creates a new value, rounded to the closest possible representation.
+### Converting Strings
+
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-5wmm8) — Creates a new instance from the given string.
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-15kej)
+### Converting Floating-Point Values
+
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-1488d) — Creates a new instance from the given value, rounded to the closest possible representation.
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-o1k9) — Creates a new instance initialized to the given value.
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-5h7qh) — Creates a new instance that approximates the given value.
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-aeox) — Creates a new instance that approximates the given value.
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-9z7ob) — Creates a new instance that approximates the given value.
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-7ag2w)
+- [init(sign:exponent:significand:)](https://developer.apple.com/documentation/swift/double/init(sign:exponent:significand:)) — Creates a new value from the given sign, exponent, and significand.
+- [init(signOf:magnitudeOf:)](https://developer.apple.com/documentation/swift/double/init(signof:magnitudeof:)) — Creates a new floating-point value using the sign of one value and the magnitude of another.
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-1oh9r) — Creates a new value, rounded to the closest possible representation.
+- [init(truncating:)](https://developer.apple.com/documentation/swift/double/init(truncating:))
+### Converting with No Loss of Precision
+
+- [init(exactly:)](https://developer.apple.com/documentation/swift/double/init(exactly:)-8esra) — Creates a new instance from the given value, if it can be represented exactly.
+- [init(exactly:)](https://developer.apple.com/documentation/swift/double/init(exactly:)-1h1oc) — Creates a new value, if the given integer can be represented exactly.
+- [init(exactly:)](https://developer.apple.com/documentation/swift/double/init(exactly:)-2uexo) — Creates a new value, if the given integer can be represented exactly.
+- [init(exactly:)](https://developer.apple.com/documentation/swift/double/init(exactly:)-2l6p1) — Creates a new instance initialized to the given value, if it can be represented without rounding.
+- [init(exactly:)](https://developer.apple.com/documentation/swift/double/init(exactly:)-7cl0t) — Creates a new instance initialized to the given value, if it can be represented without rounding.
+- [init(exactly:)](https://developer.apple.com/documentation/swift/double/init(exactly:)-50ofc) — Creates a new instance initialized to the given value, if it can be represented without rounding.
+- [init(exactly:)](https://developer.apple.com/documentation/swift/double/init(exactly:)-63925) — Creates a new instance initialized to the given value, if it can be represented without rounding.
+- [init(exactly:)](https://developer.apple.com/documentation/swift/double/init(exactly:)-8e00y)
+### Creating a Random Value
+
+- [random(in:)](https://developer.apple.com/documentation/swift/double/random(in:)-6idef) — Returns a random value within the specified range.
+- [random(in:using:)](https://developer.apple.com/documentation/swift/double/random(in:using:)-1m6gd) — Returns a random value within the specified range, using the given generator as a source for randomness.
+- [random(in:)](https://developer.apple.com/documentation/swift/double/random(in:)-5o5ha) — Returns a random value within the specified range.
+- [random(in:using:)](https://developer.apple.com/documentation/swift/double/random(in:using:)-613hz) — Returns a random value within the specified range, using the given generator as a source for randomness.
+### Performing Calculations
+
+- [Floating-Point Operators for Double](https://developer.apple.com/documentation/swift/floating-point-operators-for-double) — Perform arithmetic and bitwise operations or compare values.
+- [addingProduct(_:_:)](https://developer.apple.com/documentation/swift/double/addingproduct(_:_:)) — Returns the result of adding the product of the two given values to this value, computed without intermediate rounding.
+- [addProduct(_:_:)](https://developer.apple.com/documentation/swift/double/addproduct(_:_:)) — Adds the product of the two given values to this value in place, computed without intermediate rounding.
+- [squareRoot()](https://developer.apple.com/documentation/swift/double/squareroot()) — Returns the square root of the value, rounded to a representable value.
+- [formSquareRoot()](https://developer.apple.com/documentation/swift/double/formsquareroot()) — Replaces this value with its square root, rounded to a representable value.
+- [remainder(dividingBy:)](https://developer.apple.com/documentation/swift/double/remainder(dividingby:)) — Returns the remainder of this value divided by the given value.
+- [formRemainder(dividingBy:)](https://developer.apple.com/documentation/swift/double/formremainder(dividingby:)) — Replaces this value with the remainder of itself divided by the given value.
+- [truncatingRemainder(dividingBy:)](https://developer.apple.com/documentation/swift/double/truncatingremainder(dividingby:)) — Returns the remainder of this value divided by the given value using truncating division.
+- [formTruncatingRemainder(dividingBy:)](https://developer.apple.com/documentation/swift/double/formtruncatingremainder(dividingby:)) — Replaces this value with the remainder of itself divided by the given value using truncating division.
+- [negate()](https://developer.apple.com/documentation/swift/double/negate()) — Replaces this value with its additive inverse.
+### Rounding Values
+
+- [rounded()](https://developer.apple.com/documentation/swift/double/rounded())
+- [rounded(_:)](https://developer.apple.com/documentation/swift/double/rounded(_:)) — Returns this value rounded to an integral value using the specified rounding rule.
+- [round()](https://developer.apple.com/documentation/swift/double/round())
+- [round(_:)](https://developer.apple.com/documentation/swift/double/round(_:)) — Rounds the value to an integral value using the specified rounding rule.
+### Comparing Values
+
+- [Floating-Point Operators for Double](https://developer.apple.com/documentation/swift/floating-point-operators-for-double) — Perform arithmetic and bitwise operations or compare values.
+- [isEqual(to:)](https://developer.apple.com/documentation/swift/double/isequal(to:)) — Returns a Boolean value indicating whether this instance is equal to the given value.
+- [isLess(than:)](https://developer.apple.com/documentation/swift/double/isless(than:)) — Returns a Boolean value indicating whether this instance is less than the given value.
+- [isLessThanOrEqualTo(_:)](https://developer.apple.com/documentation/swift/double/islessthanorequalto(_:)) — Returns a Boolean value indicating whether this instance is less than or equal to the given value.
+- [isTotallyOrdered(belowOrEqualTo:)](https://developer.apple.com/documentation/swift/double/istotallyordered(beloworequalto:)) — Returns a Boolean value indicating whether this instance should precede or tie positions with the given value in an ascending sort.
+- [minimum(_:_:)](https://developer.apple.com/documentation/swift/double/minimum(_:_:)) — Returns the lesser of the two given values.
+- [minimumMagnitude(_:_:)](https://developer.apple.com/documentation/swift/double/minimummagnitude(_:_:)) — Returns the value with lesser magnitude.
+- [maximum(_:_:)](https://developer.apple.com/documentation/swift/double/maximum(_:_:)) — Returns the greater of the two given values.
+- [maximumMagnitude(_:_:)](https://developer.apple.com/documentation/swift/double/maximummagnitude(_:_:)) — Returns the value with greater magnitude.
+### Finding the Sign and Magnitude
+
+- [magnitude](https://developer.apple.com/documentation/swift/double/magnitude-swift.property) — The magnitude of this value.
+- [sign](https://developer.apple.com/documentation/swift/double/sign) — The sign of the floating-point value.
+- [Double.Magnitude](https://developer.apple.com/documentation/swift/double/magnitude-swift.typealias) — A type that can represent the absolute value of any possible value of the conforming type.
+### Querying a Double
+
+- [ulp](https://developer.apple.com/documentation/swift/double/ulp) — The unit in the last place of this value.
+- [significand](https://developer.apple.com/documentation/swift/double/significand) — The significand of the floating-point value.
+- [exponent](https://developer.apple.com/documentation/swift/double/exponent-swift.property) — The exponent of the floating-point value.
+- [nextUp](https://developer.apple.com/documentation/swift/double/nextup) — The least representable value that compares greater than this value.
+- [nextDown](https://developer.apple.com/documentation/swift/double/nextdown) — The greatest representable value that compares less than this value.
+- [binade](https://developer.apple.com/documentation/swift/double/binade) — The floating-point value with the same sign and exponent as this value, but with a significand of 1.0.
+### Accessing Numeric Constants
+
+- [pi](https://developer.apple.com/documentation/swift/double/pi) — The mathematical constant pi (π), approximately equal to 3.14159.
+- [infinity](https://developer.apple.com/documentation/swift/double/infinity) — Positive infinity.
+- [greatestFiniteMagnitude](https://developer.apple.com/documentation/swift/double/greatestfinitemagnitude) — The greatest finite number representable by this type.
+- [nan](https://developer.apple.com/documentation/swift/double/nan) — A quiet NaN (“not a number”).
+- [signalingNaN](https://developer.apple.com/documentation/swift/double/signalingnan) — A signaling NaN (“not a number”).
+- [ulpOfOne](https://developer.apple.com/documentation/swift/double/ulpofone) — The unit in the last place of 1.0.
+- [leastNonzeroMagnitude](https://developer.apple.com/documentation/swift/double/leastnonzeromagnitude) — The least positive number.
+- [leastNormalMagnitude](https://developer.apple.com/documentation/swift/double/leastnormalmagnitude) — The least positive normal number.
+- [zero](https://developer.apple.com/documentation/swift/double/zero) — The zero value.
+### Working with Binary Representation
+
+- [bitPattern](https://developer.apple.com/documentation/swift/double/bitpattern) — The bit pattern of the value’s encoding.
+- [significandBitPattern](https://developer.apple.com/documentation/swift/double/significandbitpattern) — The raw encoding of the value’s significand field.
+- [significandWidth](https://developer.apple.com/documentation/swift/double/significandwidth) — The number of bits required to represent the value’s significand.
+- [exponentBitPattern](https://developer.apple.com/documentation/swift/double/exponentbitpattern) — The raw encoding of the value’s exponent field.
+- [significandBitCount](https://developer.apple.com/documentation/swift/double/significandbitcount) — The available number of fractional significand bits.
+- [exponentBitCount](https://developer.apple.com/documentation/swift/double/exponentbitcount) — The number of bits used to represent the type’s exponent.
+- [radix](https://developer.apple.com/documentation/swift/double/radix) — The radix, or base of exponentiation, for a floating-point type.
+- [init(bitPattern:)](https://developer.apple.com/documentation/swift/double/init(bitpattern:)) — Creates a new value with the given bit pattern.
+- [init(sign:exponentBitPattern:significandBitPattern:)](https://developer.apple.com/documentation/swift/double/init(sign:exponentbitpattern:significandbitpattern:)) — Creates a new instance from the specified sign and bit patterns.
+- [init(nan:signaling:)](https://developer.apple.com/documentation/swift/double/init(nan:signaling:)) — Creates a NaN (“not a number”) value with the specified payload.
+- [Double.Exponent](https://developer.apple.com/documentation/swift/double/exponent-swift.typealias) — A type that can represent any written exponent.
+- [Double.RawSignificand](https://developer.apple.com/documentation/swift/double/rawsignificand) — A type that represents the encoded significand of a value.
+- [Double.RawExponent](https://developer.apple.com/documentation/swift/double/rawexponent) — A type that represents the encoded exponent of a value.
+### Querying a Double’s State
+
+- [isZero](https://developer.apple.com/documentation/swift/double/iszero) — A Boolean value indicating whether the instance is equal to zero.
+- [isFinite](https://developer.apple.com/documentation/swift/double/isfinite) — A Boolean value indicating whether this instance is finite.
+- [isInfinite](https://developer.apple.com/documentation/swift/double/isinfinite) — A Boolean value indicating whether the instance is infinite.
+- [isNaN](https://developer.apple.com/documentation/swift/double/isnan) — A Boolean value indicating whether the instance is NaN (“not a number”).
+- [isSignalingNaN](https://developer.apple.com/documentation/swift/double/issignalingnan) — A Boolean value indicating whether the instance is a signaling NaN.
+- [isNormal](https://developer.apple.com/documentation/swift/double/isnormal) — A Boolean value indicating whether this instance is normal.
+- [isSubnormal](https://developer.apple.com/documentation/swift/double/issubnormal) — A Boolean value indicating whether the instance is subnormal.
+- [isCanonical](https://developer.apple.com/documentation/swift/double/iscanonical) — A Boolean value indicating whether the instance’s representation is in its canonical form.
+- [floatingPointClass](https://developer.apple.com/documentation/swift/double/floatingpointclass) — The classification of this value.
+### Encoding and Decoding Values
+
+- [encode(to:)](https://developer.apple.com/documentation/swift/double/encode(to:)) — Encodes this value into the given encoder.
+- [init(from:)](https://developer.apple.com/documentation/swift/double/init(from:)) — Creates a new instance by decoding from the given decoder.
+### Creating a Range
+
+- [...(_:_:)](https://developer.apple.com/documentation/swift/double/'...(_:_:)) — Returns a closed range that contains both of its bounds.
+### Describing a Double
+
+- [description](https://developer.apple.com/documentation/swift/double/description) — A textual representation of the value.
+- [debugDescription](https://developer.apple.com/documentation/swift/double/debugdescription) — A textual representation of the value, suitable for debugging.
+- [customMirror](https://developer.apple.com/documentation/swift/double/custommirror) — A mirror that reflects the `Double` instance.
+- [hash(into:)](https://developer.apple.com/documentation/swift/double/hash(into:)) — Hashes the essential components of this value by feeding them into the given hasher.
+### Infrequently Used Functionality
+
+- [init()](https://developer.apple.com/documentation/swift/double/init())
+- [init(floatLiteral:)](https://developer.apple.com/documentation/swift/double/init(floatliteral:)) — Creates an instance initialized to the specified floating-point value.
+- [init(integerLiteral:)](https://developer.apple.com/documentation/swift/double/init(integerliteral:)) — Creates an instance initialized to the specified integer value.
+- [init(integerLiteral:)](https://developer.apple.com/documentation/swift/double/init(integerliteral:)-6hc7j)
+- [Double.FloatLiteralType](https://developer.apple.com/documentation/swift/double/floatliteraltype) — A type that represents a floating-point literal.
+- [Double.IntegerLiteralType](https://developer.apple.com/documentation/swift/double/integerliteraltype) — A type that represents an integer literal.
+- [advanced(by:)](https://developer.apple.com/documentation/swift/double/advanced(by:)) — Returns a value that is offset the specified distance from this value.
+- [distance(to:)](https://developer.apple.com/documentation/swift/double/distance(to:)) — Returns the distance from this value to the given value, expressed as a stride.
+- [Double.Stride](https://developer.apple.com/documentation/swift/double/stride) — A type that represents the distance between two values.
+- [write(to:)](https://developer.apple.com/documentation/swift/double/write(to:)) — Writes a textual representation of this instance into the given output stream.
+- [hashValue](https://developer.apple.com/documentation/swift/double/hashvalue) — The hash value.
+### SIMD-Supporting Types
+
+- [Double.SIMDMaskScalar](https://developer.apple.com/documentation/swift/double/simdmaskscalar)
+- [Double.SIMD2Storage](https://developer.apple.com/documentation/swift/double/simd2storage) — Storage for a vector of two floating-point values.
+- [Double.SIMD4Storage](https://developer.apple.com/documentation/swift/double/simd4storage) — Storage for a vector of four floating-point values.
+- [Double.SIMD8Storage](https://developer.apple.com/documentation/swift/double/simd8storage) — Storage for a vector of eight floating-point values.
+- [Double.SIMD16Storage](https://developer.apple.com/documentation/swift/double/simd16storage) — Storage for a vector of 16 floating-point values.
+- [Double.SIMD32Storage](https://developer.apple.com/documentation/swift/double/simd32storage) — Storage for a vector of 32 floating-point values.
+- [Double.SIMD64Storage](https://developer.apple.com/documentation/swift/double/simd64storage) — Storage for a vector of 64 floating-point values.
+### Deprecated
+
+- [customPlaygroundQuickLook](https://developer.apple.com/documentation/swift/double/customplaygroundquicklook) — A custom playground Quick Look for the `Double` instance.
+- [init(_:)](https://developer.apple.com/documentation/swift/double/init(_:)-8kme5)
+### Type Aliases
+
+- [Double.Specification](https://developer.apple.com/documentation/swift/double/specification)
+- [Double.UnwrappedType](https://developer.apple.com/documentation/swift/double/unwrappedtype)
+- [Double.ValueType](https://developer.apple.com/documentation/swift/double/valuetype)
+### Type Properties
+
+- [defaultResolverSpecification](https://developer.apple.com/documentation/swift/double/defaultresolverspecification)
+- [mlMultiArrayDataType](https://developer.apple.com/documentation/swift/double/mlmultiarraydatatype)
+### Default Implementations
+
+- [AdditiveArithmetic Implementations](https://developer.apple.com/documentation/swift/double/additivearithmetic-implementations)
+- [AtomicRepresentable Implementations](https://developer.apple.com/documentation/swift/double/atomicrepresentable-implementations)
+- [BinaryFloatingPoint Implementations](https://developer.apple.com/documentation/swift/double/binaryfloatingpoint-implementations)
+- [Comparable Implementations](https://developer.apple.com/documentation/swift/double/comparable-implementations)
+- [CustomDebugStringConvertible Implementations](https://developer.apple.com/documentation/swift/double/customdebugstringconvertible-implementations)
+- [CustomReflectable Implementations](https://developer.apple.com/documentation/swift/double/customreflectable-implementations)
+- [CustomStringConvertible Implementations](https://developer.apple.com/documentation/swift/double/customstringconvertible-implementations)
+- [Decodable Implementations](https://developer.apple.com/documentation/swift/double/decodable-implementations)
+- [Encodable Implementations](https://developer.apple.com/documentation/swift/double/encodable-implementations)
+- [Equatable Implementations](https://developer.apple.com/documentation/swift/double/equatable-implementations)
+- [ExpressibleByFloatLiteral Implementations](https://developer.apple.com/documentation/swift/double/expressiblebyfloatliteral-implementations)
+- [ExpressibleByIntegerLiteral Implementations](https://developer.apple.com/documentation/swift/double/expressiblebyintegerliteral-implementations)
+- [FloatingPoint Implementations](https://developer.apple.com/documentation/swift/double/floatingpoint-implementations)
+- [Hashable Implementations](https://developer.apple.com/documentation/swift/double/hashable-implementations)
+- [LosslessStringConvertible Implementations](https://developer.apple.com/documentation/swift/double/losslessstringconvertible-implementations)
+- [Numeric Implementations](https://developer.apple.com/documentation/swift/double/numeric-implementations)
+- [SIMDScalar Implementations](https://developer.apple.com/documentation/swift/double/simdscalar-implementations)
+- [SignedNumeric Implementations](https://developer.apple.com/documentation/swift/double/signednumeric-implementations)
+- [Strideable Implementations](https://developer.apple.com/documentation/swift/double/strideable-implementations)
+- [TextOutputStreamable Implementations](https://developer.apple.com/documentation/swift/double/textoutputstreamable-implementations)
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/Double](https://developer.apple.com/documentation/com.apple.Swift/documentation/Swift/Double)*
+--- END FILE ---
+
+--- FILE: OrganizingTests.md ---
+# Organizing test functions with suite types
+
+<!--
+This source file is part of the Swift.org open source project
+
+Copyright (c) 2023-2024 Apple Inc. and the Swift project authors
+Licensed under Apache License v2.0 with Runtime Library Exception
+
+See https://swift.org/LICENSE.txt for license information
+See https://swift.org/CONTRIBUTORS.txt for Swift project authors
+-->
+
+Organize tests into test suites.
+
+## Overview
+
+When working with a large selection of test functions, it can be helpful to
+organize them into test suites.
+
+A test function can be added to a test suite in one of two ways:
+
+@Comment{ * By placing it in the same file as other test functions. }
+* By placing it in a Swift type.
+* By placing it in a Swift type and annotating that type with the `@Suite`
+   attribute.
+
+The `@Suite` attribute isn't required for the testing library to recognize that
+a type contains test functions, but adding it allows customization of a test
+suite's appearance in the IDE and at the command line. If a trait such as
+``Trait/tags(_:)`` or ``Trait/disabled(_:sourceLocation:)`` is applied to a test
+suite, it's automatically inherited by the tests contained in the suite.
+
+In addition to containing test functions and any other members that a Swift type
+might contain, test suite types can also contain additional test suites nested
+within them. To add a nested test suite type, simply declare an additional type
+within the scope of the outer test suite type.
+
+By default, tests contained within a suite run in parallel with each other.
+For more information about test parallelization, see <doc:Parallelization>.
+
+### Customize a suite's name
+
+To customize a test suite's name, supply a string literal as an argument to the
+`@Suite` attribute:
+
+```swift
+@Suite("Food truck tests") struct FoodTruckTests {
+  @Test func foodTruckExists() { ... }
+}
+```
+
+To further customize the appearance and behavior of a test function, use
+[traits](doc:Traits) such as ``Trait/tags(_:)``.
+
+## Test functions in test suite types
+
+If a type contains a test function declared as an instance method (that is,
+without either the `static` or `class` keyword), the testing library calls
+that test function at runtime by initializing an instance of the type, then
+calling the test function on that instance. If a test suite type contains
+multiple test functions declared as instance methods, each one is called on a
+distinct instance of the type. Therefore, the following test suite and test
+function:
+
+```swift
+@Suite struct FoodTruckTests {
+  @Test func foodTruckExists() { ... }
+}
+```
+
+Are equivalent to:
+
+```swift
+@Suite struct FoodTruckTests {
+  func foodTruckExists() { ... }
+
+  @Test static func staticFoodTruckExists() {
+    let instance = FoodTruckTests()
+    instance.foodTruckExists()
+  }
+}
+```
+
+### Constraints on test suite types
+
+When using a type as a test suite, it's subject to some constraints that are
+not otherwise applied to Swift types.
+
+#### An initializer may be required
+
+If a type contains test functions declared as instance methods, it must be
+possible to initialize an instance of the type with a zero-argument initializer.
+The initializer may be any combination of:
+
+- implicit or explicit
+- synchronous or asynchronous
+- throwing or non-throwing
+- `private`, `fileprivate`, `internal`, `package`, or `public`
+
+For example:
+
+```swift
+@Suite struct FoodTruckTests {
+  var batteryLevel = 100
+
+  @Test func foodTruckExists() { ... } // ✅ OK: The type has an implicit init().
+}
+
+@Suite struct CashRegisterTests {
+  private init(cashOnHand: Decimal = 0.0) async throws { ... }
+
+  @Test func calculateSalesTax() { ... } // ✅ OK: The type has a callable init().
+}
+
+struct MenuTests {
+  var foods: [Food]
+  var prices: [Food: Decimal]
+
+  @Test static func specialOfTheDay() { ... } // ✅ OK: The function is static.
+  @Test func orderAllFoods() { ... } // ❌ ERROR: The suite type requires init().
+}
+```
+
+The compiler emits an error when presented with a test suite that doesn't
+meet this requirement.
+
+#### Test suite types must always be available
+
+Although `@available` can be applied to a test function to limit its
+availability at runtime, a test suite type (and any types that contain it) must
+_not_ be annotated with the `@available` attribute:
+
+```swift
+@Suite struct FoodTruckTests { ... } // ✅ OK: The type is always available.
+
+@available(macOS 11.0, *) // ❌ ERROR: The suite type must always be available.
+@Suite struct CashRegisterTests { ... }
+
+@available(macOS 11.0, *) struct MenuItemTests { // ❌ ERROR: The suite type's
+                                                 // containing type must always
+                                                 // be available too.
+  @Suite struct BurgerTests { ... }
+}
+```
+
+The compiler emits an error when presented with a test suite that doesn't
+meet this requirement.
+--- END FILE ---
+
+--- FILE: Testing-Best-Practices.md ---
+# Testing Best Practices
+
+This comprehensive guide covers best practices for testing iOS, macOS, watchOS, and tvOS applications using both XCTest and Swift Testing frameworks.
+
+## Test Design Principles
+
+### 1. Test Independence
+
+Each test should be independent and not rely on other tests or external state.
+
+```swift
+// ❌ Bad - Tests depend on each other
+class BadTests: XCTestCase {
+    var counter = 0
+    
+    func testIncrement() {
+        counter += 1
+        XCTAssertEqual(counter, 1)
+    }
+    
+    func testDecrement() {
+        counter -= 1  // Depends on previous test
+        XCTAssertEqual(counter, 0)
+    }
+}
+
+// ✅ Good - Each test is independent
+class GoodTests: XCTestCase {
+    func testIncrement() {
+        var counter = 0
+        counter += 1
+        XCTAssertEqual(counter, 1)
+    }
+    
+    func testDecrement() {
+        var counter = 1
+        counter -= 1
+        XCTAssertEqual(counter, 0)
+    }
+}
+
+// Swift Testing - Automatic independence
+struct GoodTests {
+    @Test func increment() {
+        var counter = 0
+        counter += 1
+        #expect(counter == 1)
+    }
+    
+    @Test func decrement() {
+        var counter = 1
+        counter -= 1
+        #expect(counter == 0)
+    }
+}
+```
+
+### 2. Test Clarity
+
+Tests should be clear, readable, and self-documenting.
+
+```swift
+// ❌ Bad - Unclear test
+func test1() {
+    let x = 5
+    let y = 3
+    let z = x + y
+    XCTAssertEqual(z, 8)
+}
+
+// ✅ Good - Clear, descriptive test
+func testAdditionOfTwoPositiveNumbers() {
+    // Given
+    let firstNumber = 5
+    let secondNumber = 3
+    
+    // When
+    let sum = firstNumber + secondNumber
+    
+    // Then
+    XCTAssertEqual(sum, 8)
+}
+
+// Swift Testing - Even cleaner
+struct MathTests {
+    @Test func additionOfTwoPositiveNumbers() {
+        let firstNumber = 5
+        let secondNumber = 3
+        
+        let sum = firstNumber + secondNumber
+        
+        #expect(sum == 8)
+    }
+}
+```
+
+### 3. Single Responsibility
+
+Each test should verify one specific behavior.
+
+```swift
+// ❌ Bad - Testing multiple behaviors
+func testUserValidation() {
+    let user = User(email: "test@example.com", password: "password123")
+    
+    // Testing email validation
+    XCTAssertTrue(user.isEmailValid)
+    
+    // Testing password validation
+    XCTAssertTrue(user.isPasswordValid)
+    
+    // Testing user creation
+    XCTAssertNotNil(user.id)
+}
+
+// ✅ Good - Separate tests for each behavior
+func testEmailValidation() {
+    let user = User(email: "test@example.com", password: "password123")
+    XCTAssertTrue(user.isEmailValid)
+}
+
+func testPasswordValidation() {
+    let user = User(email: "test@example.com", password: "password123")
+    XCTAssertTrue(user.isPasswordValid)
+}
+
+func testUserCreation() {
+    let user = User(email: "test@example.com", password: "password123")
+    XCTAssertNotNil(user.id)
+}
+```
+
+## Test Organization
+
+### File Structure
+
+Organize tests logically by feature or component:
+
+```
+Tests/
+├── UnitTests/
+│   ├── Models/
+│   │   ├── UserTests.swift
+│   │   ├── ProductTests.swift
+│   │   └── OrderTests.swift
+│   ├── Services/
+│   │   ├── NetworkServiceTests.swift
+│   │   ├── DataServiceTests.swift
+│   │   └── AuthenticationServiceTests.swift
+│   ├── ViewModels/
+│   │   ├── HomeViewModelTests.swift
+│   │   └── ProfileViewModelTests.swift
+│   └── Utilities/
+│       ├── ValidationTests.swift
+│       └── FormattingTests.swift
+├── UITests/
+│   ├── AuthenticationFlowTests.swift
+│   ├── NavigationTests.swift
+│   └── SettingsTests.swift
+└── TestUtilities/
+    ├── MockData.swift
+    ├── TestHelpers.swift
+    └── MockServices.swift
+```
+
+### Test Naming Conventions
+
+Use descriptive names that clearly indicate what is being tested.
+
+```swift
+// XCTest naming pattern
+func test[MethodName]_[Scenario]_[ExpectedResult]() {
+    // Test implementation
+}
+
+// Examples
+func testUserCreation_WithValidData_ReturnsUser() { }
+func testUserCreation_WithInvalidEmail_ThrowsError() { }
+func testUserDeletion_WithExistingUser_RemovesUser() { }
+
+// Swift Testing naming pattern
+@Test func [methodName]_[scenario]_[expectedResult]() {
+    // Test implementation
+}
+
+// Examples
+@Test func userCreation_WithValidData_ReturnsUser() { }
+@Test func userCreation_WithInvalidEmail_ThrowsError() { }
+@Test func userDeletion_WithExistingUser_RemovesUser() { }
+```
+
+## Test Data Management
+
+### Test Data Setup
+
+Create reusable test data that's easy to maintain.
+
+```swift
+struct TestData {
+    // User test data
+    static let validUser = User(
+        id: "test-user-1",
+        name: "Test User",
+        email: "test@example.com",
+        password: "SecurePassword123"
+    )
+    
+    static let invalidUser = User(
+        id: "test-user-2",
+        name: "",
+        email: "invalid-email",
+        password: "123"
+    )
+    
+    // Product test data
+    static let sampleProducts = [
+        Product(id: "1", name: "Product 1", price: 9.99),
+        Product(id: "2", name: "Product 2", price: 19.99),
+        Product(id: "3", name: "Product 3", price: 29.99)
+    ]
+    
+    // Order test data
+    static let sampleOrder = Order(
+        id: "order-1",
+        userId: "test-user-1",
+        products: sampleProducts,
+        total: 59.97
+    )
+}
+
+// Usage in tests
+func testUserValidation() {
+    let validUser = TestData.validUser
+    XCTAssertTrue(validUser.isValid)
+    
+    let invalidUser = TestData.invalidUser
+    XCTAssertFalse(invalidUser.isValid)
+}
+```
+
+### Mock Objects
+
+Create mock objects for external dependencies.
+
+```swift
+// Protocol for dependency injection
+protocol NetworkServiceProtocol {
+    func fetchData(completion: @escaping (Result<Data, Error>) -> Void)
+}
+
+// Mock implementation
+class MockNetworkService: NetworkServiceProtocol {
+    var shouldSucceed = true
+    var mockData: Data?
+    var mockError: Error?
+    var fetchDataCallCount = 0
+    
+    func fetchData(completion: @escaping (Result<Data, Error>) -> Void) {
+        fetchDataCallCount += 1
+        
+        if shouldSucceed {
+            completion(.success(mockData ?? Data()))
+        } else {
+            completion(.failure(mockError ?? NetworkError.unknown))
+        }
+    }
+}
+
+// Usage in tests
+func testDataFetching() {
+    let mockService = MockNetworkService()
+    mockService.shouldSucceed = true
+    mockService.mockData = "test data".data(using: .utf8)
+    
+    let viewModel = MyViewModel(networkService: mockService)
+    
+    // Test the view model
+    XCTAssertEqual(mockService.fetchDataCallCount, 1)
+}
+```
+
+## Assertion Best Practices
+
+### Use Appropriate Assertions
+
+Choose the most specific assertion for your test case.
+
+```swift
+// ❌ Bad - Generic assertion
+func testUserCreation() {
+    let user = createUser()
+    XCTAssertTrue(user != nil)  // Not specific enough
+}
+
+// ✅ Good - Specific assertion
+func testUserCreation() {
+    let user = createUser()
+    XCTAssertNotNil(user)  // More specific
+    XCTAssertEqual(user?.name, "John")  // Even more specific
+}
+
+// Swift Testing - More expressive
+@Test func userCreation() {
+    let user = createUser()
+    #expect(user != nil)
+    #expect(user?.name == "John")
+}
+```
+
+### Provide Meaningful Messages
+
+Include descriptive failure messages for complex assertions.
+
+```swift
+// XCTest
+func testUserAge() {
+    let user = createUser(age: 25)
+    XCTAssertGreaterThanOrEqual(user.age, 18, "User must be at least 18 years old")
+}
+
+// Swift Testing - Messages are less needed due to better error reporting
+@Test func userAge() {
+    let user = createUser(age: 25)
+    #expect(user.age >= 18)  // Error message is automatically generated
+}
+```
+
+## Async Testing
+
+### Proper Async Test Structure
+
+```swift
+// XCTest async testing
+func testAsyncOperation() async throws {
+    let expectation = XCTestExpectation(description: "Async operation")
+    
+    Task {
+        do {
+            let result = try await performAsyncOperation()
+            XCTAssertNotNil(result)
+            expectation.fulfill()
+        } catch {
+            XCTFail("Async operation failed: \(error)")
+            expectation.fulfill()
+        }
+    }
+    
+    await fulfillment(of: [expectation], timeout: 5.0)
+}
+
+// Swift Testing async testing
+@Test func asyncOperation() async throws {
+    let result = try await performAsyncOperation()
+    #expect(result != nil)
+}
+```
+
+### Timeout Management
+
+```swift
+// XCTest with custom timeout
+func testSlowOperation() async throws {
+    let expectation = XCTestExpectation(description: "Slow operation")
+    
+    Task {
+        let result = await performSlowOperation()
+        XCTAssertNotNil(result)
+        expectation.fulfill()
+    }
+    
+    await fulfillment(of: [expectation], timeout: 10.0)  // Custom timeout
+}
+
+// Swift Testing with timeout trait
+@Test(.timeLimit(.seconds(10)))
+func slowOperation() async throws {
+    let result = try await performSlowOperation()
+    #expect(result != nil)
+}
+```
+
+## Performance Testing
+
+### Performance Test Best Practices
+
+```swift
+func testPerformance() {
+    measure(metrics: [XCTClockMetric(), XCTMemoryMetric()]) {
+        // Code to measure
+        let array = Array(0..<1000000)
+        let sorted = array.sorted()
+    }
+}
+
+// Custom performance test with baseline
+func testCustomPerformance() {
+    measure(metrics: [XCTClockMetric()]) {
+        // Measure specific operation
+        let result = expensiveOperation()
+        XCTAssertNotNil(result)
+    }
+}
+```
+
+### Performance Test Guidelines
+
+1. **Use realistic data sizes**
+2. **Test multiple scenarios**
+3. **Set appropriate baselines**
+4. **Monitor memory usage**
+5. **Run on different devices**
+
+## UI Testing Best Practices
+
+### Element Identification
+
+```swift
+class UITests: XCTestCase {
+    var app: XCUIApplication!
+    
+    override func setUp() {
+        super.setUp()
+        continueAfterFailure = false
+        app = XCUIApplication()
+        app.launch()
+    }
+    
+    func testLoginFlow() {
+        // Use accessibility identifiers
+        let emailField = app.textFields["emailTextField"]
+        let passwordField = app.secureTextFields["passwordTextField"]
+        let loginButton = app.buttons["loginButton"]
+        
+        emailField.tap()
+        emailField.typeText("user@example.com")
+        
+        passwordField.tap()
+        passwordField.typeText("password123")
+        
+        loginButton.tap()
+        
+        // Wait for navigation
+        let welcomeLabel = app.staticTexts["welcomeLabel"]
+        XCTAssertTrue(welcomeLabel.waitForExistence(timeout: 5.0))
+    }
+}
+```
+
+### UI Test Organization
+
+```swift
+// Group related UI tests
+class AuthenticationUITests: XCTestCase {
+    func testLoginWithValidCredentials() { }
+    func testLoginWithInvalidCredentials() { }
+    func testLogout() { }
+}
+
+class NavigationUITests: XCTestCase {
+    func testTabBarNavigation() { }
+    func testBackButtonNavigation() { }
+    func testModalPresentation() { }
+}
+```
+
+## Test Maintenance
+
+### Regular Test Review
+
+1. **Review test coverage** regularly
+2. **Update tests** when requirements change
+3. **Remove obsolete tests**
+4. **Refactor duplicate test code**
+5. **Monitor test execution time**
+
+### Test Documentation
+
+```swift
+/**
+ * Tests the user creation functionality with various input scenarios.
+ * 
+ * Test Cases:
+ * - Valid user data should create user successfully
+ * - Invalid email should throw validation error
+ * - Empty name should throw validation error
+ * - Weak password should throw validation error
+ */
+class UserCreationTests: XCTestCase {
+    func testUserCreationWithValidData() {
+        // Test implementation
+    }
+    
+    func testUserCreationWithInvalidEmail() {
+        // Test implementation
+    }
+}
+```
+
+## Common Testing Anti-Patterns
+
+### 1. Testing Implementation Details
+
+```swift
+// ❌ Bad - Testing implementation details
+func testUserManager() {
+    let userManager = UserManager()
+    XCTAssertEqual(userManager.internalCounter, 0)  // Testing private implementation
+}
+
+// ✅ Good - Testing public behavior
+func testUserManager() {
+    let userManager = UserManager()
+    let user = userManager.createUser(name: "John")
+    XCTAssertNotNil(user)
+}
+```
+
+### 2. Overly Complex Test Setup
+
+```swift
+// ❌ Bad - Complex setup
+func testUserValidation() {
+    let user = User(
+        id: UUID().uuidString,
+        name: "John Doe",
+        email: "john.doe@example.com",
+        password: "SecurePassword123",
+        address: Address(
+            street: "123 Main St",
+            city: "Anytown",
+            state: "CA",
+            zipCode: "12345"
+        ),
+        preferences: UserPreferences(
+            notifications: true,
+            theme: .dark,
+            language: .english
+        )
+    )
+    XCTAssertTrue(user.isValid)
+}
+
+// ✅ Good - Simple, focused setup
+func testUserValidation() {
+    let user = User(
+        name: "John",
+        email: "john@example.com",
+        password: "SecurePassword123"
+    )
+    XCTAssertTrue(user.isValid)
+}
+```
+
+### 3. Testing Multiple Things
+
+```swift
+// ❌ Bad - Testing multiple behaviors
+func testUserOperations() {
+    let user = createUser()
+    XCTAssertNotNil(user)
+    
+    user.updateName("Jane")
+    XCTAssertEqual(user.name, "Jane")
+    
+    user.delete()
+    XCTAssertTrue(user.isDeleted)
+}
+
+// ✅ Good - Separate tests
+func testUserCreation() {
+    let user = createUser()
+    XCTAssertNotNil(user)
+}
+
+func testUserNameUpdate() {
+    let user = createUser()
+    user.updateName("Jane")
+    XCTAssertEqual(user.name, "Jane")
+}
+
+func testUserDeletion() {
+    let user = createUser()
+    user.delete()
+    XCTAssertTrue(user.isDeleted)
+}
+```
+
+## Conclusion
+
+Following these best practices will help you create maintainable, reliable, and effective tests that provide confidence in your code quality. Remember that good tests are:
+
+- **Independent** - Each test can run in isolation
+- **Clear** - Easy to understand and maintain
+- **Focused** - Test one specific behavior
+- **Fast** - Execute quickly
+- **Reliable** - Consistent results
+
+## References
+
+- [Apple Testing Documentation](https://developer.apple.com/documentation/testing)
+- [XCTest Framework Documentation](https://developer.apple.com/documentation/xctest)
+- [Swift Testing GitHub Repository](https://github.com/swiftlang/swift-testing)
+- [WWDC Testing Sessions](https://developer.apple.com/videos/wwdc2024)
+
+---
+
+*This comprehensive guide provides best practices for testing iOS, macOS, watchOS, and tvOS applications, helping developers write better, more maintainable tests.*
+--- END FILE ---
+=== END SWIFT DOCUMENTATION ===
+=== END CONTEXT ===
+
+
+Please implement the requirements above. Write the code directly - do not explain, just write the implementation.

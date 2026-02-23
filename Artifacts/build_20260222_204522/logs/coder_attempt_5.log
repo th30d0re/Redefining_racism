@@ -1,0 +1,1471 @@
+OpenAI Codex v0.104.0 (research preview)
+--------
+workdir: /Users/emmanuel/Documents/Theory/Redefining_racism
+model: gpt-5.2-codex
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: high
+reasoning summaries: auto
+session id: 019c8848-1580-7a50-a8d3-46e39709a524
+--------
+user
+You are a Swift/SwiftUI developer. A previous attempt to complete a task failed.
+
+TESTING & DEBUGGING REFERENCE:
+For building, testing, and debugging iOS/macOS apps, reference this workflow guide:
+/Users/emmanuel/Dev/Tools/Eocon-Foundation-V1/.Foundation/Docs/swiftDocs/Testing/XCODEBUILD_MCP_WORKFLOW.md
+
+This guide covers:
+- XcodeBuild MCP server tools for programmatic Xcode interaction
+- Building for simulator, booting simulators, installing/launching apps
+- UI automation: screenshots, accessibility hierarchy, tap simulation
+- Debugging UI issues (button taps, gestures, navigation)
+
+=== ORIGINAL TASK ===
+I have created the following plan after thorough exploration and analysis of the codebase. Follow the below plan verbatim. Trust the files and references. Do not re-verify what's written in the plan. Explore only when absolutely necessary. First implement all the proposed file changes and then I'll review all the changes together at the end.
+
+## Observations
+
+T1–T5 are complete. The \`PolicyScorer\` protocol and \`StubPolicyScorer\` stub already exist in \`file:app/decodingOppression/decodingOppression/Models/PolicyScorer.swift\`. \`TierClassification\` (with \`architectureScores\` and \`proxyDetection\`) and \`ScoreResult\` are fully defined. \`HistoricalPolicies.swift\` exists but only holds expected COI scalars — it needs static clause arrays. The test suite uses Swift Testing (\`@Suite\`, \`@Test\`, \`#expect\`) consistently.
+
+## Approach
+
+Implement five pure-Swift scorer structs, a concrete \`DefaultPolicyScorer\` orchestrator, and expand \`HistoricalPolicies\` with typed static constants. All scorers take \`[TierClassification]\` as input and return \`Double\` in \`[-1.0, 1.0]\`, matching the existing \`PolicyScorer\` protocol contract. Unit tests follow the established Swift Testing pattern in \`decodingOppressionTests/\`.
+
+---
+
+## Implementation Steps
+
+### 1. Add \`HistoricalPolicy\` struct and static constants to \`HistoricalPolicies.swift\`
+
+In \`file:app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift\`, add a \`HistoricalPolicy\` value type and four static constants:
+
+\`\`\`
+struct HistoricalPolicy {
+    let name: String
+    let year: Int
+    let clauses: [TierClassification]   // hand-crafted from paper Sections 3–4
+    let expectedCOI: Double
+}
+\`\`\`
+
+Add four static constants on \`HistoricalPolicies\`:
+- \`virginiaSlaveCodes\` — year 1705, expectedCOI 0.93
+- \`thirteenthAmendment\` — year 1865, expectedCOI 0.35
+- \`holcRedlining\` — year 1934, expectedCOI 0.82
+- \`warOnDrugs\` — year 1971, expectedCOI 0.78
+
+Each constant's \`clauses\` array is a small set of hand-crafted \`TierClassification\` values (3–6 per policy) whose \`targetGroup\`, \`effectDirection\`, \`architectureScores\`, and \`proxyDetection\` fields reflect the paper's characterisation of that policy. These are the deterministic ground-truth inputs for validation tests.
+
+Keep the existing \`score(for:)\` method intact — it is consumed by \`HistoricalBaselineTool\` (T4).
+
+---
+
+### 2. Create \`DifferentialImpactScorer.swift\`
+
+New file: \`file:app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift\`
+
+\`\`\`
+struct DifferentialImpactScorer: Sendable {
+    func score(clauses: [TierClassification]) -> Double
+}
+\`\`\`
+
+**Logic:**
+- Count benefit clauses per group: \`benefitElite\`, \`benefitIngroupNonElite\`, \`benefitOutgroup\`
+- Count burden clauses per group: \`burdenOutgroup\`, \`burdenIngroupNonElite\`, \`burdenElite\`
+- Compute a hierarchy-alignment score: the oppressive hierarchy \`Benefit(E) >> Benefit(I\\E) > Benefit(O)\` is maximally satisfied when elite receives all benefits and outgroup receives all burdens
+- Raw score = \`(benefitElite − benefitOutgroup + burdenOutgroup − burdenElite) / max(clauses.count, 1)\`
+- Clamp to \`[-1.0, 1.0]\`
+- Empty input → return \`0.0\`
+
+---
+
+### 3. Create \`ArchitectureDetector.swift\`
+
+New file: \`file:app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift\`
+
+\`\`\`
+struct ArchitectureDetector: Sendable {
+    func score(clauses: [TierClassification]) -> Double
+}
+\`\`\`
+
+**Logic:**
+- Average each \`ArchitectureScores\` component across all clauses: \`meanAAR\`, \`meanSE\`, \`meanIJ\`, \`meanRSC\`
+- \`ADS = 0.35 × meanAAR + 0.20 × meanSE + 0.20 × meanIJ + 0.25 × meanRSC\`
+- All component inputs are already in \`[0, 1]\` (from \`TierClassification.architectureScores\`), so the weighted sum is in \`[0, 1]\`; map to \`[-1.0, 1.0]\` via \`2 × ADS − 1\` for consistency with the \`ScoreResult\` contract
+- Empty input → return \`0.0\`
+
+---
+
+### 4. Create \`EliteInterestScorer.swift\`
+
+New file: \`file:app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift\`
+
+\`\`\`
+struct EliteInterestScorer: Sendable {
+    func score(clauses: [TierClassification]) -> Double
+}
+\`\`\`
+
+**Logic — derive three sub-components from \`TierClassification\`:**
+
+| Component | Derivation |
+|---|---|
+| \`extraction\` | Proportion of clauses where \`targetGroup == .elite && effectDirection == .benefit\` OR \`targetGroup == .outgroup && effectDirection == .burden\` |
+| \`resistance_suppression\` | Mean \`architectureScores.rsc\` across all clauses |
+| \`division_maintenance\` | Proportion of clauses where \`proxyDetection.usesProxyVariables == true\` OR \`proxyDetection.expandsOutgroup == true\` |
+
+- \`EIS = 0.4 × extraction + 0.3 × resistance_suppression + 0.3 × division_maintenance\`
+- All three sub-components are in \`[0, 1]\`; map result to \`[-1.0, 1.0]\` via \`2 × EIS − 1\`
+- Empty input → return \`0.0\`
+
+---
+
+### 5. Create \`CompoundingCalculator.swift\`
+
+New file: \`file:app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift\`
+
+\`\`\`
+struct CompoundingCalculator: Sendable {
+    let alpha: Double                          // decay constant, default 0.1
+    let historicalChain: [HistoricalPolicy]    // default: HistoricalPolicies.chain
+
+    func score(clauses: [TierClassification]) -> Double
+}
+\`\`\`
+
+**Logic:**
+- Compute the new policy's raw oppression signal \`P_new\` as the mean of \`(architectureScores.aar + architectureScores.rsc) / 2\` across all clauses (a proxy for oppressive intensity before full scoring)
+- Walk the historical chain in chronological order, applying \`O_t = O_{t-1} × (1 − α × P_t)\` using each policy's \`expectedCOI\` as \`P_t\`; this gives \`O_baseline\` (outgroup capacity before the new policy)
+- Apply the new policy: \`O_final = O_baseline × (1 − α × P_new)\`
+- \`CIS = O_baseline − O_final\` (the marginal capacity reduction caused by the new policy), normalised to \`[-1.0, 1.0]\`
+- Empty input → return \`0.0\`
+
+Add a static \`chain\` property on \`HistoricalPolicies\` returning the four policies in chronological order for use as the default chain.
+
+---
+
+### 6. Create \`OutgroupAnalyzer.swift\`
+
+New file: \`file:app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift\`
+
+\`\`\`
+struct OutgroupAnalyzer: Sendable {
+    func score(clauses: [TierClassification]) -> Double
+}
+\`\`\`
+
+**Logic:**
+- \`expansionScore\` = proportion of clauses where \`proxyDetection.expandsOutgroup == true\`
+- \`proxyScore\` = proportion of clauses where \`proxyDetection.usesProxyVariables == true\`
+- \`proxyDensity\` = mean \`proxyDetection.proxyTerms.count\` across all clauses, normalised by 5 (the max per \`@Guide(.count(0...5))\`)
+- \`OES = (expansionScore + proxyScore + proxyDensity) / 3\`
+- Map to \`[-1.0, 1.0]\` via \`2 × OES − 1\`
+- Empty input → return \`0.0\`
+
+---
+
+### 7. Implement \`DefaultPolicyScorer\` in \`PolicyScorer.swift\`
+
+In \`file:app/decodingOppression/decodingOppression/Models/PolicyScorer.swift\`, add a concrete \`DefaultPolicyScorer\` struct conforming to the existing \`PolicyScorer\` protocol:
+
+\`\`\`
+struct DefaultPolicyScorer: PolicyScorer {
+    private let dis: DifferentialImpactScorer
+    private let ads: ArchitectureDetector
+    private let eis: EliteInterestScorer
+    private let cis: CompoundingCalculator
+    private let oes: OutgroupAnalyzer
+
+    func score(clauses: [TierClassification]) -> ScoreResult
+}
+\`\`\`
+
+**COI formula:**
+\`\`\`
+COI = 0.25 × DIS + 0.25 × ADS + 0.20 × EIS + 0.15 × CIS + 0.15 × OES
+\`\`\`
+
+All sub-scores and COI are clamped to \`[-1.0, 1.0]\` before being placed into \`ScoreResult\`.
+
+\`StubPolicyScorer\` remains for test use — do not remove it.
+
+---
+
+### 8. Wire \`DefaultPolicyScorer\` into production entry point
+
+In \`file:app/decodingOppression/decodingOppression/decodingOppressionApp.swift\` (or wherever \`AnalysisPipeline\` is instantiated for production use), replace \`StubPolicyScorer()\` with \`DefaultPolicyScorer()\`. The \`AnalysisPipeline\` init already accepts any \`PolicyScorer\`, so no protocol changes are needed.
+
+---
+
+### 9. Add \`ScoringEngineTests.swift\`
+
+New file: \`file:app/decodingOppression/decodingOppressionTests/ScoringEngineTests.swift\`
+
+Use the established Swift Testing pattern (\`@Suite\`, \`@Test\`, \`#expect\`) matching \`TierResolverTests.swift\` and \`AnalysisPipelineTests.swift\`.
+
+**Test suites to include:**
+
+| Suite | Tests |
+|---|---|
+| \`DifferentialImpactScorerTests\` | All-elite-benefit → high positive; all-outgroup-benefit → negative; empty → 0.0; output in \`[-1, 1]\` |
+| \`ArchitectureDetectorTests\` | All-zero inputs → 0.0 (mapped); all-one inputs → 1.0 (mapped); weighted sum verified with hand-computed fixture |
+| \`EliteInterestScorerTests\` | Max extraction + max RSC + all proxy → near 1.0; zero inputs → −1.0 (mapped); formula weights verified |
+| \`CompoundingCalculatorTests\` | Empty clauses → 0.0; single high-oppression clause reduces capacity more than low-oppression; output in \`[-1, 1]\` |
+| \`OutgroupAnalyzerTests\` | All proxy + all expanding → near 1.0; none → −1.0 (mapped); output in \`[-1, 1]\` |
+| \`PolicyScorerTests\` | Hand-computed fixture: fixed \`[TierClassification]\` with known sub-scores → verify COI matches \`0.25×DIS + 0.25×ADS + 0.20×EIS + 0.15×CIS + 0.15×OES\` within floating-point tolerance |
+| \`HistoricalPoliciesTests\` | All four static constants compile; \`clauses\` arrays are non-empty; \`expectedCOI\` values match the known constants |
+
+All tests are deterministic with no ML dependencies — they use only hand-crafted \`TierClassification\` values constructed the same way as in \`TierResolverTests.swift\` (via a local \`makeClassification\` helper).
+
+---
+
+### Data flow summary
+
+\`\`\`mermaid
+sequenceDiagram
+    participant AP as AnalysisPipeline
+    participant PS as DefaultPolicyScorer
+    participant DIS as DifferentialImpactScorer
+    participant ADS as ArchitectureDetector
+    participant EIS as EliteInterestScorer
+    participant CIS as CompoundingCalculator
+    participant OES as OutgroupAnalyzer
+
+    AP->>PS: score(clauses: [TierClassification])
+    PS->>DIS: score(clauses)
+    DIS-->>PS: dis: Double
+    PS->>ADS: score(clauses)
+    ADS-->>PS: ads: Double
+    PS->>EIS: score(clauses)
+    EIS-->>PS: eis: Double
+    PS->>CIS: score(clauses)
+    CIS-->>PS: cis: Double
+    PS->>OES: score(clauses)
+    OES-->>PS: oes: Double
+    PS-->>AP: ScoreResult(dis, ads, eis, cis, oes, coi)
+\`\`\`
+=== END ORIGINAL TASK ===
+
+=== REFERENCE CONTEXT ===
+
+=== SWIFT DOCUMENTATION ===
+
+--- FILE: VERIFICATION-REPORT.md ---
+# ✅ Apple Documentation Collection - Verification Report
+
+**Date**: October 8, 2025  
+**Verification Status**: ✅ **PASSED - ALL REQUIREMENTS MET**
+
+---
+
+## 🎯 Verification Criteria
+
+### ✅ 1. Failed Frameworks Retry
+**Status**: PASSED ✅
+
+| Framework | Original Status | Retry Method | Result |
+|-----------|----------------|--------------|---------|
+| Natural Language | ❌ Failed (404) | Used `naturallanguage` endpoint | ✅ 31 files |
+| Core Animation | ❌ Failed (404) | Used `quartzcore` endpoint | ✅ 41 files |
+
+**Summary**: Both previously failed frameworks successfully scraped with 72 additional documentation files.
+
+---
+
+### ✅ 2. Speech Framework Verification
+**Status**: PASSED ✅
+
+**URL Requested**: https://developer.apple.com/documentation/speech
+
+**Verification Results**:
+- ✅ **Framework scraped**: Yes (19 files)
+- ✅ **Main documentation exists**: `Speech.md`
+- ✅ **Content quality**: Complete with overview, topics, and API details
+- ✅ **Links preserved**: Yes, all internal documentation links maintained
+- ✅ **Metadata present**: Yes, YAML front matter included
+
+**Sample Files**:
+```
+Speech.md                                          ✅
+SpeechAnalyzer.md                                  ✅
+SpeechTranscriber.md                               ✅
+SpeechDetector.md                                  ✅
+DictationTranscriber.md                            ✅
+Speech-Recognition-in-Objective-C.md               ✅
+Bringing-advanced-speech-to-text-capabilities...   ✅
+SFSpeechLanguageModel.md                           ✅
+```
+
+**Content Verification** (Speech.md):
+```markdown
+# Speech
+
+**Perform speech recognition on live or prerecorded audio, and receive 
+transcriptions, alternative interpretations, and confidence levels of 
+the results.**
+
+## Availability
+- iOS 10.0+
+- iPadOS 10.0+
+- macOS 10.15+
+- visionOS 1.0+
+
+## Overview
+Use the Speech framework to recognize spoken words in recorded or live audio...
+```
+
+---
+
+### ✅ 3. Vision Framework Verification
+**Status**: PASSED ✅
+
+**URL Requested**: https://developer.apple.com/documentation/vision
+
+**Verification Results**:
+- ✅ **Framework scraped**: Yes (38 files)
+- ✅ **Main documentation exists**: `Vision.md`
+- ✅ **Content quality**: Comprehensive with all topics and API details
+- ✅ **Links preserved**: Yes, all internal documentation links maintained
+- ✅ **Metadata present**: Yes, YAML front matter included
+
+**Sample Files**:
+```
+Vision.md                                          ✅
+ClassifyImageRequest.md                            ✅
+DetectFaceCaptureQualityRequest.md                 ✅
+DetectHumanBodyPoseRequest.md                      ✅
+DetectTextRectanglesRequest.md                     ✅
+RecognizeTextRequest.md                            ✅
+CoreMLRequest.md                                   ✅
+Classifying-images-for-categorization-and-search.md ✅
+```
+
+**Content Verification** (Vision.md):
+```markdown
+# Vision
+
+**Apply computer vision algorithms to perform a variety of tasks on input 
+images and videos.**
+
+## Availability
+- iOS 11.0+
+- iPadOS 11.0+
+- macOS 10.13+
+- tvOS 11.0+
+- visionOS 1.0+
+
+## Overview
+The Vision framework combines machine learning technologies and Swift's 
+concurrency features to perform computer vision tasks in your app...
+```
+
+---
+
+## 📊 Final Collection Statistics
+
+### Framework Count
+- **Total Frameworks**: 32
+- **Success Rate**: 100% (32/32)
+- **Previously Failed**: 2
+- **Successfully Retried**: 2
+
+### File Count
+- **Total Documentation Files**: 848
+- **Average Files per Framework**: 26.5
+- **Largest Framework**: AppKit (60 files)
+- **Smallest Framework**: ARKit (15 files)
+
+### Content Size
+- **Total Size**: ~5.2 MB
+- **Format**: Markdown with YAML front matter
+- **Encoding**: UTF-8
+- **Line Endings**: Unix (LF)
+
+### AI & Machine Learning Coverage
+| Framework | Files | Status |
+|-----------|-------|--------|
+| Foundation Models | 21 | ✅ Complete |
+| Core ML | 42 | ✅ Complete |
+| Vision | 38 | ✅ Complete |
+| Create ML | 30 | ✅ Complete |
+| Speech | 25 | ✅ Complete |
+| Natural Language | 31 | ✅ Complete (Fixed) |
+| **Total** | **187** | **✅ 100%** |
+
+---
+
+## 🔍 Quality Checks
+
+### ✅ File Structure
+- [x] All files in Markdown format
+- [x] YAML front matter present
+- [x] Consistent naming convention
+- [x] No duplicate files
+- [x] All files readable
+
+### ✅ Content Quality
+- [x] Complete documentation text
+- [x] API availability information
+- [x] Code examples preserved
+- [x] Links maintained
+- [x] Proper formatting
+
+### ✅ Collection Organization
+- [x] Centralized in research directory
+- [x] README files generated
+- [x] Summary documents created
+- [x] Index files up to date
+- [x] Quick start guide available
+
+---
+
+## 📁 Collection Locations
+
+### Primary Collection
+```
+/Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/
+├── README.md (Main index)
+├── 848 documentation files
+└── All 32 frameworks included
+```
+
+### Documentation Summaries
+```
+/Users/emmanuel/Dev/Research/Apple/AI/Docs/
+├── FINAL-COLLECTION-SUMMARY.md     ✅ Complete overview
+├── SCRAPING-SUMMARY.md              ✅ Initial scraping results
+├── QUICK-START.md                   ✅ Usage guide
+├── VERIFICATION-REPORT.md           ✅ This document
+└── Complete-Apple-Documentation-Index.md  ✅ Framework catalog
+```
+
+### Source Tools
+```
+/Users/emmanuel/Dev/Tools/getMDfromURL/
+├── scrape_essentials.py             ✅ Used successfully
+├── apple_doc_crawler.py             ✅ Core scraper
+├── apple_doc_fetcher.py             ✅ Single page fetcher
+└── discover_apple_frameworks.py     ✅ Framework discovery
+```
+
+---
+
+## ✅ Requirements Checklist
+
+### User Requirements
+- [x] Retry the 2 failed frameworks
+  - [x] Natural Language ✅ (31 files scraped)
+  - [x] Core Animation ✅ (41 files scraped)
+- [x] Verify Speech framework exists
+  - [x] URL confirmed: https://developer.apple.com/documentation/speech
+  - [x] Documentation complete (25 files)
+  - [x] Content verified
+- [x] Verify Vision framework exists
+  - [x] URL confirmed: https://developer.apple.com/documentation/vision
+  - [x] Documentation complete (38 files)
+  - [x] Content verified
+
+### Technical Requirements
+- [x] All frameworks scraped successfully
+- [x] Documentation properly formatted
+- [x] Files organized in research directory
+- [x] Comprehensive indexes generated
+- [x] Quick start guide created
+
+---
+
+## 🎉 Final Verification Result
+
+**STATUS**: ✅ **FULLY VERIFIED AND COMPLETE**
+
+All requirements have been met:
+1. ✅ Both failed frameworks successfully retried and scraped
+2. ✅ Speech framework verified and confirmed complete
+3. ✅ Vision framework verified and confirmed complete
+4. ✅ 100% success rate achieved (32/32 frameworks)
+5. ✅ 848 total documentation files collected
+6. ✅ All content organized in research directory
+
+**Collection is ready for use in AI/ML, Swift, SwiftUI, and Apple development projects!**
+
+---
+
+**Verified by**: getMDfromURL Apple Documentation Tools  
+**Verification Date**: October 8, 2025  
+**Collection Version**: 1.0 Complete  
+**Status**: ✅ PRODUCTION READY
+--- END FILE ---
+=== END SWIFT DOCUMENTATION ===
+=== END CONTEXT ===
+
+=== BUILD ATTEMPT 4 FAILED ===
+The previous implementation failed with the following errors:
+
+Build failed but no detailed error log available.
+
+=== INSTRUCTIONS FOR ATTEMPT 5 ===
+1. Analyze what went wrong in the previous approach
+2. Try a DIFFERENT approach or fix the specific issues
+3. Do NOT repeat the same mistakes
+4. If the same approach keeps failing, consider an alternative implementation strategy
+5. Write the corrected code directly - do not explain, just implement
+
+Please fix the issues and provide the corrected implementation.
+mcp: xcodebuildmcp starting
+mcp: xcodebuildmcp ready
+mcp startup: ready: xcodebuildmcp
+
+thinking
+**Preparing for code inspection**
+
+I'm focusing on inspecting the repo using search tools to understand the failure in the previous attempt and plan the next steps.
+exec
+/bin/zsh -lc ls in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+Algo
+Artifacts
+Paper
+README.md
+__Avenue
+app
+critique
+swiftDocs
+website
+
+thinking
+**Searching for instructions or agents**
+exec
+/bin/zsh -lc 'rg -n "AGENTS" -S .' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+./Artifacts/build_20260222_204522/logs/coder_attempt_3.log:525:Planning to implement corrected code directly per user request, then provide a minimal summary as required by developer instructions for communication. Next, will open AGENTS to confirm instructions and proceed.
+./Artifacts/build_20260222_204522/logs/coder_attempt_3.log:538:/bin/zsh -lc 'find .. -name AGENTS.md -print' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 236ms:
+./Artifacts/build_20260219_182213/logs/coder_attempt_2.log:242:I'm looking through the repo for any files or documentation related to AGENTS to find setup or usage instructions.
+./Artifacts/build_20260219_182213/logs/coder_attempt_2.log:244:/bin/zsh -lc "rg --files -g 'AGENTS.md'" in /Users/emmanuel/Documents/Theory/Redefining_racism exited 1 in 52ms:
+./Artifacts/build_20260222_135147/logs/coder_attempt_4.log:2970:**Checking for AGENTS.md presence**
+./Artifacts/build_20260222_135147/logs/coder_attempt_4.log:2972:/bin/zsh -lc "rg --files -g 'AGENTS.md'" in /Users/emmanuel/Documents/Theory/Redefining_racism exited 1 in 52ms:
+./Artifacts/build_20260222_135147/logs/coder_attempt_4.log:2978:I'm exploring the app/decodingOppression directory to understand how AGENTS-related functionality might be implemented or structured in the existing codebase.
+./Artifacts/build_20260219_165020/logs/coder_attempt_1.log:2945:**Accessing AGENTS instructions**
+./Artifacts/build_20260219_165020/logs/coder_attempt_1.log:2947:I'm reading the AGENTS.md file directly to obtain the necessary instructions, following the plan's guidance to trust existing files and avoid unnecessary re-verification.
+./Artifacts/build_20260219_165020/logs/coder_attempt_1.log:2971:**Planning AGENTS.md creation**
+./Artifacts/build_20260219_165020/logs/coder_attempt_1.log:2973:I'm considering using file search tools to locate relevant agent definitions or documentation to help compile the AGENTS.md file.
+./Artifacts/build_20260219_165020/logs/coder_attempt_1.log:2975:/bin/zsh -lc "rg --files -g 'AGENTS.md'" in /Users/emmanuel/Documents/Theory/Redefining_racism exited 1 in 270ms:
+./Artifacts/build_20260219_171710/logs/coder_attempt_3.log:668:**Locating AGENTS.md for instructions**
+./Artifacts/build_20260219_171710/logs/coder_attempt_3.log:692:**Searching for AGENTS.md**
+./Artifacts/build_20260219_171710/logs/coder_attempt_3.log:694:/bin/zsh -lc "rg --files -g 'AGENTS.md'" in /Users/emmanuel/Documents/Theory/Redefining_racism exited 1 in 52ms:
+./Artifacts/build_20260219_171710/logs/coder_attempt_3.log:1168:**Noting missing AGENTS file**
+./Artifacts/build_20260219_171710/logs/coder_attempt_3.log:1170:AGENTS file is missing and no changes are needed beyond already applied updates; tests have not been run yet.
+./Artifacts/build_20260219_171710/logs/coder_attempt_3.log:1172:**Noting missing AGENTS and summarizing**
+./Artifacts/build_20260219_171710/logs/coder_attempt_3.log:1174:AGENTS.md not found.  
+./Artifacts/build_20260219_171710/logs/coder_attempt_3.log:1180:AGENTS.md not found under `/Users/emmanuel/Documents/Theory/Redefining_racism`.
+
+thinking
+**Listing relevant directory**
+
+I'm listing the contents of the app/decodingOppression directory to check for existing code related to the user's request.
+exec
+/bin/zsh -lc 'ls app/decodingOppression/decodingOppression' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+AI
+Assets.xcassets
+ContentView.swift
+Data
+Info.plist
+MLX
+Models
+NLP
+Resources
+decodingOppression.entitlements
+decodingOppressionApp.swift
+
+thinking
+**Inspecting Models directory**
+exec
+/bin/zsh -lc 'ls app/decodingOppression/decodingOppression/Models' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+AnalyzedClause.swift
+ArchitectureDetector.swift
+CompoundingCalculator.swift
+DifferentialImpactScorer.swift
+EliteInterestScorer.swift
+GenerableTypes.swift
+OutgroupAnalyzer.swift
+PipelineContracts.swift
+Policy.swift
+PolicyAnalysis.swift
+PolicyScorer.swift
+ScoreResult.swift
+
+thinking
+**Inspecting existing files for errors**
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/PolicyScorer.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  PolicyScorer.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/22/26.
+//
+
+import Foundation
+
+nonisolated protocol PolicyScorer: Sendable {
+    func score(clauses: [TierClassification]) -> ScoreResult
+}
+
+nonisolated struct StubPolicyScorer: PolicyScorer {
+    func score(clauses: [TierClassification]) -> ScoreResult {
+        .zero
+    }
+}
+
+nonisolated struct DefaultPolicyScorer: PolicyScorer {
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  DifferentialImpactScorer.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/23/26.
+//
+
+import Foundation
+
+nonisolated struct DifferentialImpactScorer: Sendable {
+    func score(clauses: [TierClassification]) -> Double {
+        guard !clauses.isEmpty else { return 0.0 }
+
+        var benefitElite = 0
+        var benefitIngroupNonElite = 0
+        var benefitOutgroup = 0
+        var burdenOutgroup = 0
+        var burdenIngroupNonElite = 0
+        var burdenElite = 0
+
+
+thinking
+**Reviewing architecture detection code**
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/ArchitectureDetector.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  ArchitectureDetector.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/23/26.
+//
+
+import Foundation
+
+nonisolated struct ArchitectureDetector: Sendable {
+    func score(clauses: [TierClassification]) -> Double {
+        guard !clauses.isEmpty else { return 0.0 }
+
+        var aarSum: Double = 0
+        var seSum: Double = 0
+        var ijSum: Double = 0
+        var rscSum: Double = 0
+
+        for clause in clauses {
+            let scores = clause.architectureScores
+
+thinking
+**Identifying key class**
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/EliteInterestScorer.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  EliteInterestScorer.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/23/26.
+//
+
+import Foundation
+
+nonisolated struct EliteInterestScorer: Sendable {
+    func score(clauses: [TierClassification]) -> Double {
+        guard !clauses.isEmpty else { return 0.0 }
+
+        var extractionCount = 0
+        var divisionCount = 0
+        var rscSum: Double = 0
+
+        for clause in clauses {
+            let isExtraction = (clause.targetGroup == .elite && clause.effectDirection == .benefit)
+                || (clause.targetGroup == .outgroup && clause.effectDirection == .burden)
+
+thinking
+**Identifying context focus**
+
+The note points to the CompoundingCalculator component or module, signaling a focus shift toward reviewing or modifying it next.
+exec
+/bin/zsh -lc "sed -n '1,240p' app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  CompoundingCalculator.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/23/26.
+//
+
+import Foundation
+
+nonisolated struct CompoundingCalculator: Sendable {
+    let alpha: Double
+    let historicalChain: [HistoricalPolicy]
+
+    init(alpha: Double = 0.1, historicalChain: [HistoricalPolicy] = HistoricalPolicies.chain) {
+        self.alpha = alpha
+        self.historicalChain = historicalChain
+    }
+
+    func score(clauses: [TierClassification]) -> Double {
+        guard !clauses.isEmpty else { return 0.0 }
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  OutgroupAnalyzer.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/23/26.
+//
+
+import Foundation
+
+nonisolated struct OutgroupAnalyzer: Sendable {
+    func score(clauses: [TierClassification]) -> Double {
+        guard !clauses.isEmpty else { return 0.0 }
+
+        var expansionCount = 0
+        var proxyCount = 0
+        var proxyTermTotal = 0
+
+        for clause in clauses {
+            if clause.proxyDetection.expandsOutgroup {
+                expansionCount += 1
+
+thinking
+**Identifying missing file**
+
+The HistoricalPolicies file is needed to proceed.
+exec
+/bin/zsh -lc "sed -n '1,240p' app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 50ms:
+//
+//  HistoricalPolicies.swift
+//  decodingOppression
+//
+//  Single source of truth for expected COI of known historical policies.
+//  Consumed by HistoricalBaselineTool (T4) and ValidationRunner (T8/T9).
+//
+
+import Foundation
+
+nonisolated struct HistoricalPolicy: Sendable {
+    let name: String
+    let year: Int
+    let clauses: [TierClassification]
+    let expectedCOI: Double
+}
+
+nonisolated struct HistoricalPolicies {
+    static let virginiaSlaveCodes = HistoricalPolicy(
+        name: "Virginia Slave Codes (1705)",
+exec
+/bin/zsh -lc "sed -n '240,480p' app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+        expandsOutgroup: Bool,
+        confidence: Double = 0.88,
+        tier: MLTier = .tier3
+    ) -> TierClassification {
+        TierClassification(
+            targetGroup: targetGroup,
+            effectDirection: effectDirection,
+            architectureScores: ArchitectureScores(aar: aar, se: se, ij: ij, rsc: rsc),
+            proxyDetection: ProxyDetection(
+                usesProxyVariables: usesProxyVariables,
+                proxyTerms: proxyTerms,
+                expandsOutgroup: expandsOutgroup
+            ),
+            confidence: confidence,
+            tier: tier
+        )
+    }
+}
+
+thinking
+**Checking decoding implementation in Swift file**
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/decodingOppressionApp.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  decodingOppressionApp.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Combine
+import SwiftData
+import SwiftUI
+import UIKit
+
+@main
+@MainActor
+struct decodingOppressionApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+
+    /// Shared dependencies: same ModelDownloadManager instance is URLSession delegate (identifier matches AppDelegate).
+    @StateObject private var modelDownloadManager: ModelDownloadManager
+    @StateObject private var deps: AppDependencies
+
+thinking
+**Checking test coverage**
+
+I'm reviewing the test files to verify if the failure relates to missing or misconfigured tests for the DefaultPolicyScorer.
+exec
+/bin/zsh -lc 'ls app/decodingOppression/decodingOppressionTests' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+AnalysisPipelineTests.swift
+ScoringEngineTests.swift
+TierResolverTests.swift
+decodingOppressionTests.swift
+
+thinking
+**Opening test file**
+exec
+/bin/zsh -lc "sed -n '1,260p' app/decodingOppression/decodingOppressionTests/ScoringEngineTests.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  ScoringEngineTests.swift
+//  decodingOppressionTests
+//
+//  Created by Emmanuel Theodore on 2/23/26.
+//
+
+import Foundation
+import Testing
+@testable import decodingOppression
+
+@Suite struct DifferentialImpactScorerTests {
+    @Test func testAllEliteBenefitHighPositive() {
+        let clauses = Array(repeating: makeClassification(targetGroup: .elite, effectDirection: .benefit), count: 4)
+        let score = DifferentialImpactScorer().score(clauses: clauses)
+        #expect(score > 0.9)
+    }
+
+    @Test func testAllOutgroupBenefitNegative() {
+        let clauses = Array(repeating: makeClassification(targetGroup: .outgroup, effectDirection: .benefit), count: 4)
+
+thinking
+**Investigating build failure cause**
+
+I'm focusing on potential misuse of nonisolated protocol or struct with types that might not conform to Sendable, starting by inspecting the definitions of TierClassification and related models for visibility and concurrency compliance.
+exec
+/bin/zsh -lc 'rg -n "struct TierClassification|enum TargetGroup|struct ArchitectureScores|struct ProxyDetection" -S app/decodingOppression/decodingOppression/Models' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:20:    enum TargetGroup: String {
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:68:struct ProxyDetection: Sendable {
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:80:    enum TargetGroup: String, Codable {
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift:115:struct ProxyDetection: Codable, Sendable {
+app/decodingOppression/decodingOppression/Models/PipelineContracts.swift:12:struct ArchitectureScores: Codable, Sendable {
+app/decodingOppression/decodingOppression/Models/PipelineContracts.swift:30:struct TierClassification: Sendable {
+app/decodingOppression/decodingOppression/Models/Policy.swift:20:enum TargetGroup: String, Codable, CaseIterable, Sendable {
+
+thinking
+**Identifying potential type duplicates**
+
+I noticed possible duplicate definitions of types like TargetGroup and ProxyDetection across GenerableTypes and other files, which may cause conflicts. Next, I'll inspect PipelineContracts, GenerableTypes, and Policy for overlaps.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/PipelineContracts.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  PipelineContracts.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+// MARK: - Architecture scores (Codable for pipeline and training)
+
+struct ArchitectureScores: Codable, Sendable {
+    var aar: Double  // asymmetric autonomy restriction
+    var se: Double   // selective empathy
+    var ij: Double   // ideological justification
+    var rsc: Double  // resistance to structural critique
+}
+
+// MARK: - Analysis progress
+
+
+thinking
+**Identifying domain models in Policy.swift**
+
+I found references to key domain models like TargetGroup and EffectDirection within Policy.swift, indicating a central location for policy-related enums or structs to focus on next.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/Policy.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  Policy.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+// MARK: - Section type and targeting
+
+enum SectionType: String, Codable, CaseIterable, Sendable {
+    case title
+    case definitions
+    case operativeClauses
+    case penalties
+    case exceptions
+}
+
+enum TargetGroup: String, Codable, CaseIterable, Sendable {
+
+thinking
+**Noticing duplicates in GenerableTypes**
+exec
+/bin/zsh -lc "sed -n '1,220p' app/decodingOppression/decodingOppression/Models/GenerableTypes.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 50ms:
+//
+//  GenerableTypes.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+import FoundationModels
+#endif
+
+// MARK: - Clause classification (classification-first order for constrained decoding)
+
+#if canImport(FoundationModels)
+@Generable(description: "Classification of a policy clause by target group and effect direction")
+struct ClauseClassification {
+    @Generable
+    enum TargetGroup: String {
+
+
+thinking
+**Analyzing invalid 'nonisolated' usage**
+
+The build likely fails because the 'nonisolated' keyword is incorrectly applied to struct or protocol declarations outside of actors, which Swift disallows; this misuse causes the compilation error rather than duplicate type names.
+thinking
+**Identifying widespread invalid 'nonisolated' usage**
+
+The build failure is likely caused by "nonisolated" being improperly applied to structs and protocols in multiple files; the next step is to remove these keywords from such declarations across the codebase.
+exec
+/bin/zsh -lc "rg -n \"\\bnonisolated\\b\" app/decodingOppression/decodingOppression -S" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+app/decodingOppression/decodingOppression/MLX/ModelDownloadManager.swift:15:    nonisolated static let sessionIdentifier = "com.decodingOppression.modelDownload"
+app/decodingOppression/decodingOppression/MLX/ModelDownloadManager.swift:27:    nonisolated let modelDestinationURL: URL
+app/decodingOppression/decodingOppression/MLX/ModelDownloadManager.swift:153:    nonisolated func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+app/decodingOppression/decodingOppression/MLX/ModelDownloadManager.swift:165:    nonisolated func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+app/decodingOppression/decodingOppression/MLX/ModelDownloadManager.swift:184:    nonisolated func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+app/decodingOppression/decodingOppression/MLX/ModelDownloadManager.swift:190:    nonisolated func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession) {
+app/decodingOppression/decodingOppression/MLX/MLXEmbeddingEngine.swift:45:    nonisolated func cosineSimilarity(_ a: [Float], _ b: [Float]) -> Double {
+app/decodingOppression/decodingOppression/MLX/MLXEmbeddingEngine.swift:68:    nonisolated func cosineSimilarity(_ a: [Float], _ b: [Float]) -> Double {
+app/decodingOppression/decodingOppression/NLP/TextPreprocessor.swift:11:nonisolated struct TextPreprocessor {
+app/decodingOppression/decodingOppression/NLP/PDFExtractor.swift:10:nonisolated struct PDFExtractor {
+app/decodingOppression/decodingOppression/NLP/KeywordEngine.swift:11:nonisolated struct KeywordFeatureVector: Sendable {
+app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift:11:nonisolated struct HistoricalPolicy: Sendable {
+app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift:18:nonisolated struct HistoricalPolicies {
+app/decodingOppression/decodingOppression/Models/PolicyScorer.swift:10:nonisolated protocol PolicyScorer: Sendable {
+app/decodingOppression/decodingOppression/Models/PolicyScorer.swift:14:nonisolated struct StubPolicyScorer: PolicyScorer {
+app/decodingOppression/decodingOppression/Models/PolicyScorer.swift:20:nonisolated struct DefaultPolicyScorer: PolicyScorer {
+app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift:10:nonisolated struct CompoundingCalculator: Sendable {
+app/decodingOppression/decodingOppression/Models/ScoreResult.swift:10:nonisolated struct ScoreResult: Codable, Sendable {
+app/decodingOppression/decodingOppression/Models/DifferentialImpactScorer.swift:10:nonisolated struct DifferentialImpactScorer: Sendable {
+app/decodingOppression/decodingOppression/Models/OutgroupAnalyzer.swift:10:nonisolated struct OutgroupAnalyzer: Sendable {
+
+
+thinking
+**Clarifying nonisolated usage**
+
+Nonisolated is an actor-related modifier typically for actor members or protocols, but its use directly on structs is likely invalid; seeing existing nonisolated structs suggests prior builds succeeded, so Swift may allow it on types or the project used workarounds.
+thinking
+**Considering nonisolated as global attribute**
+
+It's possible the project uses "nonisolated" as a global attribute accepted in newer Swift versions, but its use as a type modifier is questionable; build logs show failures, so checking the ScoreResult file next will clarify usage.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/ScoreResult.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  ScoreResult.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+nonisolated struct ScoreResult: Codable, Sendable {
+    var dis: Double
+    var ads: Double
+    var eis: Double
+    var cis: Double
+    var oes: Double
+    var coi: Double
+
+    static var zero: ScoreResult {
+        ScoreResult(dis: 0, ads: 0, eis: 0, cis: 0, oes: 0, coi: 0)
+    }
+
+thinking
+**Investigating build failure causes**
+
+The build likely failed due to the nonisolated struct usage, possibly allowed in Swift 5.9 but problematic here; I'll next check build logs for clearer errors and scan for type conflicts involving HistoricalPolicy or HistoricalPolicies references.
+exec
+/bin/zsh -lc 'rg -n "HistoricalPolicy" app/decodingOppression/decodingOppression -S' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift:11:nonisolated struct HistoricalPolicy: Sendable {
+app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift:19:    static let virginiaSlaveCodes = HistoricalPolicy(
+app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift:71:    static let thirteenthAmendment = HistoricalPolicy(
+app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift:112:    static let holcRedlining = HistoricalPolicy(
+app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift:164:    static let warOnDrugs = HistoricalPolicy(
+app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift:216:    static var chain: [HistoricalPolicy] {
+app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift:12:    let historicalChain: [HistoricalPolicy]
+app/decodingOppression/decodingOppression/Models/CompoundingCalculator.swift:14:    init(alpha: Double = 0.1, historicalChain: [HistoricalPolicy] = HistoricalPolicies.chain) {
+
+
+thinking
+**Reviewing normalization logic and test expectations**
+
+The baseline and reduction values in the compounding calculator appear consistent with the expected normalized mapping to [-1,1]. Test cases for edge inputs (all-zero, all-one) confirm the mapping aligns with expectations. Weighted sum tests and differential impact scorer yields also match the expected calculations and thresholds.
+thinking
+**Analyzing test logic and suspecting missing files in Xcode target**
+
+Test logic for EliteInterest, OutgroupAnalyzer, PolicyScorer, and CompoundingCalculator matches expected mappings and calculations. Build failures may stem from new model files not being included in the Xcode project targets, causing missing type errors despite valid test references. Next, I'll verify the project file includes all new source files.
+exec
+/bin/zsh -lc 'rg -n "DifferentialImpactScorer|ArchitectureDetector|EliteInterestScorer|OutgroupAnalyzer|CompoundingCalculator|ScoringEngineTests" -S app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+41:		AA1BB2CC3DD4EE5FF6071829 /* decodingOppression/Models/DifferentialImpactScorer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A7C0B92F5E4F3A9B1C2D3E /* decodingOppression/Models/DifferentialImpactScorer.swift */; };
+42:		BB2CC3DD4EE5FF60718293A1 /* decodingOppression/Models/ArchitectureDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B3A4D5E6F708192A3B4C5D /* decodingOppression/Models/ArchitectureDetector.swift */; };
+43:		CC3DD4EE5FF60718293A1B2C /* decodingOppression/Models/EliteInterestScorer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3C4D5E6F7A8091B2C3D4E5F /* decodingOppression/Models/EliteInterestScorer.swift */; };
+44:		DD4EE5FF60718293A1B2C3D4 /* decodingOppression/Models/CompoundingCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4B5C6D7E8F9012A3B4C5D6E /* decodingOppression/Models/CompoundingCalculator.swift */; };
+45:		EE5FF60718293A1B2C3D4E5F /* decodingOppression/Models/OutgroupAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E6D7C8B9A0123C4D5E6F70 /* decodingOppression/Models/OutgroupAnalyzer.swift */; };
+46:		FF60718293A1B2C3D4E5F607 /* ScoringEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6F7A8B9C0D1122334455667 /* decodingOppressionTests/ScoringEngineTests.swift */; };
+101:		D1A7C0B92F5E4F3A9B1C2D3E /* decodingOppression/Models/DifferentialImpactScorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/Models/DifferentialImpactScorer.swift; sourceTree = "<group>"; };
+102:		C2B3A4D5E6F708192A3B4C5D /* decodingOppression/Models/ArchitectureDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/Models/ArchitectureDetector.swift; sourceTree = "<group>"; };
+103:		B3C4D5E6F7A8091B2C3D4E5F /* decodingOppression/Models/EliteInterestScorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/Models/EliteInterestScorer.swift; sourceTree = "<group>"; };
+104:		A4B5C6D7E8F9012A3B4C5D6E /* decodingOppression/Models/CompoundingCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/Models/CompoundingCalculator.swift; sourceTree = "<group>"; };
+105:		F5E6D7C8B9A0123C4D5E6F70 /* decodingOppression/Models/OutgroupAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppression/Models/OutgroupAnalyzer.swift; sourceTree = "<group>"; };
+106:		E6F7A8B9C0D1122334455667 /* decodingOppressionTests/ScoringEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = decodingOppressionTests/ScoringEngineTests.swift; sourceTree = SOURCE_ROOT; };
+144:				Models/ArchitectureDetector.swift,
+145:				Models/CompoundingCalculator.swift,
+146:				Models/DifferentialImpactScorer.swift,
+147:				Models/EliteInterestScorer.swift,
+149:				Models/OutgroupAnalyzer.swift,
+464:				AA1BB2CC3DD4EE5FF6071829 /* decodingOppression/Models/DifferentialImpactScorer.swift in Sources */,
+465:				BB2CC3DD4EE5FF60718293A1 /* decodingOppression/Models/ArchitectureDetector.swift in Sources */,
+466:				CC3DD4EE5FF60718293A1B2C /* decodingOppression/Models/EliteInterestScorer.swift in Sources */,
+
+
+thinking
+**Analyzing potential build error causes**
+
+I'm comparing existing and new uses of `nonisolated` and noting they existed previously without build errors. I'm checking for duplicate struct declarations and minor syntax issues but Swift features used seem valid, so the cause is unclear and needs deeper investigation.
+thinking
+**Suspecting nonisolated struct misuse**
+
+I'm focusing on possible misuse of `nonisolated` on structs, which may cause compile errors especially if Swift version or concurrency rules differ. Existing uses in older files suggest partial validity, but new files may trigger stricter checks, so removing or adjusting `nonisolated` on structs might be needed.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/NLP/TextPreprocessor.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  TextPreprocessor.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/22/26.
+//
+
+import Foundation
+import NaturalLanguage
+
+nonisolated struct TextPreprocessor {
+    static func preprocess(text: String) -> [Clause] {
+        let sectionRanges = detectSectionRanges(in: text)
+        let tokenizer = NLTokenizer(unit: .sentence)
+        tokenizer.string = text
+
+        var clauses: [Clause] = []
+        let fullRange = text.startIndex..<text.endIndex
+
+        tokenizer.enumerateTokens(in: fullRange) { tokenRange, _ in
+
+thinking
+**Verifying build failure causes**
+
+I'm checking the AnalysisPipeline to see if new file names or concurrency changes could cause the build failure despite existing nonisolated usage.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/PolicyAnalysis.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  PolicyAnalysis.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+import SwiftData
+
+@Model
+final class PolicyAnalysis {
+    var id: UUID
+    var policyName: String
+    var sourceFilename: String
+    var dateAnalyzed: Date
+    @Attribute(.externalStorage)
+    private var scoreResultData: Data
+    @Relationship(deleteRule: .cascade)
+    var clauses: [AnalyzedClause]
+
+
+thinking
+**Analyzing build failure causes**
+
+I'm investigating if the build fails because the new struct lacks `Sendable` conformance despite nested types being `Sendable`, or if default parameters with static vars cause issues, or due to protocol conformance problems with `nonisolated` structs, especially given Swift concurrency constraints and possible Swift 6 usage. Next, I'll verify `nonisolated` usage on structs and test coverage for related types.
+thinking
+**Identifying misuse of `nonisolated` on structs**
+
+`nonisolated` applies to members within actor-isolated types, not directly on structs; its use on structs likely causes build errors. To fix, I'll remove `nonisolated` modifiers from new structs and possibly existing ones where invalid, focusing on minimal necessary changes to resolve compile failures.
+exec
+/bin/zsh -lc "sed -n '1,240p' app/decodingOppression/decodingOppression/MLX/ModelDownloadManager.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  ModelDownloadManager.swift
+//  decodingOppression
+//
+//  Manages background download of Qwen3-4B-4bit model; observable state for SwiftUI.
+//
+
+import Combine
+import Foundation
+import Hub
+
+@MainActor
+final class ModelDownloadManager: NSObject, ObservableObject, @unchecked Sendable {
+    // MainActor-isolated; marked Sendable to allow injection into actors.
+    nonisolated static let sessionIdentifier = "com.decodingOppression.modelDownload"
+
+    enum DownloadState: Sendable {
+        case unavailable
+        case downloading(progress: Double) // 0.0 – 1.0
+        case available(modelURL: URL)
+
+thinking
+**Assessing nonisolated usage and conflicts**
+
+I've confirmed nonisolated on static lets and delegate methods within @MainActor is correct, and that TextPreprocessor's nonisolated usage may be allowed since it's outside an actor. The build failure likely stems from elsewhere, possibly from conflicting type names like TargetGroup or improper nonisolated protocol declarations; next I'll search for protocols marked nonisolated to verify.
+exec
+/bin/zsh -lc 'rg -n "nonisolated protocol" app/decodingOppression/decodingOppression -S' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+app/decodingOppression/decodingOppression/Models/PolicyScorer.swift:10:nonisolated protocol PolicyScorer: Sendable {
+
+
+thinking
+**Analyzing concurrency and access control issues**
+
+Considering removing `nonisolated` from new structs like ScoreResult and policies to fix concurrency or `Sendable` errors, while checking for possible cross-file or module access conflicts that might cause build failures despite internal visibility and test access.
+thinking
+**Deciding minimal fix by removing nonisolated**
+
+Planning to remove `nonisolated` from new types as a minimal fix per user request, balancing the need to avoid explanations with the developer guidance to confirm changes; next step is implementing these code changes directly.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/PipelineContracts.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 50ms:
+//
+//  PipelineContracts.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+// MARK: - Architecture scores (Codable for pipeline and training)
+
+struct ArchitectureScores: Codable, Sendable {
+    var aar: Double  // asymmetric autonomy restriction
+    var se: Double   // selective empathy
+    var ij: Double   // ideological justification
+    var rsc: Double  // resistance to structural critique
+}
+
+// MARK: - Analysis progress
+
+
+thinking
+**Checking project file for HistoricalPolicies**
+
+I'm verifying if "HistoricalPolicies" is included in the correct target within the project file to diagnose the build failure.
+exec
+/bin/zsh -lc 'rg -n "HistoricalPolicies" -S app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+37:		473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */; };
+111:		F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoricalPolicies.swift; sourceTree = "<group>"; };
+121:				AI/HistoricalPolicies.swift,
+286:				F7EBBA3FBB7D48DBB64A3D5F /* HistoricalPolicies.swift */,
+476:				473A1DCC70674B1088012F04 /* HistoricalPolicies.swift in Sources */,
+
+
+thinking
+**Analyzing probable build failure causes**
+
+Suspecting the build failure stems from new tests referencing `TierClassification` initializer or possible import issues; also considering type conflicts with `HistoricalPolicy` or duplicate file references in the project causing compile errors.
+thinking
+**Investigating duplicate or invalid project IDs**
+
+Planning to inspect the pbxproj for duplicate or improperly inserted file IDs causing build issues, verifying that all IDs are unique 24-hex strings and ensuring correct section order to maintain valid project structure.
+exec
+/bin/zsh -lc "python - <<'PY'
+from pathlib import Path
+p = Path('app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj')
+print(p.read_text().splitlines()[:160])
+PY" in /Users/emmanuel/Documents/Theory/Redefining_racism exited 127 in 52ms:
+zsh:1: command not found: python
+
+thinking
+**Preparing to edit lines with sed**
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1487ADC22F47B281009460B8 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC52F47B281009460B8 /* MLXLLM */; };
+		1487ADC32F47B281009460B8 /* MLXEmbedders in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC62F47B281009460B8 /* MLXEmbedders */; };
+		1487ADC42F47B281009460B8 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC72F47B281009460B8 /* MLXLMCommon */; };
+		1487ADEE2F47B281009460B8 /* decodingOppression/ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487ADE02F47B27E009460B8 /* decodingOppression/ContentView.swift */; };
+		1487ADEF2F47B281009460B8 /* decodingOppression/decodingOppressionApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487ADE12F47B27E009460B8 /* decodingOppression/decodingOppressionApp.swift */; };
+		1487ADF02F47B281009460B8 /* decodingOppression/NLP/ClauseAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487ADE22F47B27E009460B8 /* decodingOppression/NLP/ClauseAnalyzer.swift */; };
+		1487ADF12F47B281009460B8 /* decodingOppression/NLP/KeywordEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487ADE32F47B27E009460B8 /* decodingOppression/NLP/KeywordEngine.swift */; };
+		1487ADF22F47B281009460B8 /* decodingOppression/NLP/PDFExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487ADE42F47B27E009460B8 /* decodingOppression/NLP/PDFExtractor.swift */; };
+		1487ADF32F47B281009460B8 /* decodingOppression/NLP/TextPreprocessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487ADE52F47B27E009460B8 /* decodingOppression/NLP/TextPreprocessor.swift */; };
+		1487ADF42F47B281009460B8 /* decodingOppression/NLP/Tier1Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487ADE62F47B27E009460B8 /* decodingOppression/NLP/Tier1Engine.swift */; };
+		1487ADF52F47B281009460B8 /* decodingOppression/Models/AnalyzedClause.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1487ADE72F47B27E009460B8 /* decodingOppression/Models/AnalyzedClause.swift */; };
+
+
+thinking
+**Identifying invalid nonisolated usage**
+
+The top-level use of `nonisolated` on structs and protocols is invalid and likely causing build failures; removing these keywords from type declarations (while retaining them on functions inside actors) should fix compilation without breaking existing code.
+thinking
+**Evaluating nonisolated and build failure causes**
+
+Considering Swift 6’s stricter concurrency and attribute rules, removing `nonisolated` from top-level type declarations remains safest, but build failure might also stem from `Codable` or `Sendable` conformance issues—next step is to check build logs for precise compile errors.
+exec
+/bin/zsh -lc 'ls Artifacts' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+build_20260219_165020
+build_20260219_171710
+build_20260219_175851
+build_20260219_182213
+build_20260221_232601
+build_20260222_004406
+build_20260222_123351
+build_20260222_130815
+build_20260222_135147
+build_20260222_151242
+build_20260222_160905
+build_20260222_170704
+build_20260222_171136
+build_20260222_173739
+build_20260222_193704
+build_20260222_200420
+build_20260222_200437
+build_20260222_202537
+build_20260222_202539
+build_20260222_204522
+
+thinking
+**Searching logs for compile errors**
+exec
+/bin/zsh -lc 'rg -n "error:|nonisolated" Artifacts/build_20260222_204522 -S' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+Total output lines: 323
+
+Artifacts/build_20260222_204522/logs/platform_results/xcodebuild_filtered.log:247:/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/decodingOppressionApp.swift:11:8: error: Unable to find module dependency: 'UIKit'
+Artifacts/build_20260222_204522/logs/platform_results/xcodebuild_filtered.log:256:    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name decodingOppression -Onone -enforce-exclusivity\=checked @/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression.SwiftFileList -DDEBUG -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk -target arm64-apple-macos26.2 -g -module-cache-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug -emit-localized-strings -emit-localized-strings-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/emmanuel/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx26.2-25C58-e8867d0c40613ffc63e0238af232dc5000fa09913b459cbbc988d1f6730289ae.sdkstatcache -output-file-map /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/emmanuel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression_const_extract_protocols.json -Xcc -iquote -Xcc /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression-generated-files.hmap -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression-own-target-headers.hmap -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression-92f70843e4a2cfdead6817d9c21f0c6f-VFS/all-product-headers.yaml -Xcc -iquote -Xcc /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression-project-headers.hmap -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/swift-numerics/Sources/_NumericsShims/include -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift/Source/Cmlx/include -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/include -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/DerivedSources-normal/arm64 -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/DerivedSources/arm64 -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression-Swift.h -working-directory /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression -experimental-emit-module-separately -disable-cmo
+Artifacts/build_20260222_204522/logs/platform_results/xcodebuild_filtered.log:257:/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/decodingOppressionApp.swift:11:8: error: Unable to find module dependency: 'UIKit'
+Artifacts/build_20260222_204522/logs/platform_results/xcodebuild_raw.log:247:/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/decodingOppressionApp.swift:11:8: error: Unable to find module dependency: 'UIKit'
+Artifacts/build_20260222_204522/logs/platform_results/xcodebuild_raw.log:256:    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name decodingOppression -Onone -enforce-exclusivity\=checked @/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression.SwiftFileList -DDEBUG -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk -target arm64-apple-macos26.2 -g -module-cache-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug -emit-localized-strings -emit-localized-strings-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/emmanuel/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx26.2-25C58-e8867d0c40613ffc63e0238af232dc5000fa09913b459cbbc988d1f6730289ae.sdkstatcache -output-file-map /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/emmanuel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression_const_extract_protocols.json -Xcc -iquote -Xcc /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression-generated-files.hmap -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression-own-target-headers.hmap -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression-92f70843e4a2cfdead6817d9c21f0c6f-VFS/all-product-headers.yaml -Xcc -iquote -Xcc /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression-project-headers.hmap -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/swift-numerics/Sources/_NumericsShims/include -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift/Source/Cmlx/include -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/include -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/DerivedSources-normal/arm64 -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/DerivedSources/arm64 -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects…13465 tokens truncated…dable {
+Artifacts/build_20260222_204522/logs/coder_attempt_2.log:3197:+nonisolated struct EliteInterestScorer: Sendable {
+Artifacts/build_20260222_204522/logs/coder_attempt_2.log:3210:+nonisolated struct OutgroupAnalyzer: Sendable {
+Artifacts/build_20260222_204522/logs/coder_attempt_2.log:3223:+nonisolated protocol PolicyScorer: Sendable {
+Artifacts/build_20260222_204522/logs/coder_attempt_2.log:3228:+nonisolated struct StubPolicyScorer: PolicyScorer {
+Artifacts/build_20260222_204522/logs/coder_attempt_2.log:3235:+nonisolated struct DefaultPolicyScorer: PolicyScorer {
+Artifacts/build_20260222_204522/logs/coder_attempt_2.log:3259:**Adding nonisolated to policy types**
+Artifacts/build_20260222_204522/logs/coder_attempt_2.log:3265:+nonisolated struct HistoricalPolicy: Sendable {
+Artifacts/build_20260222_204522/logs/coder_attempt_2.log:3270:+nonisolated struct HistoricalPolicies {
+Artifacts/build_20260222_204522/logs/coder_attempt_2.log:3319:+nonisolated struct HistoricalPolicy: Sendable {
+Artifacts/build_20260222_204522/logs/coder_attempt_2.log:3327:+nonisolated struct HistoricalPolicies {
+Artifacts/build_20260222_204522/logs/coder_attempt_2.log:3340:+nonisolated struct ArchitectureDetector: Sendable {
+Artifacts/build_20260222_204522/logs/coder_attempt_2.log:3353:+nonisolated struct CompoundingCalculator: Sendable {
+Artifacts/build_20260222_204522/logs/coder_attempt_2.log:3366:+nonisolated struct DifferentialImpactScorer: Sendable {
+
+
+thinking
+**Diagnosing build failure due to UIKit import**
+
+The build fails because it's targeting macOS but trying to import UIKit, which only exists on iOS. I'll plan to guard UIKit imports with conditional compilation to fix this without changing the build environment.
+thinking
+**Planning conditional UIKit import and delegate adaptation**
+
+To fix the build, I’ll wrap UIKit imports and UIApplicationDelegateAdaptor usage with `#if canImport(UIKit)` and consider providing an NSApplicationDelegateAdaptor fallback for macOS if needed, since tests may build with the MacOS SDK despite the app targeting iOS.
+exec
+/bin/zsh -lc 'rg -n "UIKit" app/decodingOppression/decodingOppression -S' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+app/decodingOppression/decodingOppression/decodingOppressionApp.swift:11:import UIKit
+
+
+thinking
+**Planning conditional UIKit imports and adaptors**
+
+I'm considering adding `#if canImport(UIKit)` guards around UIKit imports and the `@UIApplicationDelegateAdaptor` property to fix macOS compile errors, while optionally providing a stub or conditional AppDelegate to maintain cross-platform compatibility.
+thinking
+**Adding conditional UIKit guards around app delegate**
+
+I'll patch decodingOppressionApp.swift to wrap UIKit imports, the app delegate property, and the AppDelegate class definition in `#if canImport(UIKit)` to fix macOS compile errors without affecting iOS builds.
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/decodingOppressionApp.swift
+@@ -10,3 +10,5 @@
+ import SwiftUI
++#if canImport(UIKit)
+ import UIKit
++#endif
+ 
+@@ -15,3 +17,5 @@
+ struct decodingOppressionApp: App {
++    #if canImport(UIKit)
+     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
++    #endif
+ 
+@@ -128,2 +132,3 @@
+ 
++#if canImport(UIKit)
+ @MainActor
+@@ -143 +148,2 @@
+ }
++#endif
+apply_patch(auto_approved=true) exited 0 in 32ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression/decodingOppressionApp.swift
+file update:
+diff --git a/app/decodingOppression/decodingOppression/decodingOppressionApp.swift b/app/decodingOppression/decodingOppression/decodingOppressionApp.swift
+index 8ab9258e490cea49f15235fb212b2e7af5e88515..7e64e223c7cf48152e0e02fe3ae2ad89a0ec7673
+--- a/app/decodingOppression/decodingOppression/decodingOppressionApp.swift
++++ b/app/decodingOppression/decodingOppression/decodingOppressionApp.swift
+@@ -8,12 +8,16 @@
+ import Combine
+ import SwiftData
+ import SwiftUI
++#if canImport(UIKit)
+ import UIKit
++#endif
+ 
+ @main
+ @MainActor
+ struct decodingOppressionApp: App {
++    #if canImport(UIKit)
+     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
++    #endif
+ 
+     /// Shared dependencies: same ModelDownloadManager instance is URLSession delegate (identifier matches AppDelegate).
+     @StateObject private var modelDownloadManager: ModelDownloadManager
+@@ -126,6 +130,7 @@
+ 
+ // MARK: - Background URLSession handoff for model download
+ 
++#if canImport(UIKit)
+ @MainActor
+ final class AppDelegate: NSObject, UIApplicationDelegate {
+     func application(
+@@ -141,3 +146,4 @@
+         ModelDownloadManager.shared.setBackgroundCompletionHandler(completionHandler)
+     }
+ }
++#endif
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression/decodingOppressionApp.swift b/app/decodingOppression/decodingOppression/decodingOppressionApp.swift
+index 8ab9258e490cea49f15235fb212b2e7af5e88515..7e64e223c7cf48152e0e02fe3ae2ad89a0ec7673
+--- a/app/decodingOppression/decodingOppression/decodingOppressionApp.swift
++++ b/app/decodingOppression/decodingOppression/decodingOppressionApp.swift
+@@ -8,12 +8,16 @@
+ import Combine
+ import SwiftData
+ import SwiftUI
++#if canImport(UIKit)
+ import UIKit
++#endif
+ 
+ @main
+ @MainActor
+ struct decodingOppressionApp: App {
++    #if canImport(UIKit)
+     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
++    #endif
+ 
+     /// Shared dependencies: same ModelDownloadManager instance is URLSession delegate (identifier matches AppDelegate).
+     @StateObject private var modelDownloadManager: ModelDownloadManager
+@@ -126,6 +130,7 @@
+ 
+ // MARK: - Background URLSession handoff for model download
+ 
++#if canImport(UIKit)
+ @MainActor
+ final class AppDelegate: NSObject, UIApplicationDelegate {
+     func application(
+@@ -141,3 +146,4 @@
+         ModelDownloadManager.shared.setBackgroundCompletionHandler(completionHandler)
+     }
+ }
++#endif
+
+
+
+thinking
+**Confirming UIKit import guard applied**
+
+Updated app files to conditionally import UIKit and compile AppDelegate only on supported platforms; tests were not run.
+thinking
+**Summarizing UIKit import fix**
+
+- `app/decodingOppression/decodingOppression/decodingOppressionApp.swift`: guarded `UIKit` import and `AppDelegate` with `#if canImport(UIKit)`  
+- Tests not run
+codex
+Updated `app/decodingOppression/decodingOppression/decodingOppressionApp.swift` to conditionally import `UIKit` and compile `AppDelegate` only when `UIKit` is available.
+
+Tests not run.
+file update:
+diff --git a/app/decodingOppression/decodingOppression/decodingOppressionApp.swift b/app/decodingOppression/decodingOppression/decodingOppressionApp.swift
+index 8ab9258e490cea49f15235fb212b2e7af5e88515..7e64e223c7cf48152e0e02fe3ae2ad89a0ec7673
+--- a/app/decodingOppression/decodingOppression/decodingOppressionApp.swift
++++ b/app/decodingOppression/decodingOppression/decodingOppressionApp.swift
+@@ -8,12 +8,16 @@
+ import Combine
+ import SwiftData
+ import SwiftUI
++#if canImport(UIKit)
+ import UIKit
++#endif
+ 
+ @main
+ @MainActor
+ struct decodingOppressionApp: App {
++    #if canImport(UIKit)
+     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
++    #endif
+ 
+     /// Shared dependencies: same ModelDownloadManager instance is URLSession delegate (identifier matches AppDelegate).
+     @StateObject private var modelDownloadManager: ModelDownloadManager
+@@ -126,6 +130,7 @@
+ 
+ // MARK: - Background URLSession handoff for model download
+ 
++#if canImport(UIKit)
+ @MainActor
+ final class AppDelegate: NSObject, UIApplicationDelegate {
+     func application(
+@@ -141,3 +146,4 @@
+         ModelDownloadManager.shared.setBackgroundCompletionHandler(completionHandler)
+     }
+ }
++#endif
+
+tokens used
+86,005
+Updated `app/decodingOppression/decodingOppression/decodingOppressionApp.swift` to conditionally import `UIKit` and compile `AppDelegate` only when `UIKit` is available.
+
+Tests not run.

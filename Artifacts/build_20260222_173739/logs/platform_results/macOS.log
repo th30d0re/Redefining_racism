@@ -1,0 +1,378 @@
+
+[0;36m[BUILD][0m ==========================================
+[0;36m[BUILD][0m Phase 5: BuildLint Starting
+[0;36m[BUILD][0m ==========================================
+
+0
+[0;36m[VERBOSE][0m Using provided logs directory: /Users/emmanuel/Documents/Theory/Redefining_racism/Artifacts/build_20260222_173739/logs/platform_results
+[0;36m[VERBOSE][0m No Build folder found in script directory, using default
+[0;34m[INFO][0m Project Root: /Users/emmanuel/Dev/Tools/Eocon-Foundation-V1
+[0;34m[INFO][0m Scheme: decodingOppression
+[0;34m[INFO][0m Configuration: Debug
+[0;34m[INFO][0m Destination: platform=macOS
+
+[0;34m[INFO][0m No uncommitted Swift files to lint
+
+[0;36m[BUILD][0m Starting Xcode build...
+[0;36m[VERBOSE][0m Skipping Swift macro validation
+⚠️  xcodemake not found, using full xcodebuild
+[0;34m[INFO][0m Build command: xcodebuild -project "/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj" -scheme "decodingOppression" -configuration "Debug" -destination "platform=macOS" -skipMacroValidation build
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj -scheme decodingOppression -configuration Debug -destination platform=macOS -skipMacroValidation build
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  swift-collections: https://github.com/apple/swift-collections.git @ 1.3.0
+  swift-transformers: https://github.com/huggingface/swift-transformers @ 1.1.6
+  swift-numerics: https://github.com/apple/swift-numerics @ 1.1.1
+  mlx-swift: https://github.com/ml-explore/mlx-swift @ 0.29.1
+  mlx-swift-lm: https://github.com/ml-explore/mlx-swift-lm @ 2.29.3
+  Jinja: https://github.com/huggingface/swift-jinja.git @ 2.3.2
+
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:macOS, arch:arm64, id:00006001-000448A43402801E, name:My Mac }
+{ platform:macOS, arch:x86_64, id:00006001-000448A43402801E, name:My Mac }
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (37 targets)
+    Target 'decodingOppression' in project 'decodingOppression'
+        ➜ Explicit dependency on target 'MLXLLM' in project 'mlx-swift-lm'
+        ➜ Explicit dependency on target 'MLXEmbedders' in project 'mlx-swift-lm'
+        ➜ Explicit dependency on target 'MLXLMCommon' in project 'mlx-swift-lm'
+    Target 'MLXLMCommon' in project 'mlx-swift-lm'
+        ➜ Explicit dependency on target 'MLXLMCommon' in project 'mlx-swift-lm'
+        ➜ Explicit dependency on target 'MLX' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXNN' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXOptimizers' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXRandom' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXLinalg' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Transformers' in project 'swift-transformers'
+    Target 'MLXEmbedders' in project 'mlx-swift-lm'
+        ➜ Explicit dependency on target 'MLXEmbedders' in project 'mlx-swift-lm'
+        ➜ Explicit dependency on target 'MLXLMCommon' in project 'mlx-swift-lm'
+        ➜ Explicit dependency on target 'MLX' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXNN' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXOptimizers' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXRandom' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXLinalg' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Transformers' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'MLXFast' in project 'mlx-swift'
+    Target 'MLXEmbedders' in project 'mlx-swift-lm'
+        ➜ Explicit dependency on target 'MLXLMCommon' in project 'mlx-swift-lm'
+        ➜ Explicit dependency on target 'MLX' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXNN' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXOptimizers' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXRandom' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXLinalg' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Transformers' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'MLXFast' in project 'mlx-swift'
+    Target 'MLXLLM' in project 'mlx-swift-lm'
+        ➜ Explicit dependency on target 'MLXLLM' in project 'mlx-swift-lm'
+        ➜ Explicit dependency on target 'MLXLMCommon' in project 'mlx-swift-lm'
+        ➜ Explicit dependency on target 'MLX' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXNN' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXOptimizers' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXRandom' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXLinalg' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Transformers' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'MLXFast' in project 'mlx-swift'
+    Target 'MLXLLM' in project 'mlx-swift-lm'
+        ➜ Explicit dependency on target 'MLXLMCommon' in project 'mlx-swift-lm'
+        ➜ Explicit dependency on target 'MLX' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXNN' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXOptimizers' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXRandom' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXLinalg' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Transformers' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'MLXFast' in project 'mlx-swift'
+    Target 'MLXFast' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXFast' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Cmlx' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLX' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Numerics' in project 'swift-numerics'
+    Target 'MLXLMCommon' in project 'mlx-swift-lm'
+        ➜ Explicit dependency on target 'MLX' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXNN' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXOptimizers' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXRandom' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXLinalg' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Transformers' in project 'swift-transformers'
+    Target 'Transformers' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'Tokenizers' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'Generation' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'Models' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'Hub' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'Jinja' in project 'Jinja'
+        ➜ Explicit dependency on target 'OrderedCollections' in project 'swift-collections'
+    Target 'Models' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'Hub' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'Tokenizers' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'Generation' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'Jinja' in project 'Jinja'
+        ➜ Explicit dependency on target 'OrderedCollections' in project 'swift-collections'
+    Target 'Generation' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'Hub' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'Tokenizers' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'Jinja' in project 'Jinja'
+        ➜ Explicit dependency on target 'OrderedCollections' in project 'swift-collections'
+    Target 'Tokenizers' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'Hub' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'Jinja' in project 'Jinja'
+        ➜ Explicit dependency on target 'OrderedCollections' in project 'swift-collections'
+    Target 'Hub' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'swift-transformers_Hub' in project 'swift-transformers'
+        ➜ Explicit dependency on target 'Jinja' in project 'Jinja'
+        ➜ Explicit dependency on target 'OrderedCollections' in project 'swift-collections'
+    Target 'Jinja' in project 'Jinja'
+        ➜ Explicit dependency on target 'Jinja' in project 'Jinja'
+        ➜ Explicit dependency on target 'OrderedCollections' in project 'swift-collections'
+    Target 'Jinja' in project 'Jinja'
+        ➜ Explicit dependency on target 'OrderedCollections' in project 'swift-collections'
+    Target 'OrderedCollections' in project 'swift-collections'
+        ➜ Explicit dependency on target 'OrderedCollections' in project 'swift-collections'
+        ➜ Explicit dependency on target 'InternalCollectionsUtilities' in project 'swift-collections'
+    Target 'OrderedCollections' in project 'swift-collections'
+        ➜ Explicit dependency on target 'InternalCollectionsUtilities' in project 'swift-collections'
+    Target 'InternalCollectionsUtilities' in project 'swift-collections' (no dependencies)
+    Target 'swift-transformers_Hub' in project 'swift-transformers' (no dependencies)
+    Target 'MLXLinalg' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXLinalg' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Cmlx' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLX' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Numerics' in project 'swift-numerics'
+    Target 'MLXLinalg' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Cmlx' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLX' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Numerics' in project 'swift-numerics'
+    Target 'MLXRandom' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXRandom' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Cmlx' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLX' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Numerics' in project 'swift-numerics'
+    Target 'MLXOptimizers' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXOptimizers' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Cmlx' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLX' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXRandom' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXFast' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXNN' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Numerics' in project 'swift-numerics'
+    Target 'MLXOptimizers' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Cmlx' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLX' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXRandom' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXFast' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXNN' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Numerics' in project 'swift-numerics'
+    Target 'MLXNN' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXNN' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Cmlx' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLX' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXRandom' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXFast' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Numerics' in project 'swift-numerics'
+    Target 'MLXNN' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Cmlx' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLX' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXRandom' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLXFast' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Numerics' in project 'swift-numerics'
+    Target 'MLXFast' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Cmlx' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLX' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Numerics' in project 'swift-numerics'
+    Target 'MLXRandom' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Cmlx' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLX' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Numerics' in project 'swift-numerics'
+    Target 'MLX' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'MLX' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Cmlx' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Numerics' in project 'swift-numerics'
+    Target 'MLX' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Cmlx' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'Numerics' in project 'swift-numerics'
+    Target 'Numerics' in project 'swift-numerics'
+        ➜ Explicit dependency on target 'Numerics' in project 'swift-numerics'
+        ➜ Explicit dependency on target '_NumericsShims' in project 'swift-numerics'
+        ➜ Explicit dependency on target 'RealModule' in project 'swift-numerics'
+        ➜ Explicit dependency on target 'ComplexModule' in project 'swift-numerics'
+    Target 'Numerics' in project 'swift-numerics'
+        ➜ Explicit dependency on target '_NumericsShims' in project 'swift-numerics'
+        ➜ Explicit dependency on target 'RealModule' in project 'swift-numerics'
+        ➜ Explicit dependency on target 'ComplexModule' in project 'swift-numerics'
+    Target 'ComplexModule' in project 'swift-numerics'
+        ➜ Explicit dependency on target '_NumericsShims' in project 'swift-numerics'
+        ➜ Explicit dependency on target 'RealModule' in project 'swift-numerics'
+    Target 'RealModule' in project 'swift-numerics'
+        ➜ Explicit dependency on target '_NumericsShims' in project 'swift-numerics'
+    Target '_NumericsShims' in project 'swift-numerics' (no dependencies)
+    Target 'Cmlx' in project 'mlx-swift'
+        ➜ Explicit dependency on target 'mlx-swift_Cmlx' in project 'mlx-swift'
+    Target 'mlx-swift_Cmlx' in project 'mlx-swift' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk -x objective-c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk -x c++ -c /dev/null
+
+ReadFileContents /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/share/docc/features.json
+
+Build description signature: 83b0fc202fc2a75f27f9a74847e13bb8
+Build description path: /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/XCBuildData/83b0fc202fc2a75f27f9a74847e13bb8.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk /Users/emmanuel/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx26.2-25C58-e8867d0c40613ffc63e0238af232dc5000fa09913b459cbbc988d1f6730289ae.sdkstatcache
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk -o /Users/emmanuel/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx26.2-25C58-e8867d0c40613ffc63e0238af232dc5000fa09913b459cbbc988d1f6730289ae.sdkstatcache
+
+ProcessInfoPlistFile /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/swift-transformers_Hub.bundle/Contents/Info.plist /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/swift-transformers.build/Debug/swift-transformers_Hub.build/empty-swift-transformers_Hub.plist (in target 'swift-transformers_Hub' from project 'swift-transformers')
+    cd /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/swift-transformers
+    builtin-infoPlistUtility /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/swift-transformers.build/Debug/swift-transformers_Hub.build/empty-swift-transformers_Hub.plist -producttype com.apple.product-type.bundle -expandbuildsettings -platform macosx -o /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/swift-transformers_Hub.bundle/Contents/Info.plist
+
+ProcessInfoPlistFile /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/mlx-swift_Cmlx.bundle/Contents/Info.plist /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/mlx-swift.build/Debug/mlx-swift_Cmlx.build/empty-mlx-swift_Cmlx.plist (in target 'mlx-swift_Cmlx' from project 'mlx-swift')
+    cd /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift
+    builtin-infoPlistUtility /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/mlx-swift.build/Debug/mlx-swift_Cmlx.build/empty-mlx-swift_Cmlx.plist -producttype com.apple.product-type.bundle -expandbuildsettings -platform macosx -o /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/mlx-swift_Cmlx.bundle/Contents/Info.plist
+
+SwiftDriver MLXLLM normal arm64 com.apple.xcode.tools.swift.compiler (in target 'MLXLLM' from project 'mlx-swift-lm')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name MLXLLM -Onone -enforce-exclusivity\=checked @/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/mlx-swift-lm.build/Debug/MLXLLM.build/Objects-normal/arm64/MLXLLM.SwiftFileList -DSWIFT_PACKAGE -DDEBUG -DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE -DXcode -enable-experimental-feature StrictConcurrency -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk -target arm64-apple-macos14.0 -g -module-cache-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -suppress-warnings -index-store-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug -F /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/emmanuel/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx26.2-25C58-e8867d0c40613ffc63e0238af232dc5000fa09913b459cbbc988d1f6730289ae.sdkstatcache -output-file-map /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/mlx-swift-lm.build/Debug/MLXLLM.build/Objects-normal/arm64/MLXLLM-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/mlx-swift-lm.build/Debug/MLXLLM.build/Objects-normal/arm64/MLXLLM.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/emmanuel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -package-name mlx_swift_lm -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/mlx-swift-lm.build/Debug/MLXLLM.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/mlx-swift-lm.build/Debug/MLXLLM.build/Objects-normal/arm64/MLXLLM_const_extract_protocols.json -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/swift-numerics/Sources/_NumericsShims/include -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift/Source/Cmlx/include -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/include -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/mlx-swift-lm.build/Debug/MLXLLM.build/DerivedSources-normal/arm64 -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/mlx-swift-lm.build/Debug/MLXLLM.build/DerivedSources/arm64 -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/mlx-swift-lm.build/Debug/MLXLLM.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/mlx-swift-lm.build/Debug/MLXLLM.build/Objects-normal/arm64/MLXLLM-Swift.h -working-directory /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj -experimental-emit-module-separately -disable-cmo
+
+CompileC /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/mlx-swift.build/Debug/Cmlx.build/Objects-normal/arm64/binary-dc1f2dc80559b502137d6b2922d40cdf.o /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift/Source/Cmlx/mlx/mlx/backend/cpu/binary.cpp normal arm64 c++ com.apple.compilers.llvm.clang.1_0.compiler (in target 'Cmlx' from project 'mlx-swift')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj
+    
+    Using response file: /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/mlx-swift.build/Debug/Cmlx.build/Objects-normal/arm64/82b82416624d2658e5098eb0a28c15c5-common-args.resp
+    
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -x c++ -ivfsstatcache /Users/emmanuel/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx26.2-25C58-e8867d0c40613ffc63e0238af232dc5000fa09913b459cbbc988d1f6730289ae.sdkstatcache -fmessage-length\=0 -fdiagnostics-show-note-include-stack -fmacro-backtrace-limit\=0 -fno-color-diagnostics -fmodules-prune-interval\=86400 -fmodules-prune-after\=345600 -fbuild-session-file\=/Users/emmanuel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -fmodules-validate-once-per-build-session -Wnon-modular-include-in-framework-module -Werror\=non-modular-include-in-framework-module -Wno-trigraphs -Wno-missing-field-initializers -Wno-missing-prototypes -Wno-return-type -Wno-non-virtual-dtor -Wno-overloaded-virtual -Wno-exit-time-destructors -Wno-missing-braces -Wparentheses -Wswitch -Wno-unused-function -Wno-unused-label -Wno-unused-parameter -Wno-unused-variable -Wunused-value -Wno-empty-body -Wno-uninitialized -Wno-unknown-pragmas -w -Wno-shadow -Wno-four-char-constants -Wno-conversion -Wno-constant-conversion -Wno-int-conversion -Wno-bool-conversion -Wno-enum-conversion -Wno-float-conversion -Wno-non-literal-null-conversion -Wno-objc-literal-conversion -Wshorten-64-to-32 -Wno-newline-eof -Wno-c++11-extensions -Wno-implicit-fallthrough -fstrict-aliasing -Wdeprecated-declarations -Winvalid-offsetof -Wno-sign-conversion -Wno-infinite-recursion -Wno-move -Wno-comma -Wno-block-capture-autoreleasing -Wno-strict-prototypes -Wno-range-loop-analysis -Wno-semicolon-before-method-body -index-store-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Index.noindex/DataStore @/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/mlx-swift.build/Debug/Cmlx.build/Objects-normal/arm64/82b82416624d2658e5098eb0a28c15c5-common-args.resp -MMD -MT dependencies -MF /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/mlx-swift.build/Debug/Cmlx.build/Objects-normal/arm64/binary-dc1f2dc80559b502137d6b2922d40cdf.d --serialize-diagnostics /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/mlx-swift.build/Debug/Cmlx.build/Objects-normal/arm64/binary-dc1f2dc80559b502137d6b2922d40cdf.dia -c /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift/Source/Cmlx/mlx/mlx/backend/cpu/binary.cpp -o /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/mlx-swift.build/Debug/Cmlx.build/Objects-normal/arm64/binary-dc1f2dc80559b502137d6b2922d40cdf.o -index-unit-output-path /mlx-swift.build/Debug/Cmlx.build/Objects-normal/arm64/binary-dc1f2dc80559b502137d6b2922d40cdf.o
+/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/decodingOppressionApp.swift:11:8: error: Unable to find module dependency: 'UIKit'
+import UIKit
+       ^
+/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/decodingOppressionApp.swift:11:8: note: a dependency of main module 'decodingOppression'
+import UIKit
+       ^
+
+SwiftDriver decodingOppression normal arm64 com.apple.xcode.tools.swift.compiler (in target 'decodingOppression' from project 'decodingOppression')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name decodingOppression -Onone -enforce-exclusivity\=checked @/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression.SwiftFileList -DDEBUG -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk -target arm64-apple-macos26.2 -g -module-cache-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/PackageFrameworks -F /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug -emit-localized-strings -emit-localized-strings-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/emmanuel/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx26.2-25C58-e8867d0c40613ffc63e0238af232dc5000fa09913b459cbbc988d1f6730289ae.sdkstatcache -output-file-map /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/emmanuel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression_const_extract_protocols.json -Xcc -iquote -Xcc /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression-generated-files.hmap -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression-own-target-headers.hmap -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression-92f70843e4a2cfdead6817d9c21f0c6f-VFS/all-product-headers.yaml -Xcc -iquote -Xcc /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression-project-headers.hmap -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/swift-numerics/Sources/_NumericsShims/include -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift/Source/Cmlx/include -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/include -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/DerivedSources-normal/arm64 -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/DerivedSources/arm64 -Xcc -I/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression-Swift.h -working-directory /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression -experimental-emit-module-separately -disable-cmo
+/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/decodingOppressionApp.swift:11:8: error: Unable to find module dependency: 'UIKit'
+import UIKit
+       ^ (in target 'decodingOppression' from project 'decodingOppression')
+/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/decodingOppressionApp.swift:11:8: note: A dependency of main module 'decodingOppression'
+import UIKit
+       ^ (in target 'decodingOppression' from project 'decodingOppression')
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ MLXLLM (in target 'MLXLLM' from project 'mlx-swift-lm')
+EmitSwiftModule normal arm64 (in target 'MLXLLM' from project 'mlx-swift-lm')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj
+    
+
+SwiftCompile normal arm64 Compiling\ OpenELM.swift /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/OpenELM.swift (in target 'MLXLLM' from project 'mlx-swift-lm')
+SwiftCompile normal arm64 /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/OpenELM.swift (in target 'MLXLLM' from project 'mlx-swift-lm')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj
+    
+
+SwiftCompile normal arm64 Compiling\ DeepseekV3.swift,\ GraniteMoeHybrid.swift /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/DeepseekV3.swift /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/GraniteMoeHybrid.swift (in target 'MLXLLM' from project 'mlx-swift-lm')
+
+SwiftCompile normal arm64 /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/DeepseekV3.swift (in target 'MLXLLM' from project 'mlx-swift-lm')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj
+    
+
+SwiftCompile normal arm64 /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/GraniteMoeHybrid.swift (in target 'MLXLLM' from project 'mlx-swift-lm')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj
+    
+
+SwiftCompile normal arm64 Compiling\ Internlm2.swift /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/Internlm2.swift (in target 'MLXLLM' from project 'mlx-swift-lm')
+
+SwiftCompile normal arm64 /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/Internlm2.swift (in target 'MLXLLM' from project 'mlx-swift-lm')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj
+    
+
+SwiftCompile normal arm64 Compiling\ Bitnet.swift,\ Cohere.swift /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/Bitnet.swift /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/Cohere.swift (in target 'MLXLLM' from project 'mlx-swift-lm')
+SwiftCompile normal arm64 /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/Bitnet.swift (in target 'MLXLLM' from project 'mlx-swift-lm')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj
+    
+
+SwiftCompile normal arm64 /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/Cohere.swift (in target 'MLXLLM' from project 'mlx-swift-lm')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj
+    
+
+SwiftCompile normal arm64 Compiling\ BaichuanM1.swift,\ BailingMoe.swift /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/BaichuanM1.swift /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/BailingMoe.swift (in target 'MLXLLM' from project 'mlx-swift-lm')
+
+SwiftCompile normal arm64 /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/BaichuanM1.swift (in target 'MLXLLM' from project 'mlx-swift-lm')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj
+    
+
+SwiftCompile normal arm64 /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/BailingMoe.swift (in target 'MLXLLM' from project 'mlx-swift-lm')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj
+    
+
+SwiftCompile normal arm64 Compiling\ Phi3.swift /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/Phi3.swift (in target 'MLXLLM' from project 'mlx-swift-lm')
+
+SwiftCompile normal arm64 /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/Phi3.swift (in target 'MLXLLM' from project 'mlx-swift-lm')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj
+    
+
+SwiftCompile normal arm64 Compiling\ LFM2.swift /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/LFM2.swift (in target 'MLXLLM' from project 'mlx-swift-lm')
+
+SwiftCompile normal arm64 /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/LFM2.swift (in target 'MLXLLM' from project 'mlx-swift-lm')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj
+    
+
+SwiftCompile normal arm64 Compiling\ Phi.swift /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/SourcePackages/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/Phi.swift (in target 'MLXLLM' from project 'mlx-swift-lm')
+
+warning: Skipping duplicate build file in Copy Bundle Resources build phase: /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/Data/KeywordTaxonomies.json (in target 'decodingOppression' from project 'decodingOppression')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/Assets.xcassets (in target 'decodingOppression' from project 'decodingOppression')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/NLP/ClauseAnalyzer.swift (in target 'decodingOppression' from project 'decodingOppression')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/NLP/KeywordEngine.swift (in target 'decodingOppression' from project 'decodingOppression')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/NLP/PDFExtractor.swift (in target 'decodingOppression' from project 'decodingOppression')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/NLP/TextPreprocessor.swift (in target 'decodingOppression' from project 'decodingOppression')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/NLP/Tier1Engine.swift (in target 'decodingOppression' from project 'decodingOppression')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/NLP/AnalysisPipeline.swift (in target 'decodingOppression' from project 'decodingOppression')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/NLP/TierResolver.swift (in target 'decodingOppression' from project 'decodingOppression')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/Models/PolicyScorer.swift (in target 'decodingOppression' from project 'decodingOppression')
+** BUILD FAILED **
+
+
+The following build commands failed:
+	SwiftDriver decodingOppression normal arm64 com.apple.xcode.tools.swift.compiler (in target 'decodingOppression' from project 'decodingOppression')
+	Building project decodingOppression with scheme decodingOppression and configuration Debug
+(2 failures)
+[0;31m[ERROR][0m Build failed with exit code: 65
+[0;31m[ERROR][0m Error log written to: /Users/emmanuel/Documents/Theory/Redefining_racism/Artifacts/build_20260222_173739/logs/platform_results/error.log
+{
+  "status": "failed",
+  "platform": "iOS Simulator",
+  "scheme": "decodingOppression",
+  "configuration": "Debug",
+  "destination": "platform=macOS",
+  "error": "Xcode build failed ",
+  "error_file": "/Users/emmanuel/Documents/Theory/Redefining_racism/Artifacts/build_20260222_173739/logs/platform_results/error.log",
+  "logs_dir": "/Users/emmanuel/Documents/Theory/Redefining_racism/Artifacts/build_20260222_173739/logs/platform_results",
+  "exit_code": 10,
+  "timestamp": "2026-02-22T23:16:16Z"
+}
+/Users/emmanuel/Documents/Theory/Redefining_racism/Artifacts/build_20260222_173739/logs/platform_results/error.log
+[0;31m[ERROR][0m Build failed

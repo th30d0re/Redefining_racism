@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import * as d3 from 'd3';
 import { motion } from 'framer-motion';
 import './OutgroupExpansion.css';
@@ -6,14 +6,14 @@ import './OutgroupExpansion.css';
 const OutgroupExpansion = () => {
   const svgRef = useRef<SVGSVGElement>(null);
 
-  const data = [
+  const data = useMemo(() => [
     { year: 1619, size: 1, groups: ['Enslaved Africans'] },
     { year: 1705, size: 1.2, groups: ['Black people'] },
     { year: 1865, size: 2.5, groups: ['Black people', 'Poor whites (convict leasing)'] },
     { year: 1896, size: 2.8, groups: ['Black people', 'Poor whites', 'Immigrants'] },
     { year: 1971, size: 4.5, groups: ['Black people', 'Poor people', 'Drug users', 'Anti-war left'] },
     { year: 2020, size: 6.2, groups: ['Black people', 'Poor people', 'Drug users', 'Immigrants', 'Debtors', 'The incarcerated'] }
-  ];
+  ], []);
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -110,10 +110,13 @@ const OutgroupExpansion = () => {
       .attr('stroke-width', 2)
       .transition()
       .duration(300)
-      .delay((d, i) => i * 350)
+      .delay((d, i) => {
+        void d;
+        return i * 350;
+      })
       .attr('r', 6);
 
-  }, []);
+  }, [data]);
 
   return (
     <div className="outgroup-expansion">

@@ -1,0 +1,669 @@
+You are a Swift/SwiftUI developer. Your task is to implement the following requirements.
+
+IMPORTANT INSTRUCTIONS:
+1. Write clean, production-ready Swift code
+2. Follow Apple's Swift API Design Guidelines
+3. Use SwiftUI for UI components where appropriate
+4. Include proper error handling
+5. The code must compile without errors
+6. After writing code, the build will be verified automatically
+7. If the build fails, you will receive error feedback and should try a DIFFERENT approach
+
+TESTING & DEBUGGING REFERENCE:
+For building, testing, and debugging iOS/macOS apps, reference this workflow guide:
+/Users/emmanuel/Dev/Tools/Eocon-Foundation-V1/.Foundation/Docs/swiftDocs/Testing/XCODEBUILD_MCP_WORKFLOW.md
+
+This guide covers:
+- XcodeBuild MCP server tools for programmatic Xcode interaction
+- Building for simulator, booting simulators, installing/launching apps
+- UI automation: screenshots, accessibility hierarchy, tap simulation
+- Debugging UI issues (button taps, gestures, navigation)
+
+=== TASK/REQUIREMENTS ===
+I have created the following plan after thorough exploration and analysis of the codebase. Follow the below plan verbatim. Trust the files and references. Do not re-verify what's written in the plan. Explore only when absolutely necessary. First implement all the proposed file changes and then I'll review all the changes together at the end.
+
+## Observations
+
+\`GenerableTypes.swift\` already defines all three \`@Generable\` structs (\`ClauseClassification\`, \`ArchitectureDetection\`, \`ProxyDetection\`) gated behind \`#if canImport(FoundationModels)\`. \`PipelineContracts.swift\` has \`TierClassification\` and \`AnalysisProgress\`. \`Tier1Engine\` and \`Tier2Engine\` are both \`actor\` types returning \`TierClassification?\`. No \`AI/\` folder, \`Tier3Engine\`, \`PolicyAnalysisSession\`, \`HistoricalBaselineTool\`, or \`HistoricalPolicies\` exist yet.
+
+## Approach
+
+Create a new \`AI/\` group inside the Xcode target with five focused files: \`Tier3Error\`, \`HistoricalPolicies\`, \`HistoricalBaselineTool\`, \`PolicyAnalysisSession\`, and \`Tier3Engine\`. Each file is gated behind \`#if canImport(FoundationModels)\` with a stub fallback, mirroring the pattern already used in \`GenerableTypes.swift\`. \`Tier3Engine\` mirrors the \`Tier2Engine\` public actor interface so \`TierResolver\` (T5) can consume both symmetrically.
+
+---
+
+## Implementation Steps
+
+### 1. Create \`AI/Tier3Error.swift\`
+
+Add a new file at \`file:app/decodingOppression/decodingOppression/AI/Tier3Error.swift\`.
+
+Define an \`enum Tier3Error: Error\` with cases:
+- \`.unavailable\` — Foundation Models not available on this device/configuration
+- \`.safetyGuardrail\` — prompt was rejected by the safety system (caught internally, never surfaced to callers)
+- \`.contextWindowExceeded\` — \`exceededContextWindowSize\` persisted even after condensed-text retry
+- \`.sessionFailed(Error)\` — wraps any other \`LanguageModelSession\` error for internal logging
+
+---
+
+### 2. Create \`AI/HistoricalPolicies.swift\`
+
+Add \`file:app/decodingOppression/decodingOppression/AI/HistoricalPolicies.swift\`.
+
+Define a \`struct HistoricalPolicies\` with a \`static func score(for policyName: String) -> Double\` that returns the expected COI for each of the four ground-truth policies:
+
+| Policy | Expected COI |
+|---|---|
+| Virginia Slave Codes (1705) | 0.93 |
+| 13th Amendment (1865) | 0.35 |
+| HOLC Redlining (1934) | 0.82 |
+| War on Drugs (1971) | 0.78 |
+
+Return \`0.0\` for unrecognised names. This struct is the single source of truth consumed by both \`HistoricalBaselineTool\` (T4) and the \`ValidationRunner\` (T8/T9).
+
+---
+
+### 3. Create \`AI/HistoricalBaselineTool.swift\`
+
+Add \`file:app/decodingOppression/decodingOppression/AI/HistoricalBaselineTool.swift\`.
+
+Gate the entire file behind \`#if canImport(FoundationModels)\`.
+
+Define \`struct HistoricalBaselineTool: Tool\`:
+- \`let name = \"getHistoricalBaseline\"\`
+- \`let description\` — one sentence explaining the tool returns the COI of a known historical policy for comparison
+- Nested \`@Generable struct Arguments\` with a single \`policyName: String\` property annotated with \`@Guide(.anyOf([...]))\` constraining it to the four valid policy names (matching the keys in \`HistoricalPolicies\`)
+- \`func call(arguments: Arguments) async throws -> String\` — delegates to \`HistoricalPolicies.score(for: arguments.policyName)\` and returns a human-readable string such as \`\"Historical COI for Virginia Slave Codes: 0.93\"\`
+
+---
+
+### 4. Create \`AI/PolicyAnalysisSession.swift\`
+
+Add \`file:app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift\`.
+
+Gate the entire implementation behind \`#if canImport(FoundationModels)\`.
+
+Define \`actor PolicyAnalysisSession\`:
+
+**Academic framing prefix** — a \`private let academicFramingPrefix: String\` constant (~15 tokens) that frames every session as an academic policy-analysis task. This is injected as the \`instructions:\` parameter of every \`LanguageModelSession\` init.
+
+**\`classifyClause(_ clause: Clause) async throws -> ClauseClassification\`**
+- Creates a fresh \`LanguageModelSession(instructions: academicFramingPrefix, tools: [HistoricalBaselineTool()])\` on every call (one session per clause, per the 4k token constraint)
+- Calls \`session.respond(to: clause.text, generating: ClauseClassification.self)\`
+- Catches \`LanguageModelSession.GenerationError.exceededContextWindowSize\` → truncates \`clause.text\` to its first ~500 characters and retries once with a new session; if the retry also throws \`exceededContextWindowSize\`, rethrows as \`Tier3Error.contextWindowExceeded\`
+- Catches safety guardrail errors (the specific \`LanguageModelError\` case for content policy rejection) → logs the clause ID internally and rethrows as \`Tier3Error.safetyGuardrail\`
+
+**\`detectArchitecture(_ clause: Clause) async throws -> ArchitectureDetection\`**
+- Same session-creation and error-handling pattern as \`classifyClause\`
+- Calls \`session.respond(to: clause.text, generating: ArchitectureDetection.self)\`
+
+**\`detectProxy(_ clause: Clause) async throws -> ProxyDetection\`**
+- Same pattern; calls \`session.respond(to: clause.text, generating: ProxyDetection.self)\`
+
+**\`streamArchitecture(_ clause: Clause) -> AsyncThrowingStream<ArchitectureDetection.PartiallyGenerated, Error>\`**
+- Creates a fresh session and calls \`session.streamResponse(to: clause.text, generating: ArchitectureDetection.self)\`
+- Yields each \`PartiallyGenerated\` value so the UI can update property-by-property (AAR → SE → IJ → RSC) as the model generates them
+- Catches safety guardrail and context-window errors with the same handling as above
+
+---
+
+### 5. Create \`AI/Tier3Engine.swift\`
+
+Add \`file:app/decodingOppression/decodingOppression/AI/Tier3Engine.swift\`.
+
+Gate the full implementation behind \`#if canImport(FoundationModels)\`. Provide a stub \`#else\` block that mirrors \`Tier2Engine\`'s simulator stub pattern (all methods throw \`Tier3Error.unavailable\`).
+
+Define \`public actor Tier3Engine\`:
+
+**Availability check** — a \`private func checkAvailability() throws\` that inspects \`SystemLanguageModel.default.availability\` and handles all cases:
+
+\`\`\`
+.available                          → proceed
+.unavailable(.deviceNotEligible)    → throw Tier3Error.unavailable (device cannot run Apple Intelligence)
+.unavailable(.appleIntelligenceNotEnabled) → throw Tier3Error.unavailable (user must enable in Settings)
+.unavailable(.modelNotReady)        → throw Tier3Error.unavailable (model still downloading)
+.unavailable(_)                     → throw Tier3Error.unavailable (unknown reason)
+\`\`\`
+
+**\`public func isAvailable() -> Bool\`** — returns \`true\` only when \`SystemLanguageModel.default.availability == .available\`
+
+**\`public func classify(clause: Clause) async throws -> TierClassification?\`**
+- Calls \`checkAvailability()\`; returns \`nil\` on \`Tier3Error.unavailable\` (not a throw — mirrors \`Tier2Engine.classify\` returning \`nil\` when the model is not downloaded)
+- Uses \`async let\` to run \`session.classifyClause\`, \`session.detectArchitecture\`, and \`session.detectProxy\` concurrently
+- Maps the three \`@Generable\` results into a \`TierClassification\`:
+  - \`ClauseClassification.TargetGroup\` → \`TargetGroup\` (same case names, direct mapping)
+  - \`ClauseClassification.EffectDirection\` → \`EffectDirection\` (same case names)
+  - \`ArchitectureDetection\` → \`ArchitectureScores\` (rename fields: \`asymmetricAutonomyRestriction\` → \`aar\`, \`selectiveEmpathy\` → \`se\`, \`ideologicalJustification\` → \`ij\`, \`resistanceToStructuralCritique\` → \`rsc\`)
+  - \`ProxyDetection\` passes through directly (same field names as \`PipelineContracts.ProxyDetection\`)
+  - \`confidence\` from \`ClauseClassification.confidence\`
+  - \`tier: .tier3\`
+- Catches \`Tier3Error.safetyGuardrail\` → logs internally (e.g. \`print(\"[Tier3] Safety guardrail triggered for clause \\(clause.id)\")\`) and returns \`nil\` so the caller silently routes to Tier 2
+
+**\`public func streamClassify(clause: Clause) -> AsyncThrowingStream<ArchitectureDetection.PartiallyGenerated, Error>\`**
+- Delegates to \`session.streamArchitecture(clause)\` for progressive UI updates
+
+---
+
+### 6. Register new files in the Xcode project
+
+Open \`file:app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj\` and add all five new \`AI/\` Swift files to:
+- The \`PBXFileReference\` section (one entry per file)
+- The \`PBXGroup\` for the \`decodingOppression\` target (create a new \`AI\` child group)
+- The \`PBXSourcesBuildPhase\` compile sources list for the \`decodingOppression\` target
+
+This ensures Xcode compiles the new files as part of the app target.
+
+---
+
+### Data flow summary
+
+\`\`\`mermaid
+sequenceDiagram
+    participant Caller as TierResolver (T5)
+    participant T3 as Tier3Engine
+    participant PAS as PolicyAnalysisSession
+    participant FM as LanguageModelSession
+    participant HBT as HistoricalBaselineTool
+    participant HP as HistoricalPolicies
+
+    Caller->>T3: classify(clause)
+    T3->>T3: checkAvailability()
+    alt unavailable
+        T3-->>Caller: nil
+    else available
+        par
+            T3->>PAS: classifyClause(clause)
+            PAS->>FM: respond(to:, generating: ClauseClassification)
+            FM-->>PAS: ClauseClassification
+        and
+            T3->>PAS: detectArchitecture(clause)
+            PAS->>FM: respond(to:, generating: ArchitectureDetection)
+            FM-->>PAS: ArchitectureDetection
+        and
+            T3->>PAS: detectProxy(clause)
+            PAS->>FM: respond(to:, generating: ProxyDetection)
+            FM-->>PAS: ProxyDetection
+        end
+        Note over FM,HBT: Model may invoke tool callback
+        FM->>HBT: call(arguments: policyName)
+        HBT->>HP: score(for: policyName)
+        HP-->>HBT: Double
+        HBT-->>FM: \"Historical COI for …: 0.93\"
+        T3->>T3: map → TierClassification(.tier3)
+        T3-->>Caller: TierClassification
+    end
+\`\`\`
+=== END TASK ===
+
+
+=== REFERENCE CONTEXT ===
+Use the following documentation and context as reference:
+
+=== SWIFT DOCUMENTATION ===
+
+--- FILE: generating-content-and-performing-tasks.md ---
+# Generating content and performing tasks with Foundation Models
+
+**Enhance the experience in your app by prompting an on-device large language model.**
+
+
+## Overview
+
+The Foundation Models framework lets you tap into the on-device large models at the core of Apple Intelligence. You can enhance your app by using generative models to create content or perform tasks. The framework supports language understanding and generation based on model capabilities.
+
+For design guidance, see Human Interface Guidelines > Technologies > [https://developer.apple.com/design/human-interface-guidelines/generative-ai](https://developer.apple.com/design/human-interface-guidelines/generative-ai).
+
+
+## Understand model capabilities
+
+When considering features for your app, it helps to know what the on-device language model can do. The on-device model supports text generation and understanding that you can use to:
+
+The on-device language model may not be suitable for handling all requests, like:
+
+The model can complete complex generative tasks when you use guided generation or tool calling. For more on handling complex tasks, or tasks that require extensive world-knowledge, see [doc://com.apple.foundationmodels/documentation/FoundationModels/generating-swift-data-structures-with-guided-generation](https://developer.apple.com/documentation/FoundationModels/generating-swift-data-structures-with-guided-generation) and [doc://com.apple.foundationmodels/documentation/FoundationModels/expanding-generation-with-tool-calling](https://developer.apple.com/documentation/FoundationModels/expanding-generation-with-tool-calling).
+
+
+## Check for availability
+
+Before you use the on-device model in your app, check that the model is available by creating an instance of [doc://com.apple.foundationmodels/documentation/FoundationModels/SystemLanguageModel](https://developer.apple.com/documentation/FoundationModels/SystemLanguageModel) with the [doc://com.apple.foundationmodels/documentation/FoundationModels/SystemLanguageModel/default](https://developer.apple.com/documentation/FoundationModels/SystemLanguageModel/default) property.
+
+Model availability depends on device factors like:
+
+- The device must support Apple Intelligence.
+
+- The device must have Apple Intelligence turned on in Settings.
+
+
+> **NOTE**: It can take some time for the model to download and become available when a person turns on Apple Intelligence.
+
+
+Always verify model availability first, and plan for a fallback experience in case the model is unavailable.
+
+```swift
+struct GenerativeView: View {
+    // Create a reference to the system language model.
+    private var model = SystemLanguageModel.default
+
+    var body: some View {
+        switch model.availability {
+        case .available:
+            // Show your intelligence UI.
+        case .unavailable(.deviceNotEligible):
+            // Show an alternative UI.
+        case .unavailable(.appleIntelligenceNotEnabled):
+            // Ask the person to turn on Apple Intelligence.
+        case .unavailable(.modelNotReady):
+            // The model isn't ready because it's downloading or because of other system reasons.
+        case .unavailable(let other):
+            // The model is unavailable for an unknown reason.
+        }
+    }
+}
+```
+
+
+## Create a session
+
+After confirming that the model is available, create a [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession) object to call the model. For a single-turn interaction, create a new session each time you call the model:
+
+```swift
+// Create a session with the system model.
+let session = LanguageModelSession()
+```
+
+For a multiturn interaction — where the model retains some knowledge of what it produced — reuse the same session each time you call the model.
+
+
+## Provide a prompt to the model
+
+A [doc://com.apple.foundationmodels/documentation/FoundationModels/Prompt](https://developer.apple.com/documentation/FoundationModels/Prompt) is an input that the model responds to. Prompt engineering is the art of designing high-quality prompts so that the model generates a best possible response for the request you make. A prompt can be as short as “hello”, or as long as multiple paragraphs. The process of designing a prompt involves a lot of exploration to discover the best prompt, and involves optimizing prompt length and writing style.
+
+When thinking about the prompt you want to use in your app, consider using conversational language in the form of a question or command. For example, “What’s a good month to visit Paris?” or “Generate a food truck menu.”
+
+Write prompts that focus on a single and specific task, like “Write a profile for the dog breed Siberian Husky”. When a prompt is long and complicated, the model takes longer to respond, and may respond in unpredictable ways. If you have a complex generation task in mind, break the task down into a series of specific prompts.
+
+You can refine your prompt by telling the model exactly how much content it should generate. A prompt like, “Write a profile for the dog breed Siberian Husky” often takes a long time to process as the model generates a full multi-paragraph essay. If you specify “using three sentences”, it speeds up processing and generates a concise summary. Use phrases like “in a single sentence” or “in a few words” to shorten the generation time and produce shorter text.
+
+```swift
+// Generate a longer response for a specific command.
+let simple = "Write me a story about pears."
+
+// Quickly generate a concise response.
+let quick = "Write the profile for the dog breed Siberian Husky using three sentences."
+```
+
+
+## Provide instructions to the model
+
+[doc://com.apple.foundationmodels/documentation/FoundationModels/Instructions](https://developer.apple.com/documentation/FoundationModels/Instructions) help steer the model in a way that fits the use case of your app. The model obeys prompts at a lower priority than the instructions you provide. When you provide instructions to the model, consider specifying details like:
+
+- What the model’s role is; for example, “You are a mentor,” or “You are a movie critic”.
+
+- What the model should do, like “Help the person extract calendar events,” or “Help the person by recommending search suggestions”.
+
+- What the style preferences are, like “Respond as briefly as possible”.
+
+- What the possible safety measures are, like “Respond with ‘I can’t help with that’ if you’re asked to do something dangerous”.
+
+Use content you trust in instructions because the model follows them more closely than the prompt itself. When you initialize a session with instructions, it affects all prompts the model responds to in that session. Instructions can also include example responses to help steer the model. When you add examples to your prompt, you provide the model with a template that shows the model what a good response looks like.
+
+
+## Generate a response
+
+To call the model with a prompt, call [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/respond(to:options:)-b2re](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/respond(to:options:)-b2re) on your session. The response call is asynchronous because it may take a few seconds for the on-device foundation model to generate the response.
+
+```swift
+let instructions = """
+    Suggest five related topics. Keep them concise (three to seven words) and make sure they \
+    build naturally from the person's topic.
+    """
+
+let session = LanguageModelSession(instructions: instructions)
+
+let prompt = "Making homemade bread"
+let response = try await session.respond(to: prompt)
+```
+
+
+> **NOTE**: A session can only handle a single request at a time, and causes a runtime error if you call it again before the previous request finishes. Check [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/isResponding](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/isResponding) to verify the session is done processing the previous request before sending a new one.
+
+
+Instead of working with raw string output from the model, the framework offers guided generation to generate a custom Swift data structure you define. For more information about guided generation, see [doc://com.apple.foundationmodels/documentation/FoundationModels/generating-swift-data-structures-with-guided-generation](https://developer.apple.com/documentation/FoundationModels/generating-swift-data-structures-with-guided-generation).
+
+When you make a request to the model, you can provide custom tools to help the model complete the request. If the model determines that a [doc://com.apple.foundationmodels/documentation/FoundationModels/Tool](https://developer.apple.com/documentation/FoundationModels/Tool) can assist with the request, the framework calls your [doc://com.apple.foundationmodels/documentation/FoundationModels/Tool](https://developer.apple.com/documentation/FoundationModels/Tool) to perform additional actions like retrieving content from your local database. For more information about tool calling, see [doc://com.apple.foundationmodels/documentation/FoundationModels/expanding-generation-with-tool-calling](https://developer.apple.com/documentation/FoundationModels/expanding-generation-with-tool-calling)
+
+
+## Consider context size limits per session
+
+The *context window size* is a limit on how much data the model can process for a session instance. A token is a chunk of text the model processes, and the system model supports up to 4,096 tokens. A single token corresponds to three or four characters in languages like English, Spanish, or German, and one token per character in languages like Japanese, Chinese, or Korean. In a single session, the sum of all tokens in the instructions, all prompts, and all outputs count toward the context window size.
+
+If your session processes a large amount of tokens that exceed the context window, the framework throws the error [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/GenerationError/exceededContextWindowSize(_:)](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/GenerationError/exceededContextWindowSize(_:)). When you encounter the error, start a new session and try shortening your prompts. If you need to process a large amount of data that won’t fit in a single context window limit, break your data into smaller chunks, process each chunk in a separate session, and then combine the results.
+
+
+## Tune generation options and optimize performance
+
+To get the best results for your prompt, experiment with different generation options. [doc://com.apple.foundationmodels/documentation/FoundationModels/GenerationOptions](https://developer.apple.com/documentation/FoundationModels/GenerationOptions) affects the runtime parameters of the model, and you can customize them for every request you make.
+
+```swift
+// Customize the temperature to increase creativity.
+let options = GenerationOptions(temperature: 2.0)
+
+let session = LanguageModelSession()
+
+let prompt = "Write me a story about coffee."
+let response = try await session.respond(
+    to: prompt,
+    options: options
+)
+```
+
+When you test apps that use the framework, use Xcode Instruments to understand more about the requests you make, like the time it takes to perform a request. When you make a request, you can access the [doc://com.apple.foundationmodels/documentation/FoundationModels/Transcript](https://developer.apple.com/documentation/FoundationModels/Transcript) entries that describe the actions the model takes during your [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession).
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.foundationmodels/documentation/FoundationModels/generating-content-and-performing-tasks-with-foundation-models](https://developer.apple.com/documentation/com.apple.foundationmodels/documentation/FoundationModels/generating-content-and-performing-tasks-with-foundation-models)*
+--- END FILE ---
+
+--- FILE: FINAL-COLLECTION-SUMMARY.md ---
+# 🎉 Complete Apple Documentation Collection - Final Summary
+
+**Date**: October 8, 2025  
+**Status**: ✅ **100% SUCCESS - ALL FRAMEWORKS SCRAPED!**
+
+---
+
+## 🏆 Mission Accomplished!
+
+Successfully scraped **ALL 32 FRAMEWORKS** including the two that initially failed!
+
+### 📊 Final Statistics
+
+- **Total Frameworks**: 32 (100% success!)
+- **Total Documentation Files**: 848 Markdown files
+- **Success Rate**: 100% 🎉
+- **Collection Location**: `/Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/`
+- **Total Content Size**: ~5.2 MB
+
+---
+
+## ✅ All 32 Frameworks Successfully Scraped
+
+### AI & Machine Learning (6 frameworks) ✅
+1. ✅ **Foundation Models** (21 files) - Apple's AI foundation models
+2. ✅ **Core ML** (42 files) - On-device machine learning
+3. ✅ **Vision** (38 files) - Computer vision & image analysis
+4. ✅ **Create ML** (30 files) - ML model training
+5. ✅ **Speech** (25 files) - Speech recognition & synthesis
+6. ✅ **Natural Language** (31 files) - NLP & text analysis ⭐ **FIXED!**
+
+### Swift & SwiftUI (2 frameworks) ✅
+7. ✅ **Swift** (27 files) - Swift language documentation
+8. ✅ **SwiftUI** (57 files) - Modern declarative UI
+
+### Core Apple Frameworks (3 frameworks) ✅
+9. ✅ **Foundation** (60 files) - Essential data types
+10. ✅ **UIKit** (46 files) - iOS UI framework
+11. ✅ **AppKit** (60 files) - macOS UI framework
+
+### Graphics & Media (6 frameworks) ✅
+12. ✅ **Metal** (42 files) - Low-level graphics API
+13. ✅ **AVFoundation** (50 files) - Audio/video processing
+14. ✅ **Core Graphics** (40 files) - 2D graphics
+15. ✅ **Core Animation** (41 files) - Animation framework ⭐ **FIXED!**
+16. ✅ **ARKit** (15 files) - Augmented reality
+17. ✅ **RealityKit** (30 files) - 3D rendering for AR
+
+### System & Security (2 frameworks) ✅
+18. ✅ **Security** (30 files) - Cryptography & secure storage
+19. ✅ **Network** (30 files) - Modern networking
+
+### App Services (5 frameworks) ✅
+20. ✅ **CloudKit** (30 files) - Cloud data storage
+21. ✅ **HealthKit** (25 files) - Health & fitness data
+22. ✅ **StoreKit** (25 files) - In-app purchases
+23. ✅ **WatchKit** (30 files) - Apple Watch apps
+24. ✅ **WidgetKit** (20 files) - Home screen widgets
+
+### Data & Storage (1 framework) ✅
+25. ✅ **Core Data** (40 files) - Object persistence
+
+### System Integration (1 framework) ✅
+26. ✅ **Intents** (25 files) - Siri integration
+
+### Game Development (2 frameworks) ✅
+27. ✅ **SpriteKit** (30 files) - 2D game engine
+28. ✅ **SceneKit** (30 files) - 3D game engine
+
+### Development Tools (1 framework) ✅
+29. ✅ **XCTest** (30 files) - Unit testing
+
+### Hardware & Sensors (3 frameworks) ✅
+30. ✅ **Core Motion** (25 files) - Motion & sensor data
+31. ✅ **Core Bluetooth** (25 files) - Bluetooth LE
+32. ✅ **Core Location** (25 files) - Location services
+
+---
+
+## 🔧 How We Fixed the Failed Frameworks
+
+### Problem 1: Natural Language (Failed as "natural")
+**Solution**: Used the full framework name `naturallanguage` instead of `natural`
+```bash
+python3 apple_doc_crawler.py "naturallanguage" -m 30 -d 0.5
+```
+**Result**: ✅ 31 files successfully scraped!
+
+### Problem 2: Core Animation (Failed as "coreanimation")
+**Solution**: Used the original framework name `quartzcore` instead of `coreanimation`
+```bash
+python3 apple_doc_crawler.py "quartzcore" -m 40 -d 0.5
+```
+**Result**: ✅ 41 files successfully scraped!
+
+---
+
+## 📈 Collection Growth
+
+| Metric | Before Retry | After Retry | Improvement |
+|--------|-------------|-------------|-------------|
+| Frameworks | 30/32 | 32/32 | +2 frameworks |
+| Success Rate | 93.8% | 100% | +6.2% |
+| Total Files | 802 | 848 | +46 files |
+| Content Size | ~4.6 MB | ~5.2 MB | +0.6 MB |
+
+---
+
+## 🎯 Verified Documentation
+
+### Speech Framework ✅
+- **Files**: 19 documentation files
+- **URL**: https://developer.apple.com/documentation/speech
+- **Content**: Speech recognition, synthesis, analysis
+- **Location**: `/Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/`
+
+### Vision Framework ✅
+- **Files**: 38 documentation files
+- **URL**: https://developer.apple.com/documentation/vision
+- **Content**: Computer vision, image analysis, object detection
+- **Location**: `/Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/`
+
+---
+
+## 📁 Complete Collection Structure
+
+```
+/Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/
+├── README.md                                  # Main index
+├── 848 Framework Documentation Files          # All scraped content
+│
+├── AI & Machine Learning (6 frameworks, 187 files)
+│   ├── Foundation Models (21 files)
+│   ├── Core ML (42 files)
+│   ├── Vision (38 files)
+│   ├── Create ML (30 files)
+│   ├── Speech (25 files)
+│   └── Natural Language (31 files) ⭐ NEW
+│
+├── Swift & SwiftUI (2 frameworks, 84 files)
+│   ├── Swift (27 files)
+│   └── SwiftUI (57 files)
+│
+├── Core Frameworks (3 frameworks, 166 files)
+│   ├── Foundation (60 files)
+│   ├── UIKit (46 files)
+│   └── AppKit (60 files)
+│
+├── Graphics & Media (6 frameworks, 226 files)
+│   ├── Metal (42 files)
+│   ├── AVFoundation (50 files)
+│   ├── Core Graphics (40 files)
+│   ├── Core Animation (41 files) ⭐ NEW
+│   ├── ARKit (15 files)
+│   └── RealityKit (30 files)
+│
+└── ... (15 more frameworks, 185 files)
+```
+
+---
+
+## 🚀 Quick Start Commands
+
+### Navigate to Collection
+```bash
+cd /Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection
+```
+
+### Search for AI/ML Content
+```bash
+# Core ML
+grep -r "MLModel" . --include="*.md" | head -20
+
+# Vision
+grep -r "VNImageRequest" . --include="*.md" | head -20
+
+# Natural Language (NEW!)
+grep -r "NLTagger\|Natural Language" . --include="*.md" | head -20
+
+# Speech
+grep -r "SFSpeechRecognizer\|Speech" . --include="*.md" | head -20
+```
+
+### Search for Graphics & Animation
+```bash
+# Core Animation (NEW!)
+grep -r "CALayer\|CAAnimation" . --include="*.md" | head -20
+
+# Metal
+grep -r "MTL\|Metal" . --include="*.md" | head -20
+
+# ARKit
+grep -r "ARKit\|ARSession" . --include="*.md" | head -20
+```
+
+### Search for Swift/SwiftUI
+```bash
+# SwiftUI
+grep -r "@State\|@Binding" . --include="*.md" | head -20
+
+# Swift language features
+grep -r "async\|await" . --include="*.md" | head -20
+```
+
+---
+
+## 📊 Coverage by Category
+
+| Category | Frameworks | Files | Percentage |
+|----------|-----------|-------|-----------|
+| AI & Machine Learning | 6 | 187 | 22% |
+| Swift & SwiftUI | 2 | 84 | 10% |
+| Core Frameworks | 3 | 166 | 20% |
+| Graphics & Media | 6 | 226 | 27% |
+| System & Security | 2 | 60 | 7% |
+| App Services | 5 | 130 | 15% |
+| Other | 8 | 95 | 11% |
+| **Total** | **32** | **848** | **100%** |
+
+---
+
+## 🎓 What You Can Do Now
+
+### 1. AI/ML Development
+- **Foundation Models**: Build AI-powered apps with Apple's LLMs
+- **Core ML**: Integrate machine learning models
+- **Vision**: Add computer vision capabilities
+- **Natural Language**: Process and analyze text
+- **Speech**: Add voice recognition and synthesis
+
+### 2. UI Development
+- **SwiftUI**: Build modern, declarative interfaces
+- **UIKit**: iOS app development
+- **AppKit**: macOS app development
+- **Core Animation**: Create smooth animations
+
+### 3. Graphics & Gaming
+- **Metal**: GPU programming and compute
+- **ARKit/RealityKit**: Augmented reality experiences
+- **SpriteKit/SceneKit**: 2D/3D game development
+
+### 4. System Integration
+- **CloudKit**: Sync data across devices
+- **HealthKit**: Health and fitness apps
+- **Intents/Siri**: Voice integration
+- **Core Location**: Location-based features
+
+---
+
+## 🔄 Keep Your Documentation Updated
+
+To get the latest documentation in the future:
+
+```bash
+# Navigate to tools directory
+cd /Users/emmanuel/Dev/Tools/getMDfromURL
+
+# Re-run the essentials scraper
+python3 scrape_essentials.py
+
+# Add the newly fixed frameworks
+python3 apple_doc_crawler.py "naturallanguage" -m 30
+python3 apple_doc_crawler.py "quartzcore" -m 40
+
+# Copy to research directory
+rsync -av output/apple-docs-*/ /Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/
+```
+
+---
+
+## 📚 Additional Resources
+
+- **Quick Start Guide**: `/Users/emmanuel/Dev/Research/Apple/AI/Docs/QUICK-START.md`
+- **Scraping Summary**: `/Users/emmanuel/Dev/Research/Apple/AI/Docs/SCRAPING-SUMMARY.md`
+- **Collection README**: `/Users/emmanuel/Dev/Research/Apple/AI/Docs/Complete-Collection/README.md`
+- **Tools Location**: `/Users/emmanuel/Dev/Tools/getMDfromURL`
+
+---
+
+## 🎉 Summary
+
+**You now have the most comprehensive Apple documentation collection possible!**
+
+- ✅ All 32 essential frameworks
+- ✅ 848 documentation files
+- ✅ 100% success rate
+- ✅ Fully searchable and offline
+- ✅ Perfect for AI/ML, Swift, SwiftUI, and all Apple development
+
+**Ready for any Apple development project! 🚀**
+
+---
+
+**Generated**: October 8, 2025  
+**Status**: ✅ COMPLETE COLLECTION - 100% SUCCESS!  
+**Total**: 32 frameworks, 848 files, ~5.2 MB
+--- END FILE ---
+=== END SWIFT DOCUMENTATION ===
+=== END CONTEXT ===
+
+
+Please implement the requirements above. Write the code directly - do not explain, just write the implementation.

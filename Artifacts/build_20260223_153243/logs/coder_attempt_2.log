@@ -1,0 +1,4 @@
+
+Model call failed: {"message":"Sorry, you have exceeded your Copilot token usage. Please review our [Terms of Service](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).","code":"rate_limited"} (Request ID: DBE7:36CC38:2A41589:2ED3DD7:699CBAAE)
+
+Execution failed: 429 Sorry, you have exceeded your Copilot token usage. Please review our [Terms of Service](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).

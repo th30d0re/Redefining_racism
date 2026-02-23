@@ -1,0 +1,1469 @@
+You are a Swift/SwiftUI developer. Your task is to implement the following requirements.
+
+IMPORTANT INSTRUCTIONS:
+1. Write clean, production-ready Swift code
+2. Follow Apple's Swift API Design Guidelines
+3. Use SwiftUI for UI components where appropriate
+4. Include proper error handling
+5. The code must compile without errors
+6. After writing code, the build will be verified automatically
+7. If the build fails, you will receive error feedback and should try a DIFFERENT approach
+
+TESTING & DEBUGGING REFERENCE:
+For building, testing, and debugging iOS/macOS apps, reference this workflow guide:
+/Users/emmanuel/Dev/Tools/Eocon-Foundation-V1/.Foundation/Docs/swiftDocs/Testing/XCODEBUILD_MCP_WORKFLOW.md
+
+This guide covers:
+- XcodeBuild MCP server tools for programmatic Xcode interaction
+- Building for simulator, booting simulators, installing/launching apps
+- UI automation: screenshots, accessibility hierarchy, tap simulation
+- Debugging UI issues (button taps, gestures, navigation)
+
+=== TASK/REQUIREMENTS ===
+I have the following verification comments after thorough review and exploration of the codebase. Implement the comments by following the instructions in the comments verbatim.
+
+---
+## Comment 1: trainEpoch generates fake losses without real MLX LoRA training on data.
+
+Fully resolve the original review comment on simulating training in \`TrainingManager.swift\` by implementing real MLX LoRA fine-tuning, building on partial progress (data loading, pairs, splits, epochs, dirs).
+
+**Full Context from Thread:**
+Original issue: Simulated random losses, ignored config/data/MLX, no checkpoints/adapters. Partial fix: Now uses data/config, but \`trainEpoch\` fake.
+
+**Root Cause:** Missing MLX integration for causal LM LoRA fine-tuning on prompt-completion pairs.
+
+**Concrete Steps:**
+1. Add imports: \`import mlx\`, \`import mlx_lm\`, \`import mlx_nn\`, \`mlx_lora\` if available.
+2. In \`downloadBaseModel()\`: Ensure \`baseModelURL\` points to a valid MLX-compatible LM dir (e.g., download Phi-3 mini or Llama if needed via mlx_lm.convert).
+3. Update \`buildTrainingPairs\`: Format as causal LM inputs: \`[BOS] prompt [EOS] completion [EOS]\` or use chat template.
+4. In \`trainEpoch\`:
+   - Load base model: \`let (model, tokenizer) = mlx_lm.load(baseModelURL)\`
+   - Init LoRA: Use \`mlx_lm.lora.LoraTrainer\` or manual LoRA layers on model LoRA targets (q_proj, v_proj etc.), with \`rank: loraConfig.loraRank\`, \`alpha: loraConfig.alpha\`, \`dropout: 0.05\`.
+   - Optimizer: AdamW(lr: loraConfig.learningRate, weight_decay: 0.01).
+   - Tokenize datasets: Convert pairs to token ids, pad/collate to batches (batch_size=4-8 based on memory).
+   - Training loop: For num_steps (e.g., len(trainData)/batch_size):
+     - Sample batch, forward(model, tokens), loss = cross_entropy(shifted_logits, labels) on completion tokens only.
+     - Backward, update.
+   - Validation: Similar no-grad eval on valSet, avg loss.
+   - Save: \`model.save_weights(checkpointURL)\` or LoRA deltas only.
+5. Resume: Load LoRA state from \`checkpointURL\`, continue training.
+6. Surface real losses in \`TrainingProgress\`.
+7. Bigger picture: Ensure compatibility with \`AdapterManager.loadActiveAdapter\`, validate post-training COI improvement.
+
+**presentation_instructions:**
+In \`app/decodingOppression/decodingOppression/MLX/TrainingManager.swift\`, \`trainEpoch\` computes fake losses.
+Import \`mlx\`, \`mlx_lm\`.
+Load model/tokenizer: \`let model, tokenizer = try mlx_lm.load(modelPath: baseModelURL)\`.
+Initialize LoRA trainer with \`LoRAConfig\` params, optimizer.
+Tokenize \`trainData\`/\`valData\` pairs into batched tensors (causal LM format: prompt+completion, loss mask on completion).
+Run batched training loop per epoch, compute avg train/val losses.
+Save LoRA weights to \`checkpointURL\`.
+Implement resume by loading LoRA from prior \`checkpointURL\`.
+
+### Referred Files
+- app/decodingOppression/decodingOppression/MLX/TrainingManager.swift
+---
+=== END TASK ===
+
+
+=== REFERENCE CONTEXT ===
+Use the following documentation and context as reference:
+
+=== SWIFT DOCUMENTATION ===
+
+--- FILE: Meet_the_Foundation_Models_framework.md ---
+# Meet the Foundation Models framework
+
+Hi, I’m Erik. And I’m Yifei. And today, we are so excited to get the privilege of introducing you to the new Foundation Models framework! The Foundation Models framework gives you access to the on-device Large Language Model that powers Apple Intelligence, with a convenient and powerful Swift API. It is available on macOS, iOS, iPadOS, and visionOS! You can use it to enhance existing features in your apps, like providing personalized search suggestions. Or you can create completely new features, like generating an itinerary in a travel app, all on-device. You can even use it to create dialog on-the-fly for characters in a game.
+
+It is optimized for generating content, summarizing text, analyzing user input and so much more.
+
+All of this runs on-device, so all data going into and out of the model stays private. That also means it can run offline! And it’s built into the operating system, so it won’t increase your app size. It’s a huge year, so to help you get the most out of the FoundationModels framework, we’ve prepared a series of videos. In this first video, we’ll be giving you a high level overview of the framework in its entirety. Starting with the details of the model.
+
+We will then introduce guided generation which allows you to get structured output in Swift, and the powerful streaming APIs that turn latency into delight.
+
+We will also talk about tool calling, which allows the model to autonomously execute code you define in your app.
+
+Finally, we will finish up with how we provide multi-turn support with stateful sessions, and how we seamlessly integrate the framework into the Apple developer ecosystem. The most important part of the framework, of course, is the model that powers it. And the best way to get started with prompting the model, is to jump into Xcode.
+
+Testing out a variety of prompts to find what works best is an important part of building with large language models, and the new Playgrounds feature in Xcode is the best way to do that. With just a few lines of code, you can immediately start prompting the on-device model. Here I'll ask it to generate a title for a trip to Japan, and the model's output will appear in the canvas on the right. 
+
+```swift
+import FoundationModels
+import Playgrounds
+
+#Playground {
+    let session = LanguageModelSession()
+    let response = try await session.respond(to: "What's a good name for a trip to Japan? Respond only with a title")
+}
+```
+
+Now, I want to see if this prompt works well for other destinations too. In a #Playground, you can access types defined in your app, so I'll create a for loop over the landmarks featured in mine. Now Xcode will show me the model's response for all of the landmarks.
+
+```swift
+import FoundationModels
+import Playgrounds
+
+#Playground {
+    let session = LanguageModelSession()
+    for landmark in ModelData.shared.landmarks {
+        let response = try await session.respond(to: "What's a good name for a trip to \(landmark.name)? Respond only with a title")
+    }
+}
+```
+
+The on-device model we just used is a large language model with 3 billion parameters, each quantized to 2 bits. It is several orders of magnitude bigger than any other models that are part of the operating system.
+
+But even so, it’s important to keep in mind that the on-device model is a device-scale model. It is optimized for use cases like summarization, extraction, classification, and many more. It’s not designed for world knowledge or advanced reasoning, which are tasks you might typically use server-scale LLMs for.
+
+Device scale models require tasks to be broken down into smaller pieces. As you work with the model, you’ll develop an intuition for its strengths and weaknesses.
+
+For certain common use cases, such as content tagging, we also provide specialized adapters that maximize the model’s capability in specific domains.
+
+We will also continue to improve our models over time. Later in this video we’ll talk about how you can tell us how you use our models, which will help us to improve them in ways that matter to you.
+
+Now that we've taken a look at the model, the first stop on our journey is Guided Generation. Guided Generation is what makes it possible to build features like the ones you just saw, and it is the beating heart of the FoundationModels framework. Let's take a look at a common problem and talk about how Guided Generation solves it.
+
+By default, language models produce unstructured, natural language as output. It's easy for humans to read, but difficult to map onto views in your app.
+
+A common solution is to prompt the model to produce something that's easy to parse, like JSON or CSV.
+
+However, that quickly turns into a game of whack-a-mole. You have to add increasingly specific instructions about what it it is and isn't supposed to do… Often that doesn't quite work… So you end up writing hacks to extract and patch the content. This isn't reliable because the model is probabilistic and there is a non-zero chance of structural mistakes. Guided Generation offers a fundamental solution to this problem.
+
+When you import FoundationModels, you get access to two new macros, @Generable and @Guide. Generable let's you describe a type that you want the model to generate an instance of.
+
+```swift
+// Creating a Generable struct
+
+@Generable
+struct SearchSuggestions {
+    @Guide(description: "A list of suggested search terms", .count(4))
+    var searchTerms: [String]
+}
+```
+
+Additionally, Guides let you provide natural language descriptions of properties, and programmatically control the values that can be generated for those properties.
+
+Once you've defined a Generable type, you can make the model respond to prompts by generating an instance of your type. This is really powerful.
+
+```swift
+// Responding with a Generable type
+
+let prompt = """
+    Generate a list of suggested search terms for an app about visiting famous landmarks.
+    """
+
+let response = try await session.respond(
+    to: prompt,
+    generating: SearchSuggestions.self
+)
+
+print(response.content)
+```
+
+Observe how our prompt no longer needs to specify the output format. The framework takes care of that for you.
+
+The most important part, of course, is that we now get back a rich Swift object that we can easily map onto an engaging view.
+
+Generable types can be constructed using primitives, like Strings, Integers, Doubles, Floats, and Decimals, and Booleans. Arrays are also generable. And Generable types can be composed as well. Generable even supports recursive types, which have powerful applications in domains like generative UIs.
+
+```swift
+// Composing Generable types
+
+@Generable struct Itinerary {
+    var destination: String
+    var days: Int
+    var budget: Float
+    var rating: Double
+    var requiresVisa: Bool
+    var activities: [String]
+    var emergencyContact: Person
+    var relatedItineraries: [Itinerary]
+}
+```
+
+The most important thing to understand about Guided Generation is that it fundamentally guarantees structural correctness using a technique called constrained decoding.
+
+When using Guided Generation, your prompts can be simpler and focused on desired behavior instead of the format.
+
+Additionally, Guided Generation tends to improve model accuracy. And, it allows us to perform optimizations that speed up inference at the same time. This is all made possible by carefully coordinated integration of Apple operating systems, developer tools, and the training of our foundation models. There is still a lot more to cover about guided generation, like how to create dynamic schemas at runtime, so please check out our deep dive video for more details. So that wraps up Guided Generation — we’ve seen how Swift’s powerful type system augments natural language prompts to enable reliable structured output. Our next topic is streaming, and it all builds on top of the @Generable macro you’re already familiar with.
+
+If you’ve worked with large language models before, you may be aware that they generate text as short groups of characters called tokens.
+
+Typically when streaming output, tokens are delivered in what’s called a delta, but the FoundationModels framework actually takes a different approach, and I want to show you why.
+
+As deltas are produced, the responsibility for accumulating them usually falls on the developer.
+
+You append each delta as they come in. And the response grows as you do.
+
+But it gets tricky when the result has structure. If you want to show the greeting string after each delta, you have to parse it out of the accumulation, and that’s not trivial, especially for complicated structures. Delta streaming just isn’t the right formula when working with structured output.
+
+And as you’ve learned, structured output is at the very core of the FoundationModels framework, which is why we’ve developed a different approach. Instead of raw deltas, we stream snapshots.
+
+As the model produces deltas, the framework transforms them into snapshots. Snapshots represent partially generated responses. Their properties are all optional. And they get filled in as the model produces more of the response.
+
+Snapshots are a robust and convenient representation for streaming structured output.
+
+You're already familiar with the @Generable macro, and as it turns out, it's also where the definitions for partially generated types come from. If you expand the macro, you'll discover it produces a type named `PartiallyGenerated`. It is effectively a mirror of the outer structure, except every property is optional.
+
+```swift
+// PartiallyGenerated types
+
+@Generable struct Itinerary {
+    var name: String
+    var days: [Day]
+}
+```
+
+The partially generated type comes into play when you call the `streamResponse` method on your session.
+
+```swift
+// Streaming partial generations
+
+let stream = session.streamResponse(
+    to: "Craft a 3-day itinerary to Mt. Fuji.",
+    generating: Itinerary.self
+)
+
+for try await partial in stream {
+    print(partial)
+}
+```
+
+Stream response returns an async sequence. And the elements of that sequence are instances of a partially generated type. Each element in the sequence will contain an updated snapshot.
+
+These snapshots work great with declarative frameworks like SwiftUI. First, create state holding a partially generated type.
+
+Then, just iterate over a response stream, store its elements, and watch as your UI comes to life.
+
+```swift
+ItineraryView: View {
+    let session: LanguageModelSession
+    let dayCount: Int
+    let landmarkName: String
+  
+    @State
+    private var itinerary: Itinerary.PartiallyGenerated?
+  
+    var body: some View {
+        //...
+        Button("Start") {
+            Task {
+                do {
+                    let prompt = """
+                        Generate a \(dayCount) itinerary \
+                        to \(landmarkName).
+                        """
+                  
+                    let stream = session.streamResponse(
+                        to: prompt,
+                        generating: Itinerary.self
+                    )
+                  
+                    for try await partial in stream {
+                        self.itinerary = partial
+                    }
+                } catch {
+                    print(error)  
+                }
+            }
+        }
+    }
+}
+```
+
+To wrap up, let's review some best practices for streaming.
+
+First, get creative with SwiftUI animations and transitions to hide latency. You have an opportunity turn a moment of waiting into one of delight. Second, you'll need to think carefully about view identity in SwiftUI, especially when generating arrays. Finally, bear in mind that properties are generated in the order they are declared on your Swift struct. This matters both for animations and for the quality of the model's output. For example, you may find that the model produces the best summaries when they're the last property in the struct.
+
+```swift
+@Generable struct Itinerary {
+  
+  @Guide(description: "Plans for each day")
+  var days: [DayPlan]
+  
+  @Guide(description: "A brief summary of plans")
+  var summary: String
+}
+```
+
+There is a lot to unpack here, so make sure to check out our video on integrating Foundation Models into your app for more details. So that wraps up streaming with Foundation Models. Next up, Yifei is going to teach you all about tool calling! Thanks Erik! Tool calling is another one of our key features. It lets the model execute code you define in your app. This feature is especially important for getting the most out of our model, since tool calling gives the model many additional capabilities. It allows the model to identify that a task may require additional information or actions and autonomously make decisions about what tool to use and when, when it’s difficult to decide programmatically.
+
+The information you provide to the model can be world knowledge, recent events, or personal data. For example, in our travel app, it provides information about various locations from MapKit. This also gives the model the ability to cite sources of truth, which can suppress hallucinations and allow fact-checking the model output.
+
+Finally, it allows the model to take actions, whether it’s in your app, on the system, or in the real world.
+
+Integrating with various sources of information in your app is a winning strategy for building compelling experiences. Now that you know why tool calling is very useful, let’s take a look at how it works.
+
+On the left we have a transcript which records everything that has happened so far. If you’ve provided tools to the session, the session will present these tools to the model along with the instructions. Next comes the prompt, where we tell the model which destination we want to visit.
+
+Now, if the model deems that calling a tool can enhance the response, it will produce one or more tool calls. In this example, the model produces two tool calls — querying restaurants and hotels.
+
+At this phase, the FoundationModels framework will automatically call the code you wrote for these tools. The framework then automatically inserts the tool outputs back into the transcript. Finally, the model will incorporate the tool output along with everything else in the transcript to furnish the final response.
+
+Now that we have a high level understanding of tool calling, let's define a tool.
+
+Here we're defining a simple weather tool, which conforms to the Tool protocol. The weather tool has kind of emerged as the de-facto 'hello world' of tool calling, and it's a great way to get started.
+
+The protocol first requires you to specify a name and a natural language description of the tool.
+
+The framework will automatically provide them for the model to help it understand when to call your tool.
+
+When the model calls your tool, it will run the call method you define.
+
+The argument to the call method can be any Generable type.
+
+The reason your arguments need to be generable is because tool calling is built on guided generation to ensure that the model will never produce invalid tool names or arguments.
+
+After defining your arguments type, you can now write anything you want in the body of your method. Here we're using CoreLocation and WeatherKit to find the temperature of a given city. The output is represented using the ToolOutput type, which can be created from GeneratedContent to represent structured data. Or from a string if your tool's output is natural language. 
+
+```swift
+// Defining a tool
+import WeatherKit
+import CoreLocation
+import FoundationModels
+
+struct GetWeatherTool: Tool {
+    let name = "getWeather"
+    let description = "Retrieve the latest weather information for a city"
+
+    @Generable
+    struct Arguments {
+        @Guide(description: "The city to fetch the weather for")
+        var city: String
+    }
+
+    func call(arguments: Arguments) async throws -> ToolOutput {
+        let places = try await CLGeocoder().geocodeAddressString(arguments.city)
+        let weather = try await WeatherService.shared.weather(for: places.first!.location!)
+        let temperature = weather.currentWeather.temperature.value
+
+        let content = GeneratedContent(properties: ["temperature": temperature])
+        let output = ToolOutput(content)
+
+        // Or if your tool's output is natural language:
+        // let output = ToolOutput("\(arguments.city)'s temperature is \(temperature) degrees.")
+
+        return output
+    }
+}
+```
+
+Now that we have defined a tool, we have to ensure that the model has access to it.
+
+To do so, pass your tool into your session's initializer. Tools must be attached at session initialization, and will be available to the model for the session's lifetime.
+
+```swift
+// Attaching tools to a session
+
+let session = LanguageModelSession(
+    tools: [GetWeatherTool()],
+    instructions: "Help the user with weather forecasts."
+)
+
+let response = try await session.respond(
+    to: "What is the temperature in Cupertino?"
+)
+
+print(response.content)
+// It's 71˚F in Cupertino!
+```
+
+After creating a session with tools, all you need to do is prompt the model as you would normally. Tool calls will happen transparently and autonomously, and the model will incorporate the tools' outputs into its final response. The examples I’ve shown here demonstrate how to define type-safe tools at compile time, which is great for the vast majority of use cases. But tools can also be dynamic in every way! For example, you can define the arguments and behaviors of a tool at runtime by using dynamic generation schemas. If you are curious about that, feel free to check out our deep dive video to learn more.
+
+That wraps up tool calling. We learned why tool calling is useful and how to implement tools to extend the model's capabilities. Next, let's talk about stateful sessions. You've seen the word session pop up in this video many times already. The Foundation Models framework is built around the notion of a stateful session. By default, when you create a session, you will be prompting the on-device general-purpose model. And you can provide custom instructions.
+
+Instructions are an opportunity for you to tell the model its role and provide guidance on how the model should respond. For example, you can specify things like style and verbosity.
+
+```swift
+// Supplying custom instructions
+
+let session = LanguageModelSession(
+    instructions: """
+        You are a helpful assistant who always \
+        responds in rhyme.
+        """
+)
+```
+
+Note that providing custom instructions is optional, and reasonable default instructions will be used if you don't specify any.
+
+If you do choose to provide custom instructions, it is important to understand the difference between instructions and prompts. Instructions should come from you, the developer, while prompts can come from the user. This is because the model is trained to obey instructions over prompts. This helps protect against prompt injection attacks, but is by no means bullet proof.
+
+As a general rule, instructions are mostly static, and it’s best not to interpolate untrusted user input into the instructions.
+
+So this is a basic primer on how to best form your instructions and prompts. To discover even more best practices, check out our video on prompt design and safety.
+
+Now that you have initialized a session, let's talk about multi-turn interactions! When using the respond or streamResponse methods we talked about earlier. Each interaction with the model is retained as context in a transcript, so the model will be able to refer to and understand past multi-turn interactions within a single session. For example, here the model is able to understand when we say "do another one", that we're referring back to writing a haiku.
+
+```swift
+// Multi-turn interactions
+
+let session = LanguageModelSession()
+
+let firstHaiku = try await session.respond(to: "Write a haiku about fishing")
+print(firstHaiku.content)
+// Silent waters gleam,
+// Casting lines in morning mist—
+// Hope in every cast.
+
+let secondHaiku = try await session.respond(to: "Do another one about golf")
+print(secondHaiku.content)
+// Silent morning dew,
+// Caddies guide with gentle words—
+// Paths of patience tread.
+
+print(session.transcript)// (Prompt) Write a haiku about fishing
+// (Response) Silent waters gleam...
+// (Prompt) Do another one about golf
+// (Response) Silent morning dew...
+```
+
+And the `transcript` property on the session object will allow you to inspect previous interactions or draw UI views to represent them.
+
+One more important thing to know is that while the model is producing output, its `isResponding` property will become `true`. You may need to observe this property and make sure not to submit another prompt until the model finishes responding.
+
+```swift
+import SwiftUI
+import FoundationModels
+
+struct HaikuView: View {
+
+    @State
+    private var session = LanguageModelSession()
+
+    @State
+    private var haiku: String?
+
+    var body: some View {
+        if let haiku {
+            Text(haiku)
+        }
+        Button("Go!") {
+            Task {
+                haiku = try await session.respond(
+                    to: "Write a haiku about something you haven't yet"
+                ).content
+            }
+        }
+        // Gate on `isResponding`
+        .disabled(session.isResponding)
+    }
+}
+```
+
+Beyond the default model, we are also providing additional built-in specialized use cases that are backed by adapters.
+
+If you find a built-in use case that fits your need, you can pass it to SystemLanguageModel's initializer. 
+
+```swift
+// Using a built-in use case
+
+let session = LanguageModelSession(
+    model: SystemLanguageModel(useCase: .contentTagging)
+)
+```
+
+To understand what built-in use cases are available and how to best utilize them, check out our documentation on the developer website. One specialized adapter I want to talk more about today is the content tagging adapter. The content tagging adapter provides first class support for tag generation, entity extraction, and topic detection. By default, the adapter is trained to output topic tags, and it integrates with guided generation out of the box. So you can simply define a struct with our Generable macro, and pass the user input to extract topics from it.
+
+```swift
+// Content tagging use case
+
+@Generable
+struct Result {
+    let topics: [String]
+}
+
+let session = LanguageModelSession(model: SystemLanguageModel(useCase: .contentTagging))
+let response = try await session.respond(to: ..., generating: Result.self)
+```
+
+But there's more! By providing it with custom instructions and a custom Generable output type, you can even use it to detect things like actions and emotions.
+
+```swift
+// Content tagging use case
+
+@Generable
+struct Top3ActionEmotionResult {
+    @Guide(.maximumCount(3))
+    let actions: [String]
+    @Guide(.maximumCount(3))
+    let emotions: [String]
+}
+
+let session = LanguageModelSession(
+    model: SystemLanguageModel(useCase: .contentTagging),
+    instructions: "Tag the 3 most important actions and emotions in the given input text."
+)
+let response = try await session.respond(to: ..., generating: Top3ActionEmotionResult.self)
+```
+
+Before you create a session, you should also check for availability, since the model can only run on Apple Intelligence-enabled devices in supported regions. To check if the model is currently available, you can access the availability property on the SystemLanguageModel.
+
+Availability is a two case enum that's either available or unavailable. If it's unavailable, you also receive a reason so you can adjust your UI accordingly.
+
+```swift
+// Availability checking
+
+struct AvailabilityExample: View {
+    private let model = SystemLanguageModel.default
+
+    var body: some View {
+        switch model.availability {
+        case .available:
+            Text("Model is available").foregroundStyle(.green)
+        case .unavailable(let reason):
+            Text("Model is unavailable").foregroundStyle(.red)
+            Text("Reason: \(reason)")
+        }
+    }
+}
+```
+
+Lastly, you could encounter errors when you are calling into the model.
+
+These errors might include guardrail violation, unsupported language, or context window exceeded. To provide the best user experience, you should handle them appropriately, and the deep-dive video will teach you more about them. That’s it for multi-turn stateful sessions! We learned how to create a session and use it, as well as how our model keeps track of your context. Now that you’ve seen all the cool features of the framework, let’s talk about developer tooling and experience. To start, you can go to any Swift file in your project and use the new playground macro to prompt the model.
+
+Playgrounds are powerful because they let you quickly iterate on your prompts without having to rebuild and rerun your entire app.
+
+In a playground, your code can access all the types in your project, such as the generable types that are already powering your UI.
+
+Next, we know that when it comes to building app experiences powered by large language models, it is important to understand all the latency under the hood, because large language models take longer to run compared to traditional ML models. Understanding where latency goes can help you tweak the verbosity of your prompts, or determine when to call useful APIs such as prewarming.
+
+And our new Instruments app profiling template is built exactly for that. You can profile the latency of a model request, observe areas of optimizations, and quantify improvements.
+
+Now, as you develop your app, you may have feedback that can help us improve our models and our APIs.
+
+We encourage you to provide your feedback through Feedback Assistant. We even provide an encodable feedback attachment data structure that you can attach as a file to your feedback.
+
+```swift
+let feedback = LanguageModelFeedbackAttachment(
+  input: [
+    // ...
+  ],
+  output: [
+    // ...
+  ],
+  sentiment: .negative,
+  issues: [
+    LanguageModelFeedbackAttachment.Issue(
+      category: .incorrect,
+      explanation: "..."
+    )
+  ],
+  desiredOutputExamples: [
+    [
+      // ...
+    ]
+  ]
+)
+let data = try JSONEncoder().encode(feedback)
+```
+
+Finally, if you are an ML practitioner with a highly specialized use case and a custom dataset, you can also train your custom adapters using our adapter training toolkit. But bear in mind, this comes with significant responsibilities because you need to retrain it as Apple improves the model over time. To learn more, you can visit the developer website. 
+
+Now that you've learned many of the cool features provided by the new Foundation Models framework, we can't wait to see all the amazing things you build with it! To discover even more about how you can integrate generative AI into your app, how technologies like guided generation work under the hood, and how you can create the best prompts, we have a whole series of wonderful videos and articles for you.
+
+Thank you so much for joining us today! Happy generating!
+--- END FILE ---
+
+--- FILE: generating-content-and-performing-tasks.md ---
+# Generating content and performing tasks with Foundation Models
+
+**Enhance the experience in your app by prompting an on-device large language model.**
+
+
+## Overview
+
+The Foundation Models framework lets you tap into the on-device large models at the core of Apple Intelligence. You can enhance your app by using generative models to create content or perform tasks. The framework supports language understanding and generation based on model capabilities.
+
+For design guidance, see Human Interface Guidelines > Technologies > [https://developer.apple.com/design/human-interface-guidelines/generative-ai](https://developer.apple.com/design/human-interface-guidelines/generative-ai).
+
+
+## Understand model capabilities
+
+When considering features for your app, it helps to know what the on-device language model can do. The on-device model supports text generation and understanding that you can use to:
+
+The on-device language model may not be suitable for handling all requests, like:
+
+The model can complete complex generative tasks when you use guided generation or tool calling. For more on handling complex tasks, or tasks that require extensive world-knowledge, see [doc://com.apple.foundationmodels/documentation/FoundationModels/generating-swift-data-structures-with-guided-generation](https://developer.apple.com/documentation/FoundationModels/generating-swift-data-structures-with-guided-generation) and [doc://com.apple.foundationmodels/documentation/FoundationModels/expanding-generation-with-tool-calling](https://developer.apple.com/documentation/FoundationModels/expanding-generation-with-tool-calling).
+
+
+## Check for availability
+
+Before you use the on-device model in your app, check that the model is available by creating an instance of [doc://com.apple.foundationmodels/documentation/FoundationModels/SystemLanguageModel](https://developer.apple.com/documentation/FoundationModels/SystemLanguageModel) with the [doc://com.apple.foundationmodels/documentation/FoundationModels/SystemLanguageModel/default](https://developer.apple.com/documentation/FoundationModels/SystemLanguageModel/default) property.
+
+Model availability depends on device factors like:
+
+- The device must support Apple Intelligence.
+
+- The device must have Apple Intelligence turned on in Settings.
+
+
+> **NOTE**: It can take some time for the model to download and become available when a person turns on Apple Intelligence.
+
+
+Always verify model availability first, and plan for a fallback experience in case the model is unavailable.
+
+```swift
+struct GenerativeView: View {
+    // Create a reference to the system language model.
+    private var model = SystemLanguageModel.default
+
+    var body: some View {
+        switch model.availability {
+        case .available:
+            // Show your intelligence UI.
+        case .unavailable(.deviceNotEligible):
+            // Show an alternative UI.
+        case .unavailable(.appleIntelligenceNotEnabled):
+            // Ask the person to turn on Apple Intelligence.
+        case .unavailable(.modelNotReady):
+            // The model isn't ready because it's downloading or because of other system reasons.
+        case .unavailable(let other):
+            // The model is unavailable for an unknown reason.
+        }
+    }
+}
+```
+
+
+## Create a session
+
+After confirming that the model is available, create a [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession) object to call the model. For a single-turn interaction, create a new session each time you call the model:
+
+```swift
+// Create a session with the system model.
+let session = LanguageModelSession()
+```
+
+For a multiturn interaction — where the model retains some knowledge of what it produced — reuse the same session each time you call the model.
+
+
+## Provide a prompt to the model
+
+A [doc://com.apple.foundationmodels/documentation/FoundationModels/Prompt](https://developer.apple.com/documentation/FoundationModels/Prompt) is an input that the model responds to. Prompt engineering is the art of designing high-quality prompts so that the model generates a best possible response for the request you make. A prompt can be as short as “hello”, or as long as multiple paragraphs. The process of designing a prompt involves a lot of exploration to discover the best prompt, and involves optimizing prompt length and writing style.
+
+When thinking about the prompt you want to use in your app, consider using conversational language in the form of a question or command. For example, “What’s a good month to visit Paris?” or “Generate a food truck menu.”
+
+Write prompts that focus on a single and specific task, like “Write a profile for the dog breed Siberian Husky”. When a prompt is long and complicated, the model takes longer to respond, and may respond in unpredictable ways. If you have a complex generation task in mind, break the task down into a series of specific prompts.
+
+You can refine your prompt by telling the model exactly how much content it should generate. A prompt like, “Write a profile for the dog breed Siberian Husky” often takes a long time to process as the model generates a full multi-paragraph essay. If you specify “using three sentences”, it speeds up processing and generates a concise summary. Use phrases like “in a single sentence” or “in a few words” to shorten the generation time and produce shorter text.
+
+```swift
+// Generate a longer response for a specific command.
+let simple = "Write me a story about pears."
+
+// Quickly generate a concise response.
+let quick = "Write the profile for the dog breed Siberian Husky using three sentences."
+```
+
+
+## Provide instructions to the model
+
+[doc://com.apple.foundationmodels/documentation/FoundationModels/Instructions](https://developer.apple.com/documentation/FoundationModels/Instructions) help steer the model in a way that fits the use case of your app. The model obeys prompts at a lower priority than the instructions you provide. When you provide instructions to the model, consider specifying details like:
+
+- What the model’s role is; for example, “You are a mentor,” or “You are a movie critic”.
+
+- What the model should do, like “Help the person extract calendar events,” or “Help the person by recommending search suggestions”.
+
+- What the style preferences are, like “Respond as briefly as possible”.
+
+- What the possible safety measures are, like “Respond with ‘I can’t help with that’ if you’re asked to do something dangerous”.
+
+Use content you trust in instructions because the model follows them more closely than the prompt itself. When you initialize a session with instructions, it affects all prompts the model responds to in that session. Instructions can also include example responses to help steer the model. When you add examples to your prompt, you provide the model with a template that shows the model what a good response looks like.
+
+
+## Generate a response
+
+To call the model with a prompt, call [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/respond(to:options:)-b2re](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/respond(to:options:)-b2re) on your session. The response call is asynchronous because it may take a few seconds for the on-device foundation model to generate the response.
+
+```swift
+let instructions = """
+    Suggest five related topics. Keep them concise (three to seven words) and make sure they \
+    build naturally from the person's topic.
+    """
+
+let session = LanguageModelSession(instructions: instructions)
+
+let prompt = "Making homemade bread"
+let response = try await session.respond(to: prompt)
+```
+
+
+> **NOTE**: A session can only handle a single request at a time, and causes a runtime error if you call it again before the previous request finishes. Check [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/isResponding](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/isResponding) to verify the session is done processing the previous request before sending a new one.
+
+
+Instead of working with raw string output from the model, the framework offers guided generation to generate a custom Swift data structure you define. For more information about guided generation, see [doc://com.apple.foundationmodels/documentation/FoundationModels/generating-swift-data-structures-with-guided-generation](https://developer.apple.com/documentation/FoundationModels/generating-swift-data-structures-with-guided-generation).
+
+When you make a request to the model, you can provide custom tools to help the model complete the request. If the model determines that a [doc://com.apple.foundationmodels/documentation/FoundationModels/Tool](https://developer.apple.com/documentation/FoundationModels/Tool) can assist with the request, the framework calls your [doc://com.apple.foundationmodels/documentation/FoundationModels/Tool](https://developer.apple.com/documentation/FoundationModels/Tool) to perform additional actions like retrieving content from your local database. For more information about tool calling, see [doc://com.apple.foundationmodels/documentation/FoundationModels/expanding-generation-with-tool-calling](https://developer.apple.com/documentation/FoundationModels/expanding-generation-with-tool-calling)
+
+
+## Consider context size limits per session
+
+The *context window size* is a limit on how much data the model can process for a session instance. A token is a chunk of text the model processes, and the system model supports up to 4,096 tokens. A single token corresponds to three or four characters in languages like English, Spanish, or German, and one token per character in languages like Japanese, Chinese, or Korean. In a single session, the sum of all tokens in the instructions, all prompts, and all outputs count toward the context window size.
+
+If your session processes a large amount of tokens that exceed the context window, the framework throws the error [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/GenerationError/exceededContextWindowSize(_:)](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/GenerationError/exceededContextWindowSize(_:)). When you encounter the error, start a new session and try shortening your prompts. If you need to process a large amount of data that won’t fit in a single context window limit, break your data into smaller chunks, process each chunk in a separate session, and then combine the results.
+
+
+## Tune generation options and optimize performance
+
+To get the best results for your prompt, experiment with different generation options. [doc://com.apple.foundationmodels/documentation/FoundationModels/GenerationOptions](https://developer.apple.com/documentation/FoundationModels/GenerationOptions) affects the runtime parameters of the model, and you can customize them for every request you make.
+
+```swift
+// Customize the temperature to increase creativity.
+let options = GenerationOptions(temperature: 2.0)
+
+let session = LanguageModelSession()
+
+let prompt = "Write me a story about coffee."
+let response = try await session.respond(
+    to: prompt,
+    options: options
+)
+```
+
+When you test apps that use the framework, use Xcode Instruments to understand more about the requests you make, like the time it takes to perform a request. When you make a request, you can access the [doc://com.apple.foundationmodels/documentation/FoundationModels/Transcript](https://developer.apple.com/documentation/FoundationModels/Transcript) entries that describe the actions the model takes during your [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession).
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.foundationmodels/documentation/FoundationModels/generating-content-and-performing-tasks-with-foundation-models](https://developer.apple.com/documentation/com.apple.foundationmodels/documentation/FoundationModels/generating-content-and-performing-tasks-with-foundation-models)*
+--- END FILE ---
+
+--- FILE: LanguageModelSession.md ---
+# LanguageModelSession
+
+**An object that represents a session that interacts with a language model.**
+
+## Availability
+
+- **iOS** 26.0+
+- **iPadOS** 26.0+
+- **Mac Catalyst** 26.0+
+- **macOS** 26.0+
+- **visionOS** 26.0+
+
+
+## Overview
+
+A session is a single context that you use to generate content with, and maintains state between requests. You can reuse the existing instance or create a new one each time you call the model. When you create a session you can provide instructions that tells the model what its role is and provides guidance on how to respond.
+
+```swift
+let session = LanguageModelSession(instructions: """
+    You are a motivational workout coach that provides quotes to inspire \
+    and motivate athletes.
+    """
+)
+let prompt = "Generate a motivational quote for my next workout."
+let response = try await session.respond(to: prompt)
+```
+
+The framework records each call to the model in a [doc://com.apple.foundationmodels/documentation/FoundationModels/Transcript](https://developer.apple.com/documentation/FoundationModels/Transcript) that includes all prompts and responses. If your session exceeds the available context size, it throws [doc://com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession/GenerationError/exceededContextWindowSize(_:)](https://developer.apple.com/documentation/FoundationModels/LanguageModelSession/GenerationError/exceededContextWindowSize(_:)).
+
+## Topics
+
+### Creating a session
+
+- [init(model:tools:instructions:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/init(model:tools:instructions:)) — Start a new session in blank slate state with instructions builder.
+- [SystemLanguageModel](https://developer.apple.com/documentation/foundationmodels/systemlanguagemodel) — An on-device large language model capable of text generation tasks.
+- [Tool](https://developer.apple.com/documentation/foundationmodels/tool) — A tool that a model can call to gather information at runtime or perform side effects.
+- [Instructions](https://developer.apple.com/documentation/foundationmodels/instructions) — Details you provide that define the model’s intended behavior on prompts.
+### Creating a session from a transcript
+
+- [init(model:tools:transcript:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/init(model:tools:transcript:)) — Start a session by rehydrating from a transcript.
+- [Transcript](https://developer.apple.com/documentation/foundationmodels/transcript) — A transcript contains a linear history of [doc://com.apple.foundationmodels/documentation/FoundationModels/Transcript/Entry](https://developer.apple.com/documentation/FoundationModels/Transcript/Entry) entries.
+### Preloading the model
+
+- [prewarm(promptPrefix:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/prewarm(promptprefix:)) — Requests that the system eagerly load the resources required for this session into memory and optionally caches a prefix of your prompt.
+### Inspecting session properties
+
+- [isResponding](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/isresponding) — A Boolean value that indicates a response is being generated.
+- [transcript](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/transcript) — A full history of interactions, including user inputs and model responses.
+### Generating a request
+
+- [respond(options:prompt:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/respond(options:prompt:)) — Produces a response to a prompt.
+- [respond(generating:includeSchemaInPrompt:options:prompt:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/respond(generating:includeschemainprompt:options:prompt:)) — Produces a generable object as a response to a prompt.
+- [respond(schema:includeSchemaInPrompt:options:prompt:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/respond(schema:includeschemainprompt:options:prompt:)) — Produces a generated content type as a response to a prompt and schema.
+- [respond(to:options:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/respond(to:options:)) — Produces a response to a prompt.
+- [respond(to:generating:includeSchemaInPrompt:options:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/respond(to:generating:includeschemainprompt:options:)) — Produces a generable object as a response to a prompt.
+- [respond(to:schema:includeSchemaInPrompt:options:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/respond(to:schema:includeschemainprompt:options:)) — Produces a generated content type as a response to a prompt and schema.
+- [Prompt](https://developer.apple.com/documentation/foundationmodels/prompt) — A prompt from a person to the model.
+- [LanguageModelSession.Response](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/response) — A structure that stores the output of a response call.
+- [GenerationOptions](https://developer.apple.com/documentation/foundationmodels/generationoptions) — Options that control how the model generates its response to a prompt.
+### Streaming a response
+
+- [streamResponse(to:options:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/streamresponse(to:options:)) — Produces a response stream to a prompt.
+- [streamResponse(to:generating:includeSchemaInPrompt:options:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/streamresponse(to:generating:includeschemainprompt:options:)) — Produces a response stream to a prompt and schema.
+- [streamResponse(to:schema:includeSchemaInPrompt:options:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/streamresponse(to:schema:includeschemainprompt:options:)) — Produces a response stream to a prompt and schema.
+- [streamResponse(options:prompt:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/streamresponse(options:prompt:)) — Produces a response stream to a prompt.
+- [streamResponse(generating:includeSchemaInPrompt:options:prompt:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/streamresponse(generating:includeschemainprompt:options:prompt:)) — Produces a response stream for a type.
+- [streamResponse(schema:includeSchemaInPrompt:options:prompt:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/streamresponse(schema:includeschemainprompt:options:prompt:)) — Produces a response stream to a prompt and schema.
+- [LanguageModelSession.ResponseStream](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/responsestream) — An async sequence of snapshots of partially generated content.
+- [GeneratedContent](https://developer.apple.com/documentation/foundationmodels/generatedcontent) — A type that represents structured, generated content.
+- [ConvertibleFromGeneratedContent](https://developer.apple.com/documentation/foundationmodels/convertiblefromgeneratedcontent) — A type that can be initialized from generated content.
+- [ConvertibleToGeneratedContent](https://developer.apple.com/documentation/foundationmodels/convertibletogeneratedcontent) — A type that can be converted to generated content.
+### Generating feedback
+
+- [logFeedbackAttachment(sentiment:issues:desiredOutput:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/logfeedbackattachment(sentiment:issues:desiredoutput:)) — Logs and serializes data that includes session information that you attach when reporting feedback to Apple.
+### Getting the error types
+
+- [LanguageModelSession.GenerationError](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/generationerror) — An error that may occur while generating a response.
+- [LanguageModelSession.ToolCallError](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/toolcallerror) — An error that occurs while a system language model is calling a tool.
+### Instance Methods
+
+- [logFeedbackAttachment(sentiment:issues:desiredResponseContent:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/logfeedbackattachment(sentiment:issues:desiredresponsecontent:))
+- [logFeedbackAttachment(sentiment:issues:desiredResponseText:)](https://developer.apple.com/documentation/foundationmodels/languagemodelsession/logfeedbackattachment(sentiment:issues:desiredresponsetext:))
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession](https://developer.apple.com/documentation/com.apple.foundationmodels/documentation/FoundationModels/LanguageModelSession)*
+--- END FILE ---
+
+--- FILE: Foundation-Models.md ---
+# Foundation Models
+
+**Perform tasks with the on-device model that specializes in language understanding, structured output, and tool calling.**
+
+## Availability
+
+- **iOS** 26.0+
+- **iPadOS** 26.0+
+- **Mac Catalyst** 26.0+
+- **macOS** 26.0+
+- **visionOS** 26.0+
+
+
+## Overview
+
+The Foundation Models framework provides access to Apple’s on-device large language model that powers Apple Intelligence to help you perform intelligent tasks specific to your use case. The text-based on-device model identifies patterns that allow for generating new text that’s appropriate for the request you make, and it can make decisions to call code you write to perform specialized tasks.
+
+![Image](foundation-models-hero)
+
+Generate text content based on requests you make. The on-device model excels at a diverse range of text generation tasks, like summarization, entity extraction, text understanding, refinement, dialog for games, generating creative content, and more.
+
+Generate entire Swift data structures with guided generation. With the `@Generable` macro, you can define custom data structures and the framework provides strong guarantees that the model generates instances of your type.
+
+To expand what the on-device foundation model can do, use [doc://com.apple.foundationmodels/documentation/FoundationModels/Tool](https://developer.apple.com/documentation/FoundationModels/Tool) to create custom tools that the model can call to assist with handling your request. For example, the model can call a tool that searches a local or online database for information, or calls a service in your app.
+
+To use the on-device language model, people need to turn on Apple Intelligence on their device. For a list of supported devices, see [https://www.apple.com/apple-intelligence/](https://www.apple.com/apple-intelligence/).
+
+For more information about acceptable usage of the Foundation Models framework, see [https://developer.apple.com/apple-intelligence/acceptable-use-requirements-for-the-foundation-models-framework](https://developer.apple.com/apple-intelligence/acceptable-use-requirements-for-the-foundation-models-framework).
+
+
+### Related videos
+
+
+### Related Links
+
+- doc://com.apple.documentation/videos/play/wwdc2025/286
+
+- doc://com.apple.documentation/videos/play/wwdc2025/301
+
+- doc://com.apple.documentation/videos/play/wwdc2025/259
+
+## Topics
+
+### Essentials
+
+- [Generating content and performing tasks with Foundation Models](https://developer.apple.com/documentation/foundationmodels/generating-content-and-performing-tasks-with-foundation-models) — Enhance the experience in your app by prompting an on-device large language model.
+- [Improving the safety of generative model output](https://developer.apple.com/documentation/foundationmodels/improving-the-safety-of-generative-model-output) — Create generative experiences that appropriately handle sensitive inputs and respect people.
+- [Support languages and locales with Foundation Models](https://developer.apple.com/documentation/foundationmodels/support-languages-and-locales-with-foundation-models) — Generate content in the language people prefer when they interact with your app.
+- [Adding intelligent app features with generative models](https://developer.apple.com/documentation/foundationmodels/adding-intelligent-app-features-with-generative-models) — Build robust apps with guided generation and tool calling by adopting the Foundation Models framework.
+- [SystemLanguageModel](https://developer.apple.com/documentation/foundationmodels/systemlanguagemodel) — An on-device large language model capable of text generation tasks.
+- [SystemLanguageModel.UseCase](https://developer.apple.com/documentation/foundationmodels/systemlanguagemodel/usecase) — A type that represents the use case for prompting.
+### Prompting
+
+- [LanguageModelSession](https://developer.apple.com/documentation/foundationmodels/languagemodelsession) — An object that represents a session that interacts with a language model.
+- [Instructions](https://developer.apple.com/documentation/foundationmodels/instructions) — Details you provide that define the model’s intended behavior on prompts.
+- [Prompt](https://developer.apple.com/documentation/foundationmodels/prompt) — A prompt from a person to the model.
+- [Transcript](https://developer.apple.com/documentation/foundationmodels/transcript) — A transcript contains a linear history of [doc://com.apple.foundationmodels/documentation/FoundationModels/Transcript/Entry](https://developer.apple.com/documentation/FoundationModels/Transcript/Entry) entries.
+- [GenerationOptions](https://developer.apple.com/documentation/foundationmodels/generationoptions) — Options that control how the model generates its response to a prompt.
+### Guided generation
+
+- [Generating Swift data structures with guided generation](https://developer.apple.com/documentation/foundationmodels/generating-swift-data-structures-with-guided-generation) — Create robust apps by describing output you want programmatically.
+- [Generable](https://developer.apple.com/documentation/foundationmodels/generable) — A type that the model uses when responding to prompts.
+### Tool calling
+
+- [Expanding generation with tool calling](https://developer.apple.com/documentation/foundationmodels/expanding-generation-with-tool-calling) — Build tools that enable the model to perform tasks that are specific to your use case.
+- [Generate dynamic game content with guided generation and tools](https://developer.apple.com/documentation/foundationmodels/generate-dynamic-game-content-with-guided-generation-and-tools) — Make gameplay more lively with AI generated dialog and encounters personalized to the player.
+- [Tool](https://developer.apple.com/documentation/foundationmodels/tool) — A tool that a model can call to gather information at runtime or perform side effects.
+### Feedback
+
+- [LanguageModelFeedback](https://developer.apple.com/documentation/foundationmodels/languagemodelfeedback) — Feedback appropriate for logging or attaching to Feedback Assistant.
+### Macros
+
+- [Guide(description:semantics:)](https://developer.apple.com/documentation/foundationmodels/guide(description:semantics:))
+- [Guide(description:semantics:_:)](https://developer.apple.com/documentation/foundationmodels/guide(description:semantics:_:))
+
+### Related Resources
+
+- [Meet the Foundation Models framework](https://developer.apple.com/videos/play/wwdc2025/286)
+- [Deep dive into the Foundation Models framework](https://developer.apple.com/videos/play/wwdc2025/301)
+- [Code-along: Bring on-device AI to your app using the Foundation Models framework](https://developer.apple.com/videos/play/wwdc2025/259)
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.foundationmodels/documentation/FoundationModels](https://developer.apple.com/documentation/com.apple.foundationmodels/documentation/FoundationModels)*
+--- END FILE ---
+
+--- FILE: Adding-intelligent-app-features-with-generative-models.md ---
+# Adding intelligent app features with generative models
+
+**Build robust apps with guided generation and tool calling by adopting the Foundation Models framework.**
+
+## Availability
+
+- **iOS** 26.0+
+- **iPadOS** 26.0+
+- **macOS** 26.0+
+- **visionOS** 26.0+
+- **Xcode** 26.0+
+
+
+## Overview
+
+
+> **NOTE**: This sample code project is associated with WWDC25 session 259: [https://developer.apple.com/wwdc25/259/](https://developer.apple.com/wwdc25/259/).
+
+
+
+### Configure the sample code project
+
+To configure the sample code project, do the following:
+
+1. Open the sample with the latest version of Xcode.
+
+2. In Xcode, set the developer team for the app target to let Xcode automatically manage the provisioning profile. For more information, see [https://developer.apple.com/documentation/xcode/preparing-your-app-for-distribution#Set-the-bundle-ID](https://developer.apple.com/documentation/xcode/preparing-your-app-for-distribution#Set-the-bundle-ID) and [https://developer.apple.com/documentation/xcode/preparing-your-app-for-distribution#Assign-the-project-to-a-team](https://developer.apple.com/documentation/xcode/preparing-your-app-for-distribution#Assign-the-project-to-a-team).
+
+3. In the developer portal, enable the WeatherKit app service for your bundle ID to access weather information.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.foundationmodels/documentation/FoundationModels/adding-intelligent-app-features-with-generative-models](https://developer.apple.com/documentation/com.apple.foundationmodels/documentation/FoundationModels/adding-intelligent-app-features-with-generative-models)*
+--- END FILE ---
+
+--- FILE: MLTrainingSession.md ---
+# MLTrainingSession
+
+**The current state of a model’s asynchronous training session.**
+
+## Availability
+
+- **iOS** 15.0+
+- **iPadOS** 15.0+
+- **Mac Catalyst** 15.0+
+- **macOS** 11.0+
+- **tvOS** 16.0+
+- **visionOS** 1.0+
+
+
+## Topics
+
+### Checking a training session’s progress
+
+- [phase](https://developer.apple.com/documentation/createml/mltrainingsession/phase) — The training session’s current state.
+- [MLPhase](https://developer.apple.com/documentation/createml/mlphase) — The possible states of a training session.
+- [iteration](https://developer.apple.com/documentation/createml/mltrainingsession/iteration) — The iteration number of a training session’s phase.
+- [checkpoints](https://developer.apple.com/documentation/createml/mltrainingsession/checkpoints) — An array of checkpoints the training session has created so far.
+### Removing checkpoints
+
+- [removeCheckpoints(_:)](https://developer.apple.com/documentation/createml/mltrainingsession/removecheckpoints(_:)) — Removes the checkpoints that satisfy your closure from the training session.
+### Reusing features from a previous session
+
+- [reuseExtractedFeatures(from:)](https://developer.apple.com/documentation/createml/mltrainingsession/reuseextractedfeatures(from:)) — Uses the features another session has already extracted from its dataset.
+### Inspecting a session
+
+- [date](https://developer.apple.com/documentation/createml/mltrainingsession/date) — The time when you created this training session.
+- [parameters](https://developer.apple.com/documentation/createml/mltrainingsession/parameters) — The parameters you used to create the training session.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML/MLTrainingSession](https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML/MLTrainingSession)*
+--- END FILE ---
+
+--- FILE: MLTrainingSessionParameters.md ---
+# MLTrainingSessionParameters
+
+**The configuration settings for a training session.**
+
+## Availability
+
+- **iOS** 15.0+
+- **iPadOS** 15.0+
+- **Mac Catalyst** 15.0+
+- **macOS** 11.0+
+- **tvOS** 16.0+
+- **visionOS** 1.0+
+
+
+## Topics
+
+### Creating a session’s parameters
+
+- [init(sessionDirectory:reportInterval:checkpointInterval:iterations:)](https://developer.apple.com/documentation/createml/mltrainingsessionparameters/init(sessiondirectory:reportinterval:checkpointinterval:iterations:)) — Creates a set of parameters for a training session.
+### Configuring the session’s parameters
+
+- [sessionDirectory](https://developer.apple.com/documentation/createml/mltrainingsessionparameters/sessiondirectory) — The location in the file system where the session stores its progress.
+- [reportInterval](https://developer.apple.com/documentation/createml/mltrainingsessionparameters/reportinterval) — The number of iterations the session completes before it reports its progress.
+- [checkpointInterval](https://developer.apple.com/documentation/createml/mltrainingsessionparameters/checkpointinterval) — The number of iterations the session completes before it saves a checkpoint.
+- [iterations](https://developer.apple.com/documentation/createml/mltrainingsessionparameters/iterations) — The maximum number of iterations for the training session.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML/MLTrainingSessionParameters](https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML/MLTrainingSessionParameters)*
+--- END FILE ---
+
+--- FILE: MLCheckpoint.md ---
+# MLCheckpoint
+
+**The state of a model’s asynchronous training session at a specific point in time during the feature extraction or training phase.**
+
+## Availability
+
+- **iOS** 15.0+
+- **iPadOS** 15.0+
+- **Mac Catalyst** 15.0+
+- **macOS** 11.0+
+- **tvOS** 16.0+
+- **visionOS** 1.0+
+
+
+## Topics
+
+### Inspecting a checkpoint
+
+- [phase](https://developer.apple.com/documentation/createml/mlcheckpoint/phase) — The training session’s phase when it created the checkpoint.
+- [iteration](https://developer.apple.com/documentation/createml/mlcheckpoint/iteration) — The iteration number of a training session’s phase when it created the checkpoint.
+- [date](https://developer.apple.com/documentation/createml/mlcheckpoint/date) — The time when the training session created the checkpoint.
+- [url](https://developer.apple.com/documentation/createml/mlcheckpoint/url) — The location of the checkpoint in the file system.
+### Assessing a checkpoint
+
+- [metrics](https://developer.apple.com/documentation/createml/mlcheckpoint/metrics) — Measurements of the model’s performance at the time the session saved the checkpoint.
+- [MLProgress.Metric](https://developer.apple.com/documentation/createml/mlprogress/metric) — Metrics you use to evaluate a model’s performance during a training session.
+### Encoding and decoding a checkpoint
+
+- [encode(to:)](https://developer.apple.com/documentation/createml/mlcheckpoint/encode(to:)) — Encodes the checkpoint into the encoder.
+- [init(from:)](https://developer.apple.com/documentation/createml/mlcheckpoint/init(from:)) — Creates a new checkpoint by decoding from the decoder.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML/MLCheckpoint](https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML/MLCheckpoint)*
+--- END FILE ---
+
+--- FILE: Create-ML.md ---
+# Create ML
+
+**Create machine learning models for use in your app.**
+
+## Availability
+
+- **iOS** 15.0+
+- **iPadOS** 15.0+
+- **Mac Catalyst** 15.0+
+- **macOS** 10.14+
+- **tvOS** 16.0+
+- **visionOS** 1.0+
+
+
+## Overview
+
+Use Create ML with familiar tools like Swift and macOS playgrounds to create and train custom machine learning models on your Mac. You can train models to perform tasks like recognizing images, extracting meaning from text, or finding relationships between numerical values.
+
+![Image](create-ml-1)
+
+You train a model to recognize patterns by showing it representative samples. For example, you can train a model to recognize dogs by showing it lots of images of different dogs. After you’ve trained the model, you test it out on data it hasn’t seen before, and evaluate how well it performed the task. When the model is performing well enough, you’re ready to integrate it into your app using [doc://com.apple.documentation/documentation/CoreML](https://developer.apple.com/documentation/CoreML).
+
+![Image](create-ml-2)
+
+Create ML leverages the machine learning infrastructure built in to Apple products like Photos and Siri. This means your image classification and natural language models are smaller and take much less time to train.
+
+## Topics
+
+### Image models
+
+- [Creating an Image Classifier Model](https://developer.apple.com/documentation/createml/creating-an-image-classifier-model) — Train a machine learning model to classify images, and add it to your Core ML app.
+- [MLImageClassifier](https://developer.apple.com/documentation/createml/mlimageclassifier) — A model you train to classify images.
+- [MLObjectDetector](https://developer.apple.com/documentation/createml/mlobjectdetector) — A model you train to classify one or more objects within an image.
+- [MLHandPoseClassifier](https://developer.apple.com/documentation/createml/mlhandposeclassifier) — A task that creates a hand pose classification model by training with images of people’s hands that you provide.
+### Video models
+
+- [Creating an Action Classifier Model](https://developer.apple.com/documentation/createml/creating-an-action-classifier-model) — Train a machine learning model to recognize a person’s body movements.
+- [Detecting human actions in a live video feed](https://developer.apple.com/documentation/CreateML/detecting-human-actions-in-a-live-video-feed) — Identify body movements by sending a person’s pose data from a series of video frames to an action-classification model.
+- [MLActionClassifier](https://developer.apple.com/documentation/createml/mlactionclassifier) — A model you train with videos to classify a person’s body movements.
+- [MLHandActionClassifier](https://developer.apple.com/documentation/createml/mlhandactionclassifier) — A task that creates a hand action classification model by training with videos of people’s hand movements that you provide.
+- [MLStyleTransfer](https://developer.apple.com/documentation/createml/mlstyletransfer) — A model you train to apply an image’s style to other images or videos.
+### Text models
+
+- [Creating a text classifier model](https://developer.apple.com/documentation/createml/creating-a-text-classifier-model) — Train a machine learning model to classify natural language text.
+- [Creating a word tagger model](https://developer.apple.com/documentation/NaturalLanguage/creating-a-word-tagger-model) — Train a machine learning model to tag individual words in natural language text.
+- [MLTextClassifier](https://developer.apple.com/documentation/createml/mltextclassifier) — A model you train to classify natural language text.
+- [MLWordTagger](https://developer.apple.com/documentation/createml/mlwordtagger) — A word-tagging model you train to classify natural language text at the word level.
+- [MLGazetteer](https://developer.apple.com/documentation/createml/mlgazetteer) — A collection of terms and their labels, which augments a tagger that analyzes natural language text.
+- [MLWordEmbedding](https://developer.apple.com/documentation/createml/mlwordembedding) — A map of strings in a vector space that enable your app to find similar strings by looking at a string’s neighbors.
+### Sound models
+
+- [MLSoundClassifier](https://developer.apple.com/documentation/createml/mlsoundclassifier) — A machine learning model you train with audio files to recognize and identify sounds on a device.
+### Motion models
+
+- [MLActivityClassifier](https://developer.apple.com/documentation/createml/mlactivityclassifier) — A model you train to classify motion sensor data.
+### Tabular models
+
+- [Creating a model from tabular data](https://developer.apple.com/documentation/CreateML/creating-a-model-from-tabular-data) — Train a machine learning model by using Core ML to import and manage tabular data.
+- [MLClassifier](https://developer.apple.com/documentation/createml/mlclassifier) — A model you train to classify data into discrete categories.
+- [MLRegressor](https://developer.apple.com/documentation/createml/mlregressor) — A model you train to estimate continuous values.
+- [MLRecommender](https://developer.apple.com/documentation/createml/mlrecommender) — A model you train to make recommendations based on item similarity, grouping, and, optionally, item ratings.
+### Tabular data
+
+- [MLDataTable](https://developer.apple.com/documentation/createml/mldatatable) — A table of data for training or evaluating a machine learning model.
+- [MLDataValue](https://developer.apple.com/documentation/createml/mldatavalue) — The value of a cell in a data table.
+- [Data visualizations](https://developer.apple.com/documentation/createml/data-visualizations) — Render images of data tables and columns in a playground.
+### Model accuracy
+
+- [Improving Your Model’s Accuracy](https://developer.apple.com/documentation/createml/improving-your-model-s-accuracy) — Use metrics to tune the performance of your machine learning model.
+- [MLClassifierMetrics](https://developer.apple.com/documentation/createml/mlclassifiermetrics) — Metrics you use to evaluate a classifier’s performance.
+- [MLRegressorMetrics](https://developer.apple.com/documentation/createml/mlregressormetrics) — Metrics you use to evaluate a regressor’s performance.
+- [MLWordTaggerMetrics](https://developer.apple.com/documentation/createml/mlwordtaggermetrics) — Metrics you use to evaluate a word tagger’s performance.
+- [MLRecommenderMetrics](https://developer.apple.com/documentation/createml/mlrecommendermetrics) — Metrics you use to evaluate a recommender’s performance.
+- [MLObjectDetectorMetrics](https://developer.apple.com/documentation/createml/mlobjectdetectormetrics) — Metrics you use to evaluate an object detector’s performance.
+### Model training Control
+
+- [MLJob](https://developer.apple.com/documentation/createml/mljob) — The representation of a model’s asynchronous training session you use to monitor the session’s progress or terminate its execution.
+- [MLTrainingSession](https://developer.apple.com/documentation/createml/mltrainingsession) — The current state of a model’s asynchronous training session.
+- [MLTrainingSessionParameters](https://developer.apple.com/documentation/createml/mltrainingsessionparameters) — The configuration settings for a training session.
+- [MLCheckpoint](https://developer.apple.com/documentation/createml/mlcheckpoint) — The state of a model’s asynchronous training session at a specific point in time during the feature extraction or training phase.
+### Supporting types
+
+- [MLCreateError](https://developer.apple.com/documentation/createml/mlcreateerror) — The errors Create ML throws while performing various operations, such as training models, making predictions, writing models to a file system, and so on.
+- [MLModelMetadata](https://developer.apple.com/documentation/createml/mlmodelmetadata) — Information about a model that’s stored in a Core ML model file.
+- [MLSplitStrategy](https://developer.apple.com/documentation/createml/mlsplitstrategy) — Data partitioning approaches, typically for creating a validation dataset from a training dataset.
+### Articles
+
+- [Data visualizations](https://developer.apple.com/documentation/createml/create-ml-utilties) — Render images of data tables and columns in a playground.
+- [Detecting human actions in a live video feed](https://developer.apple.com/documentation/createml/detecting-human-actions-in-a-live-video-feed) — Identify body movements by sending a person’s pose data from a series of video frames to an action-classification model.
+- [Gathering Training Videos for an Action Classifier](https://developer.apple.com/documentation/createml/recording-or-choosing-training-videos) — Collect quality example videos that effectively train action classifiers.
+### Functions
+
+- [show(_:)](https://developer.apple.com/documentation/createml/show(_:)) — Generates a streaming visualization of the untyped column.
+- [show(_:_:)](https://developer.apple.com/documentation/createml/show(_:_:)) — Generates a streaming plot visualization of the two untyped columns.
+### Enumerations
+
+- [MLBoundingBoxAnchor](https://developer.apple.com/documentation/createml/mlboundingboxanchor) — A location within a bounding box that an annotation’s coordinates use as their reference point.
+- [MLBoundingBoxCoordinatesOrigin](https://developer.apple.com/documentation/createml/mlboundingboxcoordinatesorigin) — The location within an image that an annotation’s coordinates use as their origin.
+- [MLBoundingBoxUnits](https://developer.apple.com/documentation/createml/mlboundingboxunits) — The units a bounding box annotation uses to define its position and size.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML](https://developer.apple.com/documentation/com.apple.createml/documentation/CreateML)*
+--- END FILE ---
+
+--- FILE: Model-Customization.md ---
+# Model Customization
+
+**Expand and modify your model with new layers.**
+
+
+## Overview
+
+Customize your Core ML model to make it work better for your specific app. For instance, create one or more custom layers to improve accuracy by increasing the model’s capacity to capture information. You can also reduce the model’s size to optimize the contents of your app bundle.
+
+## Topics
+
+### Model file size
+
+- [Reducing the Size of Your Core ML App](https://developer.apple.com/documentation/coreml/reducing-the-size-of-your-core-ml-app) — Reduce the storage used by the Core ML model inside your app bundle.
+### Custom model layers
+
+- [Creating and Integrating a Model with Custom Layers](https://developer.apple.com/documentation/coreml/creating-and-integrating-a-model-with-custom-layers) — Add models with custom neural-network layers to your app.
+- [MLCustomLayer](https://developer.apple.com/documentation/coreml/mlcustomlayer) — An interface that defines the behavior of a custom layer in your neural network model.
+### Custom models
+
+- [MLCustomModel](https://developer.apple.com/documentation/coreml/mlcustommodel) — An interface that defines the behavior of a custom model.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.coreml/documentation/CoreML/model-customization](https://developer.apple.com/documentation/com.apple.coreml/documentation/CoreML/model-customization)*
+--- END FILE ---
+
+--- FILE: Model-Personalization.md ---
+# Model Personalization
+
+**Update your model to adapt to new data.**
+
+
+## Overview
+
+On-device model updates provide your app the flexibility to personalize a user’s experience. For example, ordering a mocha at your favorite coffee shop every day increases a model’s ability to recommend that drink on subsequent visits. With the Core ML framework, you can adapt to incoming data with an updatable model at runtime on the user’s device.
+
+## Topics
+
+### On-device model updates
+
+- [MLTask](https://developer.apple.com/documentation/coreml/mltask) — An abstract base class for machine learning tasks.
+- [Personalizing a Model with On-Device Updates](https://developer.apple.com/documentation/coreml/personalizing-a-model-with-on-device-updates) — Modify an updatable Core ML model by running an update task with labeled data.
+- [MLUpdateTask](https://developer.apple.com/documentation/coreml/mlupdatetask) — A task that updates a model with additional training data.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.coreml/documentation/CoreML/model-personalization](https://developer.apple.com/documentation/com.apple.coreml/documentation/CoreML/model-personalization)*
+--- END FILE ---
+
+--- FILE: MLModel.md ---
+# MLModel
+
+**An encapsulation of all the details of your machine learning model.**
+
+## Availability
+
+- **iOS** 11.0+
+- **iPadOS** 11.0+
+- **Mac Catalyst** 13.1+
+- **macOS** 10.13+
+- **tvOS** 11.0+
+- **visionOS** 1.0+
+- **watchOS** 4.0+
+
+
+## Overview
+
+[doc://com.apple.coreml/documentation/CoreML/MLModel](https://developer.apple.com/documentation/CoreML/MLModel) encapsulates a model’s prediction methods, configuration, and model description.
+
+In most cases, you can use Core ML without accessing the [doc://com.apple.coreml/documentation/CoreML/MLModel](https://developer.apple.com/documentation/CoreML/MLModel) class directly. Instead, use the programmer-friendly wrapper class that Xcode automatically generates when you add a model (see [doc://com.apple.coreml/documentation/CoreML/integrating-a-core-ml-model-into-your-app](https://developer.apple.com/documentation/CoreML/integrating-a-core-ml-model-into-your-app)). If your app needs the [doc://com.apple.coreml/documentation/CoreML/MLModel](https://developer.apple.com/documentation/CoreML/MLModel) interface, use the wrapper class’s `model` property.
+
+With the [doc://com.apple.coreml/documentation/CoreML/MLModel](https://developer.apple.com/documentation/CoreML/MLModel) interface, you can:
+
+- Make a prediction with your app’s custom [doc://com.apple.coreml/documentation/CoreML/MLFeatureProvider](https://developer.apple.com/documentation/CoreML/MLFeatureProvider) by calling [doc://com.apple.coreml/documentation/CoreML/MLModel/prediction(from:)-9y2aa](https://developer.apple.com/documentation/CoreML/MLModel/prediction(from:)-9y2aa) or [doc://com.apple.coreml/documentation/CoreML/MLModel/prediction(from:options:)-81mr6](https://developer.apple.com/documentation/CoreML/MLModel/prediction(from:options:)-81mr6).
+
+- Make multiple predictions with your app’s custom [doc://com.apple.coreml/documentation/CoreML/MLBatchProvider](https://developer.apple.com/documentation/CoreML/MLBatchProvider) by calling [doc://com.apple.coreml/documentation/CoreML/MLModel/predictions(fromBatch:)](https://developer.apple.com/documentation/CoreML/MLModel/predictions(fromBatch:)) or [doc://com.apple.coreml/documentation/CoreML/MLModel/predictions(from:options:)](https://developer.apple.com/documentation/CoreML/MLModel/predictions(from:options:)).
+
+- Inspect your model’s [doc://com.apple.coreml/documentation/CoreML/MLModelDescription/metadata](https://developer.apple.com/documentation/CoreML/MLModelDescription/metadata) and [doc://com.apple.coreml/documentation/CoreML/MLFeatureDescription](https://developer.apple.com/documentation/CoreML/MLFeatureDescription) instances through [doc://com.apple.coreml/documentation/CoreML/MLModel/modelDescription](https://developer.apple.com/documentation/CoreML/MLModel/modelDescription).
+
+If your app downloads and compiles a model on the user’s device, you must use the [doc://com.apple.coreml/documentation/CoreML/MLModel](https://developer.apple.com/documentation/CoreML/MLModel) class directly to make predictions. See [doc://com.apple.coreml/documentation/CoreML/downloading-and-compiling-a-model-on-the-user-s-device](https://developer.apple.com/documentation/CoreML/downloading-and-compiling-a-model-on-the-user-s-device).
+
+
+> **IMPORTANT**:  Use an [doc://com.apple.coreml/documentation/CoreML/MLModel](https://developer.apple.com/documentation/CoreML/MLModel) instance on one thread or one dispatch queue at a time. Do this by either serializing method calls to the model, or by creating a separate model instance for each thread and dispatch queue.
+
+
+## Topics
+
+### Loading a model
+
+- [load(contentsOf:configuration:)](https://developer.apple.com/documentation/coreml/mlmodel/load(contentsof:configuration:)) — Construct a model asynchronously from a compiled model asset.
+- [load(_:configuration:completionHandler:)](https://developer.apple.com/documentation/coreml/mlmodel/load(_:configuration:completionhandler:)) — Construct a model asynchronously from a compiled model asset.
+- [load(contentsOf:configuration:completionHandler:)](https://developer.apple.com/documentation/coreml/mlmodel/load(contentsof:configuration:completionhandler:)) — Creates a Core ML model instance asynchronously from a compiled model file, a custom configuration, and a completion handler.
+- [init(contentsOf:)](https://developer.apple.com/documentation/coreml/mlmodel/init(contentsof:)) — Creates a Core ML model instance from a compiled model file.
+- [init(contentsOf:configuration:)](https://developer.apple.com/documentation/coreml/mlmodel/init(contentsof:configuration:)) — Creates a Core ML model instance from a compiled model file and a custom configuration.
+- [init(contentsOfURL:)](https://developer.apple.com/documentation/coreml/mlmodel/init(contentsofurl:))
+- [init(contentsOfURL:configuration:)](https://developer.apple.com/documentation/coreml/mlmodel/init(contentsofurl:configuration:))
+### Compiling a model
+
+- [compileModel(at:)](https://developer.apple.com/documentation/coreml/mlmodel/compilemodel(at:))
+- [compileModel(at:completionHandler:)](https://developer.apple.com/documentation/coreml/mlmodel/compilemodel(at:completionhandler:)) — Compile a model for a device.
+### Making predictions
+
+- [prediction(from:)](https://developer.apple.com/documentation/coreml/mlmodel/prediction(from:))
+- [prediction(from:options:)](https://developer.apple.com/documentation/coreml/mlmodel/prediction(from:options:))
+- [predictions(fromBatch:)](https://developer.apple.com/documentation/coreml/mlmodel/predictions(frombatch:)) — Generates predictions for each input feature provider within the batch provider.
+- [predictions(from:options:)](https://developer.apple.com/documentation/coreml/mlmodel/predictions(from:options:)) — Generates a prediction for each input feature provider within the batch provider using the prediction options.
+- [prediction(from:using:)](https://developer.apple.com/documentation/coreml/mlmodel/prediction(from:using:))
+- [prediction(from:using:options:)](https://developer.apple.com/documentation/coreml/mlmodel/prediction(from:using:options:))
+- [MLPredictionOptions](https://developer.apple.com/documentation/coreml/mlpredictionoptions) — The options available when making a prediction.
+### Making state
+
+- [makeState()](https://developer.apple.com/documentation/coreml/mlmodel/makestate()) — Creates a new state object.
+### Inspecting a model
+
+- [availableComputeDevices](https://developer.apple.com/documentation/coreml/mlmodel/availablecomputedevices-6klyt) — The list of available compute devices that the model’s prediction methods use.
+- [configuration](https://developer.apple.com/documentation/coreml/mlmodel/configuration) — The configuration of the model set during initialization.
+- [modelDescription](https://developer.apple.com/documentation/coreml/mlmodel/modeldescription) — Model information you use at runtime during development, which Xcode also displays in its Core ML model editor view.
+- [MLModelDescription](https://developer.apple.com/documentation/coreml/mlmodeldescription) — Information about a model, primarily the input and output format for each feature the model expects, and optional metadata.
+- [parameterValue(for:)](https://developer.apple.com/documentation/coreml/mlmodel/parametervalue(for:)) — Returns a model parameter value for a key.
+- [MLParameterKey](https://developer.apple.com/documentation/coreml/mlparameterkey) — The keys for the parameter dictionary in a model configuration or a model update context.
+### Supporting types
+
+- [MLModelConfiguration](https://developer.apple.com/documentation/coreml/mlmodelconfiguration) — The settings for creating or updating a machine learning model.
+- [MLOptimizationHints](https://developer.apple.com/documentation/coreml/mloptimizationhints-swift.struct)
+- [MLKey](https://developer.apple.com/documentation/coreml/mlkey) — An abstract base class for machine learning key types.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.coreml/documentation/CoreML/MLModel](https://developer.apple.com/documentation/com.apple.coreml/documentation/CoreML/MLModel)*
+--- END FILE ---
+
+--- FILE: Integrating-a-Core-ML-Model-into-Your-App.md ---
+# Integrating a Core ML Model into Your App
+
+**Add a simple model to an app, pass input data to the model, and process the model’s predictions.**
+
+## Availability
+
+- **iOS** 12.0+
+- **iPadOS** 12.0+
+- **Xcode** 15.2+
+
+
+## Overview
+
+This sample app uses a trained model, `MarsHabitatPricer.mlmodel`, to predict habitat prices on Mars.
+
+
+### Add a model to your Xcode project
+
+Add the model to your Xcode project by dragging the model into the project navigator.
+
+You can see information about the model—including the model type and its expected inputs and outputs—by opening the model in Xcode. In this sample, the inputs are the number of solar panels and greenhouses, as well as the lot size of the habitat (in acres). The output is the predicted price of the habitat.
+
+
+### Create the model in code
+
+Xcode also uses information about the model’s inputs and outputs to automatically generate a custom programmatic interface to the model, which you use to interact with the model in your code. For `MarsHabitatPricer.mlmodel`, Xcode generates interfaces to represent the model (`MarsHabitatPricer`), the model’s inputs (`MarsHabitatPricerInput`), and the model’s output (`MarsHabitatPricerOutput`).
+
+Use the generated `MarsHabitatPricer` class’s initializer to create the model:
+
+```swift
+let marsHabitatPricer = try? MarsHabitatPricer(configuration: .init())
+```
+
+
+### Get input values to pass to the model
+
+This sample app uses a `UIPickerView` to get the model’s input values from the user:
+
+```swift
+func selectedRow(for feature: Feature) -> Int {
+    return pickerView.selectedRow(inComponent: feature.rawValue)
+}
+
+let solarPanels = pickerDataSource.value(for: selectedRow(for: .solarPanels), feature: .solarPanels)
+let greenhouses = pickerDataSource.value(for: selectedRow(for: .greenhouses), feature: .greenhouses)
+let size = pickerDataSource.value(for: selectedRow(for: .size), feature: .size)
+```
+
+
+### Use the model to make predictions
+
+The `MarsHabitatPricer` class has a generated `prediction(solarPanels:greenhouses:size:)` method that’s used to predict a price from the model’s input values—in this case, the number of solar panels, the number of greenhouses, and the size of the habitat (in acres). The result of this method is a `MarsHabitatPricerOutput` instance.
+
+```swift
+// Use the model to make a price prediction.
+let output = try marsHabitatPricer.prediction(solarPanels: solarPanels,
+                                              greenhouses: greenhouses,
+                                              size: size)
+```
+
+Access the `price` property of `marsHabitatPricerOutput` to get a predicted price and display the result in the app’s UI.
+
+```swift
+// Format the price for display in the UI.
+let price = output.price
+priceLabel.text = priceFormatter.string(for: price)
+```
+
+
+> **NOTE**: The generated `prediction(solarPanels:greenhouses:size:)` method can throw an error. The most common type of error you’ll encounter when working with Core ML occurs when the details of the input data don’t match the details the model is expecting—for example, an image in the wrong format.
+
+
+
+### Build and run a Core ML app
+
+Xcode compiles the Core ML model into a resource that’s been optimized to run on a device. This optimized representation of the model is included in your app bundle and is what’s used to make predictions while the app is running on a device.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.coreml/documentation/CoreML/integrating-a-core-ml-model-into-your-app](https://developer.apple.com/documentation/com.apple.coreml/documentation/CoreML/integrating-a-core-ml-model-into-your-app)*
+--- END FILE ---
+
+--- FILE: NLTokenizer.md ---
+# NLTokenizer
+
+**A tokenizer that segments natural language text into semantic units.**
+
+## Availability
+
+- **iOS** 12.0+
+- **iPadOS** 12.0+
+- **Mac Catalyst** 13.1+
+- **macOS** 10.14+
+- **tvOS** 12.0+
+- **visionOS** 1.0+
+- **watchOS** 5.0+
+
+
+## Overview
+
+[doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer](https://developer.apple.com/documentation/NaturalLanguage/NLTokenizer) creates individual units from natural language text. Define the desired unit (word, sentence, paragraph, or document as declared in the [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenUnit](https://developer.apple.com/documentation/NaturalLanguage/NLTokenUnit)) for tokenization, and then assign a string to tokenize. The [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer/enumerateTokensInRange:usingBlock:](https://developer.apple.com/documentation/NaturalLanguage/NLTokenizer/enumerateTokensInRange:usingBlock:) method provides the ranges of the tokens in the string based on the tokenization unit.
+
+For more information, see [doc://com.apple.naturallanguage/documentation/NaturalLanguage/tokenizing-natural-language-text](https://developer.apple.com/documentation/NaturalLanguage/tokenizing-natural-language-text).
+
+
+> **IMPORTANT**:  Use an [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer](https://developer.apple.com/documentation/NaturalLanguage/NLTokenizer) instance on one thread or one dispatch queue at a time. You do this by either serializing method calls to the tokenizer, or by creating a separate tokenizer instance for each thread and dispatch queue.
+
+
+## Topics
+
+### Creating a tokenizer
+
+- [init(unit:)](https://developer.apple.com/documentation/naturallanguage/nltokenizer/init(unit:)) — Creates a tokenizer with the specified unit.
+### Configuring a tokenizer
+
+- [string](https://developer.apple.com/documentation/naturallanguage/nltokenizer/string) — The text to be tokenized.
+- [setLanguage(_:)](https://developer.apple.com/documentation/naturallanguage/nltokenizer/setlanguage(_:)) — Sets the language of the text to be tokenized.
+- [unit](https://developer.apple.com/documentation/naturallanguage/nltokenizer/unit) — The linguistic unit that this tokenizer uses.
+- [NLTokenizer.Attributes](https://developer.apple.com/documentation/naturallanguage/nltokenizer/attributes) — Hints about the contents of the string for the tokenizer.
+### Enumerating the tokens
+
+- [enumerateTokens(in:using:)](https://developer.apple.com/documentation/naturallanguage/nltokenizer/enumeratetokens(in:using:)) — Enumerates over a given range of the string and calls the specified block for each token.
+- [tokens(for:)](https://developer.apple.com/documentation/naturallanguage/nltokenizer/tokens(for:)) — Tokenizes the string within the provided range.
+- [tokenRange(at:)](https://developer.apple.com/documentation/naturallanguage/nltokenizer/tokenrange(at:)) — Finds the range of the token at the given index.
+- [tokenRange(for:)](https://developer.apple.com/documentation/naturallanguage/nltokenizer/tokenrange(for:)) — Finds the entire range of all tokens contained completely or partially within the specified range.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer](https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer)*
+--- END FILE ---
+
+--- FILE: Tokenizing-natural-language-text.md ---
+# Tokenizing natural language text
+
+**Enumerate the words in a string.**
+
+
+## Overview
+
+When you work with natural language text, it’s often useful to tokenize the text into individual words. Using [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer](https://developer.apple.com/documentation/NaturalLanguage/NLTokenizer) to enumerate words, rather than simply splitting components by whitespace, ensures correct behavior in multiple scripts and languages. For example, neither Chinese nor Japanese uses spaces to delimit words.
+
+The example and accompanying steps below show how you use [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer](https://developer.apple.com/documentation/NaturalLanguage/NLTokenizer) to enumerate over the words in natural language text.
+
+```swift
+let text = """
+All human beings are born free and equal in dignity and rights.
+They are endowed with reason and conscience and should act towards one another in a spirit of brotherhood.
+"""
+
+let tokenizer = NLTokenizer(unit: .word)
+tokenizer.string = text
+
+tokenizer.enumerateTokens(in: text.startIndex..<text.endIndex) { tokenRange, _ in
+    print(text[tokenRange])
+    return true
+}
+```
+
+1. Create an instance of [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer](https://developer.apple.com/documentation/NaturalLanguage/NLTokenizer), specifying [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenUnit/word](https://developer.apple.com/documentation/NaturalLanguage/NLTokenUnit/word) as the unit to tokenize.
+
+2. Set the [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer/string](https://developer.apple.com/documentation/NaturalLanguage/NLTokenizer/string) property of the tokenizer to the natural language text.
+
+3. Enumerate over the entire range of the string by calling the [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer/enumerateTokensInRange:usingBlock:](https://developer.apple.com/documentation/NaturalLanguage/NLTokenizer/enumerateTokensInRange:usingBlock:) method, specifying the entire range of the string to process.
+
+4. In the enumeration block, take a substring of the original text at `tokenRange` to obtain each word.
+
+5. Run this code to print out each word in text on a new line.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/tokenizing-natural-language-text](https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/tokenizing-natural-language-text)*
+--- END FILE ---
+=== END SWIFT DOCUMENTATION ===
+=== END CONTEXT ===
+
+
+Please implement the requirements above. Write the code directly - do not explain, just write the implementation.

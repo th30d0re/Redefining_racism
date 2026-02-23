@@ -103,7 +103,6 @@ const Timeline = ({ data }: TimelineProps) => {
       // Wrap text
       const words = event.event.split(' ');
       let line: string[] = [];
-      let lineNumber = 0;
       const lineHeight = 16;
       let tspan = eventText.append('tspan').attr('x', x).attr('dy', 0);
 
@@ -119,7 +118,6 @@ const Timeline = ({ data }: TimelineProps) => {
             .attr('x', x)
             .attr('dy', lineHeight)
             .text(word);
-          lineNumber++;
         }
       });
 

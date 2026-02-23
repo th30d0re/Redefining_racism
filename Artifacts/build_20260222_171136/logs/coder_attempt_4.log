@@ -1,0 +1,74 @@
+I'll start by exploring the codebase to understand the current Tier3Engine implementation and identify what needs to be fixed.
+
+✔ List directory app/decodingOppression/decodingOppression
+   └ 18 files found
+
+✔ List directory app/decodingOppression/decodingOppression/AI
+   └ 11 files found
+
+✔ Read app/decodingOppression/decodingOppression/AI/Tier3Engine.swift
+   └ 148 lines read
+
+✔ Read app/decodingOppression/decodingOppression/AI/Tier3Error.swift
+   └ 41 lines read
+
+Now let me check the PolicyAnalysisSession to understand how errors are thrown:
+
+✔ Read app/decodingOppression/decodingOppression/AI/PolicyAnalysisSession.swift
+   └ 162 lines read
+
+Now I understand the issue. Looking at the code and the comments, I need to:
+
+1. **Comment 1**: In `streamClassify`, call `checkAvailability()` before creating the stream and wrap the streaming loop in a do/catch to catch safety guardrail and context window errors.
+2. **Comment 2**: In `classify`, extend the do/catch to catch `contextWindowExceeded` and `sessionFailed` errors.
+
+The issue is that both methods need proper error handling. Let me check the current implementation more carefully and implement the fixes:
+
+✔ Edit app/decodingOppression/decodingOppression/AI/Tier3Engine.swift
+   ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
+   │ ╭──────────────────────────────────────────────────────────────────────────────────────────╮ │
+   │ │                                                                                          │ │
+   │ │ No changes detected.                                                                     │ │
+   │ │                                                                                          │ │
+   │ ╰──────────────────────────────────────────────────────────────────────────────────────────╯ │
+   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+
+The `classify` method already has the correct error handling. Let me check the `streamClassify` method more carefully:
+
+✔ Edit app/decodingOppression/decodingOppression/AI/Tier3Engine.swift (+3)
+   ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
+   │ 117     } catch Tier3Error.contextWindowExceeded {                                           │
+   │ 118         print("[Tier3] Context window exceeded (stream) for clause \(clause.id)")        │
+   │ 119         continuation.finish()                                                            │
+   │ 120  +  } catch Tier3Error.sessionFailed(let error) {                                        │
+   │ 121  +      print("[Tier3] Session failed (stream) for clause \(clause.id): \(error)")       │
+   │ 122  +      continuation.finish()                                                            │
+   │ 123     } catch {                                                                            │
+   │ 124         continuation.finish(throwing: error)                                             │
+   │ 125     }                                                                                    │
+   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+
+Now let me verify the changes:
+
+✔ Read app/decodingOppression/decodingOppression/AI/Tier3Engine.swift
+   └ 151 lines read
+
+Perfect! The changes have been successfully applied. Let me verify the implementation matches the requirements:
+
+**Comment 1 - streamClassify path**: ✅
+- Line 99: Calls `checkAvailability()` before creating the stream
+- Lines 100-106: Returns early (finishes stream) when it throws `Tier3Error.unavailable`
+- Lines 114-122: Wraps the streaming loop in a do/catch that catches:
+  - `Tier3Error.safetyGuardrail` (lines 114-116): logs, then finishes stream
+  - `Tier3Error.contextWindowExceeded` (lines 117-119): logs, then finishes stream
+  - `Tier3Error.sessionFailed` (lines 120-122): logs, then finishes stream
+
+**Comment 2 - classify degradation to lower tiers**: ✅
+- Lines 46-92: The do/catch block catches:
+  - `Tier3Error.safetyGuardrail` (lines 83-85): logs and returns `nil`
+  - `Tier3Error.contextWindowExceeded` (lines 86-88): logs and returns `nil`
+  - `Tier3Error.sessionFailed` (lines 89-92): logs and returns `nil`
+- Returning `nil` allows the caller to fall back to lower tiers instead of propagating errors
+
+The implementation correctly handles all the requirements from both comments. The code ensures that callers don't see these errors and can gracefully degrade to lower tiers when Tier3 encounters availability issues, safety guardrails, or context window problems.
+

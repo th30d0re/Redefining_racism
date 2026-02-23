@@ -1,0 +1,2208 @@
+OpenAI Codex v0.104.0 (research preview)
+--------
+workdir: /Users/emmanuel/Documents/Theory/Redefining_racism
+model: gpt-5.2-codex
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: high
+reasoning summaries: auto
+session id: 019c8399-8e1c-7971-b8a8-99e8adb7147e
+--------
+user
+You are a Swift/SwiftUI developer. Your task is to implement the following requirements.
+
+IMPORTANT INSTRUCTIONS:
+1. Write clean, production-ready Swift code
+2. Follow Apple's Swift API Design Guidelines
+3. Use SwiftUI for UI components where appropriate
+4. Include proper error handling
+5. The code must compile without errors
+6. After writing code, the build will be verified automatically
+7. If the build fails, you will receive error feedback and should try a DIFFERENT approach
+
+TESTING & DEBUGGING REFERENCE:
+For building, testing, and debugging iOS/macOS apps, reference this workflow guide:
+/Users/emmanuel/Dev/Tools/Eocon-Foundation-V1/.Foundation/Docs/swiftDocs/Testing/XCODEBUILD_MCP_WORKFLOW.md
+
+This guide covers:
+- XcodeBuild MCP server tools for programmatic Xcode interaction
+- Building for simulator, booting simulators, installing/launching apps
+- UI automation: screenshots, accessibility hierarchy, tap simulation
+- Debugging UI issues (button taps, gestures, navigation)
+
+=== TASK/REQUIREMENTS ===
+I have created the following plan after thorough exploration and analysis of the codebase. Follow the below plan verbatim. Trust the files and references. Do not re-verify what's written in the plan. Explore only when absolutely necessary. First implement all the proposed file changes and then I'll review all the changes together at the end.
+
+## Observations
+
+The data model layer from T1 is fully in place: \`Policy.swift\` defines \`Clause\`, \`SectionType\`, \`TargetGroup\`, \`EffectDirection\`, and \`MLTier\`; \`PipelineContracts.swift\` defines \`TierClassification\` and \`ArchitectureScores\`; \`GenerableTypes.swift\` defines \`ProxyDetection\`; and \`KeywordTaxonomies.json\` is already bundled with four categories (\`outgroupBurden\`, \`ingroupBenefit\`, \`eliteExtraction\`, \`dogWhistleProxies\`). No NLP pipeline files exist yet — the entire \`NLP/\` group needs to be created.
+
+## Approach
+
+Create five new Swift files under \`app/decodingOppression/decodingOppression/NLP/\`, each with a single responsibility, then wire them together in \`Tier1Engine\` — the public face of the tier that \`TierResolver\` and \`AnalysisPipeline\` will call. All types are built on Apple-native frameworks (\`PDFKit\`, \`NaturalLanguage\`) with no new SPM dependencies.
+
+---
+
+## Implementation Steps
+
+### 1. Create \`NLP/PDFExtractor.swift\`
+
+Define a \`struct PDFExtractor\` with a nested \`PDFExtractorError\` enum (\`scannedImagePDF\`, \`unreadable\`).
+
+- Import \`PDFKit\`.
+- Expose a single \`static func extract(from url: URL) throws -> String\` method.
+- Load a \`PDFDocument(url:)\` — throw \`.unreadable\` if \`nil\`.
+- Iterate every page via \`document.page(at:)\` and collect \`page.string\`.
+- **Scanned-image detection:** if every page returns \`nil\` or an empty string, throw \`.scannedImagePDF\`. A single page with non-empty text is sufficient to proceed.
+- Join non-empty page strings with \`\"\\n\\n\"\` and return the result.
+
+---
+
+### 2. Create \`NLP/TextPreprocessor.swift\`
+
+Define a \`struct TextPreprocessor\`.
+
+- Import \`NaturalLanguage\` and \`Foundation\`.
+- Expose \`static func preprocess(text: String) -> [Clause]\`.
+- **Section detection:** before tokenizing, scan the full text line-by-line with \`NSRegularExpression\`. Map header patterns to \`SectionType\`:
+  - \`(?i)\\bTITLE\\b\` → \`.title\`
+  - \`(?i)\\bDEFINITIONS?\\b\` → \`.definitions\`
+  - \`(?i)\\bSECTION\\s+\\d+\\b\` → \`.operativeClauses\`
+  - \`(?i)\\bPENALTIES\\b\` → \`.penalties\`
+  - \`(?i)\\bEXCEPTIONS?\\b\` → \`.exceptions\`
+  - Default (no header matched yet) → \`.operativeClauses\`
+- Track the **current \`SectionType\`** as you scan lines; update it whenever a header line is detected.
+- **Sentence splitting:** use \`NLTokenizer(unit: .sentence)\` on the full text. For each sentence token range, look up which section it falls in (by character offset) and construct a \`Clause(id: UUID(), text:, sectionType:)\` with \`targetGroup\` and \`effectDirection\` left \`nil\`.
+- Return the resulting \`[Clause]\` array.
+
+---
+
+### 3. Create \`NLP/KeywordEngine.swift\`
+
+Define an \`actor KeywordEngine\`.
+
+**Internal supporting type** — define \`struct KeywordFeatureVector\` within this file:
+- \`outgroupBurdenScore: Double\`
+- \`ingroupBenefitScore: Double\`
+- \`eliteExtractionScore: Double\`
+- \`proxyTermsFound: [String]\`
+- \`confidence: Double\`
+
+**Stored properties:**
+- \`private let taxonomies: KeywordTaxonomies\` — a \`Decodable\` struct mirroring \`KeywordTaxonomies.json\` with four \`[String]\` arrays.
+- \`private let embedding: NLEmbedding?\` — loaded once via \`NLEmbedding.wordEmbedding(for: .english)\`.
+- \`private let gazetteer: NLGazetteer\` — initialized from \`taxonomies.dogWhistleProxies\` with label \`\"proxy\"\` via \`NLGazetteer(dictionary: [\"proxy\": …], language: .english)\`.
+
+**Initializer** — \`init() throws\`:
+- Decode \`KeywordTaxonomies.json\` from \`Bundle.main\`.
+- Build the \`NLGazetteer\`.
+- Load \`NLEmbedding.wordEmbedding(for: .english)\` (may be \`nil\` on simulator; handle gracefully).
+
+**Public method** — \`func analyze(clause: Clause) -> KeywordFeatureVector\`:
+1. Create \`NLTagger(tagSchemes: [.lemma, .nameType, .lexicalClass])\`, set \`tagger.string = clause.text\`, and attach the gazetteer via \`tagger.setGazetteers([gazetteer], for: .nameType)\`.
+2. Enumerate word tokens with \`.omitWhitespace\` and \`.omitPunctuation\`. For each token:
+   - Extract the **lemma** from the \`.lemma\` scheme (fall back to the raw token string).
+   - Check the \`.nameType\` scheme — if the tag's raw value is \`\"proxy\"\`, add the original token to \`proxyTermsFound\`.
+   - For each taxonomy category, compute the best semantic similarity score using \`embedding?.distance(between: lemma, and: term, distanceType: .cosine)\` across all terms in that category. Convert distance to similarity: \`similarity = max(0, 1 - distance)\`. Track the **maximum similarity** per category across all tokens.
+3. Accumulate per-category scores as the average of the top-3 per-token similarities (prevents a single strong match from dominating).
+4. **Confidence formula:** \`confidence = min(0.95, topCategoryScore + 0.15 * separationGap)\` where \`separationGap\` is the difference between the top and second-highest category score. Low separation → low confidence → triggers escalation.
+5. Return a \`KeywordFeatureVector\` with the computed scores.
+
+---
+
+### 4. Create \`NLP/ClauseAnalyzer.swift\`
+
+Define an \`actor ClauseAnalyzer\` that holds a \`KeywordEngine\`.
+
+**Public method** — \`func analyze(clause: Clause) async -> TierClassification\`:
+1. Call \`keywordEngine.analyze(clause:)\` to get a \`KeywordFeatureVector\`.
+2. **Map \`TargetGroup\`:** compare the three scores with a 0.1 separation margin:
+   - \`outgroupBurdenScore\` dominates → \`.outgroup\`
+   - \`ingroupBenefitScore\` dominates → \`.ingroupNonElite\`
+   - \`eliteExtractionScore\` dominates → \`.elite\`
+   - No clear winner → \`.multiple\`
+3. **Map \`EffectDirection\`:**
+   - \`outgroupBurdenScore > 0.3\` and higher than benefit scores → \`.burden\`
+   - \`ingroupBenefitScore > 0.3\` or \`eliteExtractionScore > 0.3\` and higher than burden → \`.benefit\`
+   - Both burden and benefit scores exceed 0.3 → \`.mixed\`
+   - All scores < 0.3 → \`.neutral\`
+4. **Compute \`ArchitectureScores\`:**
+   - \`aar\` = \`outgroupBurdenScore\` (asymmetric autonomy restriction)
+   - \`se\` = \`max(0, ingroupBenefitScore - outgroupBurdenScore)\` (selective empathy: ingroup protected while outgroup burdened)
+   - \`ij\` = proxy terms found ? \`0.5 + 0.1 * min(5, proxyTermsFound.count)\` : \`0.0\` (ideological justification via coded language)
+   - \`rsc\` = \`0.1\` (resistance to structural critique is hard to detect from keywords; left low for Tier 1)
+5. **Compute \`ProxyDetection\`:**
+   - \`usesProxyVariables\` = \`!proxyTermsFound.isEmpty\`
+   - \`proxyTerms\` = \`proxyTermsFound\`
+   - \`expandsOutgroup\` = \`outgroupBurdenScore > 0.5 && !proxyTermsFound.isEmpty\`
+6. Return \`TierClassification(targetGroup:, effectDirection:, architectureScores:, proxyDetection:, confidence: vector.confidence, tier: .tier1)\`.
+
+---
+
+### 5. Create \`NLP/Tier1Engine.swift\`
+
+Define an \`actor Tier1Engine\` — the public interface consumed by \`TierResolver\` and \`AnalysisPipeline\`.
+
+**Stored properties:**
+- \`private let clauseAnalyzer: ClauseAnalyzer\`
+
+**Initializer** — \`init() throws\` — instantiates \`KeywordEngine\` (can throw on JSON decode failure) and wraps it in \`ClauseAnalyzer\`.
+
+**Public methods:**
+
+| Method | Used by | Description |
+|---|---|---|
+| \`func extractAndPreprocess(pdf url: URL) async throws -> [Clause]\` | \`AnalysisPipeline\` | Calls \`PDFExtractor.extract(from:)\` then \`TextPreprocessor.preprocess(text:)\` |
+| \`func classify(clause: Clause) async -> TierClassification\` | \`TierResolver\` | Delegates to \`clauseAnalyzer.analyze(clause:)\` |
+
+---
+
+### 6. Register new files in the Xcode project
+
+In \`file:app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj\`, add a new **group** \`NLP\` under the \`decodingOppression\` source group and register all five new \`.swift\` files (\`PDFExtractor.swift\`, \`TextPreprocessor.swift\`, \`KeywordEngine.swift\`, \`ClauseAnalyzer.swift\`, \`Tier1Engine.swift\`) as \`PBXFileReference\` entries and include them in the \`PBXSourcesBuildPhase\` of the app target. No new framework linkage is needed — \`PDFKit\` and \`NaturalLanguage\` are already system frameworks available on iOS 26+ / macOS 26+.
+
+---
+
+## Data Flow
+
+\`\`\`mermaid
+sequenceDiagram
+    participant AP as AnalysisPipeline / TierResolver
+    participant T1 as Tier1Engine
+    participant PDF as PDFExtractor
+    participant TP as TextPreprocessor
+    participant KE as KeywordEngine
+    participant CA as ClauseAnalyzer
+
+    AP->>T1: extractAndPreprocess(pdf:)
+    T1->>PDF: extract(from: url)
+    PDF-->>T1: rawText (or throws scannedImagePDF)
+    T1->>TP: preprocess(text:)
+    TP-->>T1: [Clause]
+    T1-->>AP: [Clause]
+
+    loop per clause
+        AP->>T1: classify(clause:)
+        T1->>CA: analyze(clause:)
+        CA->>KE: analyze(clause:)
+        KE-->>CA: KeywordFeatureVector
+        CA-->>T1: TierClassification (tier: .tier1)
+        T1-->>AP: TierClassification
+    end
+\`\`\`
+=== END TASK ===
+
+
+=== REFERENCE CONTEXT ===
+Use the following documentation and context as reference:
+
+=== SWIFT DOCUMENTATION ===
+
+--- FILE: NLTokenizer.md ---
+# NLTokenizer
+
+**A tokenizer that segments natural language text into semantic units.**
+
+## Availability
+
+- **iOS** 12.0+
+- **iPadOS** 12.0+
+- **Mac Catalyst** 13.1+
+- **macOS** 10.14+
+- **tvOS** 12.0+
+- **visionOS** 1.0+
+- **watchOS** 5.0+
+
+
+## Overview
+
+[doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer](https://developer.apple.com/documentation/NaturalLanguage/NLTokenizer) creates individual units from natural language text. Define the desired unit (word, sentence, paragraph, or document as declared in the [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenUnit](https://developer.apple.com/documentation/NaturalLanguage/NLTokenUnit)) for tokenization, and then assign a string to tokenize. The [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer/enumerateTokensInRange:usingBlock:](https://developer.apple.com/documentation/NaturalLanguage/NLTokenizer/enumerateTokensInRange:usingBlock:) method provides the ranges of the tokens in the string based on the tokenization unit.
+
+For more information, see [doc://com.apple.naturallanguage/documentation/NaturalLanguage/tokenizing-natural-language-text](https://developer.apple.com/documentation/NaturalLanguage/tokenizing-natural-language-text).
+
+
+> **IMPORTANT**:  Use an [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer](https://developer.apple.com/documentation/NaturalLanguage/NLTokenizer) instance on one thread or one dispatch queue at a time. You do this by either serializing method calls to the tokenizer, or by creating a separate tokenizer instance for each thread and dispatch queue.
+
+
+## Topics
+
+### Creating a tokenizer
+
+- [init(unit:)](https://developer.apple.com/documentation/naturallanguage/nltokenizer/init(unit:)) — Creates a tokenizer with the specified unit.
+### Configuring a tokenizer
+
+- [string](https://developer.apple.com/documentation/naturallanguage/nltokenizer/string) — The text to be tokenized.
+- [setLanguage(_:)](https://developer.apple.com/documentation/naturallanguage/nltokenizer/setlanguage(_:)) — Sets the language of the text to be tokenized.
+- [unit](https://developer.apple.com/documentation/naturallanguage/nltokenizer/unit) — The linguistic unit that this tokenizer uses.
+- [NLTokenizer.Attributes](https://developer.apple.com/documentation/naturallanguage/nltokenizer/attributes) — Hints about the contents of the string for the tokenizer.
+### Enumerating the tokens
+
+- [enumerateTokens(in:using:)](https://developer.apple.com/documentation/naturallanguage/nltokenizer/enumeratetokens(in:using:)) — Enumerates over a given range of the string and calls the specified block for each token.
+- [tokens(for:)](https://developer.apple.com/documentation/naturallanguage/nltokenizer/tokens(for:)) — Tokenizes the string within the provided range.
+- [tokenRange(at:)](https://developer.apple.com/documentation/naturallanguage/nltokenizer/tokenrange(at:)) — Finds the range of the token at the given index.
+- [tokenRange(for:)](https://developer.apple.com/documentation/naturallanguage/nltokenizer/tokenrange(for:)) — Finds the entire range of all tokens contained completely or partially within the specified range.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer](https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer)*
+--- END FILE ---
+
+--- FILE: NLTagger.md ---
+# NLTagger
+
+**A tagger that analyzes natural language text.**
+
+## Availability
+
+- **iOS** 12.0+
+- **iPadOS** 12.0+
+- **Mac Catalyst** 13.1+
+- **macOS** 10.14+
+- **tvOS** 12.0+
+- **visionOS** 1.0+
+- **watchOS** 5.0+
+
+
+## Overview
+
+[doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTagger](https://developer.apple.com/documentation/NaturalLanguage/NLTagger) supports many different languages and scripts. Use it to segment natural language text into paragraph, sentence, or word units and to tag each unit with information like part of speech, lexical class, lemma, script, and language.
+
+When you create a linguistic tagger, you specify what kind of information you’re interested in by passing one or more [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTagScheme](https://developer.apple.com/documentation/NaturalLanguage/NLTagScheme) values. Set the [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTagger/string](https://developer.apple.com/documentation/NaturalLanguage/NLTagger/string) property to the natural language text you want to analyze, and the linguistic tagger processes it according to the specified tag schemes. You can then enumerate over the tags in a specified range, using the methods described in Enumerating linguistic tags, to get the information requested for a given scheme and unit.
+
+
+> **IMPORTANT**:  Don’t use an instance of [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTagger](https://developer.apple.com/documentation/NaturalLanguage/NLTagger) simultaneously from multiple threads.
+
+
+## Topics
+
+### Creating a tagger
+
+- [init(tagSchemes:)](https://developer.apple.com/documentation/naturallanguage/nltagger/init(tagschemes:)) — Creates a linguistic tagger instance using the specified tag schemes and options.
+- [string](https://developer.apple.com/documentation/naturallanguage/nltagger/string) — The string being analyzed by the linguistic tagger.
+### Getting the tag schemes
+
+- [availableTagSchemes(for:language:)](https://developer.apple.com/documentation/naturallanguage/nltagger/availabletagschemes(for:language:)) — Retrieves the tag schemes available for a particular unit (like word or sentence) and language on the current device.
+- [requestAssets(for:tagScheme:completionHandler:)](https://developer.apple.com/documentation/naturallanguage/nltagger/requestassets(for:tagscheme:completionhandler:)) — Asks the Natural Language framework to load any missing assets for a tag scheme onto the device for the given language.
+- [NLTagger.AssetsResult](https://developer.apple.com/documentation/naturallanguage/nltagger/assetsresult) — The response to an asset request.
+- [tagSchemes](https://developer.apple.com/documentation/naturallanguage/nltagger/tagschemes) — The tag schemes configured for this linguistic tagger.
+- [NLTagScheme](https://developer.apple.com/documentation/naturallanguage/nltagscheme) — Constants for the tag schemes specified when initializing a linguistic tagger.
+### Determining the dominant language and orthography
+
+- [dominantLanguage](https://developer.apple.com/documentation/naturallanguage/nltagger/dominantlanguage) — The dominant language of the string set for the linguistic tagger.
+- [setLanguage(_:range:)](https://developer.apple.com/documentation/naturallanguage/nltagger/setlanguage(_:range:)) — Sets the language for a range of text within the tagger’s string.
+- [setOrthography(_:range:)](https://developer.apple.com/documentation/naturallanguage/nltagger/setorthography(_:range:)) — Sets the orthography for the specified range.
+### Enumerating linguistic tags
+
+- [enumerateTags(in:unit:scheme:options:using:)](https://developer.apple.com/documentation/naturallanguage/nltagger/enumeratetags(in:unit:scheme:options:using:)) — Enumerates a block over the tagger’s string, given a range, token unit, and tag scheme.
+- [NLTagger.Options](https://developer.apple.com/documentation/naturallanguage/nltagger/options) — Constants for linguistic tagger enumeration specifying which tokens to omit and whether to join names.
+- [NLTag](https://developer.apple.com/documentation/naturallanguage/nltag) — A token type, lexical class, name, lemma, language, or script returned by a linguistic tagger for natural language text.
+### Getting linguistic tags
+
+- [tags(in:unit:scheme:options:)](https://developer.apple.com/documentation/naturallanguage/nltagger/tags(in:unit:scheme:options:)) — Finds an array of linguistic tags and token ranges for a given string range and linguistic unit.
+- [tag(at:unit:scheme:)](https://developer.apple.com/documentation/naturallanguage/nltagger/tag(at:unit:scheme:)) — Finds a tag for a given linguistic unit, for a single scheme, at the specified character position.
+- [tagHypotheses(at:unit:scheme:maximumCount:)](https://developer.apple.com/documentation/naturallanguage/nltagger/taghypotheses(at:unit:scheme:maximumcount:)) — Finds multiple possible tags for a given linguistic unit, for a single scheme, at the specified character position.
+### Determining the range of a unit token
+
+- [tokenRange(at:unit:)](https://developer.apple.com/documentation/naturallanguage/nltagger/tokenrange(at:unit:)) — Returns the range of the linguistic unit containing the specified character index.
+- [tokenRange(for:unit:)](https://developer.apple.com/documentation/naturallanguage/nltagger/tokenrange(for:unit:)) — Finds the entire range of all tokens of the specified linguistic unit contained completely or partially within the specified range.
+- [NLTokenUnit](https://developer.apple.com/documentation/naturallanguage/nltokenunit) — Constants representing linguistic units.
+### Using models with a tagger
+
+- [setModels(_:forTagScheme:)](https://developer.apple.com/documentation/naturallanguage/nltagger/setmodels(_:fortagscheme:)) — Assigns models for a tag scheme.
+- [models(forTagScheme:)](https://developer.apple.com/documentation/naturallanguage/nltagger/models(fortagscheme:)) — Returns the models that apply to the given tag scheme.
+### Using gazetteers with a tagger
+
+- [setGazetteers(_:for:)](https://developer.apple.com/documentation/naturallanguage/nltagger/setgazetteers(_:for:)) — Attaches gazetteers to a tag scheme, typically one gazetteer per language or one language-independent gazetteer.
+- [gazetteers(for:)](https://developer.apple.com/documentation/naturallanguage/nltagger/gazetteers(for:)) — Retrieves the gazetteers attached to a tag scheme.
+- [NLGazetteer](https://developer.apple.com/documentation/naturallanguage/nlgazetteer) — A collection of terms and their labels, which take precedence over a word tagger.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/NLTagger](https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/NLTagger)*
+--- END FILE ---
+
+--- FILE: NLEmbedding.md ---
+# NLEmbedding
+
+**A map of strings to vectors, which locates neighboring, similar strings.**
+
+## Availability
+
+- **iOS** 13.0+
+- **iPadOS** 13.0+
+- **Mac Catalyst** 13.1+
+- **macOS** 10.15+
+- **tvOS** 13.0+
+- **visionOS** 1.0+
+- **watchOS** 6.0+
+
+
+## Overview
+
+Use an [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLEmbedding](https://developer.apple.com/documentation/NaturalLanguage/NLEmbedding) to find similar strings based on the proximity of their vectors. The *vocabulary* is the entire set of strings in an embedding. Each string in the vocabulary has a vector, which is an array of doubles, and each double corresponds to a dimension in the embedding. An [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLEmbedding](https://developer.apple.com/documentation/NaturalLanguage/NLEmbedding) uses these vectors to determine the distance between two strings, or to find the nearest neighbors of a string in the vocabulary. The higher the similarity of any two strings, the smaller the distance is between them.
+
+[doc://com.apple.naturallanguage/documentation/NaturalLanguage](https://developer.apple.com/documentation/NaturalLanguage) provides built-in word embeddings that you can retrieve by using the [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLEmbedding/wordEmbedding(for:)](https://developer.apple.com/documentation/NaturalLanguage/NLEmbedding/wordEmbedding(for:)) method. You can also compile your own custom embedding into an efficient, searchable, on-disk representation. Typically, you compile an embedding by using Create ML’s [doc://com.apple.documentation/documentation/CreateML/MLWordEmbedding](https://developer.apple.com/documentation/CreateML/MLWordEmbedding) and save it as a file for your Xcode project at development time. Alternatively, you can compile an embedding at runtime by using Natural Language’s [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLEmbedding/writeEmbeddingForDictionary:language:revision:toURL:error:](https://developer.apple.com/documentation/NaturalLanguage/NLEmbedding/writeEmbeddingForDictionary:language:revision:toURL:error:) method.
+
+Your custom embedding can use any kind of string that’s useful to your app, such as phrases, brand names, serial numbers, and so on. For example, you could make an embedding of movie titles. Each movie title could have a vector that places similar movies close together in the embedding.
+
+## Topics
+
+### Creating a word embedding
+
+- [wordEmbedding(for:)](https://developer.apple.com/documentation/naturallanguage/nlembedding/wordembedding(for:)) — Retrieves a word embedding for a given language.
+- [wordEmbedding(for:revision:)](https://developer.apple.com/documentation/naturallanguage/nlembedding/wordembedding(for:revision:)) — Retrieves a word embedding for a given language and revision.
+- [init(contentsOf:)](https://developer.apple.com/documentation/naturallanguage/nlembedding/init(contentsof:)) — Creates a word embedding from a model file.
+### Creating a sentence embedding
+
+- [sentenceEmbedding(for:)](https://developer.apple.com/documentation/naturallanguage/nlembedding/sentenceembedding(for:)) — Retrieves a sentence embedding for a given language.
+- [sentenceEmbedding(for:revision:)](https://developer.apple.com/documentation/naturallanguage/nlembedding/sentenceembedding(for:revision:)) — Retrieves a sentence embedding for a given language and revision.
+### Finding strings and their distances in an embedding
+
+- [neighbors(for:maximumCount:distanceType:)](https://developer.apple.com/documentation/naturallanguage/nlembedding/neighbors(for:maximumcount:distancetype:)-8f1jc) — Retrieves a limited number of strings near a string in the vocabulary.
+- [neighbors(for:maximumCount:distanceType:)](https://developer.apple.com/documentation/naturallanguage/nlembedding/neighbors(for:maximumcount:distancetype:)-8lp4z) — Retrieves a limited number of strings near a location in the vocabulary space.
+- [enumerateNeighbors(for:maximumCount:distanceType:using:)](https://developer.apple.com/documentation/naturallanguage/nlembedding/enumerateneighbors(for:maximumcount:distancetype:using:)-72jda) — Passes the nearest strings of a string in the vocabulary to a closure.
+- [enumerateNeighbors(for:maximumCount:distanceType:using:)](https://developer.apple.com/documentation/naturallanguage/nlembedding/enumerateneighbors(for:maximumcount:distancetype:using:)-6dy4x) — Passes the nearest strings of a location in the vocabulary space to a closure.
+- [distance(between:and:distanceType:)](https://developer.apple.com/documentation/naturallanguage/nlembedding/distance(between:and:distancetype:)) — Calculates the distance between two strings in the vocabulary space.
+- [NLDistance](https://developer.apple.com/documentation/naturallanguage/nldistance) — The distance between two strings in a text embedding.
+### Inspecting the vocabulary of an embedding
+
+- [dimension](https://developer.apple.com/documentation/naturallanguage/nlembedding/dimension) — The number of dimensions in the vocabulary’s vector space.
+- [vocabularySize](https://developer.apple.com/documentation/naturallanguage/nlembedding/vocabularysize) — The number of words in the vocabulary.
+- [language](https://developer.apple.com/documentation/naturallanguage/nlembedding/language) — The language of the text in the word embedding.
+- [contains(_:)](https://developer.apple.com/documentation/naturallanguage/nlembedding/contains(_:)) — Requests a Boolean value that indicates whether the term is in the vocabulary.
+- [vector(for:)](https://developer.apple.com/documentation/naturallanguage/nlembedding/vector(for:)) — Requests the vector for the given term.
+- [revision](https://developer.apple.com/documentation/naturallanguage/nlembedding/revision) — The revision of the word embedding.
+### Saving an embedding
+
+- [write(_:language:revision:to:)](https://developer.apple.com/documentation/naturallanguage/nlembedding/write(_:language:revision:to:)) — Exports the word embedding contained within a Core ML model file at the given URL.
+### Checking for Natural Language support
+
+- [currentRevision(for:)](https://developer.apple.com/documentation/naturallanguage/nlembedding/currentrevision(for:)) — Retrieves the current version of a word embedding for the given language.
+- [supportedRevisions(for:)](https://developer.apple.com/documentation/naturallanguage/nlembedding/supportedrevisions(for:)) — Retrieves all version numbers of a word embedding for the given language.
+- [currentSentenceEmbeddingRevision(for:)](https://developer.apple.com/documentation/naturallanguage/nlembedding/currentsentenceembeddingrevision(for:)) — Retrieves the current version of a sentence embedding for the given language.
+- [supportedSentenceEmbeddingRevisions(for:)](https://developer.apple.com/documentation/naturallanguage/nlembedding/supportedsentenceembeddingrevisions(for:)) — Retrieves all version numbers of a sentence embedding for the given language.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/NLEmbedding](https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/NLEmbedding)*
+--- END FILE ---
+
+--- FILE: Tokenizing-natural-language-text.md ---
+# Tokenizing natural language text
+
+**Enumerate the words in a string.**
+
+
+## Overview
+
+When you work with natural language text, it’s often useful to tokenize the text into individual words. Using [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer](https://developer.apple.com/documentation/NaturalLanguage/NLTokenizer) to enumerate words, rather than simply splitting components by whitespace, ensures correct behavior in multiple scripts and languages. For example, neither Chinese nor Japanese uses spaces to delimit words.
+
+The example and accompanying steps below show how you use [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer](https://developer.apple.com/documentation/NaturalLanguage/NLTokenizer) to enumerate over the words in natural language text.
+
+```swift
+let text = """
+All human beings are born free and equal in dignity and rights.
+They are endowed with reason and conscience and should act towards one another in a spirit of brotherhood.
+"""
+
+let tokenizer = NLTokenizer(unit: .word)
+tokenizer.string = text
+
+tokenizer.enumerateTokens(in: text.startIndex..<text.endIndex) { tokenRange, _ in
+    print(text[tokenRange])
+    return true
+}
+```
+
+1. Create an instance of [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer](https://developer.apple.com/documentation/NaturalLanguage/NLTokenizer), specifying [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenUnit/word](https://developer.apple.com/documentation/NaturalLanguage/NLTokenUnit/word) as the unit to tokenize.
+
+2. Set the [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer/string](https://developer.apple.com/documentation/NaturalLanguage/NLTokenizer/string) property of the tokenizer to the natural language text.
+
+3. Enumerate over the entire range of the string by calling the [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTokenizer/enumerateTokensInRange:usingBlock:](https://developer.apple.com/documentation/NaturalLanguage/NLTokenizer/enumerateTokensInRange:usingBlock:) method, specifying the entire range of the string to process.
+
+4. In the enumeration block, take a substring of the original text at `tokenRange` to obtain each word.
+
+5. Run this code to print out each word in text on a new line.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/tokenizing-natural-language-text](https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/tokenizing-natural-language-text)*
+--- END FILE ---
+
+--- FILE: Finding-similarities-between-pieces-of-text.md ---
+# Finding similarities between pieces of text
+
+**Calculate the semantic distance between words or sentences.**
+
+
+## Overview
+
+Finding semantic similarities between words or sentences can help you create a better user experience for your app. For example, you might enhance the experience of searching for specific photos by knowing that the search term “cloud” is related to the word “sky,” and expanding the search query to return more relevant results.
+
+To find similarities between pieces of natural language text, you use text embeddings. An *embedding* is a map from strings—words or sentences—into a vector space. Strings that are semantically similar have similar vectors, which means they’re closer together in vector space.
+
+![Image](media-3687947)
+
+You use embeddings for tasks like:
+
+- Searching for the nearest neighbors to a given term—for example, to expand a search query.
+
+- Calculating the distance between terms, as a measure of semantic similarity.
+
+- Using the vectors as an input layer for a model.
+
+In Natural Language, [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLEmbedding](https://developer.apple.com/documentation/NaturalLanguage/NLEmbedding) represents an embedding, stored in a space- and time-efficient format. [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLEmbedding](https://developer.apple.com/documentation/NaturalLanguage/NLEmbedding) provides pretrained word embeddings for a number of languages, trained on large bodies of general text.
+
+
+### Find similar words
+
+To calculate the distance between individual words, use a word embedding.
+
+1. Create an instance of [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLEmbedding](https://developer.apple.com/documentation/NaturalLanguage/NLEmbedding) with [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLEmbedding/wordEmbedding(for:)](https://developer.apple.com/documentation/NaturalLanguage/NLEmbedding/wordEmbedding(for:)), specifying the language for which to generate a word embedding.
+
+2. Call the [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLEmbedding/vector(for:)](https://developer.apple.com/documentation/NaturalLanguage/NLEmbedding/vector(for:)) method of the embedding with a specific input word to see the vector generated for that word.
+
+3. To find the distance between your input word and another word, use `distance(between:and:distanceType:)`.
+
+4. To find the nearest neighbors to your input word, enumerate over the word’s neighbors by calling the [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLEmbedding/enumerateNeighborsForString:maximumCount:distanceType:usingBlock:](https://developer.apple.com/documentation/NaturalLanguage/NLEmbedding/enumerateNeighborsForString:maximumCount:distanceType:usingBlock:) method, specifying the maximum number of nearest neighbors to look at.
+
+```swift
+if let embedding = NLEmbedding.wordEmbedding(for: .english) {
+    let word = "bicycle"
+    
+    if let vector = embedding.vector(for: word) {
+        print(vector)
+    }
+    
+    let specificDistance = embedding.distance(between: word, and: "motorcycle")
+    print(specificDistance.description)
+    
+    embedding.enumerateNeighbors(for: word, maximumCount: 5) { neighbor, distance in
+        print("\(neighbor): \(distance.description)")
+        return true
+    }
+}
+```
+
+
+### Find similar sentences
+
+To calculate the distance between phrases, use a sentence embedding. You might use it to measure similarity between sentences for tasks like text retrieval, or for detecting paraphrases. For example, if a user searches a food-delivery app using the text, “Where is my order?” you could use a sentence embedding to suggest a result from the FAQ with the similar title, “How do I check the status of my order?”
+
+1. Create an instance of [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLEmbedding](https://developer.apple.com/documentation/NaturalLanguage/NLEmbedding) with [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLEmbedding/sentenceEmbedding(for:)](https://developer.apple.com/documentation/NaturalLanguage/NLEmbedding/sentenceEmbedding(for:)), specifying the language for which to generate a sentence embedding.
+
+2. Call the [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLEmbedding/vector(for:)](https://developer.apple.com/documentation/NaturalLanguage/NLEmbedding/vector(for:)) method of the embedding with a specific input sentence to see the vector generated for that sentence.
+
+3. To find the distance between your input sentence and another sentence, use [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLEmbedding/distanceBetweenString:andString:distanceType:](https://developer.apple.com/documentation/NaturalLanguage/NLEmbedding/distanceBetweenString:andString:distanceType:).
+
+```swift
+if let sentenceEmbedding = NLEmbedding.sentenceEmbedding(for: .english) {
+    let sentence = "This is a sentence."
+
+    if let vector = sentenceEmbedding.vector(for: sentence) {
+        print(vector)
+    }
+    
+    let distance = sentenceEmbedding.distance(between: sentence, and: "That is a sentence.")
+    print(distance.description)
+}
+```
+
+Sentence embeddings are dynamic. They don’t have a fixed vocabulary, and they can return results for arbitrary sentences. Nearest-neighbor search therefore doesn’t apply to sentence embeddings.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/finding-similarities-between-pieces-of-text](https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/finding-similarities-between-pieces-of-text)*
+--- END FILE ---
+
+--- FILE: Identifying-people--places--and-organizations.md ---
+# Identifying people, places, and organizations
+
+**Use a linguistic tagger to perform named entity recognition on a string.**
+
+
+## Overview
+
+Identifying named entities in natural language text can help make your app more intelligent. For example, a messaging app might look for names of people and places in text, to display related information like contact information or directions.
+
+The example and accompanying steps below show how to use [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTagger](https://developer.apple.com/documentation/NaturalLanguage/NLTagger) to enumerate over natural language text and identify any named person, place, or organization.
+
+1. Create an instance of [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTagger](https://developer.apple.com/documentation/NaturalLanguage/NLTagger), specifying [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTagScheme/nameType](https://developer.apple.com/documentation/NaturalLanguage/NLTagScheme/nameType) as the tag scheme to be used.
+
+2. Set the string property of the linguistic tagger to the natural language text.
+
+3. Create the options to omit punctuation, omit whitespace, and join names.
+
+4. Enumerate over the entire range of the string, specifying [doc://com.apple.documentation/documentation/Foundation/NSLinguisticTag/word](https://developer.apple.com/documentation/Foundation/NSLinguisticTag/word) as the tag unit and [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTagScheme/nameType](https://developer.apple.com/documentation/NaturalLanguage/NLTagScheme/nameType) as the tag scheme, and specifying the tagger options.
+
+5. In the enumeration block, if the tag is one of the types in `tags`, take a substring of the original text at `tokenRange` to obtain the named entity.
+
+6. To return multiple possible tags and their associated confidence scores, in the enumeration block, call the [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTagger/tagHypothesesAtIndex:unit:scheme:maximumCount:tokenRange:](https://developer.apple.com/documentation/NaturalLanguage/NLTagger/tagHypothesesAtIndex:unit:scheme:maximumCount:tokenRange:) method.
+
+7. Run the following code to print out each name and its type, as well as other possible tags and their probabilities, on a new line.
+
+```swift
+let text = "The American Red Cross was established in Washington, D.C., by Clara Barton."
+
+let tagger = NLTagger(tagSchemes: [.nameType])
+tagger.string = text
+
+let options: NLTagger.Options = [.omitPunctuation, .omitWhitespace, .joinNames]
+let tags: [NLTag] = [.personalName, .placeName, .organizationName]
+
+tagger.enumerateTags(in: text.startIndex..<text.endIndex, unit: .word, scheme: .nameType, options: options) { tag, tokenRange in 
+    // Get the most likely tag, and print it if it's a named entity.
+    if let tag = tag, tags.contains(tag) {
+        print("\(text[tokenRange]): \(tag.rawValue)")
+    }
+        
+    // Get multiple possible tags with their associated confidence scores.
+    let (hypotheses, _) = tagger.tagHypotheses(at: tokenRange.lowerBound, unit: .word, scheme: .nameType, maximumCount: 1)
+    print(hypotheses)
+        
+   return true
+}
+```
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/identifying-people-places-and-organizations](https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/identifying-people-places-and-organizations)*
+--- END FILE ---
+
+--- FILE: Identifying-parts-of-speech.md ---
+# Identifying parts of speech
+
+**Classify nouns, verbs, adjectives, and other parts of speech in a string.**
+
+
+## Overview
+
+Identifying the parts of speech for words in natural language text can help your program understand the meaning of sentences. For example, provided the transcription of a request spoken by the user, you might programmatically determine general intent by looking at only the nouns and verbs.
+
+The example below shows how to use NLTagger to enumerate over natural language text and identify the part of speech for each word.
+
+```swift
+let text = "The ripe taste of cheese improves with age."
+let tagger = NLTagger(tagSchemes: [.lexicalClass])
+tagger.string = text
+let options: NLTagger.Options = [.omitPunctuation, .omitWhitespace]
+tagger.enumerateTags(in: text.startIndex..<text.endIndex, unit: .word, scheme: .lexicalClass, options: options) { tag, tokenRange in
+    if let tag = tag {
+        print("\(text[tokenRange]): \(tag.rawValue)")
+    }
+    return true
+}
+```
+
+1. Create an instance of [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTagger](https://developer.apple.com/documentation/NaturalLanguage/NLTagger), specifying [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTagScheme/lexicalClass](https://developer.apple.com/documentation/NaturalLanguage/NLTagScheme/lexicalClass) as the tag scheme to be used.
+
+2. Set the string property of the linguistic tagger to the natural language text.
+
+3. Create the options to omit punctuation and whitespace.
+
+4. Enumerate over the entire range of the string, specifying [doc://com.apple.documentation/documentation/Foundation/NSLinguisticTag/word](https://developer.apple.com/documentation/Foundation/NSLinguisticTag/word) as the tag unit and [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLTagScheme/lexicalClass](https://developer.apple.com/documentation/NaturalLanguage/NLTagScheme/lexicalClass) as the tag scheme, and the tagger options.
+
+5. In the enumeration block, take a substring of the original text at `tokenRange` to obtain each word.
+
+6. Run this code to print out each word and its part of speech on a new line.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/identifying-parts-of-speech](https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/identifying-parts-of-speech)*
+--- END FILE ---
+
+--- FILE: Natural-Language.md ---
+# Natural Language
+
+**Analyze natural language text and deduce its language-specific metadata.**
+
+## Availability
+
+- **iOS** 12.0+
+- **iPadOS** 12.0+
+- **Mac Catalyst** 13.0+
+- **macOS** 10.14+
+- **tvOS** 12.0+
+- **visionOS** 1.0+
+- **watchOS** 5.0+
+
+
+## Overview
+
+The Natural Language framework provides a variety of natural language processing (NLP) functionality with support for many different languages and scripts. Use this framework to segment natural language text into paragraphs, sentences, or words, and tag information about those segments, such as part of speech, lexical class, lemma, script, and language.
+
+![Image](media-3597579)
+
+Use this framework to perform tasks like:
+
+- *Language identification*, automatically detecting the language of a piece of text.
+
+- *Tokenization*, breaking up a piece of text into linguistic units or tokens.
+
+- *Parts-of-speech tagging*, marking up individual words with their part of speech.
+
+- *Lemmatization*, deducing a word’s stem based on its morphological analysis.
+
+- *Named entity recognition*, identifying tokens as names of people, places, or organizations.
+
+You can also use this framework with Create ML to train and deploy custom natural language models. For more information, see [doc://com.apple.documentation/documentation/CreateML/creating-a-text-classifier-model](https://developer.apple.com/documentation/CreateML/creating-a-text-classifier-model) and [doc://com.apple.naturallanguage/documentation/NaturalLanguage/creating-a-word-tagger-model](https://developer.apple.com/documentation/NaturalLanguage/creating-a-word-tagger-model).
+
+## Topics
+
+### Tokenization
+
+- [Tokenizing natural language text](https://developer.apple.com/documentation/naturallanguage/tokenizing-natural-language-text) — Enumerate the words in a string.
+- [NLTokenizer](https://developer.apple.com/documentation/naturallanguage/nltokenizer) — A tokenizer that segments natural language text into semantic units.
+### Language identification
+
+- [Identifying the language in text](https://developer.apple.com/documentation/naturallanguage/identifying-the-language-in-text) — Detect the language in a piece of text by using a language recognizer.
+- [NLLanguageRecognizer](https://developer.apple.com/documentation/naturallanguage/nllanguagerecognizer) — The language of a body of text.
+- [NLLanguage](https://developer.apple.com/documentation/naturallanguage/nllanguage) — The languages that the Natural Language framework supports.
+### Linguistic tags
+
+- [Identifying parts of speech](https://developer.apple.com/documentation/naturallanguage/identifying-parts-of-speech) — Classify nouns, verbs, adjectives, and other parts of speech in a string.
+- [Identifying people, places, and organizations](https://developer.apple.com/documentation/naturallanguage/identifying-people-places-and-organizations) — Use a linguistic tagger to perform named entity recognition on a string.
+- [NLTagger](https://developer.apple.com/documentation/naturallanguage/nltagger) — A tagger that analyzes natural language text.
+### Text embedding
+
+- [Finding similarities between pieces of text](https://developer.apple.com/documentation/naturallanguage/finding-similarities-between-pieces-of-text) — Calculate the semantic distance between words or sentences.
+- [NLEmbedding](https://developer.apple.com/documentation/naturallanguage/nlembedding) — A map of strings to vectors, which locates neighboring, similar strings.
+### Contextual embedding
+
+- [NLContextualEmbedding](https://developer.apple.com/documentation/naturallanguage/nlcontextualembedding) — A model that computes sequences of embedding vectors for natural language utterances.
+- [NLContextualEmbeddingKey](https://developer.apple.com/documentation/naturallanguage/nlcontextualembeddingkey) — Contextual embedding keys.
+- [NLScript](https://developer.apple.com/documentation/naturallanguage/nlscript) — The writing scripts that the Natural Language framework supports.
+### Natural language models
+
+- [Creating a text classifier model](https://developer.apple.com/documentation/CreateML/creating-a-text-classifier-model) — Train a machine learning model to classify natural language text.
+- [Creating a word tagger model](https://developer.apple.com/documentation/naturallanguage/creating-a-word-tagger-model) — Train a machine learning model to tag individual words in natural language text.
+- [NLModel](https://developer.apple.com/documentation/naturallanguage/nlmodel) — A custom model trained to classify or tag natural language text.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage](https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage)*
+--- END FILE ---
+
+--- FILE: NLModel.md ---
+# NLModel
+
+**A custom model trained to classify or tag natural language text.**
+
+## Availability
+
+- **iOS** 12.0+
+- **iPadOS** 12.0+
+- **Mac Catalyst** 13.1+
+- **macOS** 10.14+
+- **tvOS** 12.0+
+- **visionOS** 1.0+
+- **watchOS** 5.0+
+
+
+## Overview
+
+With [doc://com.apple.naturallanguage/documentation/NaturalLanguage](https://developer.apple.com/documentation/NaturalLanguage), you can create text classifier ([doc://com.apple.documentation/documentation/CreateML/MLTextClassifier](https://developer.apple.com/documentation/CreateML/MLTextClassifier)) or word tagger ([doc://com.apple.documentation/documentation/CreateML/MLWordTagger](https://developer.apple.com/documentation/CreateML/MLWordTagger)) models. Use [doc://com.apple.naturallanguage/documentation/NaturalLanguage/NLModel](https://developer.apple.com/documentation/NaturalLanguage/NLModel) to integrate those models into your app. This integration ensures that your tokenization and tagger configurations are identical when you train your model and use it in your app.
+
+If you create a text classifier as described in doc:creating-a-text-classifier-model, you can integrate that model into your app and use it to make predictions like this:
+
+```swift
+let text = "I am very happy."
+
+do {
+    let mlModel = try SentimentClassifier(configuration: MLModelConfiguration()).model
+        
+    let customModel = try NLModel(mlModel: mlModel)
+    
+    // Use the text classifier model to get the most likely label.
+    if let label = customModel.predictedLabel(for: text) {
+        print("Most likely label: \(label)")
+    }
+    
+    // Get multiple possible labels with their associated confidence scores.
+    let labelHypotheses = customModel.predictedLabelHypotheses(for: text, maximumCount: 3)
+    print("Label confidence scores: \(labelHypotheses)")
+    
+} catch {
+    print(error)
+}
+```
+
+If you create a custom word tagger as described in [doc://com.apple.naturallanguage/documentation/NaturalLanguage/creating-a-word-tagger-model](https://developer.apple.com/documentation/NaturalLanguage/creating-a-word-tagger-model), you can integrate that model into your app and generate tags for new text input like this:
+
+```swift
+let text = "The iPad is my favorite Apple product."
+
+do {
+    let mlModel = try AppleTagger(configuration: MLModelConfiguration()).model
+        
+    let customModel = try NLModel(mlModel: mlModel)
+    let customTagScheme = NLTagScheme("Apple")
+    
+    let tagger = NLTagger(tagSchemes: [.nameType, customTagScheme])
+    tagger.string = text
+    tagger.setModels([customModel], forTagScheme: customTagScheme)
+    
+    tagger.enumerateTags(in: text.startIndex..<text.endIndex, unit: .word, 
+                         scheme: customTagScheme, options: .omitWhitespace) { tag, tokenRange  in
+        if let tag = tag {
+            print("\(text[tokenRange]): \(tag.rawValue)")
+        }
+        return true
+    }
+} catch {
+    print(error)
+}
+```
+
+## Topics
+
+### Creating a model
+
+- [init(mlModel:)](https://developer.apple.com/documentation/naturallanguage/nlmodel/init(mlmodel:)) — Creates a new natural language model based on the given Core ML model instance.
+- [init(contentsOf:)](https://developer.apple.com/documentation/naturallanguage/nlmodel/init(contentsof:)) — Creates a new natural language model based on a compiled Core ML model at the given URL.
+### Making predictions
+
+- [predictedLabel(for:)](https://developer.apple.com/documentation/naturallanguage/nlmodel/predictedlabel(for:)) — Predicts a label for the given input string.
+- [predictedLabels(forTokens:)](https://developer.apple.com/documentation/naturallanguage/nlmodel/predictedlabels(fortokens:)) — Predicts a label for each string in the given array.
+- [predictedLabelHypotheses(for:maximumCount:)](https://developer.apple.com/documentation/naturallanguage/nlmodel/predictedlabelhypotheses(for:maximumcount:)) — Predicts multiple possible labels for the given input string.
+- [predictedLabelHypotheses(forTokens:maximumCount:)](https://developer.apple.com/documentation/naturallanguage/nlmodel/predictedlabelhypotheses(fortokens:maximumcount:)) — Predicts multiple possible labels for each string in the given array.
+### Inspecting a model
+
+- [configuration](https://developer.apple.com/documentation/naturallanguage/nlmodel/configuration) — A configuration describing the natural language model.
+- [NLModelConfiguration](https://developer.apple.com/documentation/naturallanguage/nlmodelconfiguration) — The configuration parameters of a natural language model.
+### Related Documentation
+
+- [MLTextClassifier](https://developer.apple.com/documentation/CreateML/MLTextClassifier) — A model you train to classify natural language text.
+- [MLWordTagger](https://developer.apple.com/documentation/CreateML/MLWordTagger) — A word-tagging model you train to classify natural language text at the word level.
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/NLModel](https://developer.apple.com/documentation/com.apple.naturallanguage/documentation/NaturalLanguage/NLModel)*
+--- END FILE ---
+
+--- FILE: CGPDFDocument.md ---
+# CGPDFDocument
+
+**A document that contains PDF (Portable Document Format) drawing information.**
+
+## Availability
+
+- **iOS** +
+- **iPadOS** +
+- **Mac Catalyst** +
+- **macOS** +
+- **tvOS** +
+- **visionOS** +
+- **watchOS** +
+
+
+## Overview
+
+PDF provides an efficient format for cross-platform exchange of documents with rich content. PDF files can contain multiple pages of images and text. A PDF document object contains all the information relating to a PDF document, including its catalog and contents.
+
+Note that PDF documents may be encrypted, and that some operations may be restricted until a valid password is supplied—see the functions listed in [doc://com.apple.coregraphics/documentation/CoreGraphics/CGPDFDocument#Working-with-an-Encrypted-PDF-Document](https://developer.apple.com/documentation/CoreGraphics/CGPDFDocument#Working-with-an-Encrypted-PDF-Document).  Core Graphics also supports decrypting encrypted documents.
+
+Core Graphics can both display and generate files that are compliant with the PDF standard.
+
+## Topics
+
+### Creating PDF Documents
+
+- [init(_:)](https://developer.apple.com/documentation/coregraphics/cgpdfdocument/init(_:)-gbq6) — Creates a Core Graphics PDF document using a data provider.
+- [init(_:)](https://developer.apple.com/documentation/coregraphics/cgpdfdocument/init(_:)-2gtsd) — Creates a Core Graphics PDF document using data specified by a URL.
+### Examining a PDF Document
+
+- [catalog](https://developer.apple.com/documentation/coregraphics/cgpdfdocument/catalog) — Returns the document catalog of a Core Graphics PDF document.
+- [fileIdentifier](https://developer.apple.com/documentation/coregraphics/cgpdfdocument/fileidentifier) — Gets the file identifier for a PDF document.
+- [info](https://developer.apple.com/documentation/coregraphics/cgpdfdocument/info) — Gets the information dictionary for a PDF document.
+- [numberOfPages](https://developer.apple.com/documentation/coregraphics/cgpdfdocument/numberofpages) — Returns the number of pages in a PDF document.
+- [getVersion(majorVersion:minorVersion:)](https://developer.apple.com/documentation/coregraphics/cgpdfdocument/getversion(majorversion:minorversion:)) — Returns the major and minor version numbers of a Core Graphics PDF document.
+- [page(at:)](https://developer.apple.com/documentation/coregraphics/cgpdfdocument/page(at:)) — Returns a page from a Core Graphics PDF document.
+### Working with an Encrypted PDF Document
+
+- [isEncrypted](https://developer.apple.com/documentation/coregraphics/cgpdfdocument/isencrypted) — Returns whether the specified PDF file is encrypted.
+- [allowsCopying](https://developer.apple.com/documentation/coregraphics/cgpdfdocument/allowscopying) — Returns whether the specified PDF document allows copying.
+- [allowsPrinting](https://developer.apple.com/documentation/coregraphics/cgpdfdocument/allowsprinting) — Returns whether a PDF document allows printing.
+- [isUnlocked](https://developer.apple.com/documentation/coregraphics/cgpdfdocument/isunlocked) — Returns whether the specified PDF document is currently unlocked.
+- [unlockWithPassword(_:)](https://developer.apple.com/documentation/coregraphics/cgpdfdocument/unlockwithpassword(_:)) — Unlocks an encrypted PDF document when a valid password is supplied.
+### Working with Core Foundation Types
+
+- [typeID](https://developer.apple.com/documentation/coregraphics/cgpdfdocument/typeid) — Returns the type identifier for Core Graphics PDF documents.
+### Abstract Types for PDF Document Content
+
+- [CGPDFPage](https://developer.apple.com/documentation/coregraphics/cgpdfpage) — A type that represents a page in a PDF document.
+- [CGPDFArray](https://developer.apple.com/documentation/coregraphics/cgpdfarray) — An array structure within a PDF document.
+- [CGPDFObject](https://developer.apple.com/documentation/coregraphics/cgpdfobject) — An object representing content within a PDF document.
+- [CGPDFStream](https://developer.apple.com/documentation/coregraphics/cgpdfstream) — A stream or sequence of data bytes in a PDF document.
+- [CGPDFString](https://developer.apple.com/documentation/coregraphics/cgpdfstring) — A text string in a PDF document.
+- [CGPDFScanner](https://developer.apple.com/documentation/coregraphics/cgpdfscanner) — A parser object for handling content and operators in a PDF content stream.
+- [CGPDFDictionary](https://developer.apple.com/documentation/coregraphics/cgpdfdictionary) — A dictionary structure within a PDF document.
+- [CGPDFContentStream](https://developer.apple.com/documentation/coregraphics/cgpdfcontentstream) — A representation of one or more content data streams in a PDF page.
+- [CGPDFOperatorTable](https://developer.apple.com/documentation/coregraphics/cgpdfoperatortable) — A set of callback functions for operators used when scanning content in a PDF document.
+### Instance Properties
+
+- [accessPermissions](https://developer.apple.com/documentation/coregraphics/cgpdfdocument/accesspermissions)
+- [outline](https://developer.apple.com/documentation/coregraphics/cgpdfdocument/outline)
+
+---
+
+*Source: [https://developer.apple.com/documentation/com.apple.coregraphics/documentation/CoreGraphics/CGPDFDocument](https://developer.apple.com/documentation/com.apple.coregraphics/documentation/CoreGraphics/CGPDFDocument)*
+--- END FILE ---
+=== END SWIFT DOCUMENTATION ===
+=== END CONTEXT ===
+
+
+Please implement the requirements above. Write the code directly - do not explain, just write the implementation.
+mcp: xcodebuildmcp starting
+mcp: xcodebuildmcp ready
+mcp startup: ready: xcodebuildmcp
+
+thinking
+**Preparing to explore codebase**
+
+I'm starting by listing the directory tree to understand the repo structure before proceeding with targeted file reads.
+exec
+/bin/zsh -lc ls in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+Algo
+Artifacts
+README.md
+Racism_is_an_engineering_problem.txt
+Redefining_Racism.aux
+Redefining_Racism.fdb_latexmk
+Redefining_Racism.fls
+Redefining_Racism.log
+Redefining_Racism.out
+Redefining_Racism.pdf
+Redefining_Racism.synctex.gz
+Redefining_Racism.tex
+__Avenue
+app
+critique
+swiftDocs
+venn_diagram_1.png
+venn_diagram_2.png
+website
+
+thinking
+**Preparing to inspect decodingOppression code**
+exec
+/bin/zsh -lc 'rg --files app/decodingOppression/decodingOppression' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+app/decodingOppression/decodingOppression/Info.plist
+app/decodingOppression/decodingOppression/ContentView.swift
+app/decodingOppression/decodingOppression/decodingOppressionApp.swift
+app/decodingOppression/decodingOppression/Data/KeywordTaxonomies.json
+app/decodingOppression/decodingOppression/Models/GenerableTypes.swift
+app/decodingOppression/decodingOppression/Models/PipelineContracts.swift
+app/decodingOppression/decodingOppression/Models/PolicyAnalysis.swift
+app/decodingOppression/decodingOppression/Models/Policy.swift
+app/decodingOppression/decodingOppression/Models/AnalyzedClause.swift
+app/decodingOppression/decodingOppression/Models/ScoreResult.swift
+app/decodingOppression/decodingOppression/Assets.xcassets/Contents.json
+app/decodingOppression/decodingOppression/Assets.xcassets/AccentColor.colorset/Contents.json
+app/decodingOppression/decodingOppression/Assets.xcassets/AppIcon.appiconset/Contents.json
+app/decodingOppression/decodingOppression/decodingOppression.entitlements
+
+thinking
+**Inspecting existing model types**
+
+I'm opening Policy.swift and related files to review current model types before adding new ones in the NLP group.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/Policy.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  Policy.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+// MARK: - Section type and targeting
+
+enum SectionType: String, Codable, CaseIterable {
+    case title
+    case definitions
+    case operativeClauses
+    case penalties
+    case exceptions
+}
+
+enum TargetGroup: String, Codable, CaseIterable {
+
+thinking
+**Identifying need for additional models**
+
+Noted the requirement to include other models related to PipelineContracts for implementation.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/PipelineContracts.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+//
+//  PipelineContracts.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+// MARK: - Architecture scores (Codable for pipeline and training)
+
+struct ArchitectureScores: Codable {
+    var aar: Double  // asymmetric autonomy restriction
+    var se: Double   // selective empathy
+    var ij: Double   // ideological justification
+    var rsc: Double  // resistance to structural critique
+}
+
+// MARK: - Analysis progress
+
+
+thinking
+**Identifying generable types**
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression/Models/GenerableTypes.swift" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+//
+//  GenerableTypes.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/19/26.
+//
+
+import Foundation
+
+#if canImport(FoundationModels)
+import FoundationModels
+#endif
+
+// MARK: - Clause classification (classification-first order for constrained decoding)
+
+#if canImport(FoundationModels)
+@Generable(description: "Classification of a policy clause by target group and effect direction")
+struct ClauseClassification {
+    @Generable
+    enum TargetGroup: String {
+
+thinking
+**Checking for related models and pipeline**
+
+I'm verifying if models like TierResolver exist and locating AnalysisPipeline in the project to decide on new files and updates needed while following instructions.
+exec
+/bin/zsh -lc 'rg -n "Tier1Engine|TierResolver|AnalysisPipeline" app/decodingOppression/decodingOppression' in /Users/emmanuel/Documents/Theory/Redefining_racism exited 1 in 50ms:
+
+
+thinking
+**Planning project file edits**
+
+I'm evaluating how to update the large project.pbxproj to add a new file group, considering using apply_patch if manageable or editing manually or with a script after inspecting relevant sections.
+exec
+/bin/zsh -lc 'rg -n "decodingOppression" app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj | head' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+15:			remoteInfo = decodingOppression;
+22:			remoteInfo = decodingOppression;
+27:		1487AD922F47B27E009460B8 /* decodingOppression.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = decodingOppression.app; sourceTree = BUILT_PRODUCTS_DIR; };
+28:		1487ADA32F47B280009460B8 /* decodingOppressionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = decodingOppressionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+29:		1487ADAD2F47B280009460B8 /* decodingOppressionUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = decodingOppressionUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+39:		1487ADB52F47B280009460B8 /* Exceptions for "decodingOppression" folder in "decodingOppression" target */ = {
+46:			target = 1487AD912F47B27E009460B8 /* decodingOppression */;
+51:		1487AD942F47B27E009460B8 /* decodingOppression */ = {
+54:				1487ADB52F47B280009460B8 /* Exceptions for "decodingOppression" folder in "decodingOppression" target */,
+56:			path = decodingOppression;
+
+thinking
+**Planning pbxproj parsing**
+
+I'm targeting the PBXFileReference, PBXGroup, and PBXSourcesBuildPhase sections in the pbxproj to extract source information, considering sed for section extraction.
+exec
+/bin/zsh -lc "sed -n '1,200p' app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		1487ADA42F47B280009460B8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1487AD8A2F47B27E009460B8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1487AD912F47B27E009460B8;
+			remoteInfo = decodingOppression;
+		};
+		1487ADAE2F47B280009460B8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1487AD8A2F47B27E009460B8 /* Project object */;
+			proxyType = 1;
+
+
+thinking
+**Confirming pbxproj group and file registration approach**
+
+Though the project uses file system synchronized groups, the instructions require explicitly adding a new group and registering file references in the pbxproj, so I'll follow that and create PBXGroup and PBXFileReference entries despite the current FS sync usage.
+thinking
+**Locating sources build phase for additions**
+exec
+/bin/zsh -lc 'rg -n "PBXSourcesBuildPhase" -n app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+264:/* Begin PBXSourcesBuildPhase section */
+266:			isa = PBXSourcesBuildPhase;
+273:			isa = PBXSourcesBuildPhase;
+280:			isa = PBXSourcesBuildPhase;
+286:/* End PBXSourcesBuildPhase section */
+exec
+/bin/zsh -lc "sed -n '240,320p' app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+/* Begin PBXResourcesBuildPhase section */
+		1487AD902F47B27E009460B8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1487ADA12F47B280009460B8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1487ADAB2F47B280009460B8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+
+
+
+
+thinking
+**Planning file references and build phases**
+
+The sources build phase is empty likely due to filesystem-synchronized groups, so I'll add new files only and include them in the sources build phase per instructions. The JSON resource file should be included in the bundle via the filesystem group, even though build phases appear empty, so I'll proceed as directed without re-verifying existing discrepancies.
+thinking
+**Designing PDF extraction and text preprocessing**
+
+I'm designing a PDF extractor that reads each page’s untrimmed text, throwing if all pages are empty, and joins non-empty page strings with double newlines. For text preprocessing, I’ll scan lines with regex to assign section types, then tokenize sentences with NLTokenizer, mapping each sentence by character offset to its section for Clause creation.
+thinking
+**Detailing keyword analysis and pbxproj file additions**
+
+I refined token processing to get lemmas and proxy name types per token, computing per-category top similarities with graceful handling of missing embeddings. For pbxproj, since the project uses filesystem-synchronized groups without PBXGroup for decodingOppression, I’ll add a new NLP PBXGroup and file references, linking the group under the main root PBXGroup to ensure build inclusion despite group tree complexities.
+thinking
+**Resolving pbxproj group placement with minimal changes**
+
+To comply with adding the NLP group under decodingOppression, I’ll create a new PBXGroup for NLP with path "NLP" and add it to the root PBXGroup’s children, setting its path as "decodingOppression/NLP" to reflect nested location, accepting it may not visually nest perfectly but ensuring build integration while avoiding risky pbxproj changes.
+exec
+/bin/zsh -lc 'mkdir -p app/decodingOppression/decodingOppression/NLP' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+
+
+
+thinking
+**Creating PDFExtractor implementation**
+
+I'm drafting a PDFExtractor struct that imports PDFKit and Foundation, defining error cases and extracting text by iterating pages with proper error handling; I'll consider adding a LocalizedError extension for clearer messages.
+thinking
+**Detailing text preprocessing and keyword analysis**
+
+I'm specifying the TextPreprocessor to detect sections using regex line-scans before sentence tokenization with NLTokenizer, assigning section types per line range. For keyword analysis, I'm designing an actor-based KeywordEngine that loads taxonomies, uses NLTagger with embeddings to score tokens across categories, computes averaged top similarities, and tracks proxy terms. ClauseAnalyzer will asynchronously map these feature vectors to target groups and effect directions with a clear margin and package results in structured outputs.
+exec
+/bin/zsh -lc 'cat app/decodingOppression/decodingOppression/Data/KeywordTaxonomies.json' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+{
+  "outgroupBurden": [
+    "negro",
+    "slave",
+    "colored",
+    "redlined",
+    "drug offender",
+    "felon",
+    "illegal alien",
+    "welfare dependent",
+    "inner city",
+    "thug",
+    "undeserving"
+  ],
+  "ingroupBenefit": [
+    "citizen",
+    "property owner",
+    "taxpayer",
+    "homeowner",
+    "veteran",
+
+thinking
+**Verifying JSON inclusion and starting PDFExtractor creation**
+
+The JSON file sits in the Data directory but the resources build phase is empty, likely due to file system-synced groups auto-managing it; no manual changes are needed now. Next, I'll create PDFExtractor.swift.
+exec
+/bin/zsh -lc "cat <<'EOF' > app/decodingOppression/decodingOppression/NLP/PDFExtractor.swift
+//
+//  PDFExtractor.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/22/26.
+//
+
+import PDFKit
+
+struct PDFExtractor {
+    enum PDFExtractorError: Error {
+        case scannedImagePDF
+        case unreadable
+    }
+
+    static func extract(from url: URL) throws -> String {
+        guard let document = PDFDocument(url: url) else {
+            throw PDFExtractorError.unreadable
+        }
+
+        var extractedPages: [String] = []
+        var hasText = false
+
+        for index in 0..<document.pageCount {
+            guard let page = document.page(at: index) else { continue }
+            guard let pageText = page.string, "'!pageText.isEmpty else { continue }
+            hasText = true
+            extractedPages.append(pageText)
+        }
+
+        guard hasText else {
+            throw PDFExtractorError.scannedImagePDF
+        }
+
+        return extractedPages.joined(separator: "'"\\n\\n\")
+    }
+}
+EOF" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+
+
+thinking
+**Starting TextPreprocessor review**
+exec
+/bin/zsh -lc "cat <<'EOF' > app/decodingOppression/decodingOppression/NLP/TextPreprocessor.swift
+//
+//  TextPreprocessor.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/22/26.
+//
+
+import Foundation
+import NaturalLanguage
+
+struct TextPreprocessor {
+    static func preprocess(text: String) -> [Clause] {
+        let sectionRanges = detectSectionRanges(in: text)
+        let tokenizer = NLTokenizer(unit: .sentence)
+        tokenizer.string = text
+
+        var clauses: [Clause] = []
+        let fullRange = text.startIndex..<text.endIndex
+
+        tokenizer.enumerateTokens(in: fullRange) { tokenRange, _ in
+            let sentenceText = String(text[tokenRange])
+            let sectionType = sectionType(for: tokenRange.lowerBound, in: sectionRanges)
+            let clause = Clause(
+                id: UUID(),
+                text: sentenceText,
+                sectionType: sectionType,
+                targetGroup: nil,
+                effectDirection: nil
+            )
+            clauses.append(clause)
+            return true
+        }
+
+        return clauses
+    }
+
+    private static func detectSectionRanges(in text: String) -> [(range: Range<String.Index>, sectionType: SectionType)] {
+        let patternDefinitions: [(String, SectionType)] = [
+            (\"(?i)\\\\bTITLE\\\\b\", .title),
+            (\"(?i)\\\\bDEFINITIONS?\\\\b\", .definitions),
+            (\"(?i)\\\\bSECTION\\\\s+\\\\d+\\\\b\", .operativeClauses),
+            (\"(?i)\\\\bPENALTIES\\\\b\", .penalties),
+            (\"(?i)\\\\bEXCEPTIONS?\\\\b\", .exceptions)
+        ]
+
+        let compiledPatterns: [(NSRegularExpression, SectionType)] = patternDefinitions.compactMap { pattern, sectionType in
+            do {
+                return (try NSRegularExpression(pattern: pattern), sectionType)
+            } catch {
+                assertionFailure(\"Invalid section header regex: \\(pattern)\")
+                return nil
+            }
+        }
+
+        var ranges: [(range: Range<String.Index>, sectionType: SectionType)] = []
+        var currentSection: SectionType = .operativeClauses
+
+        text.enumerateSubstrings(in: text.startIndex..<text.endIndex, options: .byLines) { line, range, _, _ in
+            guard let line = line else { return }
+            if let matchedSection = compiledPatterns.first(where: { regex, _ in
+                let nsRange = NSRange(line.startIndex..<line.endIndex, in: line)
+                return regex.firstMatch(in: line, range: nsRange) "'!= nil
+            })?.1 {
+                currentSection = matchedSection
+            }
+            ranges.append((range: range, sectionType: currentSection))
+        }
+
+        return ranges
+    }
+
+    private static func sectionType(
+        for index: String.Index,
+        in ranges: [(range: Range<String.Index>, sectionType: SectionType)]
+    ) -> SectionType {
+        for entry in ranges where entry.range.contains(index) {
+            return entry.sectionType
+        }
+        return .operativeClauses
+    }
+}
+EOF' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+
+
+thinking
+**Implementing similarity scoring and confidence calculation**
+
+Planning helper methods to compute similarity per token and category, averaging top scores carefully while handling edge cases like empty tokens, and defining confidence by the gap between top scores with capping at 0.95.
+exec
+/bin/zsh -lc "cat <<'EOF' > app/decodingOppression/decodingOppression/NLP/KeywordEngine.swift
+//
+//  KeywordEngine.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/22/26.
+//
+
+import Foundation
+import NaturalLanguage
+
+struct KeywordFeatureVector {
+    let outgroupBurdenScore: Double
+    let ingroupBenefitScore: Double
+    let eliteExtractionScore: Double
+    let proxyTermsFound: [String]
+    let confidence: Double
+}
+
+actor KeywordEngine {
+    private struct KeywordTaxonomies: Decodable {
+        let outgroupBurden: [String]
+        let ingroupBenefit: [String]
+        let eliteExtraction: [String]
+        let dogWhistleProxies: [String]
+    }
+
+    enum KeywordEngineError: Error {
+        case missingTaxonomies
+        case decodingFailed(Error)
+    }
+
+    private let taxonomies: KeywordTaxonomies
+    private let embedding: NLEmbedding?
+    private let gazetteer: NLGazetteer
+
+    init() throws {
+        guard let url = Bundle.main.url(forResource: \"KeywordTaxonomies\", withExtension: \"json\") else {
+            throw KeywordEngineError.missingTaxonomies
+        }
+
+        do {
+            let data = try Data(contentsOf: url)
+            self.taxonomies = try JSONDecoder().decode(KeywordTaxonomies.self, from: data)
+        } catch {
+            throw KeywordEngineError.decodingFailed(error)
+        }
+
+        self.gazetteer = NLGazetteer(
+            dictionary: [\"proxy\": taxonomies.dogWhistleProxies],
+            language: .english
+        )
+        self.embedding = NLEmbedding.wordEmbedding(for: .english)
+    }
+
+    func analyze(clause: Clause) -> KeywordFeatureVector {
+        let tagger = NLTagger(tagSchemes: [.lemma, .nameType, .lexicalClass])
+        tagger.string = clause.text
+        tagger.setGazetteers([gazetteer], for: .nameType)
+
+        var outgroupTokenScores: [Double] = []
+        var ingroupTokenScores: [Double] = []
+        var eliteTokenScores: [Double] = []
+        var proxyTerms: [String] = []
+
+        let text = clause.text
+        let options: NLTagger.Options = [.omitWhitespace, .omitPunctuation]
+
+        tagger.enumerateTags(in: text.startIndex..<text.endIndex, unit: .word, scheme: .lexicalClass, options: options) { _, tokenRange in
+            let token = String(text[tokenRange])
+            let lemmaTag = tagger.tag(at: tokenRange.lowerBound, unit: .word, scheme: .lemma).0
+            let lemma = lemmaTag?.rawValue ?? token
+
+            if let nameTag = tagger.tag(at: tokenRange.lowerBound, unit: .word, scheme: .nameType).0,
+               nameTag.rawValue == \"proxy\" {
+                proxyTerms.append(token)
+            }
+
+            outgroupTokenScores.append(bestSimilarity(for: lemma, terms: taxonomies.outgroupBurden))
+            ingroupTokenScores.append(bestSimilarity(for: lemma, terms: taxonomies.ingroupBenefit))
+            eliteTokenScores.append(bestSimilarity(for: lemma, terms: taxonomies.eliteExtraction))
+
+            return true
+        }
+
+        let outgroupScore = averageTop3(outgroupTokenScores)
+        let ingroupScore = averageTop3(ingroupTokenScores)
+        let eliteScore = averageTop3(eliteTokenScores)
+
+        let sortedScores = [outgroupScore, ingroupScore, eliteScore].sorted(by: >)
+        let topScore = sortedScores.first ?? 0
+        let secondScore = sortedScores.dropFirst().first ?? 0
+        let separationGap = max(0, topScore - secondScore)
+        let confidence = min(0.95, topScore + 0.15 * separationGap)
+
+        return KeywordFeatureVector(
+            outgroupBurdenScore: outgroupScore,
+            ingroupBenefitScore: ingroupScore,
+            eliteExtractionScore: eliteScore,
+            proxyTermsFound: proxyTerms,
+            confidence: confidence
+        )
+    }
+
+    private func bestSimilarity(for lemma: String, terms: [String]) -> Double {
+        guard let embedding else { return 0 }
+
+        var best: Double = 0
+        for term in terms {
+            guard let distance = embedding.distance(between: lemma, and: term, distanceType: .cosine) else {
+                continue
+            }
+            let similarity = max(0, 1 - distance)
+            if similarity > best {
+                best = similarity
+            }
+        }
+        return best
+    }
+
+    private func averageTop3(_ scores: [Double]) -> Double {
+        let topScores = scores.sorted(by: >).prefix(3)
+        guard "'!topScores.isEmpty else { return 0 }
+        let sum = topScores.reduce(0, +)
+        return sum / Double(topScores.count)
+    }
+}
+EOF' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+
+
+thinking
+**Starting analysis of ClauseAnalyzer.swift**
+exec
+/bin/zsh -lc "cat <<'EOF' > app/decodingOppression/decodingOppression/NLP/ClauseAnalyzer.swift
+//
+//  ClauseAnalyzer.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/22/26.
+//
+
+import Foundation
+
+actor ClauseAnalyzer {
+    private let keywordEngine: KeywordEngine
+
+    init(keywordEngine: KeywordEngine) {
+        self.keywordEngine = keywordEngine
+    }
+
+    func analyze(clause: Clause) async -> TierClassification {
+        let vector = await keywordEngine.analyze(clause: clause)
+
+        let targetGroup = resolveTargetGroup(using: vector)
+        let effectDirection = resolveEffectDirection(using: vector)
+
+        let architectureScores = ArchitectureScores(
+            aar: vector.outgroupBurdenScore,
+            se: max(0, vector.ingroupBenefitScore - vector.outgroupBurdenScore),
+            ij: vector.proxyTermsFound.isEmpty
+                ? 0.0
+                : 0.5 + 0.1 * Double(min(5, vector.proxyTermsFound.count)),
+            rsc: 0.1
+        )
+
+        let proxyDetection = ProxyDetection(
+            usesProxyVariables: "'!vector.proxyTermsFound.isEmpty,
+            proxyTerms: vector.proxyTermsFound,
+            expandsOutgroup: vector.outgroupBurdenScore > 0.5 && !vector.proxyTermsFound.isEmpty
+        )
+
+        return TierClassification(
+            targetGroup: targetGroup,
+            effectDirection: effectDirection,
+            architectureScores: architectureScores,
+            proxyDetection: proxyDetection,
+            confidence: vector.confidence,
+            tier: .tier1
+        )
+    }
+
+    private func resolveTargetGroup(using vector: KeywordFeatureVector) -> TargetGroup {
+        let scoredGroups: [(TargetGroup, Double)] = [
+            (.outgroup, vector.outgroupBurdenScore),
+            (.ingroupNonElite, vector.ingroupBenefitScore),
+            (.elite, vector.eliteExtractionScore)
+        ]
+
+        let sorted = scoredGroups.sorted { $0.1 > $1.1 }
+        guard let top = sorted.first, let runnerUp = sorted.dropFirst().first else {
+            return .multiple
+        }
+
+        return (top.1 - runnerUp.1) >= 0.1 ? top.0 : .multiple
+    }
+
+    private func resolveEffectDirection(using vector: KeywordFeatureVector) -> EffectDirection {
+        let burdenScore = vector.outgroupBurdenScore
+        let ingroupScore = vector.ingroupBenefitScore
+        let eliteScore = vector.eliteExtractionScore
+        let benefitScore = max(ingroupScore, eliteScore)
+
+        if burdenScore > 0.3 && benefitScore > 0.3 {
+            return .mixed
+        }
+
+        if burdenScore > 0.3 && burdenScore > benefitScore {
+            return .burden
+        }
+
+        if (ingroupScore > 0.3 || eliteScore > 0.3) && benefitScore > burdenScore {
+            return .benefit
+        }
+
+        if burdenScore < 0.3 && ingroupScore < 0.3 && eliteScore < 0.3 {
+            return .neutral
+        }
+
+        return .neutral
+    }
+}
+EOF' in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 52ms:
+
+
+thinking
+**Starting Tier1Engine analysis**
+exec
+/bin/zsh -lc "cat <<'EOF' > app/decodingOppression/decodingOppression/NLP/Tier1Engine.swift
+//
+//  Tier1Engine.swift
+//  decodingOppression
+//
+//  Created by Emmanuel Theodore on 2/22/26.
+//
+
+import Foundation
+
+actor Tier1Engine {
+    private let clauseAnalyzer: ClauseAnalyzer
+
+    init() throws {
+        let keywordEngine = try KeywordEngine()
+        self.clauseAnalyzer = ClauseAnalyzer(keywordEngine: keywordEngine)
+    }
+
+    func extractAndPreprocess(pdf url: URL) async throws -> [Clause] {
+        let rawText = try PDFExtractor.extract(from: url)
+        return TextPreprocessor.preprocess(text: rawText)
+    }
+
+    func classify(clause: Clause) async -> TierClassification {
+        await clauseAnalyzer.analyze(clause: clause)
+    }
+}
+EOF" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 51ms:
+
+
+thinking
+**Planning unique ID generation for pbxproj**
+
+Decided to generate new unique IDs for pbxproj entries as 24-character uppercase hex strings derived from UUID4, matching Xcode's style, to use for new file references, build files, and groups.
+exec
+/bin/zsh -lc "python - <<'PY'
+import uuid
+
+def gen():
+    return uuid.uuid4().hex.upper()[:24]
+
+ids = {
+    'pdf_ref': gen(),
+    'text_ref': gen(),
+    'keyword_ref': gen(),
+    'clause_ref': gen(),
+    'tier_ref': gen(),
+    'pdf_build': gen(),
+    'text_build': gen(),
+    'keyword_build': gen(),
+    'clause_build': gen(),
+    'tier_build': gen(),
+    'nlp_group': gen(),
+}
+print(ids)
+PY" in /Users/emmanuel/Documents/Theory/Redefining_racism exited 127 in 51ms:
+zsh:1: command not found: python
+
+thinking
+**Switching to python3**
+exec
+/bin/zsh -lc "python3 - <<'PY'
+import uuid
+
+def gen():
+    return uuid.uuid4().hex.upper()[:24]
+
+ids = {
+    'pdf_ref': gen(),
+    'text_ref': gen(),
+    'keyword_ref': gen(),
+    'clause_ref': gen(),
+    'tier_ref': gen(),
+    'pdf_build': gen(),
+    'text_build': gen(),
+    'keyword_build': gen(),
+    'clause_build': gen(),
+    'tier_build': gen(),
+    'nlp_group': gen(),
+}
+print(ids)
+PY" in /Users/emmanuel/Documents/Theory/Redefining_racism succeeded in 271ms:
+{'pdf_ref': '338CD69139594E33B6F82274', 'text_ref': 'C74A3F4AAE364D2D9A61D5FB', 'keyword_ref': '72C1047D68F042B9BAA5C7D0', 'clause_ref': '1363E78914154992955B6EA8', 'tier_ref': '736CA9A8AF1041CEA2989A0B', 'pdf_build': '0F881AE8784F439B833712D7', 'text_build': '27911C96A7834415BA3B0576', 'keyword_build': 'AFE22C0E54C54A1196F64A31', 'clause_build': '075B20A062264036B7E65D9D', 'tier_build': 'E1F862E8FD984C768A9A5204', 'nlp_group': '930CEBF869B446D4AD57A270'}
+
+
+thinking
+**Planning pbxproj patch insertion**
+
+I'm mapping where to insert new PBXFileReference, PBXBuildFile, and PBXGroup entries and deciding to add the new NLP group as a child of the root group since the source group can't contain it. I'll also add build files to the app target's PBXSourcesBuildPhase.
+thinking
+**Defining pbxproj patch details**
+
+I'm deciding to add the NLP group under the root group with path "NLP" and sourceTree "<group>", including file references and build files for the new sources, then updating the root group's children accordingly before crafting the patch.
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -29,2 +29,7 @@
+ 		1487ADAD2F47B280009460B8 /* decodingOppressionUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = decodingOppressionUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
++		1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClauseAnalyzer.swift; sourceTree = "<group>"; };
++		338CD69139594E33B6F82274 /* PDFExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFExtractor.swift; sourceTree = "<group>"; };
++		72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeywordEngine.swift; sourceTree = "<group>"; };
++		736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier1Engine.swift; sourceTree = "<group>"; };
++		C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextPreprocessor.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+@@ -35,2 +40,7 @@
+ 		1487ADC42F47B281009460B8 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC72F47B281009460B8 /* MLXLMCommon */; };
++		075B20A062264036B7E65D9D /* ClauseAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */; };
++		0F881AE8784F439B833712D7 /* PDFExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 338CD69139594E33B6F82274 /* PDFExtractor.swift */; };
++		27911C96A7834415BA3B0576 /* TextPreprocessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */; };
++		AFE22C0E54C54A1196F64A31 /* KeywordEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */; };
++		E1F862E8FD984C768A9A5204 /* Tier1Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */; };
+ /* End PBXBuildFile section */
+@@ -102,2 +112,3 @@
+ 				1487AD942F47B27E009460B8 /* decodingOppression */,
++				930CEBF869B446D4AD57A270 /* NLP */,
+ 				1487ADA62F47B280009460B8 /* decodingOppressionTests */,
+@@ -108,2 +119,14 @@
+ 		};
++		930CEBF869B446D4AD57A270 /* NLP */ = {
++			isa = PBXGroup;
++			children = (
++				338CD69139594E33B6F82274 /* PDFExtractor.swift */,
++				C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */,
++				72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */,
++				1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */,
++				736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */,
++			);
++			path = NLP;
++			sourceTree = "<group>";
++		};
+ 		1487AD932F47B27E009460B8 /* Products */ = {
+@@ -268,2 +291,7 @@
+ 			files = (
++				075B20A062264036B7E65D9D /* ClauseAnalyzer.swift in Sources */,
++				0F881AE8784F439B833712D7 /* PDFExtractor.swift in Sources */,
++				27911C96A7834415BA3B0576 /* TextPreprocessor.swift in Sources */,
++				AFE22C0E54C54A1196F64A31 /* KeywordEngine.swift in Sources */,
++				E1F862E8FD984C768A9A5204 /* Tier1Engine.swift in Sources */,
+ 			);
+apply_patch(auto_approved=true) exited 0 in 27ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index f6e02bf099d88e47ff2309ed6e3a2872e8d45317..17438a34d409b85a67b5ab76ebe15d63aae0c2ee
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -27,12 +27,22 @@
+ 		1487AD922F47B27E009460B8 /* decodingOppression.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = decodingOppression.app; sourceTree = BUILT_PRODUCTS_DIR; };
+ 		1487ADA32F47B280009460B8 /* decodingOppressionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = decodingOppressionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+ 		1487ADAD2F47B280009460B8 /* decodingOppressionUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = decodingOppressionUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
++		1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClauseAnalyzer.swift; sourceTree = "<group>"; };
++		338CD69139594E33B6F82274 /* PDFExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFExtractor.swift; sourceTree = "<group>"; };
++		72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeywordEngine.swift; sourceTree = "<group>"; };
++		736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier1Engine.swift; sourceTree = "<group>"; };
++		C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextPreprocessor.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXBuildFile section */
+ 		1487ADC22F47B281009460B8 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC52F47B281009460B8 /* MLXLLM */; };
+ 		1487ADC32F47B281009460B8 /* MLXEmbedders in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC62F47B281009460B8 /* MLXEmbedders */; };
+ 		1487ADC42F47B281009460B8 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC72F47B281009460B8 /* MLXLMCommon */; };
++		075B20A062264036B7E65D9D /* ClauseAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */; };
++		0F881AE8784F439B833712D7 /* PDFExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 338CD69139594E33B6F82274 /* PDFExtractor.swift */; };
++		27911C96A7834415BA3B0576 /* TextPreprocessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */; };
++		AFE22C0E54C54A1196F64A31 /* KeywordEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */; };
++		E1F862E8FD984C768A9A5204 /* Tier1Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -100,12 +110,25 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				1487AD942F47B27E009460B8 /* decodingOppression */,
++				930CEBF869B446D4AD57A270 /* NLP */,
+ 				1487ADA62F47B280009460B8 /* decodingOppressionTests */,
+ 				1487ADB02F47B280009460B8 /* decodingOppressionUITests */,
+ 				1487AD932F47B27E009460B8 /* Products */,
+ 			);
+ 			sourceTree = "<group>";
+ 		};
++		930CEBF869B446D4AD57A270 /* NLP */ = {
++			isa = PBXGroup;
++			children = (
++				338CD69139594E33B6F82274 /* PDFExtractor.swift */,
++				C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */,
++				72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */,
++				1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */,
++				736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */,
++			);
++			path = NLP;
++			sourceTree = "<group>";
++		};
+ 		1487AD932F47B27E009460B8 /* Products */ = {
+ 			isa = PBXGroup;
+ 			children = (
+@@ -266,6 +289,11 @@
+ 			isa = PBXSourcesBuildPhase;
+ 			buildActionMask = 2147483647;
+ 			files = (
++				075B20A062264036B7E65D9D /* ClauseAnalyzer.swift in Sources */,
++				0F881AE8784F439B833712D7 /* PDFExtractor.swift in Sources */,
++				27911C96A7834415BA3B0576 /* TextPreprocessor.swift in Sources */,
++				AFE22C0E54C54A1196F64A31 /* KeywordEngine.swift in Sources */,
++				E1F862E8FD984C768A9A5204 /* Tier1Engine.swift in Sources */,
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 		};
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index f6e02bf099d88e47ff2309ed6e3a2872e8d45317..17438a34d409b85a67b5ab76ebe15d63aae0c2ee
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -27,12 +27,22 @@
+ 		1487AD922F47B27E009460B8 /* decodingOppression.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = decodingOppression.app; sourceTree = BUILT_PRODUCTS_DIR; };
+ 		1487ADA32F47B280009460B8 /* decodingOppressionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = decodingOppressionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+ 		1487ADAD2F47B280009460B8 /* decodingOppressionUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = decodingOppressionUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
++		1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClauseAnalyzer.swift; sourceTree = "<group>"; };
++		338CD69139594E33B6F82274 /* PDFExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFExtractor.swift; sourceTree = "<group>"; };
++		72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeywordEngine.swift; sourceTree = "<group>"; };
++		736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier1Engine.swift; sourceTree = "<group>"; };
++		C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextPreprocessor.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXBuildFile section */
+ 		1487ADC22F47B281009460B8 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC52F47B281009460B8 /* MLXLLM */; };
+ 		1487ADC32F47B281009460B8 /* MLXEmbedders in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC62F47B281009460B8 /* MLXEmbedders */; };
+ 		1487ADC42F47B281009460B8 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC72F47B281009460B8 /* MLXLMCommon */; };
++		075B20A062264036B7E65D9D /* ClauseAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */; };
++		0F881AE8784F439B833712D7 /* PDFExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 338CD69139594E33B6F82274 /* PDFExtractor.swift */; };
++		27911C96A7834415BA3B0576 /* TextPreprocessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */; };
++		AFE22C0E54C54A1196F64A31 /* KeywordEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */; };
++		E1F862E8FD984C768A9A5204 /* Tier1Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -100,12 +110,25 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				1487AD942F47B27E009460B8 /* decodingOppression */,
++				930CEBF869B446D4AD57A270 /* NLP */,
+ 				1487ADA62F47B280009460B8 /* decodingOppressionTests */,
+ 				1487ADB02F47B280009460B8 /* decodingOppressionUITests */,
+ 				1487AD932F47B27E009460B8 /* Products */,
+ 			);
+ 			sourceTree = "<group>";
+ 		};
++		930CEBF869B446D4AD57A270 /* NLP */ = {
++			isa = PBXGroup;
++			children = (
++				338CD69139594E33B6F82274 /* PDFExtractor.swift */,
++				C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */,
++				72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */,
++				1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */,
++				736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */,
++			);
++			path = NLP;
++			sourceTree = "<group>";
++		};
+ 		1487AD932F47B27E009460B8 /* Products */ = {
+ 			isa = PBXGroup;
+ 			children = (
+@@ -266,6 +289,11 @@
+ 			isa = PBXSourcesBuildPhase;
+ 			buildActionMask = 2147483647;
+ 			files = (
++				075B20A062264036B7E65D9D /* ClauseAnalyzer.swift in Sources */,
++				0F881AE8784F439B833712D7 /* PDFExtractor.swift in Sources */,
++				27911C96A7834415BA3B0576 /* TextPreprocessor.swift in Sources */,
++				AFE22C0E54C54A1196F64A31 /* KeywordEngine.swift in Sources */,
++				E1F862E8FD984C768A9A5204 /* Tier1Engine.swift in Sources */,
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 		};
+
+
+
+thinking
+**Clarifying group path relative to project root**
+
+The root group corresponds to the folder containing the .xcodeproj, so the NLP group's path must include the intermediate folder (`decodingOppression/NLP`) to reflect the actual file location correctly relative to the root group.
+thinking
+**Deciding to update group path to include intermediate folder**
+
+Setting the NLP group path to `decodingOppression/NLP` under the root group ensures file references point to the correct disk location without restructuring the group hierarchy.
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -128,3 +128,3 @@
+ 			);
+-			path = NLP;
++			path = decodingOppression/NLP;
+ 			sourceTree = "<group>";
+apply_patch(auto_approved=true) exited 0 in 27ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index f6e02bf099d88e47ff2309ed6e3a2872e8d45317..b3f5457f7ca41850e3320812e3a53a5c9ae5fd72
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -27,12 +27,22 @@
+ 		1487AD922F47B27E009460B8 /* decodingOppression.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = decodingOppression.app; sourceTree = BUILT_PRODUCTS_DIR; };
+ 		1487ADA32F47B280009460B8 /* decodingOppressionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = decodingOppressionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+ 		1487ADAD2F47B280009460B8 /* decodingOppressionUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = decodingOppressionUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
++		1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClauseAnalyzer.swift; sourceTree = "<group>"; };
++		338CD69139594E33B6F82274 /* PDFExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFExtractor.swift; sourceTree = "<group>"; };
++		72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeywordEngine.swift; sourceTree = "<group>"; };
++		736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier1Engine.swift; sourceTree = "<group>"; };
++		C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextPreprocessor.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXBuildFile section */
+ 		1487ADC22F47B281009460B8 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC52F47B281009460B8 /* MLXLLM */; };
+ 		1487ADC32F47B281009460B8 /* MLXEmbedders in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC62F47B281009460B8 /* MLXEmbedders */; };
+ 		1487ADC42F47B281009460B8 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC72F47B281009460B8 /* MLXLMCommon */; };
++		075B20A062264036B7E65D9D /* ClauseAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */; };
++		0F881AE8784F439B833712D7 /* PDFExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 338CD69139594E33B6F82274 /* PDFExtractor.swift */; };
++		27911C96A7834415BA3B0576 /* TextPreprocessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */; };
++		AFE22C0E54C54A1196F64A31 /* KeywordEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */; };
++		E1F862E8FD984C768A9A5204 /* Tier1Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -100,12 +110,25 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				1487AD942F47B27E009460B8 /* decodingOppression */,
++				930CEBF869B446D4AD57A270 /* NLP */,
+ 				1487ADA62F47B280009460B8 /* decodingOppressionTests */,
+ 				1487ADB02F47B280009460B8 /* decodingOppressionUITests */,
+ 				1487AD932F47B27E009460B8 /* Products */,
+ 			);
+ 			sourceTree = "<group>";
+ 		};
++		930CEBF869B446D4AD57A270 /* NLP */ = {
++			isa = PBXGroup;
++			children = (
++				338CD69139594E33B6F82274 /* PDFExtractor.swift */,
++				C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */,
++				72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */,
++				1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */,
++				736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */,
++			);
++			path = decodingOppression/NLP;
++			sourceTree = "<group>";
++		};
+ 		1487AD932F47B27E009460B8 /* Products */ = {
+ 			isa = PBXGroup;
+ 			children = (
+@@ -266,6 +289,11 @@
+ 			isa = PBXSourcesBuildPhase;
+ 			buildActionMask = 2147483647;
+ 			files = (
++				075B20A062264036B7E65D9D /* ClauseAnalyzer.swift in Sources */,
++				0F881AE8784F439B833712D7 /* PDFExtractor.swift in Sources */,
++				27911C96A7834415BA3B0576 /* TextPreprocessor.swift in Sources */,
++				AFE22C0E54C54A1196F64A31 /* KeywordEngine.swift in Sources */,
++				E1F862E8FD984C768A9A5204 /* Tier1Engine.swift in Sources */,
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 		};
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index f6e02bf099d88e47ff2309ed6e3a2872e8d45317..b3f5457f7ca41850e3320812e3a53a5c9ae5fd72
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -27,12 +27,22 @@
+ 		1487AD922F47B27E009460B8 /* decodingOppression.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = decodingOppression.app; sourceTree = BUILT_PRODUCTS_DIR; };
+ 		1487ADA32F47B280009460B8 /* decodingOppressionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = decodingOppressionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+ 		1487ADAD2F47B280009460B8 /* decodingOppressionUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = decodingOppressionUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
++		1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClauseAnalyzer.swift; sourceTree = "<group>"; };
++		338CD69139594E33B6F82274 /* PDFExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFExtractor.swift; sourceTree = "<group>"; };
++		72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeywordEngine.swift; sourceTree = "<group>"; };
++		736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier1Engine.swift; sourceTree = "<group>"; };
++		C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextPreprocessor.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXBuildFile section */
+ 		1487ADC22F47B281009460B8 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC52F47B281009460B8 /* MLXLLM */; };
+ 		1487ADC32F47B281009460B8 /* MLXEmbedders in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC62F47B281009460B8 /* MLXEmbedders */; };
+ 		1487ADC42F47B281009460B8 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC72F47B281009460B8 /* MLXLMCommon */; };
++		075B20A062264036B7E65D9D /* ClauseAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */; };
++		0F881AE8784F439B833712D7 /* PDFExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 338CD69139594E33B6F82274 /* PDFExtractor.swift */; };
++		27911C96A7834415BA3B0576 /* TextPreprocessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */; };
++		AFE22C0E54C54A1196F64A31 /* KeywordEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */; };
++		E1F862E8FD984C768A9A5204 /* Tier1Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -100,12 +110,25 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				1487AD942F47B27E009460B8 /* decodingOppression */,
++				930CEBF869B446D4AD57A270 /* NLP */,
+ 				1487ADA62F47B280009460B8 /* decodingOppressionTests */,
+ 				1487ADB02F47B280009460B8 /* decodingOppressionUITests */,
+ 				1487AD932F47B27E009460B8 /* Products */,
+ 			);
+ 			sourceTree = "<group>";
+ 		};
++		930CEBF869B446D4AD57A270 /* NLP */ = {
++			isa = PBXGroup;
++			children = (
++				338CD69139594E33B6F82274 /* PDFExtractor.swift */,
++				C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */,
++				72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */,
++				1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */,
++				736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */,
++			);
++			path = decodingOppression/NLP;
++			sourceTree = "<group>";
++		};
+ 		1487AD932F47B27E009460B8 /* Products */ = {
+ 			isa = PBXGroup;
+ 			children = (
+@@ -266,6 +289,11 @@
+ 			isa = PBXSourcesBuildPhase;
+ 			buildActionMask = 2147483647;
+ 			files = (
++				075B20A062264036B7E65D9D /* ClauseAnalyzer.swift in Sources */,
++				0F881AE8784F439B833712D7 /* PDFExtractor.swift in Sources */,
++				27911C96A7834415BA3B0576 /* TextPreprocessor.swift in Sources */,
++				AFE22C0E54C54A1196F64A31 /* KeywordEngine.swift in Sources */,
++				E1F862E8FD984C768A9A5204 /* Tier1Engine.swift in Sources */,
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 		};
+
+
+
+thinking
+**Validating API usage and path correctness**
+
+Checked that file references are relative to group paths and confirmed correct use of `NLEmbedding.distance` with `.cosine` on supported iOS versions. Verified availability of `NLGazetteer` on iOS 12 and proper handling of empty strings in `TextPreprocessor`. Confirmed optional usage of `NLEmbedding.wordEmbedding` and consistent struct sharing across actors and classes.
+thinking
+**Ensuring Sendable conformance for concurrency**
+
+Identified that returning `KeywordFeatureVector` across actor boundaries may require `Sendable` to avoid concurrency warnings or errors, so I'll add `Sendable` conformance to this struct while leaving other types unchanged. This ensures safer Swift concurrency compliance without disrupting existing code.
+file update
+M /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/NLP/KeywordEngine.swift
+@@ -10,3 +10,3 @@
+ 
+-struct KeywordFeatureVector {
++struct KeywordFeatureVector: Sendable {
+     let outgroupBurdenScore: Double
+apply_patch(auto_approved=true) exited 0 in 42ms:
+Success. Updated the following files:
+M app/decodingOppression/decodingOppression/NLP/KeywordEngine.swift
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index f6e02bf099d88e47ff2309ed6e3a2872e8d45317..b3f5457f7ca41850e3320812e3a53a5c9ae5fd72
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -27,12 +27,22 @@
+ 		1487AD922F47B27E009460B8 /* decodingOppression.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = decodingOppression.app; sourceTree = BUILT_PRODUCTS_DIR; };
+ 		1487ADA32F47B280009460B8 /* decodingOppressionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = decodingOppressionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+ 		1487ADAD2F47B280009460B8 /* decodingOppressionUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = decodingOppressionUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
++		1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClauseAnalyzer.swift; sourceTree = "<group>"; };
++		338CD69139594E33B6F82274 /* PDFExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFExtractor.swift; sourceTree = "<group>"; };
++		72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeywordEngine.swift; sourceTree = "<group>"; };
++		736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier1Engine.swift; sourceTree = "<group>"; };
++		C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextPreprocessor.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXBuildFile section */
+ 		1487ADC22F47B281009460B8 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC52F47B281009460B8 /* MLXLLM */; };
+ 		1487ADC32F47B281009460B8 /* MLXEmbedders in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC62F47B281009460B8 /* MLXEmbedders */; };
+ 		1487ADC42F47B281009460B8 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC72F47B281009460B8 /* MLXLMCommon */; };
++		075B20A062264036B7E65D9D /* ClauseAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */; };
++		0F881AE8784F439B833712D7 /* PDFExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 338CD69139594E33B6F82274 /* PDFExtractor.swift */; };
++		27911C96A7834415BA3B0576 /* TextPreprocessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */; };
++		AFE22C0E54C54A1196F64A31 /* KeywordEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */; };
++		E1F862E8FD984C768A9A5204 /* Tier1Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -100,12 +110,25 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				1487AD942F47B27E009460B8 /* decodingOppression */,
++				930CEBF869B446D4AD57A270 /* NLP */,
+ 				1487ADA62F47B280009460B8 /* decodingOppressionTests */,
+ 				1487ADB02F47B280009460B8 /* decodingOppressionUITests */,
+ 				1487AD932F47B27E009460B8 /* Products */,
+ 			);
+ 			sourceTree = "<group>";
+ 		};
++		930CEBF869B446D4AD57A270 /* NLP */ = {
++			isa = PBXGroup;
++			children = (
++				338CD69139594E33B6F82274 /* PDFExtractor.swift */,
++				C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */,
++				72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */,
++				1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */,
++				736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */,
++			);
++			path = decodingOppression/NLP;
++			sourceTree = "<group>";
++		};
+ 		1487AD932F47B27E009460B8 /* Products */ = {
+ 			isa = PBXGroup;
+ 			children = (
+@@ -266,6 +289,11 @@
+ 			isa = PBXSourcesBuildPhase;
+ 			buildActionMask = 2147483647;
+ 			files = (
++				075B20A062264036B7E65D9D /* ClauseAnalyzer.swift in Sources */,
++				0F881AE8784F439B833712D7 /* PDFExtractor.swift in Sources */,
++				27911C96A7834415BA3B0576 /* TextPreprocessor.swift in Sources */,
++				AFE22C0E54C54A1196F64A31 /* KeywordEngine.swift in Sources */,
++				E1F862E8FD984C768A9A5204 /* Tier1Engine.swift in Sources */,
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 		};
+diff --git a/app/decodingOppression/decodingOppression/NLP/KeywordEngine.swift b/app/decodingOppression/decodingOppression/NLP/KeywordEngine.swift
+index 230d78da8fa4b74821865c167ab20787e532a70a..a96fa4db0f469263bbaa119b02145f33990aa4ea
+--- a/app/decodingOppression/decodingOppression/NLP/KeywordEngine.swift
++++ b/app/decodingOppression/decodingOppression/NLP/KeywordEngine.swift
+@@ -8,7 +8,7 @@
+ import Foundation
+ import NaturalLanguage
+ 
+-struct KeywordFeatureVector {
++struct KeywordFeatureVector: Sendable {
+     let outgroupBurdenScore: Double
+     let ingroupBenefitScore: Double
+     let eliteExtractionScore: Double
+
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index f6e02bf099d88e47ff2309ed6e3a2872e8d45317..b3f5457f7ca41850e3320812e3a53a5c9ae5fd72
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -27,12 +27,22 @@
+ 		1487AD922F47B27E009460B8 /* decodingOppression.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = decodingOppression.app; sourceTree = BUILT_PRODUCTS_DIR; };
+ 		1487ADA32F47B280009460B8 /* decodingOppressionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = decodingOppressionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+ 		1487ADAD2F47B280009460B8 /* decodingOppressionUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = decodingOppressionUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
++		1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClauseAnalyzer.swift; sourceTree = "<group>"; };
++		338CD69139594E33B6F82274 /* PDFExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFExtractor.swift; sourceTree = "<group>"; };
++		72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeywordEngine.swift; sourceTree = "<group>"; };
++		736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier1Engine.swift; sourceTree = "<group>"; };
++		C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextPreprocessor.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXBuildFile section */
+ 		1487ADC22F47B281009460B8 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC52F47B281009460B8 /* MLXLLM */; };
+ 		1487ADC32F47B281009460B8 /* MLXEmbedders in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC62F47B281009460B8 /* MLXEmbedders */; };
+ 		1487ADC42F47B281009460B8 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC72F47B281009460B8 /* MLXLMCommon */; };
++		075B20A062264036B7E65D9D /* ClauseAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */; };
++		0F881AE8784F439B833712D7 /* PDFExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 338CD69139594E33B6F82274 /* PDFExtractor.swift */; };
++		27911C96A7834415BA3B0576 /* TextPreprocessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */; };
++		AFE22C0E54C54A1196F64A31 /* KeywordEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */; };
++		E1F862E8FD984C768A9A5204 /* Tier1Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -100,12 +110,25 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				1487AD942F47B27E009460B8 /* decodingOppression */,
++				930CEBF869B446D4AD57A270 /* NLP */,
+ 				1487ADA62F47B280009460B8 /* decodingOppressionTests */,
+ 				1487ADB02F47B280009460B8 /* decodingOppressionUITests */,
+ 				1487AD932F47B27E009460B8 /* Products */,
+ 			);
+ 			sourceTree = "<group>";
+ 		};
++		930CEBF869B446D4AD57A270 /* NLP */ = {
++			isa = PBXGroup;
++			children = (
++				338CD69139594E33B6F82274 /* PDFExtractor.swift */,
++				C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */,
++				72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */,
++				1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */,
++				736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */,
++			);
++			path = decodingOppression/NLP;
++			sourceTree = "<group>";
++		};
+ 		1487AD932F47B27E009460B8 /* Products */ = {
+ 			isa = PBXGroup;
+ 			children = (
+@@ -266,6 +289,11 @@
+ 			isa = PBXSourcesBuildPhase;
+ 			buildActionMask = 2147483647;
+ 			files = (
++				075B20A062264036B7E65D9D /* ClauseAnalyzer.swift in Sources */,
++				0F881AE8784F439B833712D7 /* PDFExtractor.swift in Sources */,
++				27911C96A7834415BA3B0576 /* TextPreprocessor.swift in Sources */,
++				AFE22C0E54C54A1196F64A31 /* KeywordEngine.swift in Sources */,
++				E1F862E8FD984C768A9A5204 /* Tier1Engine.swift in Sources */,
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 		};
+diff --git a/app/decodingOppression/decodingOppression/NLP/KeywordEngine.swift b/app/decodingOppression/decodingOppression/NLP/KeywordEngine.swift
+index 230d78da8fa4b74821865c167ab20787e532a70a..a96fa4db0f469263bbaa119b02145f33990aa4ea
+--- a/app/decodingOppression/decodingOppression/NLP/KeywordEngine.swift
++++ b/app/decodingOppression/decodingOppression/NLP/KeywordEngine.swift
+@@ -8,7 +8,7 @@
+ import Foundation
+ import NaturalLanguage
+ 
+-struct KeywordFeatureVector {
++struct KeywordFeatureVector: Sendable {
+     let outgroupBurdenScore: Double
+     let ingroupBenefitScore: Double
+     let eliteExtractionScore: Double
+
+
+
+thinking
+**Clarifying initializer and project file handling**
+
+Checked that NLGazetteer’s initializer isn't failable or throwing, so no special error handling needed there; verified no need to import NaturalLanguage in ClauseAnalyzer. Also reviewed Xcode project file paths and decided manual build file additions avoid membership exceptions concerns.
+thinking
+**Confirming build file additions and summarizing changes**
+
+Reviewed that adding new files manually to the build phase may risk duplicate compilation with the file system sync, but will proceed per instructions. Prepared a concise summary listing added NLP files and pbxproj modifications, and noted tests are not run since build verification is automatic.
+codex
+**Summary**
+- Added Tier 1 NLP pipeline components: `app/decodingOppression/decodingOppression/NLP/PDFExtractor.swift`, `app/decodingOppression/decodingOppression/NLP/TextPreprocessor.swift`, `app/decodingOppression/decodingOppression/NLP/KeywordEngine.swift`, `app/decodingOppression/decodingOppression/NLP/ClauseAnalyzer.swift`, `app/decodingOppression/decodingOppression/NLP/Tier1Engine.swift`.
+- Registered the new NLP group and sources in `app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj`.
+
+**Tests**
+- Not run (build will be verified automatically).
+file update:
+diff --git a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+index f6e02bf099d88e47ff2309ed6e3a2872e8d45317..b3f5457f7ca41850e3320812e3a53a5c9ae5fd72
+--- a/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
++++ b/app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj
+@@ -27,12 +27,22 @@
+ 		1487AD922F47B27E009460B8 /* decodingOppression.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = decodingOppression.app; sourceTree = BUILT_PRODUCTS_DIR; };
+ 		1487ADA32F47B280009460B8 /* decodingOppressionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = decodingOppressionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+ 		1487ADAD2F47B280009460B8 /* decodingOppressionUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = decodingOppressionUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
++		1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClauseAnalyzer.swift; sourceTree = "<group>"; };
++		338CD69139594E33B6F82274 /* PDFExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFExtractor.swift; sourceTree = "<group>"; };
++		72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeywordEngine.swift; sourceTree = "<group>"; };
++		736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier1Engine.swift; sourceTree = "<group>"; };
++		C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextPreprocessor.swift; sourceTree = "<group>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXBuildFile section */
+ 		1487ADC22F47B281009460B8 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC52F47B281009460B8 /* MLXLLM */; };
+ 		1487ADC32F47B281009460B8 /* MLXEmbedders in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC62F47B281009460B8 /* MLXEmbedders */; };
+ 		1487ADC42F47B281009460B8 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 1487ADC72F47B281009460B8 /* MLXLMCommon */; };
++		075B20A062264036B7E65D9D /* ClauseAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */; };
++		0F881AE8784F439B833712D7 /* PDFExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 338CD69139594E33B6F82274 /* PDFExtractor.swift */; };
++		27911C96A7834415BA3B0576 /* TextPreprocessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */; };
++		AFE22C0E54C54A1196F64A31 /* KeywordEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */; };
++		E1F862E8FD984C768A9A5204 /* Tier1Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+@@ -100,12 +110,25 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				1487AD942F47B27E009460B8 /* decodingOppression */,
++				930CEBF869B446D4AD57A270 /* NLP */,
+ 				1487ADA62F47B280009460B8 /* decodingOppressionTests */,
+ 				1487ADB02F47B280009460B8 /* decodingOppressionUITests */,
+ 				1487AD932F47B27E009460B8 /* Products */,
+ 			);
+ 			sourceTree = "<group>";
+ 		};
++		930CEBF869B446D4AD57A270 /* NLP */ = {
++			isa = PBXGroup;
++			children = (
++				338CD69139594E33B6F82274 /* PDFExtractor.swift */,
++				C74A3F4AAE364D2D9A61D5FB /* TextPreprocessor.swift */,
++				72C1047D68F042B9BAA5C7D0 /* KeywordEngine.swift */,
++				1363E78914154992955B6EA8 /* ClauseAnalyzer.swift */,
++				736CA9A8AF1041CEA2989A0B /* Tier1Engine.swift */,
++			);
++			path = decodingOppression/NLP;
++			sourceTree = "<group>";
++		};
+ 		1487AD932F47B27E009460B8 /* Products */ = {
+ 			isa = PBXGroup;
+ 			children = (
+@@ -266,6 +289,11 @@
+ 			isa = PBXSourcesBuildPhase;
+ 			buildActionMask = 2147483647;
+ 			files = (
++				075B20A062264036B7E65D9D /* ClauseAnalyzer.swift in Sources */,
++				0F881AE8784F439B833712D7 /* PDFExtractor.swift in Sources */,
++				27911C96A7834415BA3B0576 /* TextPreprocessor.swift in Sources */,
++				AFE22C0E54C54A1196F64A31 /* KeywordEngine.swift in Sources */,
++				E1F862E8FD984C768A9A5204 /* Tier1Engine.swift in Sources */,
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 		};
+diff --git a/app/decodingOppression/decodingOppression/NLP/KeywordEngine.swift b/app/decodingOppression/decodingOppression/NLP/KeywordEngine.swift
+index 230d78da8fa4b74821865c167ab20787e532a70a..a96fa4db0f469263bbaa119b02145f33990aa4ea
+--- a/app/decodingOppression/decodingOppression/NLP/KeywordEngine.swift
++++ b/app/decodingOppression/decodingOppression/NLP/KeywordEngine.swift
+@@ -8,7 +8,7 @@
+ import Foundation
+ import NaturalLanguage
+ 
+-struct KeywordFeatureVector {
++struct KeywordFeatureVector: Sendable {
+     let outgroupBurdenScore: Double
+     let ingroupBenefitScore: Double
+     let eliteExtractionScore: Double
+
+tokens used
+67,715
+**Summary**
+- Added Tier 1 NLP pipeline components: `app/decodingOppression/decodingOppression/NLP/PDFExtractor.swift`, `app/decodingOppression/decodingOppression/NLP/TextPreprocessor.swift`, `app/decodingOppression/decodingOppression/NLP/KeywordEngine.swift`, `app/decodingOppression/decodingOppression/NLP/ClauseAnalyzer.swift`, `app/decodingOppression/decodingOppression/NLP/Tier1Engine.swift`.
+- Registered the new NLP group and sources in `app/decodingOppression/decodingOppression.xcodeproj/project.pbxproj`.
+
+**Tests**
+- Not run (build will be verified automatically).

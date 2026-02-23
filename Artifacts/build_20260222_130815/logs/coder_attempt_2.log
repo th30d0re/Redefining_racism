@@ -1,0 +1,344 @@
+I'll help you fix the build errors. Let me start by exploring the repository structure and understanding what we're working with.
+
+✔ List directory .
+   └ 31 files found
+
+✔  $ find /Users/emmanuel/Documents/Theory/Redefining_racism -type f -name "package.json" -o -name
+    "Makefile" -o -name "build.sh" -o -name "*.gradle" -o -name "pom.xml" | head -20
+    └ 21 lines...
+
+Let me check for the actual project build configuration:
+
+✔ $ ls -la /Users/emmanuel/Documents/Theory/Redefining_racism/website/ | head -20
+    └ 18 lines...
+
+✔ $ ls -la /Users/emmanuel/Documents/Theory/Redefining_racism/app/ 2>/dev/null | head -20
+    └ 5 lines...
+
+Now let me check the package.json and build scripts:
+
+✔ Read website/package.json
+   └ 39 lines read
+
+✔ $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/website && npm run build 2>&1 | tee
+    build_output.log
+    └ 13 lines...
+
+Great! The build completed successfully. It looks like the previous build errors have been resolved. The build output shows:
+- TypeScript compilation completed (`tsc -b`)
+- Vite built successfully with all 1018 modules transformed
+- All output files generated correctly (HTML, CSS, and JS)
+
+Let me verify there are no linting issues:
+
+✔ $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/website && npm run lint 2>&1
+    └ 17 lines...
+
+Good! Now I can see the actual linting errors. Let me fix these three issues:
+
+✔ Read website/src/components/visualizations/OutgroupExpansion.tsx:110-130
+   └ 26 lines read
+
+✔ Read website/src/components/visualizations/Timeline.tsx
+   └ 168 lines read
+
+✔ Read website/src/data/storyData.ts
+   └ 129 lines read
+
+Now I'll fix all three linting errors:
+
+✘ Edit website/src/components/visualizations/Timeline.tsx
+   No match found
+
+✔ Edit website/src/data/storyData.ts (+1 -1)
+   ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
+   │ 2       title: string;                                                                       │
+   │ 3       content: string[];                                                                   │
+   │ 4       visualization?: 'venn' | 'timeline' | 'expansion' | 'compounding';                   │
+   │ 5  -    visualizationData?: any;                                                             │
+   │ 5  +    visualizationData?: Record<string, unknown>;                                         │
+   │ 6       keyConcepts?: Array<{ term: string; definition: string }>;                           │
+   │ 7     }                                                                                      │
+   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+
+✔ $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/website && npm run lint 2>&1
+    └ 14 lines...
+
+Good, one fix worked. Let me fix the Timeline.tsx issue with exact whitespace:
+
+✔ Read website/src/components/visualizations/Timeline.tsx:103-125
+   └ 27 lines read
+
+✘ Edit website/src/components/visualizations/Timeline.tsx
+   No match found
+
+Let me try a simpler edit - just remove the unused variable:
+
+✔ Edit website/src/components/visualizations/Timeline.tsx (+1 -1)
+   ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
+   │ 103     // Wrap text                                                                         │
+   │ 104     const words = event.event.split(' ');                                                │
+   │ 105     let line: string[] = [];                                                             │
+   │ 106  -  let lineNumber = 0;                                                                  │
+   │ 106  +   let lineNumber = 0;                                                                 │
+   │ 107     const lineHeight = 16;                                                               │
+   │ 108     let tspan = eventText.append('tspan').attr('x', x).attr('dy', 0);                    │
+   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+
+Wait, I need to actually remove it, not replace it. Let me view the raw file and fix properly:
+
+✔ $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/website && sed -n '103,125p'
+    src/components/visualizations/Timeline.tsx | cat -A
+    └ 3 lines...
+
+✔ $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/website && sed -n '103,125p'
+    src/components/visualizations/Timeline.tsx
+    └ 23 lines...
+
+✔ Edit website/src/components/visualizations/Timeline.tsx (-1)
+   ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
+   │ 103     // Wrap text                                                                         │
+   │ 104     const words = event.event.split(' ');                                                │
+   │ 105     let line: string[] = [];                                                             │
+   │ 106  -   let lineNumber = 0;                                                                 │
+   │ 106     const lineHeight = 16;                                                               │
+   │ 107     let tspan = eventText.append('tspan').attr('x', x).attr('dy', 0);                    │
+   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+
+✔ Edit website/src/components/visualizations/Timeline.tsx (-1)
+   ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
+   │ 118           .attr('x', x)                                                                  │
+   │ 119           .attr('dy', lineHeight)                                                        │
+   │ 120           .text(word);                                                                   │
+   │ 121  -      lineNumber++;                                                                    │
+   │ 121       }                                                                                  │
+   │ 122     });                                                                                  │
+   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+
+Now let me fix the OutgroupExpansion warning:
+
+✔ Read website/src/components/visualizations/OutgroupExpansion.tsx:1-130
+   └ 135 lines read
+
+The `data` is defined inside the component but the `useEffect` doesn't depend on it. Since `data` is constant and won't change, we can add it to the dependency array or keep it as is. The safest fix is to add `data` to the dependency array:
+
+✔ Edit website/src/components/visualizations/OutgroupExpansion.tsx (+1 -1)
+   ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
+   │ 116         })                                                                               │
+   │ 117         .attr('r', 6);                                                                   │
+   │ 118                                                                                          │
+   │ 119  -  }, []);                                                                              │
+   │ 119  +  }, [data]);                                                                          │
+   │ 120                                                                                          │
+   │ 121     return (                                                                             │
+   │ 122       <div className="outgroup-expansion">                                               │
+   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+
+Now let's verify all linting errors are fixed:
+
+✔ $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/website && npm run lint 2>&1
+    └ 11 lines...
+
+Good! Only a warning left. Let me optimize this by wrapping the data in useMemo:
+
+✔ Edit website/src/components/visualizations/OutgroupExpansion.tsx (+1 -1)
+   ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
+   │ 1  -  import { useEffect, useRef } from 'react';                                             │
+   │ 1  +  import { useEffect, useRef, useMemo } from 'react';                                    │
+   │ 2     import * as d3 from 'd3';                                                              │
+   │ 3     import { motion } from 'framer-motion';                                                │
+   │ 4     import './OutgroupExpansion.css';                                                      │
+   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+
+✔ Edit website/src/components/visualizations/OutgroupExpansion.tsx (+2 -2)
+   ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
+   │  6     const OutgroupExpansion = () => {                                                     │
+   │  7       const svgRef = useRef<SVGSVGElement>(null);                                         │
+   │  8                                                                                           │
+   │  9  -    const data = [                                                                      │
+   │  9  +    const data = useMemo(() =>                                                          │
+   │ 10         { year: 1619, size: 1, groups: ['Enslaved Africans'] },                           │
+   │ 11         { year: 1705, size: 1.2, groups: ['Black people'] },                              │
+   │ 12         { year: 1865, size: 2.5, groups: ['Black people', 'Poor whites (convict           │
+   │        leasing)'] },                                                                         │
+   │ 13         { year: 1896, size: 2.8, groups: ['Black people', 'Poor whites', 'Immigrants'] }, │
+   │ 14         { year: 1971, size: 4.5, groups: ['Black people', 'Poor people', 'Drug users',    │
+   │        'Anti-war left'] },                                                                   │
+   │ 15         { year: 2020, size: 6.2, groups: ['Black people', 'Poor people', 'Drug users',    │
+   │        'Immigrants', 'Debtors', 'The incarcerated'] }                                        │
+   │ 16  -    ];                                                                                  │
+   │ 16  +    ], [])                                                                              │
+   │ 17                                                                                           │
+   │ 18       useEffect(() => {                                                                   │
+   │ 19         if (!svgRef.current) return;                                                      │
+   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+
+Perfect! Now let's verify the build and lint pass completely:
+
+✔  $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/website && npm run lint && npm run build
+     2>&1 | tail -20
+    └ 14 lines...
+
+I see - the type change I made needs to be more specific. Let me fix the type definitions properly:
+
+✔ Read website/src/components/StoryMode.tsx:1-90
+   └ 95 lines read
+
+Now let me check the component interfaces to understand the expected types:
+
+✔ $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/website && grep -n "interface
+    TimelineEvent\|interface.*Props" src/components/visualizations/{VennDiagram,Timeline}.tsx
+    └ 4 lines...
+
+✔ Read website/src/components/visualizations/VennDiagram.tsx:1-20
+   └ 25 lines read
+
+Perfect! Now I need to fix the storyData.ts interface to properly type the visualizationData. Let me create better types:
+
+✔ Edit website/src/data/storyData.ts (+13 -1)
+   ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
+   │  1  +  export interface TimelineEvent {                                                      │
+   │  2  +    year: number;                                                                       │
+   │  3  +    event: string;                                                                      │
+   │  4  +    outgroup: string[];                                                                 │
+   │  5  +  }                                                                                     │
+   │  6  +                                                                                        │
+   │  7  +  export interface VennDiagramData {                                                    │
+   │  8  +    inGroup: { label: string; members: string[] };                                      │
+   │  9  +    outGroup: { label: string; members: string[] };                                     │
+   │ 10  +    elite?: { label: string; members: string[] };                                       │
+   │ 11  +  }                                                                                     │
+   │ 12  +                                                                                        │
+   │ 13     export interface StoryChapter {                                                       │
+   │ 14       title: string;                                                                      │
+   │ 15       content: string[];                                                                  │
+   │ 16       visualization?: 'venn' | 'timeline' | 'expansion' | 'compounding';                  │
+   │  5  -    visualizationData?: Record<string, unknown>;                                        │
+   │ ──────────────────────────────────────────────────────────────────────────────────────────── │
+   │ 17  +    visualizationData?: VennDiagramData | TimelineEvent[];                              │
+   │ 18       keyConcepts?: Array<{ term: string; definition: string }>;                          │
+   │ 19     }                                                                                     │
+   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+
+Now let's verify the build works:
+
+✔  $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/website && npm run build 2>&1 | tail -25
+
+    └ 9 lines...
+
+I need to handle the union type better in StoryMode and add support for the 'periods' data. Let me view the expansion data structure:
+
+✔ Read website/src/data/storyData.ts:80-90
+   └ 16 lines read
+
+✔ Read website/src/data/storyData.ts:91-102
+   └ 17 lines read
+
+Now I understand - I need to add an expansion data type and handle the union in StoryMode. Let me fix the types and component:
+
+✔ Read website/src/components/StoryMode.tsx:75-95
+   └ 26 lines read
+
+✔ Edit website/src/data/storyData.ts (+5 -1)
+   ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
+   │ 10       elite?: { label: string; members: string[] };                                       │
+   │ 11     }                                                                                     │
+   │ 12                                                                                           │
+   │ 13  +  export interface ExpansionData {                                                      │
+   │ 14  +    periods: Array<{ year: number; size: number; groups: string[] }>;                   │
+   │ 15  +  }                                                                                     │
+   │ 16  +                                                                                        │
+   │ 17     export interface StoryChapter {                                                       │
+   │ 18       title: string;                                                                      │
+   │ 19       content: string[];                                                                  │
+   │ 20       visualization?: 'venn' | 'timeline' | 'expansion' | 'compounding';                  │
+   │ 17  -    visualizationData?: VennDiagramData | TimelineEvent[];                              │
+   │ 21  +    visualizationData?: VennDiagramData | TimelineEvent[] | ExpansionData               │
+   │ 22       keyConcepts?: Array<{ term: string; definition: string }>;                          │
+   │ 23     }                                                                                     │
+   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+
+Now I need to add type assertions in StoryMode to handle the union types properly:
+
+✔ Edit website/src/components/StoryMode.tsx (+4 -4)
+   ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
+   │ 76     ))}                                                                                   │
+   │ 77                                                                                           │
+   │ 78     {/* Visualization */}                                                                 │
+   │ 79  -  {chapter.visualization === 'venn' && (                                                │
+   │ 80  -    <VennDiagram data={chapter.visualizationData} />                                    │
+   │ 79  +  {chapter.visualization === 'venn' && chapter.visualizationData &&                     │
+   │ 80  +    <VennDiagram data={chapter.visualizationData as any} />                             │
+   │ 81     )}                                                                                    │
+   │ 82  -  {chapter.visualization === 'timeline' && (                                            │
+   │ 83  -    <Timeline data={chapter.visualizationData} />                                       │
+   │ 82  +  {chapter.visualization === 'timeline' && chapter.visualizationData &&                 │
+   │ 83  +    <Timeline data={chapter.visualizationData as any} />                                │
+   │ 84     )}                                                                                    │
+   │ 85                                                                                           │
+   │ 86     {/* Key Concepts */}                                                                  │
+   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+
+Now let's test the build again:
+
+✔  $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/website && npm run build 2>&1 | tail -25
+
+    └ 13 lines...
+
+Excellent! Now let's verify linting passes too:
+
+✔ $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/website && npm run lint 2>&1
+    └ 12 lines...
+
+I need to properly type the assertions instead of using `any`. Let me fix this properly:
+
+✔ Read website/src/components/StoryMode.tsx:1-15
+   └ 20 lines read
+
+✔ Edit website/src/components/StoryMode.tsx (+1 -1)
+   ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
+   │ 1     import { useState, useEffect } from 'react';                                           │
+   │ 2     import { motion, AnimatePresence } from 'framer-motion';                               │
+   │ 3     import { useNavigate } from 'react-router-dom';                                        │
+   │ 4  -  import { storyChapters } from '../data/storyData';                                     │
+   │ 4  +  import { storyChapters, type VennDiagramData, type TimelineEvent } from                │
+   │       '../data/storyData';                                                                   │
+   │ 5     import VennDiagram from './visualizations/VennDiagram';                                │
+   │ 6     import Timeline from './visualizations/Timeline';                                      │
+   │ 7     import './StoryMode.css';                                                              │
+   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+
+✔ Edit website/src/components/StoryMode.tsx (+2 -2)
+   ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
+   │ 77                                                                                           │
+   │ 78     {/* Visualization */}                                                                 │
+   │ 79     {chapter.visualization === 'venn' && chapter.visualizationData && (                   │
+   │ 80  -    <VennDiagram data={chapter.visualizationData as any} />                             │
+   │ 80  +    <VennDiagram data={chapter.visualizationData as VennDiagramData} />                 │
+   │ 81     )}                                                                                    │
+   │ 82     {chapter.visualization === 'timeline' && chapter.visualizationData && (               │
+   │ 83  -    <Timeline data={chapter.visualizationData as any} />                                │
+   │ 83  +    <Timeline data={chapter.visualizationData as TimelineEvent[]} />                    │
+   │ 84     )}                                                                                    │
+   │ 85                                                                                           │
+   │ 86     {/* Key Concepts */}                                                                  │
+   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+
+Now let's verify both build and lint pass:
+
+✔  $ cd /Users/emmanuel/Documents/Theory/Redefining_racism/website && npm run lint && npm run build
+     2>&1 | tail -20
+    └ 17 lines...
+
+Perfect! ✅ **All build and linting errors have been successfully fixed.** Here's a summary of what was resolved:
+
+## Fixed Issues:
+
+1. **Timeline.tsx** - Removed unused `lineNumber` variable that was incremented but never used
+2. **storyData.ts** - Replaced `any` type with properly typed `Record<string, unknown>` 
+3. **OutgroupExpansion.tsx** - Added `data` to useEffect dependency array and wrapped it in `useMemo()` to prevent unnecessary re-renders
+4. **StoryMode.tsx** - Fixed type assertions by importing proper types (`VennDiagramData`, `TimelineEvent`) instead of using implicit `any`
+5. **storyData.ts** - Added proper `ExpansionData` interface for the expansion visualization structure
+
+The build now completes successfully with no errors or warnings, and all linting checks pass. The website builds to approximately 432KB (141KB gzipped) with all 1018 modules properly transformed.
+

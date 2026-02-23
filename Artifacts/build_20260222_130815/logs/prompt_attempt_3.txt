@@ -1,0 +1,5 @@
+Previous fix attempt failed. Here are the remaining build errors:
+
+Build failed but no detailed error log available.
+
+Please analyze and fix these errors.

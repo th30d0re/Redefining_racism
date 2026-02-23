@@ -1,0 +1,163 @@
+
+[0;36m[BUILD][0m ==========================================
+[0;36m[BUILD][0m Phase 5: BuildLint Starting
+[0;36m[BUILD][0m ==========================================
+
+0
+[0;36m[VERBOSE][0m Using provided logs directory: /Users/emmanuel/Documents/Theory/Redefining_racism/Artifacts/build_20260219_165020/logs/platform_results
+[0;36m[VERBOSE][0m No Build folder found in script directory, using default
+[0;34m[INFO][0m Project Root: /Users/emmanuel/Dev/Tools/Eocon-Foundation-V1
+[0;34m[INFO][0m Scheme: decodingOppression
+[0;34m[INFO][0m Configuration: Debug
+[0;34m[INFO][0m Destination: platform=macOS
+
+[0;34m[INFO][0m No uncommitted Swift files to lint
+
+[0;36m[BUILD][0m Starting Xcode build...
+[0;36m[VERBOSE][0m Skipping Swift macro validation
+⚠️  xcodemake not found, using full xcodebuild
+[0;34m[INFO][0m Build command: xcodebuild -project "/Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj" -scheme "decodingOppression" -configuration "Debug" -destination "platform=macOS" -skipMacroValidation build
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj -scheme decodingOppression -configuration Debug -destination platform=macOS -skipMacroValidation build
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  swift-transformers: https://github.com/huggingface/swift-transformers @ 1.1.6
+  swift-collections: https://github.com/apple/swift-collections.git @ 1.3.0
+  swift-numerics: https://github.com/apple/swift-numerics @ 1.1.1
+  mlx-swift-lm: https://github.com/ml-explore/mlx-swift-lm @ 2.29.3
+  Jinja: https://github.com/huggingface/swift-jinja.git @ 2.3.2
+  mlx-swift: https://github.com/ml-explore/mlx-swift @ 0.29.1
+
+2026-02-19 17:10:11.314 xcodebuild[26601:27921098] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:macOS, arch:arm64, id:00006001-000448A43402801E, name:My Mac }
+{ platform:macOS, arch:x86_64, id:00006001-000448A43402801E, name:My Mac }
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (1 target)
+    Target 'decodingOppression' in project 'decodingOppression' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: f071ae5e11a14a1583d13b36fe2b66dd
+Build description path: /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/XCBuildData/f071ae5e11a14a1583d13b36fe2b66dd.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk /Users/emmanuel/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx26.2-25C58-00fa09913b459cbbc988d1f6730289ae.sdkstatcache
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk -o /Users/emmanuel/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx26.2-25C58-00fa09913b459cbbc988d1f6730289ae.sdkstatcache
+
+ProcessProductPackaging "" /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression.app.xcent (in target 'decodingOppression' from project 'decodingOppression')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression
+    
+    Entitlements:
+    
+    {
+    "com.apple.security.app-sandbox" = 1;
+    "com.apple.security.files.user-selected.read-only" = 1;
+    "com.apple.security.get-task-allow" = 1;
+}
+    
+    builtin-productPackagingUtility -entitlements -format xml -o /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression.app.xcent
+
+ProcessProductPackagingDER /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression.app.xcent /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression.app.xcent.der (in target 'decodingOppression' from project 'decodingOppression')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression
+    /usr/bin/derq query -f xml -i /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression.app.xcent -o /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression.app.xcent.der --raw
+
+Ld /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/MacOS/__preview.dylib normal (in target 'decodingOppression' from project 'decodingOppression')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-macos26.2 -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk -O0 -L/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug -F/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug -install_name @rpath/decodingOppression.debug.dylib -rdynamic -Xlinker -no_deduplicate -Xlinker -debug_variant -Xlinker -dependency_info -Xlinker /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression_dependency_info.dat -Xlinker -no_adhoc_codesign -o /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/MacOS/__preview.dylib
+
+ProcessInfoPlistFile /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/Info.plist /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/Info.plist (in target 'decodingOppression' from project 'decodingOppression')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression
+    builtin-infoPlistUtility /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression/decodingOppression/Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/PkgInfo -expandbuildsettings -platform macosx -additionalcontentfile /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/assetcatalog_generated_info.plist -o /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/Info.plist
+removing value "remote-notification" for "UIBackgroundModes" - not supported on macOS
+
+Ld /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/MacOS/decodingOppression.debug.dylib normal (in target 'decodingOppression' from project 'decodingOppression')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-macos26.2 -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk -O0 -L/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/EagerLinkingTBDs/Debug -L/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug -F/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/EagerLinkingTBDs/Debug -F/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug -filelist /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression.LinkFileList -install_name @rpath/decodingOppression.debug.dylib -Xlinker -rpath -Xlinker @executable_path/../Frameworks -Xlinker -object_path_lto -Xlinker /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -debug_variant -Xlinker -dependency_info -Xlinker /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression_dependency_info.dat -fobjc-link-runtime -fprofile-instr-generate -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression.swiftmodule @/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression-linker-args.resp -Xlinker -alias -Xlinker _main -Xlinker ___debug_main_executable_dylib_entry_point -Xlinker -no_adhoc_codesign -o /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/MacOS/decodingOppression.debug.dylib
+
+ConstructStubExecutorLinkFileList /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression-ExecutorLinkFileList-normal-arm64.txt (in target 'decodingOppression' from project 'decodingOppression')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression
+    construct-stub-executor-link-file-list /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/MacOS/decodingOppression.debug.dylib /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression-ExecutorLinkFileList-normal-arm64.txt
+note: Using stub executor library with Swift entry point. (in target 'decodingOppression' from project 'decodingOppression')
+
+Ld /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/MacOS/decodingOppression normal (in target 'decodingOppression' from project 'decodingOppression')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-macos26.2 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk -O0 -L/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug -F/Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker @executable_path/../Frameworks -rdynamic -Xlinker -no_deduplicate -Xlinker -debug_variant -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression-ExecutorLinkFileList-normal-arm64.txt /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/MacOS/decodingOppression.debug.dylib -Xlinker -no_adhoc_codesign -o /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/MacOS/decodingOppression
+
+CopySwiftLibs /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app (in target 'decodingOppression' from project 'decodingOppression')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression
+    builtin-swiftStdLibTool --copy --verbose --sign 69A47699883F0FF2FEA2DE61F1A08F94DA979509 --scan-executable /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/MacOS/decodingOppression.debug.dylib --scan-folder /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/Frameworks --scan-folder /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/PlugIns --scan-folder /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/Library/SystemExtensions --scan-folder /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/Extensions --platform macosx --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ExtractAppIntentsMetadata (in target 'decodingOppression' from project 'decodingOppression')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name decodingOppression --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk --xcode-version 17C519 --platform-family macOS --deployment-target 26.2 --bundle-identifier tech.eocon.decodingOppression --output /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/Resources --target-triple arm64-apple-macos26.2 --binary-file /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/MacOS/decodingOppression --dependency-file /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression_dependency_info.dat --stringsdata-file /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression.SwiftFileList --metadata-file-list /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression.DependencyMetadataFileList --static-metadata-file-list /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression.DependencyStaticMetadataFileList --swift-const-vals-list /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/Objects-normal/arm64/decodingOppression.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-02-19 17:11:07.206 appintentsmetadataprocessor[27480:27924357] Starting appintentsmetadataprocessor export
+2026-02-19 17:11:07.211 appintentsmetadataprocessor[27480:27924357] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+CodeSign /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/MacOS/decodingOppression.debug.dylib (in target 'decodingOppression' from project 'decodingOppression')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression
+    
+    Signing Identity:     "Apple Development: Emmanuel Theodore (A95U389KS6)"
+    
+    /usr/bin/codesign --force --sign 69A47699883F0FF2FEA2DE61F1A08F94DA979509 -o runtime --timestamp\=none --generate-entitlement-der /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/MacOS/decodingOppression.debug.dylib
+
+CodeSign /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/MacOS/__preview.dylib (in target 'decodingOppression' from project 'decodingOppression')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression
+    
+    Signing Identity:     "Apple Development: Emmanuel Theodore (A95U389KS6)"
+    
+    /usr/bin/codesign --force --sign 69A47699883F0FF2FEA2DE61F1A08F94DA979509 -o runtime --timestamp\=none --generate-entitlement-der /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app/Contents/MacOS/__preview.dylib
+
+CodeSign /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app (in target 'decodingOppression' from project 'decodingOppression')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression
+    
+    Signing Identity:     "Apple Development: Emmanuel Theodore (A95U389KS6)"
+    
+    /usr/bin/codesign --force --sign 69A47699883F0FF2FEA2DE61F1A08F94DA979509 -o runtime --entitlements /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Intermediates.noindex/decodingOppression.build/Debug/decodingOppression.build/decodingOppression.app.xcent --timestamp\=none --generate-entitlement-der /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app
+
+Validate /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app (in target 'decodingOppression' from project 'decodingOppression')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression
+    builtin-validationUtility /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app -no-validate-extension -infoplist-subpath Contents/Info.plist
+
+RegisterWithLaunchServices /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app (in target 'decodingOppression' from project 'decodingOppression')
+    cd /Users/emmanuel/Documents/Theory/Redefining_racism/app/decodingOppression
+    /System/Library/Frameworks/CoreServices.framework/Versions/Current/Frameworks/LaunchServices.framework/Versions/Current/Support/lsregister -f -R -trusted /Users/emmanuel/Library/Developer/Xcode/DerivedData/decodingOppression-cxwoggwjsgwizbfojlfnncihejwm/Build/Products/Debug/decodingOppression.app
+
+** BUILD SUCCEEDED **
+
+[0;32m[SUCCESS][0m Build succeeded in 59s with 1 warning(s)
+[0;32m[SUCCESS][0m Build log written to: /Users/emmanuel/Documents/Theory/Redefining_racism/Artifacts/build_20260219_165020/logs/platform_results/build.log
+/Users/emmanuel/Documents/Theory/Redefining_racism/Artifacts/build_20260219_165020/logs/platform_results/build.log
+
+[0;36m[BUILD][0m ==========================================
+[0;32m[SUCCESS][0m BuildAgent Complete!
+[0;36m[BUILD][0m ==========================================
+
+[0;34m[INFO][0m Artifacts: /Users/emmanuel/Documents/Theory/Redefining_racism/Artifacts/build_20260219_165020/logs/platform_results
+
+jq: invalid JSON text passed to --argjson
+Use jq --help for help with command-line options,
+or see the jq manpage, or online docs  at https://jqlang.github.io/jq
