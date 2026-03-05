@@ -1,4 +1,4 @@
-\documentclass[12pt]{article}
+\documentclass[12pt,openany]{book}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -8,11 +8,63 @@
 \usepackage[colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue]{hyperref}
 \usepackage{setspace}
 \usepackage{tikz}
-\usetikzlibrary{shapes,positioning,calc}
+\usetikzlibrary{shapes,positioning,calc,decorations.pathreplacing}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[most]{tcolorbox}
 
-\geometry{margin=1in}
+\geometry{inner=1.2in, outer=1in, top=1in, bottom=1in}
 \onehalfspacing
 \emergencystretch=1em
+
+% --- Custom chapter heading style ---
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries}
+  {\titlerule[1pt]\vspace{4pt}\Large\chaptertitlename\ \thechapter}
+  {0pt}
+  {\titlerule[1pt]\vspace{8pt}\Huge}
+\titlespacing*{\chapter}{0pt}{-20pt}{30pt}
+
+% --- Running headers/footers ---
+\pagestyle{fancy}
+\setlength{\headheight}{27.11469pt}
+\addtolength{\topmargin}{-15.11469pt}
+\fancyhf{}
+\fancyhead[LE]{\slshape\leftmark}
+\fancyhead[RO]{\slshape\rightmark}
+\fancyfoot[C]{\thepage}
+
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyfoot[C]{\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+}
+
+% --- Boxed environments ---
+\newtcolorbox{definition}[1][]{%
+  colback=blue!5, colframe=blue!60!black,
+  fonttitle=\bfseries, title={#1},
+  breakable, enhanced,
+  before upper={\parindent15pt},
+  boxrule=1pt, arc=3pt
+}
+
+\newtcolorbox{keyinsight}[1][]{%
+  colback=green!5, colframe=green!50!black,
+  fonttitle=\bfseries, title={#1},
+  breakable, enhanced,
+  before upper={\parindent15pt},
+  boxrule=1pt, arc=3pt
+}
+
+\newtcolorbox{historicalsource}[1][]{%
+  colback=orange!5, colframe=orange!70!black,
+  fonttitle=\bfseries, title={#1},
+  breakable, enhanced,
+  before upper={\parindent15pt},
+  boxrule=1pt, arc=3pt
+}
 
 \title{The Mathematics of Oppression:\\A Set-Theoretic Framework for Analyzing Systems of Domination}
 \author{}
@@ -20,15 +72,34 @@
 
 \begin{document}
 
+% --- Half-title page ---
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{center}
+{\Huge\bfseries The Mathematics of Oppression}
+\end{center}
+\vspace*{\fill}
+\cleardoublepage
+
+% --- Full title page ---
 \maketitle
 
-\begin{abstract}
-This paper develops a formal mathematical framework for analyzing systems of oppression using set theory, discrete mathematics, and historical analysis. The framework identifies four architectural components common to all oppressive systems: (1) asymmetric autonomy restriction between In-groups and Out-groups, (2) selective empathy that validates In-group suffering while dismissing Out-group harm, (3) ideological justification through spurious claims, and (4) resistance to structural critique. Through detailed analysis of American racism---tracing the algorithm of Elite extraction from Portuguese racialization through Bacon's Rebellion, the invention of whiteness, the 13th Amendment loophole, redlining, the War on Drugs, and the present-day cannibalization of the In-group---I demonstrate that the Out-group targeted by systemic oppression \textit{expands} over time, progressively encompassing groups once part of the In-group. This expansion reveals that oppressive systems serve not the nominal In-group but an Elite class ($E \subset I$) that uses division to prevent solidarity. The architecture of this system---a Predatory Min-Max Function that maximizes extraction while minimizing class resistance---operates through recognizable, formalizable patterns that can be identified and resisted.
-\end{abstract}
+% --- Front matter ---
+\frontmatter
+\tableofcontents
+\listoffigures
 
-\section{Introduction}
+\chapter*{Preface}
+\addcontentsline{toc}{chapter}{Preface}
 
-This paper proposes a mathematical framework for understanding systems of oppression---social arrangements that systematically disadvantage one group (the Out-group, $O$) while advantaging another (the In-group, $I$). Traditional analyses of oppression often focus on individual prejudice or specific policy outcomes. However, such approaches fail to capture the \textit{structural} dimensions of oppression: the recurring patterns, the self-reinforcing mechanisms, and the remarkable consistency of design across different systems and scales.
+This book develops a formal mathematical framework for analyzing systems of oppression using set theory, discrete mathematics, and historical analysis. The framework identifies four architectural components common to all oppressive systems: (1) asymmetric autonomy restriction between In-groups and Out-groups, (2) selective empathy that validates In-group suffering while dismissing Out-group harm, (3) ideological justification through spurious claims, and (4) resistance to structural critique. Through detailed analysis of American racism---tracing the algorithm of Elite extraction from Portuguese racialization through Bacon's Rebellion, the invention of whiteness, the 13th Amendment loophole, redlining, the War on Drugs, and the present-day cannibalization of the In-group---I demonstrate that the Out-group targeted by systemic oppression \textit{expands} over time, progressively encompassing groups once part of the In-group. This expansion reveals that oppressive systems serve not the nominal In-group but an Elite class ($E \subset I$) that uses division to prevent solidarity. The architecture of this system---a Predatory Min-Max Function that maximizes extraction while minimizing class resistance---operates through recognizable, formalizable patterns that can be identified and resisted.
+
+% --- Main matter ---
+\mainmatter
+
+\chapter{Introduction}
+
+This paper proposes a mathematical framework for understanding systems of oppression---social arrangements that systematically disadvantage a racialized Out-group ($O_{\text{racialized}}$) while advantaging an In-group ($I$), though the true beneficiaries are a small Elite class ($E \subset I$) that architects the system. The framework reveals a three-tier structure: $E$ extracts value, the buffer class $I \setminus E$ receives psychological wages in lieu of material benefit, and $O_{\text{racialized}}$ bears the compounding burden of policy after policy. Traditional analyses of oppression often focus on individual prejudice or specific policy outcomes. However, such approaches fail to capture the \textit{structural} dimensions of oppression: the recurring patterns, the self-reinforcing mechanisms, and the remarkable consistency of design across different systems and scales.
 
 The central thesis of this paper is that systems of oppression share a common \textbf{architecture of control}---a formal structure that can be identified mathematically regardless of the specific groups involved or the historical context. This architecture consists of:
 \begin{enumerate}
@@ -38,15 +109,15 @@ The central thesis of this paper is that systems of oppression share a common \t
     \item \textbf{Resistance to structural critique}: Mechanisms that deflect analysis from the system to individual behavior
 \end{enumerate}
 
-To develop and validate this framework, I examine \textbf{racism} as the primary case study---specifically, the American system of racial oppression from its colonial origins to the present. Racism provides an ideal test case because of its extensive historical documentation, its clear policy mechanisms, and its ongoing relevance. Through set-theoretic analysis, I demonstrate that racism exhibits all four architectural components and, crucially, that the Out-group has \textit{expanded} over time rather than contracted.
+To develop and validate this framework, I examine \textbf{racism} as the primary case study---specifically, the American system of racial oppression from its colonial origins to the present. Racism provides an ideal test case because of its extensive historical documentation, its clear policy mechanisms, and its ongoing relevance. Through set-theoretic analysis, I demonstrate that racism exhibits all four architectural components and, crucially, that $O_{\text{racialized}}$ has \textit{expanded} over time rather than contracted.
 
-This expansion reveals a deeper truth: the system does not ultimately serve the racial In-group but rather an Elite class ($E \subset I$) that uses racial division to prevent cross-group solidarity. The ``wages of whiteness'' \cite{roediger, dubois}---psychological compensation for poor whites---substitute for material advancement while the Elite extract value from both groups.
+This expansion reveals a deeper truth: the system does not ultimately serve the racial In-group but rather the Elite class ($E \subset I$) that uses racial division to prevent cross-group solidarity. The ``wages of whiteness'' \cite{roediger, dubois}---psychological compensation offered to the buffer class $I \setminus E$---substitute for material advancement while $E$ extracts value from both groups.
 
 The architecture of this system---which I formalize as a Predatory Min-Max Function optimizing Elite extraction against class resistance---operates through recognizable patterns that can be formalized, identified, and resisted across contexts.
 
 \textbf{A critical methodological note}: Comparing the \textit{architecture} of different oppressive systems does not equate their \textit{phenomenology}. This paper analyzes design principles---how asymmetry is created, justified, and maintained---not magnitudes of suffering. Recognizing shared structure illuminates how systems of domination reproduce themselves; it does not diminish the unique gravity of any particular manifestation.
 
-\subsection{Racism as Primary Example}
+\section{Racism as Primary Example}
 
 \textbf{The Problem with Traditional Definitions}
 
@@ -72,7 +143,42 @@ This implies that if we eliminate individual prejudice, systemic racism will dis
 \text{Elite Economic Interests} \rightarrow \text{Systemic Racialization} \rightarrow \text{Interpersonal Prejudice}
 \]
 
-As demonstrated in Section 2, interpersonal racism---the attitudes, beliefs, and prejudices held by individuals---\textit{was deliberately created to justify and maintain the systemic structure}. Zurara's racialization of Africans as subhuman was not a spontaneous expression of Portuguese prejudice; it was commissioned work designed to justify a system of unlimited exploitation. The interpersonal followed the systemic, not vice versa.
+As demonstrated in Chapter 2, interpersonal racism---the attitudes, beliefs, and prejudices held by individuals---\textit{was deliberately created to justify and maintain the systemic structure}. Zurara's racialization of Africans as subhuman was not a spontaneous expression of Portuguese prejudice; it was commissioned work designed to justify a system of unlimited exploitation. The interpersonal followed the systemic, not vice versa.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    box/.style={draw, thick, rounded corners=3pt, minimum height=0.9cm, minimum width=2.6cm, align=center, font=\small},
+    arr/.style={->, thick, >=stealth},
+    scale=0.95
+]
+    % --- Conventional (incorrect) row ---
+    \node[font=\small\bfseries, red!60] at (-5.8,1.5) {Conventional};
+    \node[font=\small\bfseries, red!60] at (-5.8,1.0) {(incorrect)};
+    \node[box, fill=red!10, draw=red!40] (a1) at (-2.5,1.25) {Individual\\Prejudice};
+    \node[box, fill=red!10, draw=red!40] (a2) at (2,1.25) {Discriminatory\\Actions};
+    \node[box, fill=red!10, draw=red!40] (a3) at (6.5,1.25) {Systemic\\Outcomes};
+    \draw[arr, red!40] (a1) -- (a2);
+    \draw[arr, red!40] (a2) -- (a3);
+    % Strike-through
+    \draw[very thick, red!50] (-4.5,1.25) -- (8.5,1.25);
+
+    % --- Reversal arrow ---
+    \draw[arr, very thick, black!70, double] (1.5,0.3) -- (1.5,-0.5);
+    \node[font=\footnotesize\bfseries, black!70] at (3.2,-0.1) {Causal reversal};
+
+    % --- Correct row ---
+    \node[font=\small\bfseries, green!50!black] at (-5.8,-1.25) {Actual};
+    \node[font=\small\bfseries, green!50!black] at (-5.8,-1.75) {(historical)};
+    \node[box, fill=green!15, draw=green!50!black] (b1) at (-2.5,-1.5) {Elite Economic\\Interests};
+    \node[box, fill=green!15, draw=green!50!black] (b2) at (2,-1.5) {Systemic\\Racialization};
+    \node[box, fill=green!15, draw=green!50!black] (b3) at (6.5,-1.5) {Interpersonal\\Prejudice};
+    \draw[arr, green!50!black, very thick] (b1) -- (b2);
+    \draw[arr, green!50!black, very thick] (b2) -- (b3);
+\end{tikzpicture}
+\caption{\textbf{The Causal Reversal.} The conventional framing (top, struck through) assumes individual prejudice produces systemic outcomes. The historical evidence (bottom) reveals the opposite: Elite economic interests created systemic racialization, which then cultivated interpersonal prejudice to maintain the structure.}
+\label{fig:causal_reversal}
+\end{figure}
 
 \textbf{The Linguistic Evidence}
 
@@ -150,13 +256,43 @@ A proper definition must reverse the conventional ordering:
     \item \textbf{Tertiary}: These narratives manifest in interpersonal prejudices and discriminatory actions that reinforce the system
 \end{enumerate}
 
-This ordering reflects the historical reality established in Section 2: systemic racialization came first, ideological justification followed, and interpersonal prejudice was cultivated to maintain the structure. The interpersonal is real and harmful, but it is \textit{epiphenomenal}---a surface manifestation of the deeper systemic operation.
+This ordering reflects the historical reality established in Chapter 2: systemic racialization came first, ideological justification followed, and interpersonal prejudice was cultivated to maintain the structure. The interpersonal is real and harmful, but it is \textit{epiphenomenal}---a surface manifestation of the deeper systemic operation.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    layer/.style={draw, thick, minimum width=4.8cm, minimum height=0.85cm, align=center, font=\small},
+    scale=0.95
+]
+    % --- Conventional (left) ---
+    \node[font=\small\bfseries] at (-3.5,3.2) {Conventional Hierarchy};
+    % Primary (largest, top)
+    \node[layer, fill=red!25, minimum width=5.2cm] (c1) at (-3.5,2.2) {\textbf{1. Individual Prejudice}};
+    \node[layer, fill=red!15, minimum width=4.2cm] (c2) at (-3.5,1.15) {\textbf{2. Belief in Superiority}};
+    \node[layer, fill=red!8, minimum width=3.2cm] (c3) at (-3.5,0.1) {\textbf{3. Systemic} (if present)};
+    \node[font=\scriptsize, red!60] at (-3.5,-0.5) {$\uparrow$ buried, rarely referenced};
+
+    % --- Arrow between ---
+    \draw[->, very thick, black!60, double] (0.2,1.15) -- (1.6,1.15);
+    \node[font=\footnotesize\bfseries, black!60, align=center] at (0.9,0.5) {Must\\invert};
+
+    % --- Correct (right) ---
+    \node[font=\small\bfseries] at (5.3,3.2) {Correct Hierarchy};
+    % Primary (largest, top)
+    \node[layer, fill=green!25, minimum width=5.2cm] (r1) at (5.3,2.2) {\textbf{1. Systemic Policies}};
+    \node[layer, fill=green!15, minimum width=4.2cm] (r2) at (5.3,1.15) {\textbf{2. Ideological Narratives}};
+    \node[layer, fill=green!8, minimum width=3.2cm] (r3) at (5.3,0.1) {\textbf{3. Interpersonal Prejudice}};
+    \node[font=\scriptsize, green!50!black] at (5.3,-0.5) {$\uparrow$ epiphenomenal, downstream};
+\end{tikzpicture}
+\caption{\textbf{Inverting the Definitional Hierarchy.} Conventional definitions (left) bury the systemic dimension as a tertiary afterthought. The correct hierarchy (right) places systemic policies at the top, recognizing that ideological narratives and interpersonal prejudice are downstream products of the system, not its cause.}
+\label{fig:hierarchy_inversion}
+\end{figure}
 
 To address this fundamental gap in conventional definitions, I propose a new definition that places the systemic element where it belongs: at the center of analysis. This definition emphasizes racism as a system of oppression, deeply rooted in historical practices and policies that categorize individuals based on perceived racial differences---a system deliberately created by Elites to break class solidarity and maintain exploitable labor.
 
-\section{Historical Context}
+\chapter{Historical Context}
 
-\subsection{Portuguese Class Dynamics and the Elite's Dilemma}
+\section{Portuguese Class Dynamics and the Elite's Dilemma}
 
 Before understanding the invention of race, we must first understand the class dynamics that necessitated it. In 15th century Portugal, as in much of medieval Europe, society had achieved a degree of class solidarity that constrained Elite exploitation. The feudal system, while hierarchical, operated within a shared moral framework: all humans, regardless of status, were part of the same moral community. Peasants and nobility alike were Christians, subjects of the same crown, and---critically---recognized as human beings with souls.
 
@@ -172,7 +308,7 @@ The Portuguese Elite faced a fundamental problem: \textbf{how to create a perman
 
 The solution was elegant and horrifying: \textbf{remove an entire category of people from the moral community by declaring them non-human}.
 
-\subsection{The Invention of Race as Moral Exclusion}
+\section{The Invention of Race as Moral Exclusion}
 
 The concept of race and the systemic nature of racism have their roots deeply embedded in this Elite need to break class solidarity and create a slave class unconstrained by moral limits. A pivotal figure in this narrative is Gomes de Zurara, whose work in the 1450s laid the groundwork for the racialization of African peoples. Commissioned by the Portuguese monarchy, Zurara authored a chronicle that justified the enslavement of African individuals by portraying them as a monolithic group, inherently inferior and \textit{subhuman} \cite{zurara, kendi}. 
 
@@ -180,7 +316,7 @@ This was not merely prejudice---it was \textbf{ontological exclusion}. Zurara's 
 
 Dr.\ Ibram X.\ Kendi highlights Zurara's role in inventing race and racism, noting that his descriptions were instrumental in justifying the Portuguese slave trade \cite{kendi}. Zurara's narrative served not only as a moral and intellectual justification for the kidnapping and enslavement of African people but also set a precedent for European engagement with sub-Saharan Africa. Portugal, thus, became the first European nation to sail directly to sub-Saharan Africa for the purpose of capturing human beings for enslavement.
 
-\subsection{The Implicit Contract: Securing Working-Class Complicity}
+\section{The Implicit Contract: Securing Working-Class Complicity}
 
 The racialization of Africans as subhuman created an \textbf{implicit contract} between the Elite and the Portuguese working class---a contract that would be replicated across Europe and the Americas:
 
@@ -188,7 +324,11 @@ The racialization of Africans as subhuman created an \textbf{implicit contract} 
 \textit{``You may be poor, you may be exploited, but you will never be slaves. Your children will never be slaves. We do not enslave humans, and these Africans are not human---they are a subspecies, no different from cattle. Therefore, there is no reason not to exploit their labor, and your humanity is secured by their exclusion from humanity.''}
 \end{quote}
 
-This contract accomplished several objectives for the Elite and established what we term \textbf{slave capitalism}---a distinct economic model that combined capitalist accumulation with racialized slave labor:
+\begin{definition}[Slave Capitalism]
+\textbf{Slave capitalism}: a distinct economic model that combines capitalist accumulation with racialized slave labor, in which the Elite secures working-class complicity through an implicit contract that offers racial status in exchange for tolerating---and enforcing---the ontological exclusion of an enslaved population from the moral community.
+\end{definition}
+
+This contract accomplished several objectives for the Elite:
 
 \begin{enumerate}
     \item \textbf{Broke class solidarity}: Portuguese workers could no longer identify with enslaved Africans as fellow laborers because Africans were defined as non-human. Any solidarity based on shared exploitation was severed by the ontological divide.
@@ -201,6 +341,42 @@ This contract accomplished several objectives for the Elite and established what
     
     \item \textbf{Prevented future solidarity}: The racial framework ensured that even if African-descended peoples gained freedom, the ontological divide would persist, preventing alliances between exploited groups across racial lines.
 \end{enumerate}
+
+The enforcement apparatus of this contract developed bimodally. In the South, formal \textbf{slave patrols} emerged as early as 1704 in the South Carolina colony---organized militias of white citizens deputized to police enslaved movement, suppress rebellion, and return runaways \cite{hadden}. In the North, where slavery was less central to the economy, the first professional police forces (Boston, 1838; New York, 1845) were organized primarily to protect commercial property and control ``disorderly'' immigrant populations. These parallel tracks converged with the \textbf{Fugitive Slave Act of 1850}, which federalized the slave patrol function by requiring Northern law enforcement to capture and return escaped enslaved people---effectively conscripting Northern police into the Southern enforcement apparatus. The modern American police force thus carries a dual genealogy: property protection \textit{and} racialized population control, fused into a single institution whose original mandate was to enforce the implicit contract described above.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    box/.style={draw, thick, rounded corners=3pt, minimum height=0.9cm, minimum width=3.2cm, align=center, font=\small},
+    arr/.style={->, thick, >=stealth},
+    scale=0.95
+]
+    % --- Southern branch ---
+    \node[box, fill=red!20] (sp) at (-3.2,3) {Slave Patrols\\{\footnotesize S.\ Carolina, 1704}};
+    \node[box, fill=red!15] (sc) at (-3.2,1.5) {Southern Enforcement\\{\footnotesize Militia-based, racial}};
+    \draw[arr, red!60] (sp) -- (sc);
+
+    % --- Northern branch ---
+    \node[box, fill=blue!20] (np) at (3.2,3) {Commercial Police\\{\footnotesize Boston, 1838}};
+    \node[box, fill=blue!15] (nc) at (3.2,1.5) {Northern Enforcement\\{\footnotesize Property-based, class}};
+    \draw[arr, blue!60] (np) -- (nc);
+
+    % --- Convergence point ---
+    \node[box, fill=purple!25, minimum width=4.5cm, thick] (fsa) at (0,0) {\textbf{Fugitive Slave Act}\\{\footnotesize 1850: Federal convergence}};
+    \draw[arr, red!60, very thick] (sc.south) -- (fsa.north west);
+    \draw[arr, blue!60, very thick] (nc.south) -- (fsa.north east);
+
+    % --- Modern policing ---
+    \node[box, fill=purple!15, minimum width=5.5cm] (mod) at (0,-1.5) {\textbf{Modern American Policing}\\{\footnotesize Property protection + racialized control}};
+    \draw[arr, purple!60, very thick] (fsa) -- (mod);
+
+    % --- Labels ---
+    \node[font=\scriptsize, red!60, align=center] at (-3.2,4) {\textbf{Southern Track}\\Population control};
+    \node[font=\scriptsize, blue!60, align=center] at (3.2,4) {\textbf{Northern Track}\\Property protection};
+\end{tikzpicture}
+\caption{\textbf{The Dual Genealogy of American Policing.} Modern policing emerged from two distinct traditions: Southern slave patrols (1704) organized for racialized population control, and Northern commercial police (1838) organized for property protection. The Fugitive Slave Act (1850) federalized the slave patrol function, conscripting Northern police into Southern enforcement and fusing both mandates into a single institution.}
+\label{fig:policing_genealogy}
+\end{figure}
 
 \textbf{Defining Slave Capitalism}
 
@@ -283,7 +459,7 @@ Therefore, slave capitalism is not "distinct from later industrial capitalism"--
 
 The model proved extraordinarily profitable for the Elite class, generating wealth accumulation at scales previously impossible under feudalism or wage labor systems \cite{williams, robinson}---and it continues to do so through geographically dispersed but functionally identical slavery.
 
-\subsection{The Global Replication of Slave Capitalism}
+\section{The Global Replication of Slave Capitalism}
 
 The Portuguese initiative was not an isolated endeavor but a starting point that led other European countries to follow suit. The adoption of Zurara's fictional portrayal of African inferiority by other European nations facilitated a widespread and systemic approach to viewing African peoples as commodities suitable for free labor. This marked the beginning of a systemic, global structure of \textbf{slave capitalism} that justified and perpetuated the exploitation and oppression of African peoples and their descendants.
 
@@ -313,7 +489,7 @@ The model of slave capitalism was systematically exported to the American coloni
 
 The American implementation of slave capitalism would prove even more profitable and entrenched than its European origins, creating wealth that would finance the Industrial Revolution and establish the United States as an economic power.
 
-\subsection{Institutional Legitimation: The Role of Church and Science}
+\section{Institutional Legitimation: The Role of Church and Science}
 
 The dehumanization of the African diaspora required more than political decree---it demanded \textbf{institutional legitimation} from society's most authoritative institutions. Both the Church and Science were enlisted, willingly or through institutional capture, to provide the moral and intellectual frameworks that naturalized the ontological exclusion of African peoples.
 
@@ -366,6 +542,42 @@ The brutal conditions of enslavement produced obvious disparities in wealth, hea
 
 Both institutions also \textbf{trained the next generation}. Seminaries taught future clergy the theological justifications; universities taught future scientists, doctors, and policymakers the racial taxonomies. The dehumanization became embedded in education itself, ensuring its reproduction across generations.
 
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    node distance=2.2cm,
+    box/.style={draw, thick, rounded corners=4pt, minimum height=0.85cm, minimum width=2.4cm, align=center, font=\small},
+    arr/.style={->, thick, >=stealth},
+    scale=0.9, transform shape
+]
+    % Circular nodes
+    \node[box, fill=red!20] (exploit) at (90:3.2) {Exploitation};
+    \node[box, fill=orange!20] (dispar) at (18:3.2) {Observed\\Disparities};
+    \node[box, fill=yellow!25, minimum width=3cm] (explain) at (-54:3.2) {Institutional\\``Explanation''};
+    \node[box, fill=green!15] (natural) at (234:3.2) {Naturalization};
+    \node[box, fill=red!30] (expand) at (162:3.2) {Expanded\\Exploitation};
+
+    % Circular arrows
+    \draw[arr, very thick] (exploit) -- (dispar);
+    \draw[arr, very thick] (dispar) -- (explain);
+    \draw[arr, very thick] (explain) -- (natural);
+    \draw[arr, very thick] (natural) -- (expand);
+    \draw[arr, very thick] (expand) -- (exploit);
+
+    % Church and Science branches into "Explanation"
+    \node[box, fill=purple!15, font=\footnotesize] (church) at (-1.5,-4.8) {\textbf{Church}\\Theological\\justification};
+    \node[box, fill=blue!15, font=\footnotesize] (science) at (1.5,-4.8) {\textbf{Science}\\Pseudo-empirical\\``evidence''};
+
+    \draw[arr, purple!60] (church.north) -- (explain.south west);
+    \draw[arr, blue!60] (science.north) -- (explain.south east);
+
+    % Education feedback
+    \node[font=\scriptsize, align=center, gray] at (0,-6.0) {Both train the next generation:\\seminaries $+$ universities};
+\end{tikzpicture}
+\caption{\textbf{The Institutional Feedback Loop.} Exploitation produces disparities, which are ``explained'' by Church (theological justification) and Science (pseudo-empirical evidence) as inherent inferiority, naturalizing the hierarchy and licensing expanded exploitation. The cycle is self-perpetuating: each iteration generates new ``evidence'' that reinforces the ideological framework.}
+\label{fig:feedback_loop}
+\end{figure}
+
 \textbf{The Functional Necessity of Institutional Capture}
 
 The Elite's capture of Church and Science was not incidental but \textit{functionally necessary} for three reasons:
@@ -380,7 +592,7 @@ The Elite's capture of Church and Science was not incidental but \textit{functio
 
 The collaboration of Church and Science transformed racialization from a cynical political strategy into an apparently unchallengeable truth, backed by society's highest authorities on moral and empirical reality.
 
-\subsection{Racism as Trojan Horse: Undermining the Constitution's Anti-Classist Framework}
+\section{Racism as Trojan Horse: Undermining the Constitution's Anti-Classist Framework}
 
 The American Framers created a constitutional framework with explicitly anti-classist elements: prohibition of titles of nobility (Article I, Sections 9-10), grounding rights in ``the people'' rather than aristocratic privilege, and establishing equal protection principles. However, \textbf{the Framers had to compromise the democracy they were creating to uphold slavery}, introducing deliberate \textbf{contradictions}---``bugs in the source code''---that would allow the Elite to maintain class hierarchy while appearing to establish egalitarian governance.
 
@@ -428,6 +640,50 @@ Once these bugs existed, each generation exploited them to expand control:
 
 The result: mass incarceration creates a ``criminal'' class excluded from ``the people''; economic policies concentrate wealth while dividing the working class along racial lines; surveillance state expansion by designating groups as ``dangerous''; gun control using \textit{Dred Scott}'s logic to narrow ``the people.''
 
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    bug/.style={draw, thick, rounded corners=2pt, minimum height=0.7cm, minimum width=3.8cm, align=left, font=\footnotesize, anchor=west},
+    exploit/.style={draw, thick, rounded corners=2pt, minimum height=0.7cm, minimum width=4.5cm, align=left, font=\footnotesize, anchor=west},
+    arr/.style={->, thick, >=stealth, red!60},
+    scale=0.88, transform shape
+]
+    % Headers
+    \node[font=\small\bfseries, anchor=west] at (-0.2,5.5) {Constitutional Provision};
+    \node[font=\small\bfseries, anchor=west] at (6.0,5.5) {Exploitation Pathway};
+
+    % Bug 1
+    \node[bug, fill=blue!10] (b1) at (0,4.5) {\textbf{\#1} ``We the People'' (undefined)};
+    \node[exploit, fill=red!10] (e1) at (6.2,4.5) {\textit{Dred Scott} $\rightarrow$ felons $\rightarrow$ immigrants};
+    \draw[arr] (b1.east) -- (e1.west);
+
+    % Bug 2
+    \node[bug, fill=blue!10] (b2) at (0,3.4) {\textbf{\#2} No titles of nobility};
+    \node[exploit, fill=red!10] (e2) at (6.2,3.4) {Hereditary slavery as ``property law''};
+    \draw[arr] (b2.east) -- (e2.west);
+
+    % Bug 3
+    \node[bug, fill=blue!10] (b3) at (0,2.3) {\textbf{\#3} Equal representation};
+    \node[exploit, fill=red!10] (e3) at (6.2,2.3) {3/5 Compromise $\rightarrow$ disproportionate power};
+    \draw[arr] (b3.east) -- (e3.west);
+
+    % Bug 4
+    \node[bug, fill=blue!10] (b4) at (0,1.2) {\textbf{\#4} Due process protection};
+    \node[exploit, fill=red!10] (e4) at (6.2,1.2) {Property = persons $\rightarrow$ asset forfeiture};
+    \draw[arr] (b4.east) -- (e4.west);
+
+    % Bug 5
+    \node[bug, fill=blue!10] (b5) at (0,0.1) {\textbf{\#5} Commerce clause};
+    \node[exploit, fill=red!10] (e5) at (6.2,0.1) {Slave trade protected $\rightarrow$ corporate primacy};
+    \draw[arr] (b5.east) -- (e5.west);
+
+    % Annotation
+    \node[font=\scriptsize, gray, align=center] at (5.5,-0.7) {Each ``bug'' was not a flaw but a \textit{feature}---designed to preserve slave capitalism\\within a framework claiming to oppose aristocracy.};
+\end{tikzpicture}
+\caption{\textbf{The Five Constitutional Bugs: Provision vs.\ Exploitation.} Each constitutional provision (left) contains a deliberate vulnerability that enables the Elite to maintain class hierarchy through racial mechanisms (right). The arrows trace the exploitation pathway from original framing to contemporary application.}
+\label{fig:constitutional_bugs}
+\end{figure}
+
 \textbf{The Ehrlichman Admission: Proof of Deliberate Engineering}
 
 The deliberate nature of this Out-group engineering was confirmed by John Ehrlichman, Nixon's domestic policy adviser, in a 1994 interview published two decades later:
@@ -437,6 +693,12 @@ The deliberate nature of this Out-group engineering was confirmed by John Ehrlic
 \end{quote}
 
 This admission is extraordinary because it confirms every element of the algorithmic model: the Elite \textit{deliberately} engineered the association between a racial group and a criminal category, \textit{knowing} the pretext was fabricated, in order to narrow ``the people'' by expanding the ``criminal'' class. The War on Drugs was not a policy failure---it was Bug~\#1 being exploited with surgical precision. Mass incarceration did not \textit{accidentally} create a new Out-group; it was \textit{designed} to do so, using the 13th Amendment's exception clause as the legal kernel (Section~4.4).
+
+\textbf{The Suppression of Medical Consensus}
+
+The fabrication Ehrlichman describes required \textit{overwriting established scientific truth}. Cannabis was not a marginal folk remedy but a mainstream pharmaceutical: it appeared in the \textit{United States Pharmacopoeia} from 1850 to 1942 and was prescribed by leading physicians of the era. Sir William Osler, widely regarded as the father of modern medicine, recommended cannabis as the most effective treatment for migraine in his landmark \textit{Principles and Practice of Medicine} \cite{osler}. When Congress held hearings on the Marihuana Tax Act of 1937, the American Medical Association's legislative counsel, Dr.\ William C.\ Woodward, testified in opposition, objecting that the bill's use of the unfamiliar term ``marihuana'' had deliberately obscured the fact that Congress was outlawing a well-known medicine. Woodward warned that prohibition would cripple medical research---a prediction borne out by decades of suppressed investigation \cite{musto, bonnie}.
+
+The committee's response to the AMA's objection is instructive: Woodward was accused of obstruction and dismissed. The Marihuana Tax Act passed with virtually no debate. This episode reveals the Variable Swap in its epistemic dimension: the system did not merely criminalize a substance but \textit{manufactured ignorance} about it. A drug with centuries of documented therapeutic use was rebranded using an unfamiliar Spanish-language term (``marihuana'') to sever it from its medical identity, then associated with racialized populations---Mexican immigrants and Black jazz musicians---to generate the moral panic necessary for prohibition \cite{bonnie}. The proxy variable $P$ was not discovered in nature; it was \textbf{engineered against the explicit objections of the medical establishment}, demonstrating that ideological justification (Component 3 of the architecture) can override even authoritative scientific consensus when $E$'s extraction objectives require it.
 
 \textbf{Why This Works: Racism as Elite Class Maintenance}
 
@@ -459,7 +721,7 @@ The Framers sought to prevent hereditary aristocracy but left open the mechanism
 
 This reveals how racism was \textbf{deliberately engineered by Elites to break class solidarity and create an exploitable labor class unconstrained by moral limits}, while also weaponizing constitutional vulnerabilities to undermine protections that might have constrained Elite power. The constitutional bugs transform anti-classist principles into hollow promises by narrowing ``the people'' to exclude disfavored groups---a mechanism still actively exploited today.
 
-\section{Set Theory and Racism}
+\chapter{Set Theory and Racism}
 
 Utilizing set theory, let us model racism as a system of inequalities that disproportionately affect certain groups based on racial categorizations. Given the historical origins traced to the racialization of African peoples in the 15th century, we define three sets:
 
@@ -469,7 +731,7 @@ Utilizing set theory, let us model racism as a system of inequalities that dispr
     \item $E \subset I$, where $|E| \ll |I|$: the Elite---the small subset of the In-group that architects and primarily benefits from the system of racial oppression
 \end{itemize}
 
-The critical structural insight, which the historical analysis of Section~2 already demonstrates, is that the system does not serve the In-group; it serves the Elite. The broader In-group ($I \setminus E$)---the working-class members of the dominant racial group---functions as a \textbf{buffer class}, receiving psychological rather than material compensation. Following W.E.B.\ Du~Bois \cite{dubois}, we formalize this as the \textbf{psychological wage} $\psi$: the non-material benefit (social status, legal privilege, racial solidarity with elites) offered to $I \setminus E$ in exchange for policing the racial boundary rather than pursuing cross-racial class solidarity with $O_{\text{racialized}}$.
+The critical structural insight, which the historical analysis of Chapter~2 already demonstrates, is that the system does not serve the In-group; it serves the Elite. The broader In-group ($I \setminus E$)---the working-class members of the dominant racial group---functions as a \textbf{buffer class}, receiving psychological rather than material compensation. Following W.E.B.\ Du~Bois \cite{dubois}, we formalize this as the \textbf{psychological wage} $\psi$: the non-material benefit (social status, legal privilege, racial solidarity with elites) offered to $I \setminus E$ in exchange for policing the racial boundary rather than pursuing cross-racial class solidarity with $O_{\text{racialized}}$.
 
 The foundational inequality of the system is therefore three-tiered:
 \[
@@ -525,11 +787,11 @@ This three-tier structure is governed by what we term the \textbf{Predatory Min-
 \text{Objective:} \quad \frac{\text{Max}(\text{Extraction})}{\text{Min}(\text{Resistance}_{\text{class}})} \rightarrow \text{System Stability}
 \]
 
-Policies ($P$) are the instruments through which this optimization is executed, impacting $O_{\text{racialized}}$, $I \setminus E$, and $E$ in structurally different ways. The remainder of this section formalizes how these policies compound over time; Section~4 then traces the historical algorithm of Elite optimization through six phases.
+Policies ($P$) are the instruments through which this optimization is executed, impacting $O_{\text{racialized}}$, $I \setminus E$, and $E$ in structurally different ways. The remainder of this section formalizes how these policies compound over time; Chapter~4 then traces the historical algorithm of Elite optimization through six phases.
 
-\textbf{A Note on Scope and Specificity}: This model is specifically designed to analyze racism as a unique system rooted in the 15th century racialization of African peoples for the purposes of enslavement and colonial exploitation. The notation $O_{\text{racialized}}$ reflects this historical specificity. While the mathematical architecture may share structural similarities with other systems of oppression, this paper focuses on racism's particular genealogy and mechanisms. The subscript ``racialized'' anchors the mathematical formalism to the historical narrative established in Section 2, ensuring that the model captures the unique features of racism rather than generic intergroup conflict.
+\textbf{A Note on Scope and Specificity}: This model is specifically designed to analyze racism as a unique system rooted in the 15th century racialization of African peoples for the purposes of enslavement and colonial exploitation. The notation $O_{\text{racialized}}$ reflects this historical specificity. While the mathematical architecture may share structural similarities with other systems of oppression, this paper focuses on racism's particular genealogy and mechanisms. The subscript ``racialized'' anchors the mathematical formalism to the historical narrative established in Chapter 2, ensuring that the model captures the unique features of racism rather than generic intergroup conflict.
 
-\subsection{Modeling Systemic Racism: From Summation to Compounding}
+\section{Modeling Systemic Racism: From Summation to Compounding}
 
 Traditional approaches might model the cumulative negative impact of policies as simple summation:
 \[
@@ -567,7 +829,77 @@ O_2^{\text{capacity}} = O_0^{\text{capacity}} \cdot (1 - \alpha P_1) \cdot (1 - 
 \]
 The impact of $P_2$ is applied to an Out-group \textit{already diminished} by $P_1$. If we applied the same policy $P_2$ to a group without the history of $P_1$, the absolute harm would be less severe. This multiplicative effect explains the \textbf{entrenchment} of systemic racism: early oppression doesn't just add disadvantage; it changes the entire equation for all subsequent policies.
 
+\textbf{Historical Instantiation: The Full Compounding Chain}
+
+The abstract formula becomes concrete---and unavoidable---when we anchor each $t$ to the specific policy phases traced in Section~4. Let $O_{1450}^{\text{capacity}}$ represent the pre-racialization baseline, before Zurara's \textit{Chronica} invented the ideological machinery of racial hierarchy. The compounding chain then reads:
+\begin{align}
+O_{1619}^{\text{capacity}} &= O_{1450}^{\text{capacity}} \cdot (1 - \alpha\, P_{\text{enslavement}}) \label{eq:hist1}\\[4pt]
+O_{1865}^{\text{capacity}} &= O_{1619}^{\text{capacity}} \cdot (1 - \beta\, P_{\text{13thAmendment}}) \label{eq:hist2}\\[4pt]
+O_{1934}^{\text{capacity}} &= O_{1865}^{\text{capacity}} \cdot (1 - \gamma\, P_{\text{redlining}}) \label{eq:hist3}\\[4pt]
+O_{1971}^{\text{capacity}} &= O_{1934}^{\text{capacity}} \cdot (1 - \delta\, P_{\text{WarOnDrugs}}) \label{eq:hist4}
+\end{align}
+Expanding the full chain:
+\[
+O_{1971}^{\text{capacity}} = O_{1450}^{\text{capacity}} \cdot (1-\alpha\, P_{\text{enslavement}})(1-\beta\, P_{\text{13thAmendment}})(1-\gamma\, P_{\text{redlining}})(1-\delta\, P_{\text{WarOnDrugs}})
+\]
+Each dated factor is not interchangeable---the \textit{order} matters. Enslavement ($\alpha$) strips initial wealth and autonomy; the 13th Amendment's exception clause ($\beta$) re-encodes subjugation through criminalization; redlining ($\gamma$) blocks the primary vehicle of American wealth accumulation for a group \textit{already} without generational capital; and the War on Drugs ($\delta$) applies asymmetric enforcement to a population \textit{already} geographically concentrated by redlining and economically precarious from centuries of extraction. The same formula that appears abstract at time $t$ becomes a specific, falsifiable indictment at time 1971: the present condition of $O_{\text{racialized}}$ is not a mystery to be explained by culture or individual choices but a \textit{mathematical inevitability} given the policy sequence.
+
 Crucially, while $O_{\text{racialized}}$ bears the primary compounding burden, the buffer class $I \setminus E$ is not immune. As the Predatory Min-Max Function exhausts extraction from $O_{\text{racialized}}$, the same compounding logic eventually turns inward: the tools developed to diminish $O_{\text{racialized}}$ are redeployed against $I \setminus E$, whose own capacity then begins to compound downward (see Section~4.7).
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[scale=0.85, transform shape]
+    % Timeline axis
+    \draw[->, thick, gray] (-0.5,0) -- (14.5,0);
+    \node[gray, font=\footnotesize] at (14.5,-0.4) {Time};
+
+    % Capacity bars (staircase of decline)
+    % 1450 baseline
+    \fill[green!40] (0.2,0.1) rectangle (2.3,5.5);
+    \draw[thick] (0.2,0.1) rectangle (2.3,5.5);
+    \node[font=\footnotesize\bfseries, align=center] at (1.25,6.0) {1450\\{\scriptsize Baseline}};
+    \node[font=\tiny, align=center] at (1.25,2.8) {$O_{1450}^{\text{cap}}$};
+
+    % 1619 after enslavement
+    \fill[yellow!40] (3.0,0.1) rectangle (5.1,4.0);
+    \draw[thick] (3.0,0.1) rectangle (5.1,4.0);
+    \node[font=\footnotesize\bfseries, align=center] at (4.05,6.0) {1619\\{\scriptsize Enslavement}};
+    \node[font=\tiny, align=center] at (4.05,2.0) {$(1{-}\alpha P_{\text{ens}})$};
+    \draw[->, very thick, red!60] (2.35,4.5) -- (2.95,4.5);
+
+    % 1865 after 13th Amendment
+    \fill[orange!40] (5.8,0.1) rectangle (7.9,2.8);
+    \draw[thick] (5.8,0.1) rectangle (7.9,2.8);
+    \node[font=\footnotesize\bfseries, align=center] at (6.85,6.0) {1865\\{\scriptsize 13th Amend.}};
+    \node[font=\tiny, align=center] at (6.85,1.4) {$(1{-}\beta P_{\text{13th}})$};
+    \draw[->, very thick, red!60] (5.15,3.3) -- (5.75,3.3);
+
+    % 1934 after redlining
+    \fill[red!30] (8.6,0.1) rectangle (10.7,1.8);
+    \draw[thick] (8.6,0.1) rectangle (10.7,1.8);
+    \node[font=\footnotesize\bfseries, align=center] at (9.65,6.0) {1934\\{\scriptsize Redlining}};
+    \node[font=\tiny, align=center] at (9.65,0.95) {$(1{-}\gamma P_{\text{red}})$};
+    \draw[->, very thick, red!60] (7.95,2.2) -- (8.55,2.2);
+
+    % 1971 after War on Drugs
+    \fill[red!50] (11.4,0.1) rectangle (13.5,1.0);
+    \draw[thick] (11.4,0.1) rectangle (13.5,1.0);
+    \node[font=\footnotesize\bfseries, align=center] at (12.45,6.0) {1971\\{\scriptsize War on Drugs}};
+    \node[font=\tiny, align=center] at (12.45,0.55) {$(1{-}\delta P_{\text{WoD}})$};
+    \draw[->, very thick, red!60] (10.75,1.3) -- (11.35,1.3);
+
+    % Declining envelope line
+    \draw[dashed, thick, red!70] (2.3,5.5) -- (5.1,4.0) -- (7.9,2.8) -- (10.7,1.8) -- (13.5,1.0);
+
+    % Y-axis label
+    \node[rotate=90, font=\footnotesize, gray] at (-0.9,2.8) {$O_t^{\text{capacity}}$ (accumulated capital, power, resources)};
+
+    % Bottom annotation
+    \node[font=\scriptsize, align=center, gray] at (7.0,-1.0) {Each policy compounds on an \textit{already diminished} baseline---the order is not interchangeable};
+\end{tikzpicture}
+\caption{\textbf{The Staircase of Decline: Historical Compounding of Out-Group Capacity.} Each policy reduces $O_t^{\text{capacity}}$ multiplicatively, not additively. The bars show how each successive policy---enslavement (1619), the 13th Amendment loophole (1865), redlining (1934), and the War on Drugs (1971)---compounds on an already diminished baseline, making the present condition of $O_{\text{racialized}}$ a mathematical inevitability of the policy sequence.}
+\label{fig:historical_compounding}
+\end{figure}
 
 \begin{figure}[htbp]
 \centering
@@ -651,11 +983,11 @@ Crucially, while $O_{\text{racialized}}$ bears the primary compounding burden, t
 \label{fig:venn_model}
 \end{figure}
 
-\subsection{Historical Policies as Case Studies}
+\section{Historical Policies as Case Studies}
 
 Historical policies, such as the Portuguese slave trade and subsequent colonial practices, serve as real-world examples of our model. These policies created and perpetuated disparities between racial groups, institutionalizing racism at a systemic level.
 
-\subsection{The Three-Tier Dynamics in Detail}
+\section{The Three-Tier Dynamics in Detail}
 
 The three-tier model introduced at the opening of this section---with the foundational inequality $\text{Benefit}(E) \gg \text{Benefit}(I \setminus E) > \text{Benefit}(O_{\text{racialized}})$ and the Predatory Min-Max Function governing it---has several important implications worth elaborating.
 
@@ -663,19 +995,25 @@ The psychological wage $\psi$ is not merely a side effect of the system; it is a
 
 The system thus produces a paradox: $I \setminus E$ defends a hierarchy that materially harms them, because the psychological wage creates the \textit{perception} of shared interest with $E$ and the \textit{perception} of threat from $O_{\text{racialized}}$. Both perceptions serve $E$'s extraction objectives.
 
-\section{The Calculus of Control -- The Optimization of Elite Impunity}
+\textbf{Empirical Validation: The Gilens--Page Study}
 
-Having established the three-tier model in Section~3---with $\text{Benefit}(E) \gg \text{Benefit}(I \setminus E) > \text{Benefit}(O_{\text{racialized}})$, the psychological wage $\psi$ sustaining the buffer class, and the Predatory Min-Max Function governing the system's optimization---we now trace the \textit{algorithm} of this optimization through history. The historical timeline reveals that the In-group was artificially constructed to solve a specific security flaw. Once the extraction of the Out-group ($O_{\text{racialized}}$) is exhausted, the system inevitably \textbf{cannibalizes} the buffer class it created. We can map this algorithm through six distinct phases of optimization (see Figure~\ref{fig:extraction_zone}).
+This three-tier dynamic is not merely theoretical---it has been empirically demonstrated at the level of national policy. Gilens and Page \cite{gilens} analyzed 1,779 policy issues over a twenty-year period, comparing the policy preferences of average citizens, economic elites, and organized interest groups against actual policy outcomes. Their findings are striking: the preferences of average citizens (corresponding to $I \setminus E$ and $O_{\text{racialized}}$ in our model) had a ``near-zero, statistically non-significant impact upon public policy.'' By contrast, the preferences of economic elites (corresponding to $E$) had a substantial, statistically significant effect on which policies were adopted.
 
-\subsection{The Source Code: Portuguese Origins (1450s)}
-As detailed in Section 2, the ideological ``source code'' for racism was written in 1450s Portugal. The key insight, rendered in algorithmic terms: the European Elite could not extract unlimited labor from a population that shared their moral community ($I_{\text{Christendom}}$). Zurara's racialization of African peoples (Section 2.2) solved this by creating a new category---a fungible Out-group ($O$) defined outside the moral community entirely.
+This result provides direct quantitative confirmation of the Predatory Min-Max Function. The system does not merely privilege $E$ in relative terms---it renders the policy preferences of everyone outside $E$ effectively irrelevant. When the preferences of average citizens diverge from those of economic elites, the citizens lose. When their preferences align, policy changes occur---but Gilens and Page show that this alignment, not citizen preference itself, drives the outcome. The mathematical implication is precise: the United States operates not as a majoritarian democracy but as what Gilens and Page term an ``economic-elite domination'' regime, in which $E$'s extraction objectives are translated into policy regardless of opposition from $I \setminus E$ or $O_{\text{racialized}}$. The psychological wage $\psi$ keeps the buffer class invested in a system that demonstrably excludes them from governance.
+
+\chapter{The Calculus of Control -- The Optimization of Elite Impunity}
+
+Having established the three-tier model in Chapter~3---with $\text{Benefit}(E) \gg \text{Benefit}(I \setminus E) > \text{Benefit}(O_{\text{racialized}})$, the psychological wage $\psi$ sustaining the buffer class, and the Predatory Min-Max Function governing the system's optimization---we now trace the \textit{algorithm} of this optimization through history. The historical timeline reveals that the In-group was artificially constructed to solve a specific security flaw. Once the extraction of the Out-group ($O_{\text{racialized}}$) is exhausted, the system inevitably \textbf{cannibalizes} the buffer class it created. We can map this algorithm through six distinct phases of optimization (see Figure~\ref{fig:extraction_zone}).
+
+\section{The Source Code: Portuguese Origins (1450s)}
+As detailed in Chapter 2, the ideological ``source code'' for racism was written in 1450s Portugal. The key insight, rendered in algorithmic terms: the European Elite could not extract unlimited labor from a population that shared their moral community ($I_{\text{Christendom}}$). Zurara's racialization of African peoples (Section~2.2) solved this by creating a new category---a fungible Out-group ($O$) defined outside the moral community entirely.
 
 \begin{itemize}
     \item \textbf{The Function:} Group all disparate African peoples into a single category defined by \textit{lack} (lack of salvation, lack of civilization), bypassing the moral and social constraints of European labor relations.
     \item \textbf{The License:} When the first enslaved Africans arrived in Virginia in 1619---stolen from the Portuguese slave ship \textit{San Juan Bautista}---the English colonists did not need to write the logic of chattel slavery from scratch. They simply licensed the Portuguese algorithm.
 \end{itemize}
 
-\subsection{The Application: Bacon's Rebellion and the Partition of the Poor (1676)}
+\section{The Application: Bacon's Rebellion and the Partition of the Poor (1676)}
 In the American colonies, however, the Elite initially failed to implement this code strictly. The "proto-working class" was a mix of European indentured servants ($L_{white}$) and enslaved Africans ($L_{black}$). Because they shared the same oppressive conditions, the Portuguese distinction didn't stop them from seeing each other as allies.
 
 This led to the system crash of \textbf{Bacon's Rebellion (1676)}. The united Labor Class ($L_{white} \cup L_{black}$) burned Jamestown to the ground, proving that:
@@ -684,12 +1022,12 @@ This led to the system crash of \textbf{Bacon's Rebellion (1676)}. The united La
 \text{If} \quad (L_{white} + L_{black}) > E \quad \rightarrow \quad \text{Revolution}
 \]
 
-\subsection{The Patch: The Invention of "Whiteness" (1705)}
+\section{The Patch: The Invention of "Whiteness" (1705)}
 To prevent a recurrence, the Virginian Elite \textbf{weaponized the Portuguese code}. They enacted the \textbf{Virginia Slave Codes of 1705}, which explicitly created a legal wall between the two groups \cite{allen, kendi}.
 
 \begin{enumerate}
     \item \textbf{The Partition:} They assigned $L_{white}$ to a new category: "White."
-    \item \textbf{The Bribe:} They gave the poor whites the psychological wage $\psi$ (Section~3)---the right to police the Black population, the right to bear arms, and immunity from chattel slavery.
+    \item \textbf{The Bribe:} They gave the poor whites the psychological wage $\psi$ (Chapter~3)---the right to police the Black population, the right to bear arms, and immunity from chattel slavery.
 \end{enumerate}
 
 This was the masterstroke of the American algorithm: It used "Race" to destroy "Class." It recruited the poor white population to act as the \textbf{Buffer Class}, protecting the Elite from the very people they should have been allied with.
@@ -698,7 +1036,7 @@ This was the masterstroke of the American algorithm: It used "Race" to destroy "
 \text{Buffer Created:} \quad I_{poor} \rightarrow \text{Defender of } E
 \]
 
-\subsection{The System Kernel: The 13th Amendment Loophole (1865)}
+\section{The System Kernel: The 13th Amendment Loophole (1865)}
 Following the Civil War, the system required a new legal kernel. The \textbf{13th Amendment} converted slavery from a static identity to a conditional state via the exception clause: \textit{``except as a punishment for crime''} \cite{alexander, blackmon, thirteenth}.
 
 \[
@@ -707,17 +1045,58 @@ Following the Civil War, the system required a new legal kernel. The \textbf{13t
 
 This ensured that slavery remained a constitutionally protected state, accessible to the Elite as long as they could map the target population to the variable of Criminality ($C$).
 
-\subsection{The Optimization: Redlining as the Containment Field (1934)}
+\section{The Optimization: Redlining as the Containment Field (1934)}
 To safely harvest the Out-group ($O$) using this criminalization kernel without accidentally capturing the white buffer class ($I_{poor}$), the Elite required a \textbf{Geospatial Targeting Grid}.
 
 \textbf{Redlining} (1934) concentrated Black poverty into urban zones while subsidizing White flight to the suburbs \cite{rothstein, coatesreparations}. This was not benevolence toward whites; it was \textbf{blast radius management}. It ensured that when the state deployed predatory extraction (policing/fines), the "collateral damage" to the white working class would be minimized, preventing a recurrence of the shared grievances that triggered Bacon's Rebellion.
 
-\subsection{The Interface Shift: The War on Drugs (1968)}
+\section{The Interface Shift: The War on Drugs (1968)}
 When \textit{Brown v. Board} (1954) blocked the use of explicit racial laws, the Nixon Administration executed the \textbf{Variable Swap}. As John Ehrlichman admitted, they used the \textbf{War on Drugs} to associate ``blacks with heroin'' and ``hippies with marijuana'' \cite{baum, vera, alexander}.
 
 This expanded the Out-group to include political dissidents from the In-group, while Lee Atwater's \textbf{``Dog Whistle''} strategy (1981) provided the abstract language (``State's Rights,'' ``Law and Order'') to mask the operation from the white public \cite{lopez, phillips}.
 
-\subsection{The Collapse: Cannibalizing the In-Group (Present)}
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    shell/.style={draw, thick, rounded corners=4pt, minimum height=1.0cm, align=center, font=\small},
+    arr/.style={->, thick, >=stealth},
+    scale=0.88, transform shape
+]
+    % Interface layers (stacked, oldest at bottom nearest kernel)
+    \node[shell, fill=red!25, minimum width=10.5cm] (i1) at (0,2.0) {\textbf{Interface 1} (pre-1865): $\text{Race}(x) = \text{Black} \rightarrow \text{Target}$};
+    \node[shell, fill=orange!25, minimum width=10.5cm] (i2) at (0,3.3) {\textbf{Interface 2} (post-1865): $\text{Status}(x) = \text{Criminal} \rightarrow \text{Target}$};
+    \node[shell, fill=yellow!30, minimum width=10.5cm] (i3) at (0,4.6) {\textbf{Interface 3} (post-1968): $\text{Association}(x) = \text{Drug User} \rightarrow \text{Target}$};
+    \node[shell, fill=purple!20, minimum width=10.5cm] (i4) at (0,5.9) {\textbf{Interface 4} (present): $\text{Anyone} \rightarrow \text{Target}$ via selective enforcement};
+
+    % Single funnel arrow from interface stack to kernel
+    \draw[->, very thick, black!50] (0,1.45) -- (0,0.85);
+    \node[font=\tiny\bfseries, black!50, anchor=west] at (0.2,1.15) {any one active at a time};
+
+    % Kernel (below)
+    \node[shell, fill=black!15, minimum width=10.5cm, minimum height=1.4cm, font=\small\bfseries] (kernel) at (0,0) {KERNEL (unchanged since 1450s)\\{\normalfont\footnotesize $\text{Status}(x) \in \text{Target} \rightarrow \text{Uncompensated Labor / Extraction}$}};
+
+    % Right-side era labels
+    \node[font=\tiny, gray, anchor=west] at (5.6,2.0) {Chattel slavery};
+    \node[font=\tiny, gray, anchor=west] at (5.6,3.3) {13th Amend.\ + Black Codes};
+    \node[font=\tiny, gray, anchor=west] at (5.6,4.6) {War on Drugs};
+    \node[font=\tiny, gray, anchor=west] at (5.6,5.9) {Universal criminality};
+
+    % Left-side bracket and label for interfaces
+    \draw[thick, black, decorate, decoration={brace, amplitude=6pt, mirror}] (-6.2,1.5) -- (-6.2,6.4);
+    \node[font=\footnotesize, black, rotate=90] at (-6.9,3.9) {INTERFACE (swappable)};
+
+    % Left-side bracket and label for kernel
+    \draw[thick, black, decorate, decoration={brace, amplitude=6pt, mirror}] (-6.2,-0.75) -- (-6.2,0.75);
+    \node[font=\footnotesize, black, rotate=90] at (-6.9,0) {KERNEL (fixed)};
+
+    % Bottom annotation
+    \node[font=\scriptsize, align=center, gray] at (0,-1.4) {What appears as ``progress'' (abolition, civil rights) is an interface update.\\The extraction kernel has never been modified.};
+\end{tikzpicture}
+\caption{\textbf{The Variable Swap: Interface vs.\ Kernel.} The system's extraction function (kernel) remains constant across all eras. Only the \textit{input variable}---the mechanism by which targets are selected---changes. Each historical ``reform'' swaps the interface (from explicit race to criminal status to drug association to universal latent criminality) while leaving the kernel intact. The appearance of progress masks functional continuity.}
+\label{fig:variable_swap}
+\end{figure}
+
+\section{The Collapse: Cannibalizing the In-Group (Present)}
 This brings us to the final, inevitable stage of the algorithm. An extraction system requires \textbf{Infinite Growth}. Once the Out-group ($O$) has been fully harvested---stripped of wealth, voting rights, and labor \cite{coates}---the Elite ($E$) must find new sources of extraction to maintain their accumulation.
 
 The system has now turned inward. The tools developed to oppress the Out-group are being deployed against the In-group:
@@ -727,7 +1106,9 @@ The system has now turned inward. The tools developed to oppress the Out-group a
     \item \textbf{Surveillance:} The loss of privacy tested on the poor is now applied to the middle class.
 \end{itemize}
 
-\subsubsection*{Conclusion}
+The expansion of $O$ is facilitated by a structural development that legal scholar Harvey Silverglate identifies: the average American now unknowingly commits approximately \textbf{three federal felonies per day} \cite{silverglate}. The proliferation of vague, overlapping, and over-broad criminal statutes---combined with prosecutorial discretion in charging---means that the proxy variable $P$ has become \textit{omnipresent}. Nearly every citizen is technically criminal; what determines who enters the carceral system is not the commission of crime but the \textit{selection} of targets. This transforms the system's primary mechanism from demographic targeting to \textbf{selective enforcement}: the Elite no longer needs to define the Out-group explicitly, because the criminalization kernel ($\text{If } \text{Status}(x) = \text{Criminal}(C) \rightarrow \text{Status}(x) \in S$) can now reach \textit{anyone}. ``Broken windows'' policing \cite{wilson} and its progeny provide the discretionary framework---the theoretical justification for intensive policing of minor infractions---while the empirical evidence shows that such policing is deployed overwhelmingly in communities already marked by the compounding chain of Section~3.2 \cite{harcourt}. The system has thus achieved what might be called \textbf{universal latent criminality}: the entire population exists in a state of potential subjugation, with actual subjugation determined by $E$'s extraction needs.
+
+\section*{Conclusion}
 The "White Working Class" was never a partner to the Elite; they were merely the \textbf{Reserve Food Supply}. By accepting the bribe of "Whiteness" in 1705, they agreed to police the prison that is now expanding to hold \textit{them}.
 
 The definition of the Out-group has returned to its 1676 state:
@@ -817,13 +1198,13 @@ O_{final} = \text{Everyone} \setminus E
     \label{fig:extraction_zone}
 \end{figure}
 
-\section{From Diagnosis to Prescription: Policy Implications}
+\chapter{From Diagnosis to Prescription: Policy Implications}
 
-The algorithmic history traced in Section 4 is not merely descriptive---it is \textit{diagnostic}. Each phase of the Elite's optimization (Portuguese racialization $\rightarrow$ Bacon's Rebellion $\rightarrow$ the invention of whiteness $\rightarrow$ the 13th Amendment loophole $\rightarrow$ redlining $\rightarrow$ the War on Drugs $\rightarrow$ cannibalization) reveals a system that adapts its \textit{interface} while preserving its \textit{kernel}: the Predatory Min-Max Function that maximizes extraction while minimizing class resistance.
+The algorithmic history traced in Chapter 4 is not merely descriptive---it is \textit{diagnostic}. Each phase of the Elite's optimization (Portuguese racialization $\rightarrow$ Bacon's Rebellion $\rightarrow$ the invention of whiteness $\rightarrow$ the 13th Amendment loophole $\rightarrow$ redlining $\rightarrow$ the War on Drugs $\rightarrow$ cannibalization) reveals a system that adapts its \textit{interface} while preserving its \textit{kernel}: the Predatory Min-Max Function that maximizes extraction while minimizing class resistance.
 
 If the framework is correct, it does not merely describe racism---it \textit{prescribes} specific interventions by revealing where harm is concentrated and how it operates. This section examines what follows from the model.
 
-\subsection{Policy Implications: Individual vs.\ Systemic Interventions}
+\section{Policy Implications: Individual vs.\ Systemic Interventions}
 
 The mathematical framework developed here does not merely describe racism---it \textit{prescribes} specific interventions by revealing where harm is concentrated and how it operates. This framework forces a fundamental shift from individual-focused solutions to systemic policy reform.
 
@@ -845,9 +1226,29 @@ Moreover, our temporal compounding model demonstrates that individual bias is \t
 
 Our framework compels a fundamentally different approach. By identifying $O_{\text{racialized}} \cap P$ as the mathematical site of harm, the framework mandates direct intervention on the \textit{policy} $P$ itself:
 
-\textbf{Case Study: Lending Disparities}
+\textbf{Case Study: Algorithmic Lending and the Disproportionate Intersection}
 
-The framework demands an audit of the institutional rules and underwriting criteria that constitute $P$. Specific interventions include:
+Consider a concrete scenario: a bank deploys a machine-learning model for loan approvals. The algorithm uses features including zip code, employment-gap history, and credit score. No feature explicitly references race. Yet because redlining ($P_{\text{redlining}}$) concentrated $O_{\text{racialized}}$ into specific zip codes, and because the War on Drugs ($P_{\text{WarOnDrugs}}$) created disproportionate employment gaps through incarceration, these ``neutral'' features encode the full compounding chain of Section~3.2. The zip-code variable is not a proxy for race---it is a \textit{fossil record} of $O_{\text{racialized}} \cap P_{\text{redlining}}$, and the employment-gap filter is a fossil record of $O_{\text{racialized}} \cap P_{\text{WarOnDrugs}}$.
+
+The critical insight of the framework is this: \textit{you stop looking for the bad actor and start looking for the disproportionate intersection}. The loan officers may harbor zero racial animus. The engineers who built the model may have the best of intentions. The disparity persists because the policy $P_{\text{algorithm}}$ structurally intersects with $O_{\text{racialized}}$ through historically encoded features.
+
+\medskip
+\noindent\textbf{Side-by-Side: Traditional vs.\ Framework Approach}
+
+\medskip
+\noindent
+\begin{tabular}{@{}p{0.47\textwidth}|p{0.47\textwidth}@{}}
+\textbf{Traditional (Individual-Focused)} & \textbf{Framework (Intersection-Focused)} \\
+\hline
+Sensitivity training for loan officers & Audit algorithm parameters for $O_{\text{racialized}} \cap P$ \\[4pt]
+Implicit bias workshops for staff & Identify features that encode historical policy (zip code $\leftarrow P_{\text{redlining}}$, employment gaps $\leftarrow P_{\text{WarOnDrugs}}$) \\[4pt]
+Diversity hiring in the lending department & Remove or reweight biased features; validate that $|O_{\text{racialized}} \cap P'| < |O_{\text{racialized}} \cap P|$ \\[4pt]
+Individual complaint mechanisms & Continuous structural monitoring: measure the intersection after every model update \\[4pt]
+\textit{Result}: Algorithm unchanged $\rightarrow$ disparity persists & \textit{Result}: Algorithm restructured $\rightarrow$ disparity structurally reduced \\
+\end{tabular}
+
+\medskip
+The contrast is stark. The traditional approach treats the symptom (biased humans) while leaving the structural cause (biased policy) intact. The framework approach identifies the mathematical site of harm---$O_{\text{racialized}} \cap P_{\text{algorithm}}$---and intervenes directly on the policy. More broadly, the framework demands an audit of the institutional rules and underwriting criteria that constitute $P$. Specific interventions include:
 \begin{enumerate}
     \item \textbf{Audit the policy structure}: Examine whether underwriting criteria (credit score thresholds, debt-to-income ratios, down payment requirements, employment history requirements) structurally disadvantage groups with diminished $O_t^{\text{capacity}}$ due to historical policies.
     
@@ -879,15 +1280,15 @@ This analytical approach applies to any domain where racial disparities exist:
 
 The framework's utility lies in its capacity to \textit{compel} specific actions. By mathematically identifying the intersection $O_{\text{racialized}} \cap P$ as the site of harm, it makes policy reform non-negotiable for anyone who accepts the model's premises. This transforms the debate from abstract discussions of racism to concrete, measurable policy interventions with quantifiable outcomes.
 
-\section{Revised Definition of Racism}
+\chapter{Revised Definition of Racism}
 
 Based on our analysis, we propose the following definition:
 
-\begin{quote}
+\begin{definition}[Revised Definition of Racism]
 \textbf{Racism} (n.): A system of oppression predicated on the categorization of human beings into ``races'' with perceived inherent differences. This system, rooted in historical practices of enslavement and colonialism, exploits social, economic, and political policies to perpetuate and exacerbate inequalities between racially defined groups. While ostensibly benefiting a racial In-group at the expense of an Out-group, the system primarily serves an Elite class ($E \subset I$) that uses racial division to prevent cross-racial solidarity and to maintain a subjugated labor class. The Out-group targeted by this system tends to \textit{expand} over time, progressively encompassing members of the nominal In-group, revealing that racism ultimately serves Elite economic interests rather than the broader In-group. It is justified through spurious scientific, cultural, and moral claims that obscure this fundamental dynamic.
-\end{quote}
+\end{definition}
 
-\section{Discussion}
+\chapter{Discussion}
 
 This expanded definition and the accompanying mathematical model underscore the systemic, structural nature of racism. This perspective challenges the reduction of racism to individual prejudice, highlighting the historical and ongoing policies that sustain racial inequalities.
 
@@ -900,7 +1301,7 @@ However, our set-theoretic analysis reveals something more profound: the convent
     \item This expansion increasingly encompasses members of the former In-group
 \end{enumerate}
 
-The algorithmic trajectory traced in Section 4---from Portuguese racialization (1450s) through Bacon's Rebellion (1676), the invention of whiteness (1705), the 13th Amendment loophole (1865), redlining (1934), the War on Drugs (1968), and present-day cannibalization of the In-group---demonstrates not a static system of racial oppression but a dynamic one that periodically resets and expands its target population. Each ``reset'' occurs when the previous arrangement becomes untenable: Bacon's Rebellion prompted the invention of rigid racial categories; \textit{Brown v.\ Board} prompted the Variable Swap of the War on Drugs; and the current period of extreme inequality is prompting the cannibalization phase, in which tools built to oppress $O_{\text{racialized}}$ are deployed against $I \setminus E$.
+The algorithmic trajectory traced in Chapter 4---from Portuguese racialization (1450s) through Bacon's Rebellion (1676), the invention of whiteness (1705), the 13th Amendment loophole (1865), redlining (1934), the War on Drugs (1968), and present-day cannibalization of the In-group---demonstrates not a static system of racial oppression but a dynamic one that periodically resets and expands its target population. Each ``reset'' occurs when the previous arrangement becomes untenable: Bacon's Rebellion prompted the invention of rigid racial categories; \textit{Brown v.\ Board} prompted the Variable Swap of the War on Drugs; and the current period of extreme inequality is prompting the cannibalization phase, in which tools built to oppress $O_{\text{racialized}}$ are deployed against $I \setminus E$.
 
 The constitutional mechanism identified in Section 2.6 is particularly insidious: by continuously expanding what constitutes ``crime'' and stripping rights from those convicted via the 13th Amendment's exception clause (Section 4.4), the system can grow the Out-group without ever explicitly naming racial or class categories. The criminalization kernel---$\text{If } \text{Status}(x) = \text{Criminal}(C) \rightarrow \text{Status}(x) \in S$---creates a permanent underclass that crosses racial lines while still disproportionately affecting $O_{\text{racialized}}$.
 
@@ -910,11 +1311,21 @@ O_{\text{final}} = \text{Everyone} \setminus E
 \]
 This points toward a future where the Out-group continues to grow unless structural intervention disrupts the algorithm.
 
+\textbf{Contemporary Stress Test: The Epstein Network and Elite Immunity}
+
+The framework's predictive power can be evaluated against a contemporary case that tests its central claims about Elite immunity from the carceral state. The network surrounding Jeffrey Epstein---whose trafficking operation implicated figures across finance, politics, and academia---provides an instructive stress test. The model predicts that members of $E$ will be shielded from the very carceral mechanisms that the system deploys against $O_{\text{racialized}}$ and, increasingly, against $I \setminus E$. The Epstein case confirms this prediction at multiple levels.
+
+First, the \textit{duration and visibility of impunity}: despite complaints to law enforcement dating to the early 2000s, the initial federal prosecution in 2008 resulted in a non-prosecution agreement that granted immunity to unnamed co-conspirators---an outcome functionally unavailable to defendants outside $E$. Second, the \textit{institutional protection mechanisms}: following the passage of the Epstein Files Transparency Act \cite{epsteinact}---bipartisan legislation mandating disclosure of federal records related to the case---the disclosed materials revealed that agencies tasked with enforcement had possessed substantial evidence for years without pursuing charges against network participants who occupied positions within $E$. The disclosure process itself became contested: members of Congress reviewing the materials reported surveillance by federal agencies, suggesting that the institutional apparatus designed to enforce law was instead deployed to monitor those investigating Elite conduct. In February 2026, United Nations human rights experts characterized the pattern of obstructed accountability as ``institutional gaslighting''---a term that maps precisely onto Component~4 of the oppressive architecture (resistance to structural critique) \cite{ohchr2026}.
+
+Third, and most relevant to the model's financial architecture, firms connected to network participants---including Apollo Global Management, whose former CEO's extensive contacts with Epstein were documented in the disclosed files---continued to operate without regulatory consequence, with the firm's assets under management growing to over \$700 billion \cite{apolloepstein}. This mirrors the unbroken financial lineage identified in Section~2.5: just as antebellum banks that securitized enslaved bodies became predecessor institutions of modern financial giants, contemporary financial entities connected to documented exploitation face no structural accountability. The carceral state that processes millions of $O_{\text{racialized}}$ and $I \setminus E$ members annually for minor infractions proves structurally incapable of reaching $E$, even when the conduct in question involves the gravest offenses against the most vulnerable. The Epstein case does not merely illustrate Elite immunity---it demonstrates that the Predatory Min-Max Function's asymmetry extends to the most extreme domains: the same system that imprisons citizens for possessing cannabis (Section~3.2) cannot hold accountable those within $E$ whose offenses are orders of magnitude more severe.
+
+The mathematical architecture identified here---ideological cover masking extraction by a dominant variable, with a buffer class absorbing psychological wages in lieu of material benefit---is structurally scalable. It appears not only at the societal level analyzed in this paper but at interpersonal scales as well. A companion analysis demonstrates that the same formal structure---asymmetric autonomy restriction justified by spurious ideological claims, with selective empathy enforcing compliance---operates within intimate relationships that employ what might be called pseudo-hybrid asymmetric monogamy, suggesting that oppressive architectures are fractal: the same design principles recur across scales of human organization.
+
 The incorporation of set theory into our analysis provides more than a quantitative tool; it reveals the \textit{logic} of systemic oppression. Racism is not an aberration or a failure of the American system---it is a \textit{feature} designed to prevent the kind of cross-racial class solidarity that briefly emerged in Bacon's Rebellion and threatened to emerge again during the Civil Rights era \cite{robinson, allen, bonillasilva}.
 
-\section{Conclusion}
+\chapter{Conclusion}
 
-Redefining racism to encompass its systemic dimensions and historical roots offers a more comprehensive understanding of the issue, illuminating the pathways through which racial inequalities are perpetuated. More importantly, the Predatory Min-Max Function formalized in Section 4 reveals that the system's governing logic---maximizing extraction while minimizing class resistance---inevitably drives the expansion of the Out-group toward $O_{\text{final}} = \text{Everyone} \setminus E$.
+Redefining racism to encompass its systemic dimensions and historical roots offers a more comprehensive understanding of the issue, illuminating the pathways through which racial inequalities are perpetuated. More importantly, the Predatory Min-Max Function formalized in Chapter 4 reveals that the system's governing logic---maximizing extraction while minimizing class resistance---inevitably drives the expansion of the Out-group toward $O_{\text{final}} = \text{Everyone} \setminus E$.
 
 This framework has significant implications for anti-racist strategy. If racism operates as an Elite optimization algorithm that uses racial division to prevent class solidarity, then combating racism requires not only addressing racial disparities but also building coalitions across racial lines that recognize shared economic interests. The ``wages of whiteness''---the psychological bribe offered to $I \setminus E$ in exchange for policing the buffer (Section 4.3)---must be exposed as a poor bargain that leaves them increasingly vulnerable to the same systems of extraction.
 
@@ -932,6 +1343,8 @@ The history of American racism, properly understood through the algorithmic lens
 The battle against systemic racism is thus inseparable from the battle against systemic economic exploitation. By embracing this expanded understanding, scholars, policymakers, and the public can engage more effectively in the fight for justice---recognizing that the liberation of the Out-group and the liberation of the broader In-group from Elite manipulation are ultimately the same struggle.
 
 Through a committed and unified approach that transcends racial division, we can aspire to create a society where no group is systematically oppressed to benefit another---including the small Elite that has, for centuries, profited from keeping the rest of us divided.
+
+\backmatter
 
 \begin{thebibliography}{99}
 
@@ -1072,6 +1485,50 @@ Pigeaud, F. and Sylla, N.S. \textit{Africa's Last Colonial Currency: The CFA Fra
 
 \bibitem{rodney}
 Rodney, W. \textit{How Europe Underdeveloped Africa}. London: Bogle-L'Ouverture Publications, 1972.
+
+% --- Elite Policy Capture ---
+
+\bibitem{gilens}
+Gilens, M. and Page, B.I. ``Testing Theories of American Politics: Elites, Interest Groups, and Average Citizens.'' \textit{Perspectives on Politics} 12, no.\ 3 (September 2014): 564--581.
+
+% --- Cannabis Pharmacopeia and Drug War History ---
+
+\bibitem{osler}
+Osler, W. \textit{The Principles and Practice of Medicine}. New York: D.\ Appleton and Company, 1892.
+
+\bibitem{musto}
+Musto, D.F. \textit{The American Disease: Origins of Narcotic Control}. 3rd ed. Oxford: Oxford University Press, 1999.
+
+\bibitem{bonnie}
+Bonnie, R.J. and Whitebread, C.H. \textit{The Marijuana Conviction: A History of Marijuana Prohibition in the United States}. New York: Linnet Books, 1999.
+
+% --- Policing Origins and Expansion ---
+
+\bibitem{hadden}
+Hadden, S.E. \textit{Slave Patrols: Law and Violence in Virginia and the Carolinas}. Cambridge, MA: Harvard University Press, 2001.
+
+\bibitem{silverglate}
+Silverglate, H.A. \textit{Three Felonies a Day: How the Feds Target the Innocent}. New York: Encounter Books, 2009.
+
+\bibitem{wilson}
+Wilson, J.Q. and Kelling, G.L. ``Broken Windows: The Police and Neighborhood Safety.'' \textit{The Atlantic Monthly} 249, no.\ 3 (March 1982): 29--38.
+
+\bibitem{harcourt}
+Harcourt, B.E. \textit{Illusion of Order: The False Promise of Broken Windows Policing}. Cambridge, MA: Harvard University Press, 2001.
+
+\bibitem{webb}
+Webb, G. \textit{Dark Alliance: The CIA, the Contras, and the Crack Cocaine Explosion}. New York: Seven Stories Press, 1998.
+
+% --- Epstein Network and Elite Immunity ---
+
+\bibitem{epsteinact}
+Epstein Files Transparency Act, Pub.\ L.\ No.\ 119-38 (2025).
+
+\bibitem{ohchr2026}
+Office of the UN High Commissioner for Human Rights. ``Flawed Epstein Files Disclosures Undermine Accountability for Grave Crimes.'' Press Release, February 18, 2026.
+
+\bibitem{apolloepstein}
+Patterson, T. ``How Wall Street's Apollo Got Tangled Up Again in the Epstein Files.'' CNN Business, February 21, 2026.
 
 \end{thebibliography}
 

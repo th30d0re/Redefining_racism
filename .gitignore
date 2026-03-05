@@ -1,2 +1,18 @@
 critique/
 swiftDocs/
+
+# LaTeX auxiliary files
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+
+# macOS system files
+.DS_Store
+
+# Xcode user state files
+*.xcuserstate
+xcuserdata/
