@@ -1,0 +1,1425 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global}
+    \entry{analyzing_late_20th_century_crime_surge_ref_012}{misc}{}
+      \field{sortinit}{}
+      \field{sortinithash}{495dc9894017a8b12cafa9c619d10c0c}
+      \field{note}{Chapter}
+      \true{nocite}
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_083}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{'The Great Crime Decline in the 1990s'' cause for optimism - Vanderbilt Law School}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://law.vanderbilt.edu/the-great-crime-decline-in-the-1990s-cause-for-optimism/
+      \endverb
+      \verb{url}
+      \verb https://law.vanderbilt.edu/the-great-crime-decline-in-the-1990s-cause-for-optimism/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_052}{online}{}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labeltitlesource}{title}
+      \field{title}{13th Amendment loophole fuels forced labour in US prisons, violating human rights and benefiting the government and companies | Walk Free}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.walkfree.org/news/2025/13th-amendment-loophole-fuels-forced-labour-in-us-prisons-violating-human-rights-and-benefiting-the-government-and-companies/
+      \endverb
+      \verb{url}
+      \verb https://www.walkfree.org/news/2025/13th-amendment-loophole-fuels-forced-labour-in-us-prisons-violating-human-rights-and-benefiting-the-government-and-companies/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_068}{online}{}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labeltitlesource}{title}
+      \field{title}{3 Ways the 1994 Crime Bill Continues to Hurt Communities of Color}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.americanprogress.org/article/3-ways-1994-crime-bill-continues-hurt-communities-color/
+      \endverb
+      \verb{url}
+      \verb https://www.americanprogress.org/article/3-ways-1994-crime-bill-continues-hurt-communities-color/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_066}{online}{}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labeltitlesource}{title}
+      \field{title}{A Critical Analysis of the 'Broken Windows' Policing in New York City and Its Impact: Implications for the Criminal Justice System and the African American Community - Digital Scholarship@Texas Southern University}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://digitalscholarship.tsu.edu/ajcjs/vol11/iss1/6/
+      \endverb
+      \verb{url}
+      \verb https://digitalscholarship.tsu.edu/ajcjs/vol11/iss1/6/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_065}{online}{}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labeltitlesource}{title}
+      \field{title}{A Millennial's Guide to 'Broken Windows' | Institution for Social and Policy Studies}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://isps.yale.edu/news/blog/2015/05/a-millennial\%E2\%80\%99s-guide-to-\%E2\%80\%98broken-windows\%E2\%80\%99
+      \endverb
+      \verb{url}
+      \verb https://isps.yale.edu/news/blog/2015/05/a-millennial%5C%E2%5C%80%5C%99s-guide-to-%5C%E2%5C%80%5C%98broken-windows%5C%E2%5C%80%5C%99
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_056}{online}{}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labeltitlesource}{title}
+      \field{title}{All Eyez on Me': America's War on Drugs and the Prison-Industrial Complex}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://lawrepository.ualr.edu/faculty_scholarship/227/
+      \endverb
+      \verb{url}
+      \verb https://lawrepository.ualr.edu/faculty_scholarship/227/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_041}{online}{}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labeltitlesource}{title}
+      \field{title}{Assessing the Legacies of Historical Redlining | Urban Institute}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.urban.org/sites/default/files/2023-01/Addressing\%20the\%20Legacies\%20of\%20Historical\%20Redlining.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.urban.org/sites/default/files/2023-01/Addressing%5C%20the%5C%20Legacies%5C%20of%5C%20Historical%5C%20Redlining.pdf
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_059}{online}{}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labeltitlesource}{title}
+      \field{title}{Bias and the Bias: The Racial Shift in Reagan's Drug War by Sabrina Feldman}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://criticaldebateshsgj.scholasticahq.com/post/2952-bias-and-the-bias-the-racial-shift-in-reagan-s-drug-war-by-sabrina-feldman
+      \endverb
+      \verb{url}
+      \verb https://criticaldebateshsgj.scholasticahq.com/post/2952-bias-and-the-bias-the-racial-shift-in-reagan-s-drug-war-by-sabrina-feldman
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_073}{online}{}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labeltitlesource}{title}
+      \field{title}{Bill Clinton Was Right: Blacks Supported the Crime Bill (And that Should Surprise No One)}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.historynewsnetwork.org/article/bill-clinton-was-right-blacks-supported-the-crime-
+      \endverb
+      \verb{url}
+      \verb https://www.historynewsnetwork.org/article/bill-clinton-was-right-blacks-supported-the-crime-
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_070}{online}{}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labeltitlesource}{title}
+      \field{title}{Bill Clinton, 'Black Lives'' and the Myths of the 1994 Crime Bill | The Marshall Project}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.themarshallproject.org/2016/04/11/bill-clinton-black-lives-and-the-myths-of-the-1994-crime-bill
+      \endverb
+      \verb{url}
+      \verb https://www.themarshallproject.org/2016/04/11/bill-clinton-black-lives-and-the-myths-of-the-1994-crime-bill
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_015}{online}{}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labeltitlesource}{title}
+      \field{title}{Broken Windows, Informal Social Control, and Crime: Assessing Causality in Empirical Studies - PMC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC8059646/
+      \endverb
+      \verb{url}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC8059646/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_037}{online}{}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labeltitlesource}{title}
+      \field{title}{Cohort Variation in U.S. Violent Crime Patterns from 1960 to 2014 - PMC - NIH}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC10237532/
+      \endverb
+      \verb{url}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC10237532/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_060}{online}{}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labeltitlesource}{title}
+      \field{title}{Crack in Los Angeles: Crisis, Militarization, and Black Response to the Late Twentieth-Century War on Drugs}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://diversity.williams.edu/davis-center/files/2015/05/Crack-in-Los-Angeles-Crisis-Militarization-and-Black-Response-to-the-Late-Twentieth-Century-War-on-Drugs.pdf
+      \endverb
+      \verb{url}
+      \verb https://diversity.williams.edu/davis-center/files/2015/05/Crack-in-Los-Angeles-Crisis-Militarization-and-Black-Response-to-the-Late-Twentieth-Century-War-on-Drugs.pdf
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_077}{online}{}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labeltitlesource}{title}
+      \field{title}{Crime in the United States - Wikipedia}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/Crime_in_the_United_States
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/Crime_in_the_United_States
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_001}{online}{}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labeltitlesource}{title}
+      \field{title}{Criminal Victimization, 1973-95}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://bjs.ojp.gov/content/pub/pdf/Cv73_95.pdf
+      \endverb
+      \verb{url}
+      \verb https://bjs.ojp.gov/content/pub/pdf/Cv73_95.pdf
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_009}{online}{}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labeltitlesource}{title}
+      \field{title}{Criminological Theory and Social Policy - Sage}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://uk.sagepub.com/sites/default/files/upm-assets/16075_book_item_16075.pdf
+      \endverb
+      \verb{url}
+      \verb https://uk.sagepub.com/sites/default/files/upm-assets/16075_book_item_16075.pdf
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_080}{online}{}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labeltitlesource}{title}
+      \field{title}{Did Getting Tough on Crime Pay? | Urban Institute}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.urban.org/sites/default/files/publication/70411/307337-Did-Getting-Tough-on-Crime-Pay-.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.urban.org/sites/default/files/publication/70411/307337-Did-Getting-Tough-on-Crime-Pay-.pdf
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_069}{online}{}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labeltitlesource}{title}
+      \field{title}{Did the 1994 crime bill cause mass incarceration? - Brookings Institution}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.brookings.edu/articles/did-the-1994-crime-bill-cause-mass-incarceration/
+      \endverb
+      \verb{url}
+      \verb https://www.brookings.edu/articles/did-the-1994-crime-bill-cause-mass-incarceration/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_026}{online}{}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labeltitlesource}{title}
+      \field{title}{Did the elimination of lead from petrol reduce crime in the USA in the 1990s? - PMC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC3829390/
+      \endverb
+      \verb{url}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC3829390/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_019}{online}{}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labeltitlesource}{title}
+      \field{title}{Early and Classical Criminological Theories - Sage Publishing}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://us.sagepub.com/sites/default/files/upm-assets/97953_book_item_97953.pdf
+      \endverb
+      \verb{url}
+      \verb https://us.sagepub.com/sites/default/files/upm-assets/97953_book_item_97953.pdf
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_046}{online}{}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labeltitlesource}{title}
+      \field{title}{Erasing the Redline | AAC\&U}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.aacu.org/liberaleducation/articles/erasing-the-redline
+      \endverb
+      \verb{url}
+      \verb https://www.aacu.org/liberaleducation/articles/erasing-the-redline
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_003}{online}{}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{labeltitlesource}{title}
+      \field{title}{FBI --- Violent Crime}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://ucr.fbi.gov/crime-in-the-u.s/2019/crime-in-the-u.s.-2019/topic-pages/violent-crime
+      \endverb
+      \verb{url}
+      \verb https://ucr.fbi.gov/crime-in-the-u.s/2019/crime-in-the-u.s.-2019/topic-pages/violent-crime
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_063}{online}{}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{labeltitlesource}{title}
+      \field{title}{Fifty Years Ago Today, President Nixon Declared the War on Drugs | Vera Institute}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.vera.org/news/fifty-years-ago-today-president-nixon-declared-the-war-on-drugs
+      \endverb
+      \verb{url}
+      \verb https://www.vera.org/news/fifty-years-ago-today-president-nixon-declared-the-war-on-drugs
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_054}{online}{}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{labeltitlesource}{title}
+      \field{title}{From Convict Leasing to Today's Prison Labor System - New Jersey State Bar Foundation}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://njsbf.org/2025/04/24/from-convict-leasing-to-todays-prison-labor-system/
+      \endverb
+      \verb{url}
+      \verb https://njsbf.org/2025/04/24/from-convict-leasing-to-todays-prison-labor-system/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_016}{online}{}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{labeltitlesource}{title}
+      \field{title}{Full article: On the Origins of the Violent Neighborhood: A Study of the Nature and Predictors of Crime‐Type Differentiation across Chicago Neighborhoods - Taylor \& Francis}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.tandfonline.com/doi/full/10.1080/07418820902763079
+      \endverb
+      \verb{url}
+      \verb https://www.tandfonline.com/doi/full/10.1080/07418820902763079
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_018}{online}{}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labeltitlesource}{title}
+      \field{title}{GENERAL STRAIN THEORY, PERSISTENCE, AND DESISTANCE AMONG YOUNG ADULT MALES - PMC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC3076789/
+      \endverb
+      \verb{url}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC3076789/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_042}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{Historical Redlining and Contemporary Violent Victimization Over the Life Course - PMC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC11416311/
+      \endverb
+      \verb{url}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC11416311/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_043}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{Historical Redlining and the Epidemiology of Present-Day Firearm Violence in the United States: A Multi-City Analysis - PMC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC10155117/
+      \endverb
+      \verb{url}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC10155117/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_047}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{History of Eastern State Penitentiary}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://easternstate.org/about/history-of-eastern-state-penitentiary
+      \endverb
+      \verb{url}
+      \verb https://easternstate.org/about/history-of-eastern-state-penitentiary
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_048}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{History of United States prison systems - Wikipedia}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/History_of_United_States_prison_systems
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/History_of_United_States_prison_systems
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_035}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{History of Youth Gangs}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://ojjdp.ojp.gov/sites/g/files/xyckuh176/files/jjbulletin/9808/history.html
+      \endverb
+      \verb{url}
+      \verb https://ojjdp.ojp.gov/sites/g/files/xyckuh176/files/jjbulletin/9808/history.html
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_004}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{Homicide trends in the United States - Bureau of Justice Statistics}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://bjs.ojp.gov/content/pub/pdf/htius.pdf
+      \endverb
+      \verb{url}
+      \verb https://bjs.ojp.gov/content/pub/pdf/htius.pdf
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_006}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{Homicide Trends in the United States, 1980-2008 - Bureau of Justice Statistics}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://bjs.ojp.gov/content/pub/pdf/htus8008.pdf
+      \endverb
+      \verb{url}
+      \verb https://bjs.ojp.gov/content/pub/pdf/htus8008.pdf
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_034}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{How Bad Was Crack Cocaine? | Chicago Booth Review}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.chicagobooth.edu/review/how-bad-was-crack-cocaine
+      \endverb
+      \verb{url}
+      \verb https://www.chicagobooth.edu/review/how-bad-was-crack-cocaine
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_067}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{How New York City Reduced Mass Incarceration: A Model for Change?}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.brennancenter.org/our-work/research-reports/how-new-york-city-reduced-mass-incarceration-model-change
+      \endverb
+      \verb{url}
+      \verb https://www.brennancenter.org/our-work/research-reports/how-new-york-city-reduced-mass-incarceration-model-change
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_050}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{How the 1994 Crime Bill Fed the Mass Incarceration Crisis | American Civil Liberties Union}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.aclu.org/news/smart-justice/how-1994-crime-bill-fed-mass-incarceration-crisis
+      \endverb
+      \verb{url}
+      \verb https://www.aclu.org/news/smart-justice/how-1994-crime-bill-fed-mass-incarceration-crisis
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_008}{online}{}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labeltitlesource}{title}
+      \field{title}{Lead and Crime: A Review of the Evidence and the Path Forward - Manhattan Institute}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://manhattan.institute/article/lead-and-crime-a-review-of-the-evidence-and-the-path-forward
+      \endverb
+      \verb{url}
+      \verb https://manhattan.institute/article/lead-and-crime-a-review-of-the-evidence-and-the-path-forward
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_027}{online}{}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labeltitlesource}{title}
+      \field{title}{Lead--crime hypothesis - Wikipedia}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/Lead\%E2\%80\%93crime_hypothesis
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/Lead%5C%E2%5C%80%5C%93crime_hypothesis
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_071}{online}{}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labeltitlesource}{title}
+      \field{title}{Locking Up Our Own: Crime \& Punishment in Black America - Braver Angels}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://braverangels.org/library/resources/locking-up-our-own-crime-punishment-in-black-america/
+      \endverb
+      \verb{url}
+      \verb https://braverangels.org/library/resources/locking-up-our-own-crime-punishment-in-black-america/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_030}{online}{}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labeltitlesource}{title}
+      \field{title}{NBER WORKING PAPER SERIES ENVIRONMENTAL POLICY AS SOCIAL POLICY? THE IMPACT OF CHILDHOOD LEAD EXPOSURE ON CRIME Jessica Wolpaw}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.nber.org/system/files/working_papers/w13097/w13097.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.nber.org/system/files/working_papers/w13097/w13097.pdf
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_029}{online}{}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labeltitlesource}{title}
+      \field{title}{New evidence that lead exposure increases crime - Brookings Institution}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.brookings.edu/articles/new-evidence-that-lead-exposure-increases-crime/
+      \endverb
+      \verb{url}
+      \verb https://www.brookings.edu/articles/new-evidence-that-lead-exposure-increases-crime/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_072}{online}{}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labeltitlesource}{title}
+      \field{title}{Professor Forman Publishes New Book, Locking Up Our Own | Yale Law School}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://law.yale.edu/yls-today/news/professor-forman-publishes-new-book-locking-our-own
+      \endverb
+      \verb{url}
+      \verb https://law.yale.edu/yls-today/news/professor-forman-publishes-new-book-locking-our-own
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_057}{online}{}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labeltitlesource}{title}
+      \field{title}{Race and the War on Drugs - NACDL}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.nacdl.org/Content/Race-and-the-War-on-Drugs
+      \endverb
+      \verb{url}
+      \verb https://www.nacdl.org/Content/Race-and-the-War-on-Drugs
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_076}{online}{}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labeltitlesource}{title}
+      \field{title}{RACIAL CRITIQUES OF MASS INCARCERATION: BEYOND THE NEW JIM CROW - NYU Law Review}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.nyulawreview.org/wp-content/uploads/2018/08/NYULawReview-87-1-Forman_Jr.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.nyulawreview.org/wp-content/uploads/2018/08/NYULawReview-87-1-Forman_Jr.pdf
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_045}{online}{}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labeltitlesource}{title}
+      \field{title}{Redlining and Lead Poisoning: Causes and Consequences - PubMed}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pubmed.ncbi.nlm.nih.gov/37464504/
+      \endverb
+      \verb{url}
+      \verb https://pubmed.ncbi.nlm.nih.gov/37464504/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_044}{online}{}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labeltitlesource}{title}
+      \field{title}{Redlining and Lead Poisoning: Causes and Consequences - ResearchGate}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.researchgate.net/publication/368658407_Redlining_and_Lead_Poisoning_Causes_and_Consequences
+      \endverb
+      \verb{url}
+      \verb https://www.researchgate.net/publication/368658407_Redlining_and_Lead_Poisoning_Causes_and_Consequences
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_031}{online}{}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labeltitlesource}{title}
+      \field{title}{Research Roundup: Lead Exposure Causes Crime - Niskanen Center}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.niskanencenter.org/research-roundup-lead-exposure-causes-crime/
+      \endverb
+      \verb{url}
+      \verb https://www.niskanencenter.org/research-roundup-lead-exposure-causes-crime/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_040}{online}{}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labeltitlesource}{title}
+      \field{title}{Residents of redlined communities experience higher rates of violence, according to new study from Alexander Testa, PhD - UTHealth Houston School of Public Health}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://sph.uth.edu/news/story/residents-of-redlined-communities-experience-higher-rates-of-violence-according-to-new-study-from-alexander-testa-phd
+      \endverb
+      \verb{url}
+      \verb https://sph.uth.edu/news/story/residents-of-redlined-communities-experience-higher-rates-of-violence-according-to-new-study-from-alexander-testa-phd
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_049}{online}{}
+      \field{sortinit}{s}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labeltitlesource}{title}
+      \field{title}{seminary of virtue: the ideology and practice of inmate reform at eastern state penitentiary - Temple University}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://scholarshare.temple.edu/server/api/core/bitstreams/73fc4035-ab3c-4819-9576-a63667a218f8/content
+      \endverb
+      \verb{url}
+      \verb https://scholarshare.temple.edu/server/api/core/bitstreams/73fc4035-ab3c-4819-9576-a63667a218f8/content
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_064}{online}{}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labeltitlesource}{title}
+      \field{title}{Shattering 'Broken Windows'' - Prison Policy Initiative}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.prisonpolicy.org/scans/windows.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.prisonpolicy.org/scans/windows.pdf
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_013}{online}{}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labeltitlesource}{title}
+      \field{title}{Social Disorganization Theory | Social Sciences and Humanities | Research Starters}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.ebsco.com/research-starters/social-sciences-and-humanities/social-disorganization-theory
+      \endverb
+      \verb{url}
+      \verb https://www.ebsco.com/research-starters/social-sciences-and-humanities/social-disorganization-theory
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_017}{online}{}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labeltitlesource}{title}
+      \field{title}{Social Disorganization Theory and Crime in West Virginia - Marshall Digital Scholar}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://mds.marshall.edu/cgi/viewcontent.cgi?article=1554&context=etd
+      \endverb
+      \verb{url}
+      \verb https://mds.marshall.edu/cgi/viewcontent.cgi?article=1554&context=etd
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_010}{online}{}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labeltitlesource}{title}
+      \field{title}{Social Structure Theories and Crime -- Criminology: Foundations and Modern Applications}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://cod.pressbooks.pub/criminology/chapter/social-structure-and-crime/
+      \endverb
+      \verb{url}
+      \verb https://cod.pressbooks.pub/criminology/chapter/social-structure-and-crime/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_028}{online}{}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labeltitlesource}{title}
+      \field{title}{Studies Show Lead Linked to Violent Crime Trends - Equal Justice Initiative}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://eji.org/news/studies-show-lead-linked-to-violent-crime-trends/
+      \endverb
+      \verb{url}
+      \verb https://eji.org/news/studies-show-lead-linked-to-violent-crime-trends/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_011}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The 'born criminal'? Lombroso and the origins of modern criminology - HistoryExtra}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.historyextra.com/period/victorian/the-born-criminal-lombroso-and-the-origins-of-modern-criminology/
+      \endverb
+      \verb{url}
+      \verb https://www.historyextra.com/period/victorian/the-born-criminal-lombroso-and-the-origins-of-modern-criminology/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_007}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The 1970s Crime Wave | Mercatus Center}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.mercatus.org/marginal-revolution-podcast/1970s-crime-wave
+      \endverb
+      \verb{url}
+      \verb https://www.mercatus.org/marginal-revolution-podcast/1970s-crime-wave
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_075}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The 1994 Crime Bill and Beyond: How Federal Funding Shapes the Criminal Justice System}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.brennancenter.org/our-work/analysis-opinion/1994-crime-bill-and-beyond-how-federal-funding-shapes-criminal-justice
+      \endverb
+      \verb{url}
+      \verb https://www.brennancenter.org/our-work/analysis-opinion/1994-crime-bill-and-beyond-how-federal-funding-shapes-criminal-justice
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_032}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The 1994 Federal Crime Bill: An Evaluation of the Past, Present, and Future of its Impact on the Criminal Justice System}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://digitalcommons.georgiasouthern.edu/cgi/viewcontent.cgi?article=1817&context=honors-theses
+      \endverb
+      \verb{url}
+      \verb https://digitalcommons.georgiasouthern.edu/cgi/viewcontent.cgi?article=1817&context=honors-theses
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_051}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Convict Leasing System: Slavery in its Worst Aspects | Inside Adams}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://blogs.loc.gov/inside_adams/2021/06/convict-leasing-system/
+      \endverb
+      \verb{url}
+      \verb https://blogs.loc.gov/inside_adams/2021/06/convict-leasing-system/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_058}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Discriminatory Consequences of America's War on Drugs - New Jersey State Bar Foundation}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://njsbf.org/2024/08/12/the-discriminatory-consequences-of-americas-war-on-drugs/
+      \endverb
+      \verb{url}
+      \verb https://njsbf.org/2024/08/12/the-discriminatory-consequences-of-americas-war-on-drugs/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_038}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Effects of 'Youth Bulge' on Civil Conflicts | Council on Foreign Relations}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.cfr.org/backgrounders/effects-youth-bulge-civil-conflicts
+      \endverb
+      \verb{url}
+      \verb https://www.cfr.org/backgrounders/effects-youth-bulge-civil-conflicts
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_021}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{THE EVOLUTION OF CRIMINOLOGICAL THEORIES - Summit Research Repository}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://summit.sfu.ca/_flysystem/fedora/sfu_migrate/12035/etd6941_JHeidt.pdf
+      \endverb
+      \verb{url}
+      \verb https://summit.sfu.ca/_flysystem/fedora/sfu_migrate/12035/etd6941_JHeidt.pdf
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_062}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The History of Mass Incarceration | Brennan Center for Justice}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.brennancenter.org/our-work/analysis-opinion/history-mass-incarceration
+      \endverb
+      \verb{url}
+      \verb https://www.brennancenter.org/our-work/analysis-opinion/history-mass-incarceration
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_025}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Labor Market Context of Neighborhood Crime: A Multilevel Analysis - Taylor \& Francis}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.tandfonline.com/doi/full/10.1080/00380237.2025.2588763
+      \endverb
+      \verb{url}
+      \verb https://www.tandfonline.com/doi/full/10.1080/00380237.2025.2588763
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_061}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Racial Politics of Mass Incarceration | Perspectives on Politics | Cambridge Core}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.cambridge.org/core/journals/perspectives-on-politics/article/racial-politics-of-mass-incarceration/AFACD9961C033278E40CA5E23A30D717
+      \endverb
+      \verb{url}
+      \verb https://www.cambridge.org/core/journals/perspectives-on-politics/article/racial-politics-of-mass-incarceration/AFACD9961C033278E40CA5E23A30D717
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_039}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Relationship of Historical Redlining with Present-Day Neighborhood Environmental and Health Outcomes: A Scoping Review and Conceptual Model - PMC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC9342590/
+      \endverb
+      \verb{url}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC9342590/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_036}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Rise and Fall of American Youth Violence: 1980 to 2000 - Urban Institute}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.urban.org/sites/default/files/publication/60381/410437-The-Rise-and-Fall-of-American-Youth-Violence.PDF
+      \endverb
+      \verb{url}
+      \verb https://www.urban.org/sites/default/files/publication/60381/410437-The-Rise-and-Fall-of-American-Youth-Violence.PDF
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_053}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Secret History of the Carceral State - DigitalCommons@UM ...}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://digitalcommons.law.umaryland.edu/cgi/viewcontent.cgi?article=4026&context=mlr
+      \endverb
+      \verb{url}
+      \verb https://digitalcommons.law.umaryland.edu/cgi/viewcontent.cgi?article=4026&context=mlr
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_024}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Social Costs Of Deindustrialization - Youngstown State University}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://ysu.edu/center-working-class-studies/social-costs-deindustrialization
+      \endverb
+      \verb{url}
+      \verb https://ysu.edu/center-working-class-studies/social-costs-deindustrialization
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_023}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{Theoretical Developments in Criminology}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.ojp.gov/criminal_justice2000/vol_1/02b.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.ojp.gov/criminal_justice2000/vol_1/02b.pdf
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_022}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{Theories and causes of crime | SCCJR}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.sccjr.ac.uk/wp-content/uploads/2016/02/SCCJR-Causes-of-Crime.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.sccjr.ac.uk/wp-content/uploads/2016/02/SCCJR-Causes-of-Crime.pdf
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_033}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{These Economists Think Guns, Not the Crack Epidemic, Drove the '90s Murder Boom}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.thetrace.org/2018/08/guns-supply-shock-crack-epidemic-murder-rates/
+      \endverb
+      \verb{url}
+      \verb https://www.thetrace.org/2018/08/guns-supply-shock-crack-epidemic-murder-rates/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_074}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{Three Lessons for Criminal Law Reformers - California Law Review}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.californialawreview.org/print/three-lessons-for-criminal-law-reformers-from-locking-up-our-own
+      \endverb
+      \verb{url}
+      \verb https://www.californialawreview.org/print/three-lessons-for-criminal-law-reformers-from-locking-up-our-own
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_078}{online}{}
+      \field{sortinit}{U}
+      \field{sortinithash}{6901a00e45705986ee5e7ca9fd39adca}
+      \field{labeltitlesource}{title}
+      \field{title}{Understanding Why Crime Fell in the 1990s: Four Factors that ...}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.aeaweb.org/articles?id=10.1257/089533004773563485
+      \endverb
+      \verb{url}
+      \verb https://www.aeaweb.org/articles?id=10.1257/089533004773563485
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_082}{online}{}
+      \field{sortinit}{U}
+      \field{sortinithash}{6901a00e45705986ee5e7ca9fd39adca}
+      \field{labeltitlesource}{title}
+      \field{title}{Understanding Why Crime Fell in the 1990s: Four Factors that Explain the Decline and Six that Do Not - Price Theory}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pricetheory.uchicago.edu/levitt/Papers/LevittUnderstandingWhyCrime2004.pdf
+      \endverb
+      \verb{url}
+      \verb https://pricetheory.uchicago.edu/levitt/Papers/LevittUnderstandingWhyCrime2004.pdf
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_005}{online}{}
+      \field{sortinit}{U}
+      \field{sortinithash}{6901a00e45705986ee5e7ca9fd39adca}
+      \field{labeltitlesource}{title}
+      \field{title}{United States Crime Rates 1960 t0 2019 - The Disaster Center}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.disastercenter.com/crime/uscrime.htm
+      \endverb
+      \verb{url}
+      \verb https://www.disastercenter.com/crime/uscrime.htm
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_014}{online}{}
+      \field{sortinit}{U}
+      \field{sortinithash}{6901a00e45705986ee5e7ca9fd39adca}
+      \field{labeltitlesource}{title}
+      \field{title}{Urban Poverty and Neighborhood Effects on Crime: Incorporating Spatial and Network Perspectives - PMC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC4928692/
+      \endverb
+      \verb{url}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC4928692/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_002}{online}{}
+      \field{sortinit}{V}
+      \field{sortinithash}{afb52128e5b4dc4b843768c0113d673b}
+      \field{labeltitlesource}{title}
+      \field{title}{Violent Crime - Bureau of Justice Statistics}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://bjs.ojp.gov/topics/crime/violent-crime
+      \endverb
+      \verb{url}
+      \verb https://bjs.ojp.gov/topics/crime/violent-crime
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_055}{online}{}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labeltitlesource}{title}
+      \field{title}{War on Drugs | History \& Mass Incarceration | Britannica}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.britannica.com/topic/war-on-drugs
+      \endverb
+      \verb{url}
+      \verb https://www.britannica.com/topic/war-on-drugs
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_081}{online}{}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labeltitlesource}{title}
+      \field{title}{What Caused the Crime Decline? | Brennan Center for Justice}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.brennancenter.org/our-work/research-reports/what-caused-crime-decline
+      \endverb
+      \verb{url}
+      \verb https://www.brennancenter.org/our-work/research-reports/what-caused-crime-decline
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_079}{online}{}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labeltitlesource}{title}
+      \field{title}{What the data says about crime in the U.S. - Pew Research Center}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.pewresearch.org/short-reads/2024/04/24/what-the-data-says-about-crime-in-the-us/
+      \endverb
+      \verb{url}
+      \verb https://www.pewresearch.org/short-reads/2024/04/24/what-the-data-says-about-crime-in-the-us/
+      \endverb
+    \endentry
+    \entry{analyzing_late_20th_century_crime_surge_ref_020}{online}{}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labeltitlesource}{title}
+      \field{title}{Why did the number of serial killers and victims spike from the late 70's through the early 90's? - Reddit}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.reddit.com/r/AskHistorians/comments/rfxew9/why_did_the_number_of_serial_killers_and_victims/
+      \endverb
+      \verb{url}
+      \verb https://www.reddit.com/r/AskHistorians/comments/rfxew9/why_did_the_number_of_serial_killers_and_victims/
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

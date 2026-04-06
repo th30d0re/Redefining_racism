@@ -1,0 +1,977 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global}
+    \entry{prohibition_era_violence_and_gangs_ref_027}{online}{}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labeltitlesource}{title}
+      \field{title}{'Striking the Roots of Crime: The Impact of the New Deal on Criminal Activity'' Ryan S. Johnsona, Shawn Kantorb, and Price V}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://economics.ucr.edu/wp-content/uploads/2019/11/04-06-05ShawnKantor.pdf
+      \endverb
+      \verb{url}
+      \verb https://economics.ucr.edu/wp-content/uploads/2019/11/04-06-05ShawnKantor.pdf
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_046}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{'To Wage a War'': Crime, Race, and State Making in the Age of FDR | Studies in American Political Development - Cambridge University Press}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.cambridge.org/core/journals/studies-in-american-political-development/article/to-wage-a-war-crime-race-and-state-making-in-the-age-of-fdr/332D9E4AB9A4E412FA351EE686F39C66
+      \endverb
+      \verb{url}
+      \verb https://www.cambridge.org/core/journals/studies-in-american-political-development/article/to-wage-a-war-crime-race-and-state-making-in-the-age-of-fdr/332D9E4AB9A4E412FA351EE686F39C66
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_056}{online}{}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labeltitlesource}{title}
+      \field{title}{Alcohol Prohibition - EH.net}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://eh.net/encyclopedia/alcohol-prohibition/
+      \endverb
+      \verb{url}
+      \verb https://eh.net/encyclopedia/alcohol-prohibition/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_008}{online}{}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labeltitlesource}{title}
+      \field{title}{Alcohol Prohibition Was a Failure - Cato Institute}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.cato.org/policy-analysis/alcohol-prohibition-was-failure
+      \endverb
+      \verb{url}
+      \verb https://www.cato.org/policy-analysis/alcohol-prohibition-was-failure
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_005}{online}{}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labeltitlesource}{title}
+      \field{title}{American organized crime of the 1920s | History | Research Starters - EBSCO}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.ebsco.com/research-starters/history/american-organized-crime-1920s
+      \endverb
+      \verb{url}
+      \verb https://www.ebsco.com/research-starters/history/american-organized-crime-1920s
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_034}{online}{}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labeltitlesource}{title}
+      \field{title}{Bootleggers and Bathtub Gin - Prohibition: An Interactive History - The Mob Museum}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://prohibition.themobmuseum.org/the-history/the-prohibition-underworld/bootleggers-and-bathtub-gin/
+      \endverb
+      \verb{url}
+      \verb https://prohibition.themobmuseum.org/the-history/the-prohibition-underworld/bootleggers-and-bathtub-gin/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_013}{online}{}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labeltitlesource}{title}
+      \field{title}{Cape Cod Rum Runners}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://capecodlife.com/cape-cod-rum-runners/
+      \endverb
+      \verb{url}
+      \verb https://capecodlife.com/cape-cod-rum-runners/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_024}{online}{}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labeltitlesource}{title}
+      \field{title}{Courier Gazette : August 29, 1922 - CORE}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://files01.core.ac.uk/download/pdf/270234055.pdf
+      \endverb
+      \verb{url}
+      \verb https://files01.core.ac.uk/download/pdf/270234055.pdf
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_049}{online}{}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labeltitlesource}{title}
+      \field{title}{Dangerous and Unusual: How an Expanding National Firearms Act Will Spell Its Own Demise}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://insight.dickinsonlaw.psu.edu/cgi/viewcontent.cgi?article=1165&context=dlr
+      \endverb
+      \verb{url}
+      \verb https://insight.dickinsonlaw.psu.edu/cgi/viewcontent.cgi?article=1165&context=dlr
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_055}{online}{}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labeltitlesource}{title}
+      \field{title}{Did the St.~Valentine's Day Massacre Spur Calls for Gun Control? - Chicago Magazine}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.chicagomag.com/chicago-magazine/february-2024/did-the-st-valentines-day-massacre-spur-calls-for-gun-control/
+      \endverb
+      \verb{url}
+      \verb https://www.chicagomag.com/chicago-magazine/february-2024/did-the-st-valentines-day-massacre-spur-calls-for-gun-control/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_045}{online}{}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{labeltitlesource}{title}
+      \field{title}{FBI Boston History --- FBI}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.fbi.gov/history/field-office-histories/boston
+      \endverb
+      \verb{url}
+      \verb https://www.fbi.gov/history/field-office-histories/boston
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_039}{online}{}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{labeltitlesource}{title}
+      \field{title}{FEDERAL BUREAU OF INVESTIGATION UNITED STATES DEPARTMENT OF JUSTICE - LEB}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://leb.fbi.gov/file-repository/archives/december-1938.pdf
+      \endverb
+      \verb{url}
+      \verb https://leb.fbi.gov/file-repository/archives/december-1938.pdf
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_010}{online}{}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{labeltitlesource}{title}
+      \field{title}{Federal Firearms Laws: Overview and Selected Legal Issues for the 116th Congress}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.everycrsreport.com/reports/R45629.html
+      \endverb
+      \verb{url}
+      \verb https://www.everycrsreport.com/reports/R45629.html
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_044}{online}{}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{labeltitlesource}{title}
+      \field{title}{Fulbright's U.S. History - Gun Control Case Study H.R. 9006 National Firearms}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://sites.google.com/view/fulbrights-u-s-history/gun-control-case-study-h-r-9006-national-firearms
+      \endverb
+      \verb{url}
+      \verb https://sites.google.com/view/fulbrights-u-s-history/gun-control-case-study-h-r-9006-national-firearms
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_038}{online}{}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labeltitlesource}{title}
+      \field{title}{Gangsters During the Depression | American Experience | Official Site - PBS}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.pbs.org/wgbh/americanexperience/features/dillinger-gangsters-during-depression/
+      \endverb
+      \verb{url}
+      \verb https://www.pbs.org/wgbh/americanexperience/features/dillinger-gangsters-during-depression/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_007}{online}{}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labeltitlesource}{title}
+      \field{title}{Gangsters of the Prohibition era | History | Research Starters - EBSCO}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.ebsco.com/research-starters/history/gangsters-prohibition-era
+      \endverb
+      \verb{url}
+      \verb https://www.ebsco.com/research-starters/history/gangsters-prohibition-era
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_022}{online}{}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labeltitlesource}{title}
+      \field{title}{Gustin Gang - Wikipedia}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/Gustin_Gang
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/Gustin_Gang
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_030}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{Homicide in Chicago from 1890 to 1930: prohibition and its impact on alcohol - PubMed}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pubmed.ncbi.nlm.nih.gov/19207343/
+      \endverb
+      \verb{url}
+      \verb https://pubmed.ncbi.nlm.nih.gov/19207343/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_031}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{Homicide Rates and Mortality Trends: Perspectives from Public-Health Scholarship}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://journals.openedition.org/chs/2025
+      \endverb
+      \verb{url}
+      \verb https://journals.openedition.org/chs/2025
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_028}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{Homicide trends in the United States - Bureau of Justice Statistics}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://bjs.ojp.gov/content/pub/pdf/htius.pdf
+      \endverb
+      \verb{url}
+      \verb https://bjs.ojp.gov/content/pub/pdf/htius.pdf
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_029}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{Homicide Trendsin the United States, 1900-74 - CDC Stacks}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://stacks.cdc.gov/view/cdc/65093/cdc_65093_DS1.pdf
+      \endverb
+      \verb{url}
+      \verb https://stacks.cdc.gov/view/cdc/65093/cdc_65093_DS1.pdf
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_048}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{How to Start (or Stop) a War on Crime: A Conceptual Cookbook - The Reading Room - Georgia State University}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://readingroom.law.gsu.edu/cgi/viewcontent.cgi?article=3345&context=gsulr
+      \endverb
+      \verb{url}
+      \verb https://readingroom.law.gsu.edu/cgi/viewcontent.cgi?article=3345&context=gsulr
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_035}{online}{}
+      \field{sortinit}{I}
+      \field{sortinithash}{8d291c51ee89b6cd86bf5379f0b151d8}
+      \field{labeltitlesource}{title}
+      \field{title}{Inside the Prohibition Era: Speakeasies and Bootleggers | UT Permian Basin Online}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://online.utpb.edu/about-us/articles/humanities/inside-the-prohibition-era-speakeasies-and-bootleggers
+      \endverb
+      \verb{url}
+      \verb https://online.utpb.edu/about-us/articles/humanities/inside-the-prohibition-era-speakeasies-and-bootleggers
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_053}{online}{}
+      \field{sortinit}{I}
+      \field{sortinithash}{8d291c51ee89b6cd86bf5379f0b151d8}
+      \field{labeltitlesource}{title}
+      \field{title}{Interwar Gun Control: A Feigned Consensus - Undergraduate Research Journals at Illinois}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://ugresearchjournals.illinois.edu/index.php/IUJH/article/download/953/823/2714
+      \endverb
+      \verb{url}
+      \verb https://ugresearchjournals.illinois.edu/index.php/IUJH/article/download/953/823/2714
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_036}{online}{}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labeltitlesource}{title}
+      \field{title}{Michigan and the St.~Valentine's Day Massacre - Michiganology}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://michiganology.org/stories/michigan-and-the-st-valentines-day-massacre/
+      \endverb
+      \verb{url}
+      \verb https://michiganology.org/stories/michigan-and-the-st-valentines-day-massacre/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_026}{online}{}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labeltitlesource}{title}
+      \field{title}{Murder and the black market: Prohibition's impact on homicide rates in American cities - HOPLOFOBIA.INFO}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.hoplofobia.info/wp-content/uploads/2013/10/2016-Prohibitions-Impact-on-Homicide-Rates-in-American-Cities.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.hoplofobia.info/wp-content/uploads/2013/10/2016-Prohibitions-Impact-on-Homicide-Rates-in-American-Cities.pdf
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_041}{online}{}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labeltitlesource}{title}
+      \field{title}{National Firearms Act - ATF}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.atf.gov/rules-and-regulations/laws-alcohol-tobacco-firearms-and-explosives/national-firearms-act
+      \endverb
+      \verb{url}
+      \verb https://www.atf.gov/rules-and-regulations/laws-alcohol-tobacco-firearms-and-explosives/national-firearms-act
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_054}{online}{}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labeltitlesource}{title}
+      \field{title}{National Firearms Act - Wikipedia}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/National_Firearms_Act
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/National_Firearms_Act
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_050}{online}{}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labeltitlesource}{title}
+      \field{title}{National Firearms Act of 1934 | Law | Research Starters - EBSCO}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.ebsco.com/research-starters/law/national-firearms-act-1934
+      \endverb
+      \verb{url}
+      \verb https://www.ebsco.com/research-starters/law/national-firearms-act-1934
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_051}{online}{}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labeltitlesource}{title}
+      \field{title}{No.~Supreme Court of the United States Petitioner, v. Respondent.}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://affordablecareactlitigation.com/wp-content/uploads/2020/04/20191007194150294_petition-for-writ-of-certiorari.pdf
+      \endverb
+      \verb{url}
+      \verb https://affordablecareactlitigation.com/wp-content/uploads/2020/04/20191007194150294_petition-for-writ-of-certiorari.pdf
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_052}{online}{}
+      \field{sortinit}{O}
+      \field{sortinithash}{2cd7140a07aea5341f9e2771efe90aae}
+      \field{labeltitlesource}{title}
+      \field{title}{Origins of the NFA - Recoil Magazine}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.recoilweb.com/origins-of-the-nfa-128767.html
+      \endverb
+      \verb{url}
+      \verb https://www.recoilweb.com/origins-of-the-nfa-128767.html
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_023}{online}{}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labeltitlesource}{title}
+      \field{title}{Patriarca crime family - Wikipedia}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/Patriarca_crime_family
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/Patriarca_crime_family
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_002}{online}{}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labeltitlesource}{title}
+      \field{title}{Prohibition Agents Lacked Training, Numbers to Battle Bootleggers}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://prohibition.themobmuseum.org/the-history/enforcing-the-prohibition-laws/law-enforcement-during-prohibition/
+      \endverb
+      \verb{url}
+      \verb https://prohibition.themobmuseum.org/the-history/enforcing-the-prohibition-laws/law-enforcement-during-prohibition/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_003}{online}{}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labeltitlesource}{title}
+      \field{title}{Prohibition and the Rise of the American Gangster - Pieces of History}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://prologue.blogs.archives.gov/2012/01/17/prohibition-and-the-rise-of-the-american-gangster/
+      \endverb
+      \verb{url}
+      \verb https://prologue.blogs.archives.gov/2012/01/17/prohibition-and-the-rise-of-the-american-gangster/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_006}{online}{}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labeltitlesource}{title}
+      \field{title}{Prohibition in the Federal Courts: A Timeline}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.fjc.gov/history/exhibits/prohibition-in-federal-courts-timeline
+      \endverb
+      \verb{url}
+      \verb https://www.fjc.gov/history/exhibits/prohibition-in-federal-courts-timeline
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_017}{online}{}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labeltitlesource}{title}
+      \field{title}{Prohibition in the United States - Wikipedia}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/Prohibition_in_the_United_States
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/Prohibition_in_the_United_States
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_015}{online}{}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labeltitlesource}{title}
+      \field{title}{Prohibition on Martha's Vineyard and Nantucket | Smugglers and Bootleggers and New York City}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://smugglersbootleggersandscofflaws.com/prohibition-and-marthas-vineyard-nantucket/
+      \endverb
+      \verb{url}
+      \verb https://smugglersbootleggersandscofflaws.com/prohibition-and-marthas-vineyard-nantucket/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_001}{online}{}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labeltitlesource}{title}
+      \field{title}{Prohibition Profits Transformed the Mob}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://prohibition.themobmuseum.org/the-history/the-rise-of-organized-crime/the-mob-during-prohibition/
+      \endverb
+      \verb{url}
+      \verb https://prohibition.themobmuseum.org/the-history/the-rise-of-organized-crime/the-mob-during-prohibition/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_025}{online}{}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labeltitlesource}{title}
+      \field{title}{Raymond Patriarca - The Mob Museum}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://themobmuseum.org/notable_names/raymond-patriarca/
+      \endverb
+      \verb{url}
+      \verb https://themobmuseum.org/notable_names/raymond-patriarca/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_019}{online}{}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labeltitlesource}{title}
+      \field{title}{Regulation - Global Commission on Drug Policy}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.globalcommissionondrugs.org/wp-content/uploads/2018/09/ENG-2018_Regulation_Report_WEB-FINAL.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.globalcommissionondrugs.org/wp-content/uploads/2018/09/ENG-2018_Regulation_Report_WEB-FINAL.pdf
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_016}{online}{}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labeltitlesource}{title}
+      \field{title}{Rum Runners - Historic Ipswich}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://historicipswich.net/2021/06/05/rum/
+      \endverb
+      \verb{url}
+      \verb https://historicipswich.net/2021/06/05/rum/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_033}{online}{}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labeltitlesource}{title}
+      \field{title}{Saint Valentine's Day Massacre - Wikipedia}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/Saint_Valentine\%27s_Day_Massacre
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/Saint_Valentine%5C%27s_Day_Massacre
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_012}{online}{}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labeltitlesource}{title}
+      \field{title}{Smugglers, Bootleggers, Scofflaws | National Archives}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.archives.gov/publications/prologue/2011/fall/smugglers-bootleggers-scofflaws
+      \endverb
+      \verb{url}
+      \verb https://www.archives.gov/publications/prologue/2011/fall/smugglers-bootleggers-scofflaws
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_037}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{That Time Mob Violence Inspired Gun Control in America | National Geographic}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.nationalgeographic.com/science/article/united-states-machine-gun-ban
+      \endverb
+      \verb{url}
+      \verb https://www.nationalgeographic.com/science/article/united-states-machine-gun-ban
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_020}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The FBI and the American Gangster, 1924-1938}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.fbi.gov/history/brief-history/the-fbi-and-the-american-gangster
+      \endverb
+      \verb{url}
+      \verb https://www.fbi.gov/history/brief-history/the-fbi-and-the-american-gangster
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_040}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The First Valentine's Day Massacre Changed Gun Laws -- Will This One? - Azhari LLC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://azharillc.com/blog/the-first-valentines-day-massacre-changed-gun-laws-will-this-one/
+      \endverb
+      \verb{url}
+      \verb https://azharillc.com/blog/the-first-valentines-day-massacre-changed-gun-laws-will-this-one/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_014}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Long Blue Line: Catching the rumrunners---Coast Guard adopts new technology during Prohibition}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.mycg.uscg.mil/News/Article/2843288/the-long-blue-line-catching-the-rumrunnerscoast-guard-adopts-new-technology-dur/
+      \endverb
+      \verb{url}
+      \verb https://www.mycg.uscg.mil/News/Article/2843288/the-long-blue-line-catching-the-rumrunnerscoast-guard-adopts-new-technology-dur/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_009}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The other massacre on Valentine's Day that changed gun laws - Poynter}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.poynter.org/reporting-editing/2018/the-other-massacre-on-valentines-day-that-changed-gun-laws/
+      \endverb
+      \verb{url}
+      \verb https://www.poynter.org/reporting-editing/2018/the-other-massacre-on-valentines-day-that-changed-gun-laws/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_032}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Repeal of Prohibition}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://prohibition.themobmuseum.org/the-history/the-end-of-prohibition/repeal-of-prohibition/
+      \endverb
+      \verb{url}
+      \verb https://prohibition.themobmuseum.org/the-history/the-end-of-prohibition/repeal-of-prohibition/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_011}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Speakeasies of the 1920s - Prohibition: An Interactive History - The Mob Museum}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://prohibition.themobmuseum.org/the-history/the-prohibition-underworld/the-speakeasies-of-the-1920s/
+      \endverb
+      \verb{url}
+      \verb https://prohibition.themobmuseum.org/the-history/the-prohibition-underworld/the-speakeasies-of-the-1920s/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_043}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Valentine's Day Massacre Tommy Guns and Birth of the NFA - Free Range American}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://freerangeamerican.us/valentines-day-massacre-gun-control/
+      \endverb
+      \verb{url}
+      \verb https://freerangeamerican.us/valentines-day-massacre-gun-control/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_042}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{Thompson submachine gun - Wikipedia}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/Thompson_submachine_gun
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/Thompson_submachine_gun
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_004}{online}{}
+      \field{sortinit}{U}
+      \field{sortinithash}{6901a00e45705986ee5e7ca9fd39adca}
+      \field{labeltitlesource}{title}
+      \field{title}{Unintended Consequences | Prohibition | Ken Burns - PBS}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.pbs.org/kenburns/prohibition/unintended-consequences
+      \endverb
+      \verb{url}
+      \verb https://www.pbs.org/kenburns/prohibition/unintended-consequences
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_018}{online}{}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labeltitlesource}{title}
+      \field{title}{We Can't Go Cold Turkey: Why Suppressing Drug Markets Endangers Society}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://ycsg.yale.edu/sites/default/files/files/we_can't_go_cold_turkey.pdf
+      \endverb
+      \verb{url}
+      \verb https://ycsg.yale.edu/sites/default/files/files/we_can't_go_cold_turkey.pdf
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_047}{online}{}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labeltitlesource}{title}
+      \field{title}{Well Regulated: The NFA hearings (2/6) -- 4/16/1934 - The Cornell Review}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.thecornellreview.org/well-regulated-the-nfa-hearings-2-6-4-16-1934/
+      \endverb
+      \verb{url}
+      \verb https://www.thecornellreview.org/well-regulated-the-nfa-hearings-2-6-4-16-1934/
+      \endverb
+    \endentry
+    \entry{prohibition_era_violence_and_gangs_ref_021}{online}{}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labeltitlesource}{title}
+      \field{title}{What Is The Best Murder Mystery Game Theme Era? 1920s Prohibition and Speakeasies}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://mastersofmystery.com/blogs/latest/prohibition-and-speakeasies-what-makes-the-1920s-the-best-murder-mystery-era
+      \endverb
+      \verb{url}
+      \verb https://mastersofmystery.com/blogs/latest/prohibition-and-speakeasies-what-makes-the-1920s-the-best-murder-mystery-era
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

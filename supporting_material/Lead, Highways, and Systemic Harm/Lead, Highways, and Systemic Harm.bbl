@@ -1,0 +1,2883 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{none/global//global/global}
+    \entry{lead_highways_and_systemic_harm_ref_001}{online}{}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labeltitlesource}{title}
+      \field{title}{Leaded Gasoline | Story Behind the Science}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.storybehindthescience.org/leaded-gasoline
+      \endverb
+      \verb{url}
+      \verb https://www.storybehindthescience.org/leaded-gasoline
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_002}{online}{}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labeltitlesource}{title}
+      \field{title}{Clair Patterson and Robert Kehoe's paradigm of 'show me the data'' on environmental lead poisoning - PubMed}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pubmed.ncbi.nlm.nih.gov/9719610/
+      \endverb
+      \verb{url}
+      \verb https://pubmed.ncbi.nlm.nih.gov/9719610/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_003}{online}{}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labeltitlesource}{title}
+      \field{title}{The Secret History of Lead - Type Investigations}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.typeinvestigations.org/investigation/2000/03/02/secret-history-lead/
+      \endverb
+      \verb{url}
+      \verb https://www.typeinvestigations.org/investigation/2000/03/02/secret-history-lead/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_004}{online}{}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labeltitlesource}{title}
+      \field{title}{Yes, lead poisoning could really be a cause of violent crime | George Monbiot | The Guardian}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.theguardian.com/commentisfree/2013/jan/07/violent-crime-lead-poisoning-british-export
+      \endverb
+      \verb{url}
+      \verb https://www.theguardian.com/commentisfree/2013/jan/07/violent-crime-lead-poisoning-british-export
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_005}{online}{}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labeltitlesource}{title}
+      \field{title}{1956 -- Federal-Aid Highway Act Displaces Black Americans - Florida Policy Timeline}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.floridatimeline.org/timeline/1956-federal-aid-highway-act-displaces-black-americans/
+      \endverb
+      \verb{url}
+      \verb https://www.floridatimeline.org/timeline/1956-federal-aid-highway-act-displaces-black-americans/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_006}{online}{}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labeltitlesource}{title}
+      \field{title}{Racism by Design: The Building of Interstate 81 | American Civil Liberties Union}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.aclu.org/news/racial-justice/racism-by-design-the-building-of-interstate-81
+      \endverb
+      \verb{url}
+      \verb https://www.aclu.org/news/racial-justice/racism-by-design-the-building-of-interstate-81
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_007}{online}{}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labeltitlesource}{title}
+      \field{title}{The Crossroads of Justice: Our Infrastructural History, Environmental Racism, and the Climate Fight - Human Rights Research Center}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.humanrightsresearch.org/post/the-crossroads-of-justice-our-infrastructural-history-environmental-racism-and-the-climate-fight
+      \endverb
+      \verb{url}
+      \verb https://www.humanrightsresearch.org/post/the-crossroads-of-justice-our-infrastructural-history-environmental-racism-and-the-climate-fight
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_008}{online}{}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labeltitlesource}{title}
+      \field{title}{The role of the Petrol Industry In Global Lead ...{} - ResearchGate}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.researchgate.net/profile/Mark-Laidlaw/publication/397884499_One_century_One_industry_Two_global_health_disasters_The_role_of_the_Petrol_Industry_In_Global_Lead_Poisoning_and_Warming/links/693bf2b527359023a00b335d/One-century-One-industry-Two-global-health-disasters-The-role-of-the-Petrol-Industry-In-Global-Lead-Poisoning-and-Warming.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.researchgate.net/profile/Mark-Laidlaw/publication/397884499_One_century_One_industry_Two_global_health_disasters_The_role_of_the_Petrol_Industry_In_Global_Lead_Poisoning_and_Warming/links/693bf2b527359023a00b335d/One-century-One-industry-Two-global-health-disasters-The-role-of-the-Petrol-Industry-In-Global-Lead-Poisoning-and-Warming.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_009}{online}{}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labeltitlesource}{title}
+      \field{title}{The Interstate Highway System as a Tool of Segregation and the Subsequent Impact on Community Health - ResearchGate}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.researchgate.net/publication/397168543_The_Interstate_Highway_System_as_a_Tool_of_Segregation_and_the_Subsequent_Impact_on_Community_Health
+      \endverb
+      \verb{url}
+      \verb https://www.researchgate.net/publication/397168543_The_Interstate_Highway_System_as_a_Tool_of_Segregation_and_the_Subsequent_Impact_on_Community_Health
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_010}{online}{}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labeltitlesource}{title}
+      \field{title}{The Zero Tax on NFA Firearms: News Article - Independent Institute}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.independent.org/article/2025/08/11/the-zero-tax-on-nfa-firearms/
+      \endverb
+      \verb{url}
+      \verb https://www.independent.org/article/2025/08/11/the-zero-tax-on-nfa-firearms/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_011}{online}{}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labeltitlesource}{title}
+      \field{title}{Analysis: Why Gun Owners of America Says the New \$0 National Firearms Tax is Unconstitutional | The Reload}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://thereload.com/analysis-why-gun-owners-of-america-says-the-new-0-national-firearms-tax-is-unconstitutional/
+      \endverb
+      \verb{url}
+      \verb https://thereload.com/analysis-why-gun-owners-of-america-says-the-new-0-national-firearms-tax-is-unconstitutional/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_012}{online}{}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labeltitlesource}{title}
+      \field{title}{The association between lead exposure and crime: A systematic review - PMC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC10393136/
+      \endverb
+      \verb{url}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC10393136/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_013}{online}{}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labeltitlesource}{title}
+      \field{title}{Environmental Policy as Social Policy? The Impact of Childhood Lead Exposure on Crime - Center for Biological Diversity}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.biologicaldiversity.org/campaigns/get_the_lead_out/pdfs/health/Reyes_2007.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.biologicaldiversity.org/campaigns/get_the_lead_out/pdfs/health/Reyes_2007.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_014}{online}{}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labeltitlesource}{title}
+      \field{title}{Tetraethyllead - Wikipedia}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/Tetraethyllead
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/Tetraethyllead
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_015}{online}{}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labeltitlesource}{title}
+      \field{title}{The Ethyl-Poisoned Earth - Damn Interesting}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.damninteresting.com/the-ethyl-poisoned-earth/
+      \endverb
+      \verb{url}
+      \verb https://www.damninteresting.com/the-ethyl-poisoned-earth/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_016}{online}{}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labeltitlesource}{title}
+      \field{title}{THE RISE AND FALL OF LEADED GASOLINE - Columbia University}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb http://www.columbia.edu/itc/sipa/envp/louchouarn/courses/env-chem/Pb-Rise\%26Fall(Nriagu1990).pdf
+      \endverb
+      \verb{url}
+      \verb http://www.columbia.edu/itc/sipa/envp/louchouarn/courses/env-chem/Pb-Rise%5C%26Fall(Nriagu1990).pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_017}{online}{}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labeltitlesource}{title}
+      \field{title}{Leaded Gas Was a Known Poison the Day It Was Invented - Smithsonian Magazine}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.smithsonianmag.com/smart-news/leaded-gas-poison-invented-180961368/
+      \endverb
+      \verb{url}
+      \verb https://www.smithsonianmag.com/smart-news/leaded-gas-poison-invented-180961368/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_018}{online}{}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labeltitlesource}{title}
+      \field{title}{3 Lead in petrol 'makes the mind give way' - European Environment Agency}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.eea.europa.eu/en/analysis/publications/late-lessons-2/late-lessons-chapters/late-lessons-ii-chapter-3/@@download/file
+      \endverb
+      \verb{url}
+      \verb https://www.eea.europa.eu/en/analysis/publications/late-lessons-2/late-lessons-chapters/late-lessons-ii-chapter-3/@@download/file
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_019}{online}{}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labeltitlesource}{title}
+      \field{title}{The Secret History of Lead - UNIWA Open eClass}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://eclass.uniwa.gr/modules/document/file.php/EEE195/2023-2024/4aithylo-Lead/The\%20Secret\%20History\%20of\%20Lead\%20_\%20The\%20Nation.pdf
+      \endverb
+      \verb{url}
+      \verb https://eclass.uniwa.gr/modules/document/file.php/EEE195/2023-2024/4aithylo-Lead/The%5C%20Secret%5C%20History%5C%20of%5C%20Lead%5C%20_%5C%20The%5C%20Nation.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_020}{online}{}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labeltitlesource}{title}
+      \field{title}{Inside the 20-year campaign to rid the world of leaded fuel - UNEP}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.unep.org/news-and-stories/story/inside-20-year-campaign-rid-world-leaded-fuel
+      \endverb
+      \verb{url}
+      \verb https://www.unep.org/news-and-stories/story/inside-20-year-campaign-rid-world-leaded-fuel
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_021}{online}{}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labeltitlesource}{title}
+      \field{title}{Lead Poisoning: A Historical Perspective | About EPA}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.epa.gov/archive/epa/aboutepa/lead-poisoning-historical-perspective.html
+      \endverb
+      \verb{url}
+      \verb https://www.epa.gov/archive/epa/aboutepa/lead-poisoning-historical-perspective.html
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_022}{online}{}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labeltitlesource}{title}
+      \field{title}{A Career-Long Perspective on Leaded Gasoline, Dust, Soil, and Proactive Pediatric Exposure Prevention}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://larcusa.org/wp-content/uploads/2024/05/Getting_the_Lead_Out_A_Career-Long_Perspective_on_.pdf
+      \endverb
+      \verb{url}
+      \verb https://larcusa.org/wp-content/uploads/2024/05/Getting_the_Lead_Out_A_Career-Long_Perspective_on_.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_023}{online}{}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labeltitlesource}{title}
+      \field{title}{Lead poisoning - Wikipedia}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/Lead_poisoning
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/Lead_poisoning
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_024}{online}{}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labeltitlesource}{title}
+      \field{title}{The Most Important Scientist You've Never Heard Of - Mental Floss}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.mentalfloss.com/article/94569/clair-patterson-scientist-who-determined-age-earth-and-then-saved-it
+      \endverb
+      \verb{url}
+      \verb https://www.mentalfloss.com/article/94569/clair-patterson-scientist-who-determined-age-earth-and-then-saved-it
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_025}{online}{}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labeltitlesource}{title}
+      \field{title}{The Ethyl Controversy - Prof.~Kovarik}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://billkovarik.com/wp-content/uploads/2016/12/Ethyl3.pdf
+      \endverb
+      \verb{url}
+      \verb https://billkovarik.com/wp-content/uploads/2016/12/Ethyl3.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_026}{online}{}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labeltitlesource}{title}
+      \field{title}{A century of tragedy: Leaded gasoline - Environmental history}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://environmentalhistory.org/2021/12/09/a-century-of-tragedy-leaded-gasolines-centennial/
+      \endverb
+      \verb{url}
+      \verb https://environmentalhistory.org/2021/12/09/a-century-of-tragedy-leaded-gasolines-centennial/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_027}{online}{}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labeltitlesource}{title}
+      \field{title}{The Public Health Controversy over Leaded Gasoline during the 1920s. - Columbia Academic Commons}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://academiccommons.columbia.edu/doi/10.7916/D8RF64WX/download
+      \endverb
+      \verb{url}
+      \verb https://academiccommons.columbia.edu/doi/10.7916/D8RF64WX/download
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_028}{online}{}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labeltitlesource}{title}
+      \field{title}{a brief history of lead poisoning - in the united states over the past century}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.edf.org/sites/default/files/the-hour-of-lead.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.edf.org/sites/default/files/the-hour-of-lead.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_029}{online}{}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labeltitlesource}{title}
+      \field{title}{Leaded Gasoline during the 1920s - American Journal of Public Health}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://ajph.aphapublications.org/doi/pdfplus/10.2105/AJPH.75.4.344
+      \endverb
+      \verb{url}
+      \verb https://ajph.aphapublications.org/doi/pdfplus/10.2105/AJPH.75.4.344
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_030}{online}{}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labeltitlesource}{title}
+      \field{title}{The Kehoe Files: Part 1 of The Lead Papers - Toxic Docs}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.toxicdocs.org/blog/the-kehoe-files-part-1-of-the-lead-papers/
+      \endverb
+      \verb{url}
+      \verb https://www.toxicdocs.org/blog/the-kehoe-files-part-1-of-the-lead-papers/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_031}{online}{}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labeltitlesource}{title}
+      \field{title}{Ethyl-leaded Gasoline: - Toxic Docs}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://cdn.toxicdocs.org/gD/gDY3Qqag1rRVG877ydd6e5r0V/gDY3Qqag1rRVG877ydd6e5r0V.pdf
+      \endverb
+      \verb{url}
+      \verb https://cdn.toxicdocs.org/gD/gDY3Qqag1rRVG877ydd6e5r0V/gDY3Qqag1rRVG877ydd6e5r0V.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_032}{online}{}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labeltitlesource}{title}
+      \field{title}{Relation of blood lead levels and lead in gasoline: an updated systematic review - PMC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC9793664/
+      \endverb
+      \verb{url}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC9793664/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_033}{online}{}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labeltitlesource}{title}
+      \field{title}{Getting the Lead Out - www.caltech.edu}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.caltech.edu/about/news/getting-lead-out-47935
+      \endverb
+      \verb{url}
+      \verb https://www.caltech.edu/about/news/getting-lead-out-47935
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_034}{online}{}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labeltitlesource}{title}
+      \field{title}{{{[}}EAS{{]}} The History of Lead - Yale University}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://mailman.yale.edu/pipermail/eas-info/2005/000632.html
+      \endverb
+      \verb{url}
+      \verb https://mailman.yale.edu/pipermail/eas-info/2005/000632.html
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_035}{online}{}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labeltitlesource}{title}
+      \field{title}{20th Century Lead Exposure Damaged American Mental Health - DUPRI - Duke University}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://dupri.duke.edu/news-events/news/20th-century-lead-exposure-damaged-american-mental-health
+      \endverb
+      \verb{url}
+      \verb https://dupri.duke.edu/news-events/news/20th-century-lead-exposure-damaged-american-mental-health
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_036}{online}{}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labeltitlesource}{title}
+      \field{title}{Getting lead out of gasoline | Environmental Defense Fund}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.edf.org/getting-lead-out-gasoline
+      \endverb
+      \verb{url}
+      \verb https://www.edf.org/getting-lead-out-gasoline
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_037}{online}{}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labeltitlesource}{title}
+      \field{title}{Lead--crime hypothesis - Wikipedia}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/Lead\%E2\%80\%93crime_hypothesis
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/Lead%5C%E2%5C%80%5C%93crime_hypothesis
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_038}{online}{}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labeltitlesource}{title}
+      \field{title}{Lead Exposure in Last Century Shrank IQ Scores of Half of Americans | Duke Today}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://today.duke.edu/2022/03/lead-exposure-last-century-shrunk-iq-scores-half-americans
+      \endverb
+      \verb{url}
+      \verb https://today.duke.edu/2022/03/lead-exposure-last-century-shrunk-iq-scores-half-americans
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_039}{online}{}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labeltitlesource}{title}
+      \field{title}{Education Guidelines for the Prevention and Management of Lead Poisoning in Children - CT.gov}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://portal.ct.gov/SDE/Publications/Education-Guidelines-for-the-Prevention-and-Management-of-Lead-Poisoning-in-Children/Introduction
+      \endverb
+      \verb{url}
+      \verb https://portal.ct.gov/SDE/Publications/Education-Guidelines-for-the-Prevention-and-Management-of-Lead-Poisoning-in-Children/Introduction
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_040}{online}{}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labeltitlesource}{title}
+      \field{title}{Review of Literature Related to Exposures and Health Effects at Structural Collapse Events - CDC Stacks}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://stacks.cdc.gov/view/cdc/181379/cdc_181379_DS1.pdf
+      \endverb
+      \verb{url}
+      \verb https://stacks.cdc.gov/view/cdc/181379/cdc_181379_DS1.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_041}{online}{}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labeltitlesource}{title}
+      \field{title}{Potential Health Risks of Lead Exposure from Early Life through Later Life: Implications for Public Health Education - PMC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC9741093/
+      \endverb
+      \verb{url}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC9741093/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_042}{online}{}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labeltitlesource}{title}
+      \field{title}{Long-Term Study Documents Link Between Adult Crime and Brain Damage from Childhood Lead Exposure - Research Horizons}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://scienceblog.cincinnatichildrens.org/long-term-study-documents-link-between-adult-crime-and-brain-damage-from-childhood-lead-exposure/
+      \endverb
+      \verb{url}
+      \verb https://scienceblog.cincinnatichildrens.org/long-term-study-documents-link-between-adult-crime-and-brain-damage-from-childhood-lead-exposure/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_043}{online}{}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labeltitlesource}{title}
+      \field{title}{The Chemical Lobotomy: How Leaded Gasoline Fueled a Century of Crime - YouTube}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.youtube.com/watch?v=C_XiMeNk7Iw
+      \endverb
+      \verb{url}
+      \verb https://www.youtube.com/watch?v=C_XiMeNk7Iw
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_044}{online}{}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labeltitlesource}{title}
+      \field{title}{Groundbreaking study links childhood lead exposure to nationwide mental health decline}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.musc.edu/content-hub/News/2025/02/03/Groundbreaking-study-links-childhood-lead-exposure-to-nationwide-mental-health-decline-over-75-years
+      \endverb
+      \verb{url}
+      \verb https://www.musc.edu/content-hub/News/2025/02/03/Groundbreaking-study-links-childhood-lead-exposure-to-nationwide-mental-health-decline-over-75-years
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_045}{online}{}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labeltitlesource}{title}
+      \field{title}{Half of US population exposed to adverse lead levels in early childhood - PNAS}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.pnas.org/doi/10.1073/pnas.2118631119
+      \endverb
+      \verb{url}
+      \verb https://www.pnas.org/doi/10.1073/pnas.2118631119
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_046}{online}{}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labeltitlesource}{title}
+      \field{title}{Did the elimination of lead from petrol reduce crime in the USA in the 1990s? - PMC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC3829390/
+      \endverb
+      \verb{url}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC3829390/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_047}{online}{}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labeltitlesource}{title}
+      \field{title}{Studies Show Lead Linked to Violent Crime Trends - Equal Justice Initiative}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://eji.org/news/studies-show-lead-linked-to-violent-crime-trends/
+      \endverb
+      \verb{url}
+      \verb https://eji.org/news/studies-show-lead-linked-to-violent-crime-trends/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_048}{online}{}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labeltitlesource}{title}
+      \field{title}{Highways and Zoning: Tools of Racist Policy}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://itdp.org/2021/03/10/highways-and-zoning-tools-of-racist-policy/
+      \endverb
+      \verb{url}
+      \verb https://itdp.org/2021/03/10/highways-and-zoning-tools-of-racist-policy/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_049}{online}{}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labeltitlesource}{title}
+      \field{title}{Highways through historically redlined areas likely cause air pollution disparities today}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.acs.org/pressroom/presspacs/2024/february/highways-through-historically-redlined-areas-cause-air-pollution-disparities.html
+      \endverb
+      \verb{url}
+      \verb https://www.acs.org/pressroom/presspacs/2024/february/highways-through-historically-redlined-areas-cause-air-pollution-disparities.html
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_050}{online}{}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labeltitlesource}{title}
+      \field{title}{National Interstate and Defense Highways Act (1956)}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.archives.gov/milestone-documents/national-interstate-and-defense-highways-act
+      \endverb
+      \verb{url}
+      \verb https://www.archives.gov/milestone-documents/national-interstate-and-defense-highways-act
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_051}{online}{}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labeltitlesource}{title}
+      \field{title}{Repeal Robert Moses - Transportation Alternatives}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://transalt.org/blog/repeal-robert-moses
+      \endverb
+      \verb{url}
+      \verb https://transalt.org/blog/repeal-robert-moses
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_052}{online}{}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labeltitlesource}{title}
+      \field{title}{How Interstate Highways Gutted Communities---and Reinforced Segregation - History.com}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.history.com/articles/interstate-highway-system-infrastructure-construction-segregation
+      \endverb
+      \verb{url}
+      \verb https://www.history.com/articles/interstate-highway-system-infrastructure-construction-segregation
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_053}{online}{}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labeltitlesource}{title}
+      \field{title}{Opinion: On National Highway Day, Lady Bird Johnson's Legacy Beckons Us to Stop the Cross Bronx Expansion - City Limits}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://citylimits.org/opinion-on-national-highway-day-lady-bird-johnsons-legacy-beckons-us-to-stop-the-cross-bronx-expansion/
+      \endverb
+      \verb{url}
+      \verb https://citylimits.org/opinion-on-national-highway-day-lady-bird-johnsons-legacy-beckons-us-to-stop-the-cross-bronx-expansion/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_054}{online}{}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labeltitlesource}{title}
+      \field{title}{The Road to Racial Justice: Resolving the Disproportionate Health Burden Placed on Communities of Color by Highway Pollution}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://hrlr.law.columbia.edu/hrlr/the-road-to-racial-justice-resolving-the-disproportionate-health-burden-placed-on-communities-of-color-by-highway-pollution/
+      \endverb
+      \verb{url}
+      \verb https://hrlr.law.columbia.edu/hrlr/the-road-to-racial-justice-resolving-the-disproportionate-health-burden-placed-on-communities-of-color-by-highway-pollution/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_055}{online}{}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labeltitlesource}{title}
+      \field{title}{Highway Pollution Affects More Black and Latino Communities - Moms Clean Air Force}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.momscleanairforce.org/highways-to-harm/
+      \endverb
+      \verb{url}
+      \verb https://www.momscleanairforce.org/highways-to-harm/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_056}{online}{}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labeltitlesource}{title}
+      \field{title}{I-630: Divisive Connection - ScholarWorks@UARK}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://scholarworks.uark.edu/cgi/viewcontent.cgi?article=1090&context=archuht
+      \endverb
+      \verb{url}
+      \verb https://scholarworks.uark.edu/cgi/viewcontent.cgi?article=1090&context=archuht
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_057}{online}{}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labeltitlesource}{title}
+      \field{title}{Law and Anti-Blackness}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://repository.law.umich.edu/cgi/viewcontent.cgi?article=1374&context=mjrl
+      \endverb
+      \verb{url}
+      \verb https://repository.law.umich.edu/cgi/viewcontent.cgi?article=1374&context=mjrl
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_058}{online}{}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labeltitlesource}{title}
+      \field{title}{Washington Park Lead Committee, Inc.~v. United States Environmental Protection Agency - eScholarship.org}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://escholarship.org/content/qt5zj9k6vv/qt5zj9k6vv.pdf
+      \endverb
+      \verb{url}
+      \verb https://escholarship.org/content/qt5zj9k6vv/qt5zj9k6vv.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_059}{online}{}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labeltitlesource}{title}
+      \field{title}{How Philadelphia's Urban Renewal Practices Steered Marginal People to Marginal Land - CUNY Academic Works}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://academicworks.cuny.edu/context/gc_etds/article/1258/viewcontent/Moore_minarees_0046D_12949.pdf
+      \endverb
+      \verb{url}
+      \verb https://academicworks.cuny.edu/context/gc_etds/article/1258/viewcontent/Moore_minarees_0046D_12949.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_060}{online}{}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labeltitlesource}{title}
+      \field{title}{Environmental Racism Has Left Black Communities Especially Vulnerable to COVID-19}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://tcf.org/content/commentary/environmental-racism-left-black-communities-especially-vulnerable-covid-19/
+      \endverb
+      \verb{url}
+      \verb https://tcf.org/content/commentary/environmental-racism-left-black-communities-especially-vulnerable-covid-19/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_061}{online}{}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labeltitlesource}{title}
+      \field{title}{Taking the highway to right wrongs of the past in urban areas - Center for Public Integrity}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://publicintegrity.org/environment/urban-areas-highway-right-wrongs-of-past/
+      \endverb
+      \verb{url}
+      \verb https://publicintegrity.org/environment/urban-areas-highway-right-wrongs-of-past/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_062}{online}{}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labeltitlesource}{title}
+      \field{title}{Blood lead levels show enduring legacy of structural racism | News - Notre Dame Research}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://research.nd.edu/news-and-events/news/blood-lead-levels-show-enduring-legacy-of-structural-racism/
+      \endverb
+      \verb{url}
+      \verb https://research.nd.edu/news-and-events/news/blood-lead-levels-show-enduring-legacy-of-structural-racism/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_063}{online}{}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labeltitlesource}{title}
+      \field{title}{Urban highways are barriers to social ties - PNAS}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.pnas.org/doi/10.1073/pnas.2408937122
+      \endverb
+      \verb{url}
+      \verb https://www.pnas.org/doi/10.1073/pnas.2408937122
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_064}{online}{}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labeltitlesource}{title}
+      \field{title}{Applying Cost-Benefit Analysis to Past Decisions - AWS}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb http://cpr-assets.s3.amazonaws.com/documents/Wrong_401.pdf
+      \endverb
+      \verb{url}
+      \verb http://cpr-assets.s3.amazonaws.com/documents/Wrong_401.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_065}{online}{}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labeltitlesource}{title}
+      \field{title}{ETHYL: The 1920s conflict over leaded gasoline \& alternative fuels | Prof.~Kovarik}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://billkovarik.com/bio/cabi/ethyl-the-1920s-conflict-over-leaded-gasoline/
+      \endverb
+      \verb{url}
+      \verb https://billkovarik.com/bio/cabi/ethyl-the-1920s-conflict-over-leaded-gasoline/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_066}{online}{}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labeltitlesource}{title}
+      \field{title}{Occupational Disease as the Bane of Workers' Lives: A Chronological Review - PMC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC8197831/
+      \endverb
+      \verb{url}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC8197831/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_067}{online}{}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labeltitlesource}{title}
+      \field{title}{How the lead industry lied to the public for decades - Gerald Markowitz and David Rosner}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.youtube.com/watch?v=AMKzXZphgyo
+      \endverb
+      \verb{url}
+      \verb https://www.youtube.com/watch?v=AMKzXZphgyo
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_068}{online}{}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labeltitlesource}{title}
+      \field{title}{The Interstates and the Cities: Highways, Housing, and the Freeway Revolt - PRRAC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.prrac.org/pdf/mohl.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.prrac.org/pdf/mohl.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_069}{online}{}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labeltitlesource}{title}
+      \field{title}{Decades of Highway Construction and Community Destruction - AARP}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.aarp.org/livable-communities/getting-around/info-2023/before-the-highway-introduction.html
+      \endverb
+      \verb{url}
+      \verb https://www.aarp.org/livable-communities/getting-around/info-2023/before-the-highway-introduction.html
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_070}{online}{}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labeltitlesource}{title}
+      \field{title}{White-Mens-Roads-Through-Black-Mens-Homes - Vanderbilt University}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://cdn.vanderbilt.edu/vu-wordpress-0/wp-content/uploads/sites/278/2020/10/19115823/White-Mens-Roads-Through-Black-Mens-Homes-Advancing-Racial-Equity-Through-Highway-Reconstruction.pdf
+      \endverb
+      \verb{url}
+      \verb https://cdn.vanderbilt.edu/vu-wordpress-0/wp-content/uploads/sites/278/2020/10/19115823/White-Mens-Roads-Through-Black-Mens-Homes-Advancing-Racial-Equity-Through-Highway-Reconstruction.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_071}{online}{}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labeltitlesource}{title}
+      \field{title}{Rethinking Highway Construction as De Jure Segregation - N.Y.U. Journal of Legislation \& Public Policy}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://nyujlpp.org/quorum/rube-rethinking-highway-construction-as-de-jure-segregation/
+      \endverb
+      \verb{url}
+      \verb https://nyujlpp.org/quorum/rube-rethinking-highway-construction-as-de-jure-segregation/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_072}{online}{}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labeltitlesource}{title}
+      \field{title}{The Lasting Legacy of Transportation Planning: Spatial Exclusions Shaped by the Interstate Highways - Columbia Academic Commons}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://academiccommons.columbia.edu/doi/10.7916/6hyb-hq02/download
+      \endverb
+      \verb{url}
+      \verb https://academiccommons.columbia.edu/doi/10.7916/6hyb-hq02/download
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_073}{online}{}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labeltitlesource}{title}
+      \field{title}{Dividing Lines and the Infrastructure of Racial Inequality (P\&R Journal January-April, 2025) - PRRAC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.prrac.org/dividing-lines-and-the-infrastructure-of-racial-inequality-pr-journal-january-april-2025/
+      \endverb
+      \verb{url}
+      \verb https://www.prrac.org/dividing-lines-and-the-infrastructure-of-racial-inequality-pr-journal-january-april-2025/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_074}{online}{}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labeltitlesource}{title}
+      \field{title}{Will the Harm from Baltimore's Highway to Nowhere Ever Be Repaired? - Baltimore Magazine}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.baltimoremagazine.com/section/businessdevelopment/highway-to-nowhere-baltimore-expressway-demolished-black-neighborhoods/
+      \endverb
+      \verb{url}
+      \verb https://www.baltimoremagazine.com/section/businessdevelopment/highway-to-nowhere-baltimore-expressway-demolished-black-neighborhoods/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_075}{online}{}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labeltitlesource}{title}
+      \field{title}{New documentary reveals how U.S. highway system dismantled Black communities, including Overtown | WLRN}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.wlrn.org/arts-culture/2025-04-04/new-documentary-reveals-how-u-s-highway-system-dismantled-black-communities-including-overtown
+      \endverb
+      \verb{url}
+      \verb https://www.wlrn.org/arts-culture/2025-04-04/new-documentary-reveals-how-u-s-highway-system-dismantled-black-communities-including-overtown
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_076}{online}{}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labeltitlesource}{title}
+      \field{title}{Nondiscrimination in Environmental Regulation: A Legal Analysis - EveryCRSReport.com}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.everycrsreport.com/reports/R42952.html
+      \endverb
+      \verb{url}
+      \verb https://www.everycrsreport.com/reports/R42952.html
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_077}{online}{}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labeltitlesource}{title}
+      \field{title}{At the Intersection of Race and History: The Unique Relationship Between the Davis Intent Requirement and the Crack Laws}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://digitalcommons.law.lsu.edu/cgi/viewcontent.cgi?article=1177&context=faculty_scholarship
+      \endverb
+      \verb{url}
+      \verb https://digitalcommons.law.lsu.edu/cgi/viewcontent.cgi?article=1177&context=faculty_scholarship
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_078}{online}{}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labeltitlesource}{title}
+      \field{title}{The Antiracist Constitution - NYU Law}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.law.nyu.edu/sites/default/files/The\%20Antiracist\%20Constitution--Hasbrouck\%20\%281\%29.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.law.nyu.edu/sites/default/files/The%5C%20Antiracist%5C%20Constitution--Hasbrouck%5C%20%5C%281%5C%29.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_079}{online}{}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labeltitlesource}{title}
+      \field{title}{THE USE OF STATISTICS TO PROVE INTENTIONAL EMPLOYMENT DISCRIMINATION}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://scholarship.law.duke.edu/cgi/viewcontent.cgi?article=3742&context=lcp
+      \endverb
+      \verb{url}
+      \verb https://scholarship.law.duke.edu/cgi/viewcontent.cgi?article=3742&context=lcp
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_080}{online}{}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labeltitlesource}{title}
+      \field{title}{Concrete Leviathan: The Interstate Highway System and Infrastructural Inequality - Cambridge University Press}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.cambridge.org/core/journals/law-and-history-review/article/concrete-leviathan-the-interstate-highway-system-and-infrastructural-inequality-in-the-age-of-liberalism/D0C3B1A1F374E0C7C683EAA8B062E38F
+      \endverb
+      \verb{url}
+      \verb https://www.cambridge.org/core/journals/law-and-history-review/article/concrete-leviathan-the-interstate-highway-system-and-infrastructural-inequality-in-the-age-of-liberalism/D0C3B1A1F374E0C7C683EAA8B062E38F
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_081}{online}{}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labeltitlesource}{title}
+      \field{title}{THE FUTURE OF ENVIRONMENTAL JUSTICE CLAIMS UNDER TITLE VI - Stanford Law}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://law.stanford.edu/wp-content/uploads/2025/05/Sivas-FINAL.pdf
+      \endverb
+      \verb{url}
+      \verb https://law.stanford.edu/wp-content/uploads/2025/05/Sivas-FINAL.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_082}{online}{}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labeltitlesource}{title}
+      \field{title}{Disparate Limbo: How Administrative Law Erased Antidiscrimination - Daniel E. Ho}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://dho.stanford.edu/wp-content/uploads/Disparate_Limbo.pdf
+      \endverb
+      \verb{url}
+      \verb https://dho.stanford.edu/wp-content/uploads/Disparate_Limbo.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_083}{online}{}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labeltitlesource}{title}
+      \field{title}{The Dormant Power of State Agencies to Fight Environmental Racism - Michigan Law Review}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://michiganlawreview.org/journal/the-dormant-power-of-state-agencies-to-fight-environmental-racism/
+      \endverb
+      \verb{url}
+      \verb https://michiganlawreview.org/journal/the-dormant-power-of-state-agencies-to-fight-environmental-racism/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_084}{online}{}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labeltitlesource}{title}
+      \field{title}{The Diversity Formula: A Race-Neutral Playbook - Minnesota Law Review}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://scholarship.law.umn.edu/cgi/viewcontent.cgi?article=1087&context=minnlrev
+      \endverb
+      \verb{url}
+      \verb https://scholarship.law.umn.edu/cgi/viewcontent.cgi?article=1087&context=minnlrev
+      \endverb
+    \endentry
+  \enddatalist
+  \datalist[entry]{nty/global//global/global}
+    \entry{lead_highways_and_systemic_harm_ref_034}{online}{}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labeltitlesource}{title}
+      \field{title}{{{[}}EAS{{]}} The History of Lead - Yale University}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://mailman.yale.edu/pipermail/eas-info/2005/000632.html
+      \endverb
+      \verb{url}
+      \verb https://mailman.yale.edu/pipermail/eas-info/2005/000632.html
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_005}{online}{}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labeltitlesource}{title}
+      \field{title}{1956 -- Federal-Aid Highway Act Displaces Black Americans - Florida Policy Timeline}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.floridatimeline.org/timeline/1956-federal-aid-highway-act-displaces-black-americans/
+      \endverb
+      \verb{url}
+      \verb https://www.floridatimeline.org/timeline/1956-federal-aid-highway-act-displaces-black-americans/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_035}{online}{}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labeltitlesource}{title}
+      \field{title}{20th Century Lead Exposure Damaged American Mental Health - DUPRI - Duke University}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://dupri.duke.edu/news-events/news/20th-century-lead-exposure-damaged-american-mental-health
+      \endverb
+      \verb{url}
+      \verb https://dupri.duke.edu/news-events/news/20th-century-lead-exposure-damaged-american-mental-health
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_018}{online}{}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labeltitlesource}{title}
+      \field{title}{3 Lead in petrol 'makes the mind give way' - European Environment Agency}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.eea.europa.eu/en/analysis/publications/late-lessons-2/late-lessons-chapters/late-lessons-ii-chapter-3/@@download/file
+      \endverb
+      \verb{url}
+      \verb https://www.eea.europa.eu/en/analysis/publications/late-lessons-2/late-lessons-chapters/late-lessons-ii-chapter-3/@@download/file
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_028}{online}{}
+      \field{sortinit}{a}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labeltitlesource}{title}
+      \field{title}{a brief history of lead poisoning - in the united states over the past century}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.edf.org/sites/default/files/the-hour-of-lead.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.edf.org/sites/default/files/the-hour-of-lead.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_022}{online}{}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labeltitlesource}{title}
+      \field{title}{A Career-Long Perspective on Leaded Gasoline, Dust, Soil, and Proactive Pediatric Exposure Prevention}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://larcusa.org/wp-content/uploads/2024/05/Getting_the_Lead_Out_A_Career-Long_Perspective_on_.pdf
+      \endverb
+      \verb{url}
+      \verb https://larcusa.org/wp-content/uploads/2024/05/Getting_the_Lead_Out_A_Career-Long_Perspective_on_.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_026}{online}{}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labeltitlesource}{title}
+      \field{title}{A century of tragedy: Leaded gasoline - Environmental history}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://environmentalhistory.org/2021/12/09/a-century-of-tragedy-leaded-gasolines-centennial/
+      \endverb
+      \verb{url}
+      \verb https://environmentalhistory.org/2021/12/09/a-century-of-tragedy-leaded-gasolines-centennial/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_011}{online}{}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labeltitlesource}{title}
+      \field{title}{Analysis: Why Gun Owners of America Says the New \$0 National Firearms Tax is Unconstitutional | The Reload}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://thereload.com/analysis-why-gun-owners-of-america-says-the-new-0-national-firearms-tax-is-unconstitutional/
+      \endverb
+      \verb{url}
+      \verb https://thereload.com/analysis-why-gun-owners-of-america-says-the-new-0-national-firearms-tax-is-unconstitutional/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_064}{online}{}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labeltitlesource}{title}
+      \field{title}{Applying Cost-Benefit Analysis to Past Decisions - AWS}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb http://cpr-assets.s3.amazonaws.com/documents/Wrong_401.pdf
+      \endverb
+      \verb{url}
+      \verb http://cpr-assets.s3.amazonaws.com/documents/Wrong_401.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_077}{online}{}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labeltitlesource}{title}
+      \field{title}{At the Intersection of Race and History: The Unique Relationship Between the Davis Intent Requirement and the Crack Laws}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://digitalcommons.law.lsu.edu/cgi/viewcontent.cgi?article=1177&context=faculty_scholarship
+      \endverb
+      \verb{url}
+      \verb https://digitalcommons.law.lsu.edu/cgi/viewcontent.cgi?article=1177&context=faculty_scholarship
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_062}{online}{}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labeltitlesource}{title}
+      \field{title}{Blood lead levels show enduring legacy of structural racism | News - Notre Dame Research}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://research.nd.edu/news-and-events/news/blood-lead-levels-show-enduring-legacy-of-structural-racism/
+      \endverb
+      \verb{url}
+      \verb https://research.nd.edu/news-and-events/news/blood-lead-levels-show-enduring-legacy-of-structural-racism/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_002}{online}{}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labeltitlesource}{title}
+      \field{title}{Clair Patterson and Robert Kehoe's paradigm of 'show me the data'' on environmental lead poisoning - PubMed}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pubmed.ncbi.nlm.nih.gov/9719610/
+      \endverb
+      \verb{url}
+      \verb https://pubmed.ncbi.nlm.nih.gov/9719610/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_080}{online}{}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labeltitlesource}{title}
+      \field{title}{Concrete Leviathan: The Interstate Highway System and Infrastructural Inequality - Cambridge University Press}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.cambridge.org/core/journals/law-and-history-review/article/concrete-leviathan-the-interstate-highway-system-and-infrastructural-inequality-in-the-age-of-liberalism/D0C3B1A1F374E0C7C683EAA8B062E38F
+      \endverb
+      \verb{url}
+      \verb https://www.cambridge.org/core/journals/law-and-history-review/article/concrete-leviathan-the-interstate-highway-system-and-infrastructural-inequality-in-the-age-of-liberalism/D0C3B1A1F374E0C7C683EAA8B062E38F
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_069}{online}{}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labeltitlesource}{title}
+      \field{title}{Decades of Highway Construction and Community Destruction - AARP}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.aarp.org/livable-communities/getting-around/info-2023/before-the-highway-introduction.html
+      \endverb
+      \verb{url}
+      \verb https://www.aarp.org/livable-communities/getting-around/info-2023/before-the-highway-introduction.html
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_046}{online}{}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labeltitlesource}{title}
+      \field{title}{Did the elimination of lead from petrol reduce crime in the USA in the 1990s? - PMC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC3829390/
+      \endverb
+      \verb{url}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC3829390/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_082}{online}{}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labeltitlesource}{title}
+      \field{title}{Disparate Limbo: How Administrative Law Erased Antidiscrimination - Daniel E. Ho}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://dho.stanford.edu/wp-content/uploads/Disparate_Limbo.pdf
+      \endverb
+      \verb{url}
+      \verb https://dho.stanford.edu/wp-content/uploads/Disparate_Limbo.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_073}{online}{}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labeltitlesource}{title}
+      \field{title}{Dividing Lines and the Infrastructure of Racial Inequality (P\&R Journal January-April, 2025) - PRRAC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.prrac.org/dividing-lines-and-the-infrastructure-of-racial-inequality-pr-journal-january-april-2025/
+      \endverb
+      \verb{url}
+      \verb https://www.prrac.org/dividing-lines-and-the-infrastructure-of-racial-inequality-pr-journal-january-april-2025/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_039}{online}{}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labeltitlesource}{title}
+      \field{title}{Education Guidelines for the Prevention and Management of Lead Poisoning in Children - CT.gov}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://portal.ct.gov/SDE/Publications/Education-Guidelines-for-the-Prevention-and-Management-of-Lead-Poisoning-in-Children/Introduction
+      \endverb
+      \verb{url}
+      \verb https://portal.ct.gov/SDE/Publications/Education-Guidelines-for-the-Prevention-and-Management-of-Lead-Poisoning-in-Children/Introduction
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_013}{online}{}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labeltitlesource}{title}
+      \field{title}{Environmental Policy as Social Policy? The Impact of Childhood Lead Exposure on Crime - Center for Biological Diversity}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.biologicaldiversity.org/campaigns/get_the_lead_out/pdfs/health/Reyes_2007.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.biologicaldiversity.org/campaigns/get_the_lead_out/pdfs/health/Reyes_2007.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_060}{online}{}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labeltitlesource}{title}
+      \field{title}{Environmental Racism Has Left Black Communities Especially Vulnerable to COVID-19}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://tcf.org/content/commentary/environmental-racism-left-black-communities-especially-vulnerable-covid-19/
+      \endverb
+      \verb{url}
+      \verb https://tcf.org/content/commentary/environmental-racism-left-black-communities-especially-vulnerable-covid-19/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_031}{online}{}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labeltitlesource}{title}
+      \field{title}{Ethyl-leaded Gasoline: - Toxic Docs}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://cdn.toxicdocs.org/gD/gDY3Qqag1rRVG877ydd6e5r0V/gDY3Qqag1rRVG877ydd6e5r0V.pdf
+      \endverb
+      \verb{url}
+      \verb https://cdn.toxicdocs.org/gD/gDY3Qqag1rRVG877ydd6e5r0V/gDY3Qqag1rRVG877ydd6e5r0V.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_065}{online}{}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labeltitlesource}{title}
+      \field{title}{ETHYL: The 1920s conflict over leaded gasoline \& alternative fuels | Prof.~Kovarik}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://billkovarik.com/bio/cabi/ethyl-the-1920s-conflict-over-leaded-gasoline/
+      \endverb
+      \verb{url}
+      \verb https://billkovarik.com/bio/cabi/ethyl-the-1920s-conflict-over-leaded-gasoline/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_036}{online}{}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labeltitlesource}{title}
+      \field{title}{Getting lead out of gasoline | Environmental Defense Fund}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.edf.org/getting-lead-out-gasoline
+      \endverb
+      \verb{url}
+      \verb https://www.edf.org/getting-lead-out-gasoline
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_033}{online}{}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labeltitlesource}{title}
+      \field{title}{Getting the Lead Out - www.caltech.edu}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.caltech.edu/about/news/getting-lead-out-47935
+      \endverb
+      \verb{url}
+      \verb https://www.caltech.edu/about/news/getting-lead-out-47935
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_044}{online}{}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labeltitlesource}{title}
+      \field{title}{Groundbreaking study links childhood lead exposure to nationwide mental health decline}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.musc.edu/content-hub/News/2025/02/03/Groundbreaking-study-links-childhood-lead-exposure-to-nationwide-mental-health-decline-over-75-years
+      \endverb
+      \verb{url}
+      \verb https://www.musc.edu/content-hub/News/2025/02/03/Groundbreaking-study-links-childhood-lead-exposure-to-nationwide-mental-health-decline-over-75-years
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_045}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{Half of US population exposed to adverse lead levels in early childhood - PNAS}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.pnas.org/doi/10.1073/pnas.2118631119
+      \endverb
+      \verb{url}
+      \verb https://www.pnas.org/doi/10.1073/pnas.2118631119
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_055}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{Highway Pollution Affects More Black and Latino Communities - Moms Clean Air Force}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.momscleanairforce.org/highways-to-harm/
+      \endverb
+      \verb{url}
+      \verb https://www.momscleanairforce.org/highways-to-harm/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_048}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{Highways and Zoning: Tools of Racist Policy}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://itdp.org/2021/03/10/highways-and-zoning-tools-of-racist-policy/
+      \endverb
+      \verb{url}
+      \verb https://itdp.org/2021/03/10/highways-and-zoning-tools-of-racist-policy/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_049}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{Highways through historically redlined areas likely cause air pollution disparities today}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.acs.org/pressroom/presspacs/2024/february/highways-through-historically-redlined-areas-cause-air-pollution-disparities.html
+      \endverb
+      \verb{url}
+      \verb https://www.acs.org/pressroom/presspacs/2024/february/highways-through-historically-redlined-areas-cause-air-pollution-disparities.html
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_052}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{How Interstate Highways Gutted Communities---and Reinforced Segregation - History.com}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.history.com/articles/interstate-highway-system-infrastructure-construction-segregation
+      \endverb
+      \verb{url}
+      \verb https://www.history.com/articles/interstate-highway-system-infrastructure-construction-segregation
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_059}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{How Philadelphia's Urban Renewal Practices Steered Marginal People to Marginal Land - CUNY Academic Works}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://academicworks.cuny.edu/context/gc_etds/article/1258/viewcontent/Moore_minarees_0046D_12949.pdf
+      \endverb
+      \verb{url}
+      \verb https://academicworks.cuny.edu/context/gc_etds/article/1258/viewcontent/Moore_minarees_0046D_12949.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_067}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{How the lead industry lied to the public for decades - Gerald Markowitz and David Rosner}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.youtube.com/watch?v=AMKzXZphgyo
+      \endverb
+      \verb{url}
+      \verb https://www.youtube.com/watch?v=AMKzXZphgyo
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_056}{online}{}
+      \field{sortinit}{I}
+      \field{sortinithash}{8d291c51ee89b6cd86bf5379f0b151d8}
+      \field{labeltitlesource}{title}
+      \field{title}{I-630: Divisive Connection - ScholarWorks@UARK}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://scholarworks.uark.edu/cgi/viewcontent.cgi?article=1090&context=archuht
+      \endverb
+      \verb{url}
+      \verb https://scholarworks.uark.edu/cgi/viewcontent.cgi?article=1090&context=archuht
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_020}{online}{}
+      \field{sortinit}{I}
+      \field{sortinithash}{8d291c51ee89b6cd86bf5379f0b151d8}
+      \field{labeltitlesource}{title}
+      \field{title}{Inside the 20-year campaign to rid the world of leaded fuel - UNEP}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.unep.org/news-and-stories/story/inside-20-year-campaign-rid-world-leaded-fuel
+      \endverb
+      \verb{url}
+      \verb https://www.unep.org/news-and-stories/story/inside-20-year-campaign-rid-world-leaded-fuel
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_057}{online}{}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labeltitlesource}{title}
+      \field{title}{Law and Anti-Blackness}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://repository.law.umich.edu/cgi/viewcontent.cgi?article=1374&context=mjrl
+      \endverb
+      \verb{url}
+      \verb https://repository.law.umich.edu/cgi/viewcontent.cgi?article=1374&context=mjrl
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_038}{online}{}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labeltitlesource}{title}
+      \field{title}{Lead Exposure in Last Century Shrank IQ Scores of Half of Americans | Duke Today}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://today.duke.edu/2022/03/lead-exposure-last-century-shrunk-iq-scores-half-americans
+      \endverb
+      \verb{url}
+      \verb https://today.duke.edu/2022/03/lead-exposure-last-century-shrunk-iq-scores-half-americans
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_023}{online}{}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labeltitlesource}{title}
+      \field{title}{Lead poisoning - Wikipedia}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/Lead_poisoning
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/Lead_poisoning
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_021}{online}{}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labeltitlesource}{title}
+      \field{title}{Lead Poisoning: A Historical Perspective | About EPA}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.epa.gov/archive/epa/aboutepa/lead-poisoning-historical-perspective.html
+      \endverb
+      \verb{url}
+      \verb https://www.epa.gov/archive/epa/aboutepa/lead-poisoning-historical-perspective.html
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_037}{online}{}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labeltitlesource}{title}
+      \field{title}{Lead--crime hypothesis - Wikipedia}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/Lead\%E2\%80\%93crime_hypothesis
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/Lead%5C%E2%5C%80%5C%93crime_hypothesis
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_017}{online}{}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labeltitlesource}{title}
+      \field{title}{Leaded Gas Was a Known Poison the Day It Was Invented - Smithsonian Magazine}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.smithsonianmag.com/smart-news/leaded-gas-poison-invented-180961368/
+      \endverb
+      \verb{url}
+      \verb https://www.smithsonianmag.com/smart-news/leaded-gas-poison-invented-180961368/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_001}{online}{}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labeltitlesource}{title}
+      \field{title}{Leaded Gasoline | Story Behind the Science}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.storybehindthescience.org/leaded-gasoline
+      \endverb
+      \verb{url}
+      \verb https://www.storybehindthescience.org/leaded-gasoline
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_029}{online}{}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labeltitlesource}{title}
+      \field{title}{Leaded Gasoline during the 1920s - American Journal of Public Health}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://ajph.aphapublications.org/doi/pdfplus/10.2105/AJPH.75.4.344
+      \endverb
+      \verb{url}
+      \verb https://ajph.aphapublications.org/doi/pdfplus/10.2105/AJPH.75.4.344
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_042}{online}{}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labeltitlesource}{title}
+      \field{title}{Long-Term Study Documents Link Between Adult Crime and Brain Damage from Childhood Lead Exposure - Research Horizons}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://scienceblog.cincinnatichildrens.org/long-term-study-documents-link-between-adult-crime-and-brain-damage-from-childhood-lead-exposure/
+      \endverb
+      \verb{url}
+      \verb https://scienceblog.cincinnatichildrens.org/long-term-study-documents-link-between-adult-crime-and-brain-damage-from-childhood-lead-exposure/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_050}{online}{}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labeltitlesource}{title}
+      \field{title}{National Interstate and Defense Highways Act (1956)}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.archives.gov/milestone-documents/national-interstate-and-defense-highways-act
+      \endverb
+      \verb{url}
+      \verb https://www.archives.gov/milestone-documents/national-interstate-and-defense-highways-act
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_075}{online}{}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labeltitlesource}{title}
+      \field{title}{New documentary reveals how U.S. highway system dismantled Black communities, including Overtown | WLRN}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.wlrn.org/arts-culture/2025-04-04/new-documentary-reveals-how-u-s-highway-system-dismantled-black-communities-including-overtown
+      \endverb
+      \verb{url}
+      \verb https://www.wlrn.org/arts-culture/2025-04-04/new-documentary-reveals-how-u-s-highway-system-dismantled-black-communities-including-overtown
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_076}{online}{}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labeltitlesource}{title}
+      \field{title}{Nondiscrimination in Environmental Regulation: A Legal Analysis - EveryCRSReport.com}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.everycrsreport.com/reports/R42952.html
+      \endverb
+      \verb{url}
+      \verb https://www.everycrsreport.com/reports/R42952.html
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_066}{online}{}
+      \field{sortinit}{O}
+      \field{sortinithash}{2cd7140a07aea5341f9e2771efe90aae}
+      \field{labeltitlesource}{title}
+      \field{title}{Occupational Disease as the Bane of Workers' Lives: A Chronological Review - PMC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC8197831/
+      \endverb
+      \verb{url}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC8197831/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_053}{online}{}
+      \field{sortinit}{O}
+      \field{sortinithash}{2cd7140a07aea5341f9e2771efe90aae}
+      \field{labeltitlesource}{title}
+      \field{title}{Opinion: On National Highway Day, Lady Bird Johnson's Legacy Beckons Us to Stop the Cross Bronx Expansion - City Limits}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://citylimits.org/opinion-on-national-highway-day-lady-bird-johnsons-legacy-beckons-us-to-stop-the-cross-bronx-expansion/
+      \endverb
+      \verb{url}
+      \verb https://citylimits.org/opinion-on-national-highway-day-lady-bird-johnsons-legacy-beckons-us-to-stop-the-cross-bronx-expansion/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_041}{online}{}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labeltitlesource}{title}
+      \field{title}{Potential Health Risks of Lead Exposure from Early Life through Later Life: Implications for Public Health Education - PMC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC9741093/
+      \endverb
+      \verb{url}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC9741093/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_006}{online}{}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labeltitlesource}{title}
+      \field{title}{Racism by Design: The Building of Interstate 81 | American Civil Liberties Union}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.aclu.org/news/racial-justice/racism-by-design-the-building-of-interstate-81
+      \endverb
+      \verb{url}
+      \verb https://www.aclu.org/news/racial-justice/racism-by-design-the-building-of-interstate-81
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_032}{online}{}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labeltitlesource}{title}
+      \field{title}{Relation of blood lead levels and lead in gasoline: an updated systematic review - PMC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC9793664/
+      \endverb
+      \verb{url}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC9793664/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_051}{online}{}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labeltitlesource}{title}
+      \field{title}{Repeal Robert Moses - Transportation Alternatives}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://transalt.org/blog/repeal-robert-moses
+      \endverb
+      \verb{url}
+      \verb https://transalt.org/blog/repeal-robert-moses
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_071}{online}{}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labeltitlesource}{title}
+      \field{title}{Rethinking Highway Construction as De Jure Segregation - N.Y.U. Journal of Legislation \& Public Policy}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://nyujlpp.org/quorum/rube-rethinking-highway-construction-as-de-jure-segregation/
+      \endverb
+      \verb{url}
+      \verb https://nyujlpp.org/quorum/rube-rethinking-highway-construction-as-de-jure-segregation/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_040}{online}{}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labeltitlesource}{title}
+      \field{title}{Review of Literature Related to Exposures and Health Effects at Structural Collapse Events - CDC Stacks}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://stacks.cdc.gov/view/cdc/181379/cdc_181379_DS1.pdf
+      \endverb
+      \verb{url}
+      \verb https://stacks.cdc.gov/view/cdc/181379/cdc_181379_DS1.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_047}{online}{}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labeltitlesource}{title}
+      \field{title}{Studies Show Lead Linked to Violent Crime Trends - Equal Justice Initiative}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://eji.org/news/studies-show-lead-linked-to-violent-crime-trends/
+      \endverb
+      \verb{url}
+      \verb https://eji.org/news/studies-show-lead-linked-to-violent-crime-trends/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_061}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{Taking the highway to right wrongs of the past in urban areas - Center for Public Integrity}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://publicintegrity.org/environment/urban-areas-highway-right-wrongs-of-past/
+      \endverb
+      \verb{url}
+      \verb https://publicintegrity.org/environment/urban-areas-highway-right-wrongs-of-past/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_014}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{Tetraethyllead - Wikipedia}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/Tetraethyllead
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/Tetraethyllead
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_078}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Antiracist Constitution - NYU Law}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.law.nyu.edu/sites/default/files/The\%20Antiracist\%20Constitution--Hasbrouck\%20\%281\%29.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.law.nyu.edu/sites/default/files/The%5C%20Antiracist%5C%20Constitution--Hasbrouck%5C%20%5C%281%5C%29.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_012}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The association between lead exposure and crime: A systematic review - PMC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC10393136/
+      \endverb
+      \verb{url}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC10393136/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_043}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Chemical Lobotomy: How Leaded Gasoline Fueled a Century of Crime - YouTube}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.youtube.com/watch?v=C_XiMeNk7Iw
+      \endverb
+      \verb{url}
+      \verb https://www.youtube.com/watch?v=C_XiMeNk7Iw
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_007}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Crossroads of Justice: Our Infrastructural History, Environmental Racism, and the Climate Fight - Human Rights Research Center}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.humanrightsresearch.org/post/the-crossroads-of-justice-our-infrastructural-history-environmental-racism-and-the-climate-fight
+      \endverb
+      \verb{url}
+      \verb https://www.humanrightsresearch.org/post/the-crossroads-of-justice-our-infrastructural-history-environmental-racism-and-the-climate-fight
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_084}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Diversity Formula: A Race-Neutral Playbook - Minnesota Law Review}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://scholarship.law.umn.edu/cgi/viewcontent.cgi?article=1087&context=minnlrev
+      \endverb
+      \verb{url}
+      \verb https://scholarship.law.umn.edu/cgi/viewcontent.cgi?article=1087&context=minnlrev
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_083}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Dormant Power of State Agencies to Fight Environmental Racism - Michigan Law Review}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://michiganlawreview.org/journal/the-dormant-power-of-state-agencies-to-fight-environmental-racism/
+      \endverb
+      \verb{url}
+      \verb https://michiganlawreview.org/journal/the-dormant-power-of-state-agencies-to-fight-environmental-racism/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_025}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Ethyl Controversy - Prof.~Kovarik}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://billkovarik.com/wp-content/uploads/2016/12/Ethyl3.pdf
+      \endverb
+      \verb{url}
+      \verb https://billkovarik.com/wp-content/uploads/2016/12/Ethyl3.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_015}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Ethyl-Poisoned Earth - Damn Interesting}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.damninteresting.com/the-ethyl-poisoned-earth/
+      \endverb
+      \verb{url}
+      \verb https://www.damninteresting.com/the-ethyl-poisoned-earth/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_081}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{THE FUTURE OF ENVIRONMENTAL JUSTICE CLAIMS UNDER TITLE VI - Stanford Law}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://law.stanford.edu/wp-content/uploads/2025/05/Sivas-FINAL.pdf
+      \endverb
+      \verb{url}
+      \verb https://law.stanford.edu/wp-content/uploads/2025/05/Sivas-FINAL.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_009}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Interstate Highway System as a Tool of Segregation and the Subsequent Impact on Community Health - ResearchGate}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.researchgate.net/publication/397168543_The_Interstate_Highway_System_as_a_Tool_of_Segregation_and_the_Subsequent_Impact_on_Community_Health
+      \endverb
+      \verb{url}
+      \verb https://www.researchgate.net/publication/397168543_The_Interstate_Highway_System_as_a_Tool_of_Segregation_and_the_Subsequent_Impact_on_Community_Health
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_068}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Interstates and the Cities: Highways, Housing, and the Freeway Revolt - PRRAC}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.prrac.org/pdf/mohl.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.prrac.org/pdf/mohl.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_030}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Kehoe Files: Part 1 of The Lead Papers - Toxic Docs}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.toxicdocs.org/blog/the-kehoe-files-part-1-of-the-lead-papers/
+      \endverb
+      \verb{url}
+      \verb https://www.toxicdocs.org/blog/the-kehoe-files-part-1-of-the-lead-papers/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_072}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Lasting Legacy of Transportation Planning: Spatial Exclusions Shaped by the Interstate Highways - Columbia Academic Commons}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://academiccommons.columbia.edu/doi/10.7916/6hyb-hq02/download
+      \endverb
+      \verb{url}
+      \verb https://academiccommons.columbia.edu/doi/10.7916/6hyb-hq02/download
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_024}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Most Important Scientist You've Never Heard Of - Mental Floss}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.mentalfloss.com/article/94569/clair-patterson-scientist-who-determined-age-earth-and-then-saved-it
+      \endverb
+      \verb{url}
+      \verb https://www.mentalfloss.com/article/94569/clair-patterson-scientist-who-determined-age-earth-and-then-saved-it
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_027}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Public Health Controversy over Leaded Gasoline during the 1920s. - Columbia Academic Commons}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://academiccommons.columbia.edu/doi/10.7916/D8RF64WX/download
+      \endverb
+      \verb{url}
+      \verb https://academiccommons.columbia.edu/doi/10.7916/D8RF64WX/download
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_016}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{THE RISE AND FALL OF LEADED GASOLINE - Columbia University}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb http://www.columbia.edu/itc/sipa/envp/louchouarn/courses/env-chem/Pb-Rise\%26Fall(Nriagu1990).pdf
+      \endverb
+      \verb{url}
+      \verb http://www.columbia.edu/itc/sipa/envp/louchouarn/courses/env-chem/Pb-Rise%5C%26Fall(Nriagu1990).pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_054}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Road to Racial Justice: Resolving the Disproportionate Health Burden Placed on Communities of Color by Highway Pollution}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://hrlr.law.columbia.edu/hrlr/the-road-to-racial-justice-resolving-the-disproportionate-health-burden-placed-on-communities-of-color-by-highway-pollution/
+      \endverb
+      \verb{url}
+      \verb https://hrlr.law.columbia.edu/hrlr/the-road-to-racial-justice-resolving-the-disproportionate-health-burden-placed-on-communities-of-color-by-highway-pollution/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_008}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The role of the Petrol Industry In Global Lead ...{} - ResearchGate}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.researchgate.net/profile/Mark-Laidlaw/publication/397884499_One_century_One_industry_Two_global_health_disasters_The_role_of_the_Petrol_Industry_In_Global_Lead_Poisoning_and_Warming/links/693bf2b527359023a00b335d/One-century-One-industry-Two-global-health-disasters-The-role-of-the-Petrol-Industry-In-Global-Lead-Poisoning-and-Warming.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.researchgate.net/profile/Mark-Laidlaw/publication/397884499_One_century_One_industry_Two_global_health_disasters_The_role_of_the_Petrol_Industry_In_Global_Lead_Poisoning_and_Warming/links/693bf2b527359023a00b335d/One-century-One-industry-Two-global-health-disasters-The-role-of-the-Petrol-Industry-In-Global-Lead-Poisoning-and-Warming.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_003}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Secret History of Lead - Type Investigations}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.typeinvestigations.org/investigation/2000/03/02/secret-history-lead/
+      \endverb
+      \verb{url}
+      \verb https://www.typeinvestigations.org/investigation/2000/03/02/secret-history-lead/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_019}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Secret History of Lead - UNIWA Open eClass}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://eclass.uniwa.gr/modules/document/file.php/EEE195/2023-2024/4aithylo-Lead/The\%20Secret\%20History\%20of\%20Lead\%20_\%20The\%20Nation.pdf
+      \endverb
+      \verb{url}
+      \verb https://eclass.uniwa.gr/modules/document/file.php/EEE195/2023-2024/4aithylo-Lead/The%5C%20Secret%5C%20History%5C%20of%5C%20Lead%5C%20_%5C%20The%5C%20Nation.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_079}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{THE USE OF STATISTICS TO PROVE INTENTIONAL EMPLOYMENT DISCRIMINATION}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://scholarship.law.duke.edu/cgi/viewcontent.cgi?article=3742&context=lcp
+      \endverb
+      \verb{url}
+      \verb https://scholarship.law.duke.edu/cgi/viewcontent.cgi?article=3742&context=lcp
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_010}{online}{}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{title}{The Zero Tax on NFA Firearms: News Article - Independent Institute}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.independent.org/article/2025/08/11/the-zero-tax-on-nfa-firearms/
+      \endverb
+      \verb{url}
+      \verb https://www.independent.org/article/2025/08/11/the-zero-tax-on-nfa-firearms/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_063}{online}{}
+      \field{sortinit}{U}
+      \field{sortinithash}{6901a00e45705986ee5e7ca9fd39adca}
+      \field{labeltitlesource}{title}
+      \field{title}{Urban highways are barriers to social ties - PNAS}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.pnas.org/doi/10.1073/pnas.2408937122
+      \endverb
+      \verb{url}
+      \verb https://www.pnas.org/doi/10.1073/pnas.2408937122
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_058}{online}{}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labeltitlesource}{title}
+      \field{title}{Washington Park Lead Committee, Inc.~v. United States Environmental Protection Agency - eScholarship.org}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://escholarship.org/content/qt5zj9k6vv/qt5zj9k6vv.pdf
+      \endverb
+      \verb{url}
+      \verb https://escholarship.org/content/qt5zj9k6vv/qt5zj9k6vv.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_070}{online}{}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labeltitlesource}{title}
+      \field{title}{White-Mens-Roads-Through-Black-Mens-Homes - Vanderbilt University}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://cdn.vanderbilt.edu/vu-wordpress-0/wp-content/uploads/sites/278/2020/10/19115823/White-Mens-Roads-Through-Black-Mens-Homes-Advancing-Racial-Equity-Through-Highway-Reconstruction.pdf
+      \endverb
+      \verb{url}
+      \verb https://cdn.vanderbilt.edu/vu-wordpress-0/wp-content/uploads/sites/278/2020/10/19115823/White-Mens-Roads-Through-Black-Mens-Homes-Advancing-Racial-Equity-Through-Highway-Reconstruction.pdf
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_074}{online}{}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labeltitlesource}{title}
+      \field{title}{Will the Harm from Baltimore's Highway to Nowhere Ever Be Repaired? - Baltimore Magazine}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.baltimoremagazine.com/section/businessdevelopment/highway-to-nowhere-baltimore-expressway-demolished-black-neighborhoods/
+      \endverb
+      \verb{url}
+      \verb https://www.baltimoremagazine.com/section/businessdevelopment/highway-to-nowhere-baltimore-expressway-demolished-black-neighborhoods/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_004}{online}{}
+      \field{sortinit}{Y}
+      \field{sortinithash}{fd67ad5a9ef0f7456bdd9aab10fe1495}
+      \field{labeltitlesource}{title}
+      \field{title}{Yes, lead poisoning could really be a cause of violent crime | George Monbiot | The Guardian}
+      \field{urlday}{5}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.theguardian.com/commentisfree/2013/jan/07/violent-crime-lead-poisoning-british-export
+      \endverb
+      \verb{url}
+      \verb https://www.theguardian.com/commentisfree/2013/jan/07/violent-crime-lead-poisoning-british-export
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+
