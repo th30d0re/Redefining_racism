@@ -19,9 +19,98 @@
 
 \refsection{0}
   \datalist[entry]{none/global//global/global}
+    \entry{vera_bail_slavery}{online}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=569648a5f7d5ba43d0a73b98a852406d}{%
+           family={{Vera Institute of Justice}},
+           familyi={V\bibinitperiod}}}%
+      }
+      \strng{namehash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{fullhash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{bibnamehash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{authorbibnamehash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{authornamehash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{authorfullhash}{569648a5f7d5ba43d0a73b98a852406d}
+      \field{extraname}{1}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Money bail rooted in ``racist fictions'' of danger; normalized paying money for human freedom; officials use jail detention to drain financial resources and curb political power of minority communities}
+      \field{title}{The Long Shadow of Slavery on the American Bail System}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.vera.org
+      \endverb
+      \verb{url}
+      \verb https://www.vera.org
+      \endverb
+    \endentry
+    \entry{vera_condemnation_blackness}{online}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=569648a5f7d5ba43d0a73b98a852406d}{%
+           family={{Vera Institute of Justice}},
+           familyi={V\bibinitperiod}}}%
+      }
+      \strng{namehash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{fullhash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{bibnamehash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{authorbibnamehash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{authornamehash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{authorfullhash}{569648a5f7d5ba43d0a73b98a852406d}
+      \field{extraname}{2}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Crime statistics embed racial bias that justifies bail decisions and aggressive policing in minority communities}
+      \field{title}{The Condemnation of Blackness and Crime Statistics}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.vera.org
+      \endverb
+      \verb{url}
+      \verb https://www.vera.org
+      \endverb
+    \endentry
+    \entry{ncbi_social_determinants}{online}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=14b6e5d2c7d6d2e5f536557724e7c73f}{%
+           family={{NCBI Bookshelf}},
+           familyi={N\bibinitperiod}}}%
+      }
+      \strng{namehash}{14b6e5d2c7d6d2e5f536557724e7c73f}
+      \strng{fullhash}{14b6e5d2c7d6d2e5f536557724e7c73f}
+      \strng{bibnamehash}{14b6e5d2c7d6d2e5f536557724e7c73f}
+      \strng{authorbibnamehash}{14b6e5d2c7d6d2e5f536557724e7c73f}
+      \strng{authornamehash}{14b6e5d2c7d6d2e5f536557724e7c73f}
+      \strng{authorfullhash}{14b6e5d2c7d6d2e5f536557724e7c73f}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{How communities are structured influences health equity and public health outcomes}
+      \field{title}{Neighborhoods and the Built Environment: Social Determinants of Health}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.ncbi.nlm.nih.gov/books
+      \endverb
+      \verb{url}
+      \verb https://www.ncbi.nlm.nih.gov/books
+      \endverb
+    \endentry
     \entry{lead_highways_and_systemic_harm_ref_001}{online}{}
-      \field{sortinit}{2}
-      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
       \field{labeltitlesource}{title}
       \field{title}{Leaded Gasoline | Story Behind the Science}
       \field{urlday}{5}
@@ -37,8 +126,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_002}{online}{}
-      \field{sortinit}{3}
-      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
       \field{labeltitlesource}{title}
       \field{title}{Clair Patterson and Robert Kehoe's paradigm of 'show me the data'' on environmental lead poisoning - PubMed}
       \field{urlday}{5}
@@ -54,8 +143,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_003}{online}{}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
       \field{labeltitlesource}{title}
       \field{title}{The Secret History of Lead - Type Investigations}
       \field{urlday}{5}
@@ -71,8 +160,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_004}{online}{}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
       \field{labeltitlesource}{title}
       \field{title}{Yes, lead poisoning could really be a cause of violent crime | George Monbiot | The Guardian}
       \field{urlday}{5}
@@ -88,8 +177,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_005}{online}{}
-      \field{sortinit}{6}
-      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labeltitlesource}{title}
       \field{title}{1956 -- Federal-Aid Highway Act Displaces Black Americans - Florida Policy Timeline}
       \field{urlday}{5}
@@ -105,8 +194,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_006}{online}{}
-      \field{sortinit}{7}
-      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labeltitlesource}{title}
       \field{title}{Racism by Design: The Building of Interstate 81 | American Civil Liberties Union}
       \field{urlday}{5}
@@ -122,8 +211,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_007}{online}{}
-      \field{sortinit}{8}
-      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labeltitlesource}{title}
       \field{title}{The Crossroads of Justice: Our Infrastructural History, Environmental Racism, and the Climate Fight - Human Rights Research Center}
       \field{urlday}{5}
@@ -139,8 +228,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_008}{online}{}
-      \field{sortinit}{9}
-      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labeltitlesource}{title}
       \field{title}{The role of the Petrol Industry In Global Lead ...{} - ResearchGate}
       \field{urlday}{5}
@@ -258,8 +347,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_015}{online}{}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
       \field{labeltitlesource}{title}
       \field{title}{The Ethyl-Poisoned Earth - Damn Interesting}
       \field{urlday}{5}
@@ -275,8 +364,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_016}{online}{}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
       \field{labeltitlesource}{title}
       \field{title}{THE RISE AND FALL OF LEADED GASOLINE - Columbia University}
       \field{urlday}{5}
@@ -292,8 +381,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_017}{online}{}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
       \field{labeltitlesource}{title}
       \field{title}{Leaded Gas Was a Known Poison the Day It Was Invented - Smithsonian Magazine}
       \field{urlday}{5}
@@ -309,8 +398,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_018}{online}{}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
       \field{labeltitlesource}{title}
       \field{title}{3 Lead in petrol 'makes the mind give way' - European Environment Agency}
       \field{urlday}{5}
@@ -428,8 +517,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_025}{online}{}
-      \field{sortinit}{2}
-      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
       \field{labeltitlesource}{title}
       \field{title}{The Ethyl Controversy - Prof.~Kovarik}
       \field{urlday}{5}
@@ -445,8 +534,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_026}{online}{}
-      \field{sortinit}{2}
-      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
       \field{labeltitlesource}{title}
       \field{title}{A century of tragedy: Leaded gasoline - Environmental history}
       \field{urlday}{5}
@@ -462,8 +551,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_027}{online}{}
-      \field{sortinit}{2}
-      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
       \field{labeltitlesource}{title}
       \field{title}{The Public Health Controversy over Leaded Gasoline during the 1920s. - Columbia Academic Commons}
       \field{urlday}{5}
@@ -479,8 +568,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_028}{online}{}
-      \field{sortinit}{2}
-      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
       \field{labeltitlesource}{title}
       \field{title}{a brief history of lead poisoning - in the united states over the past century}
       \field{urlday}{5}
@@ -598,8 +687,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_035}{online}{}
-      \field{sortinit}{3}
-      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labeltitlesource}{title}
       \field{title}{20th Century Lead Exposure Damaged American Mental Health - DUPRI - Duke University}
       \field{urlday}{5}
@@ -615,8 +704,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_036}{online}{}
-      \field{sortinit}{3}
-      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labeltitlesource}{title}
       \field{title}{Getting lead out of gasoline | Environmental Defense Fund}
       \field{urlday}{5}
@@ -632,8 +721,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_037}{online}{}
-      \field{sortinit}{3}
-      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labeltitlesource}{title}
       \field{title}{Lead--crime hypothesis - Wikipedia}
       \field{urlday}{5}
@@ -649,8 +738,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_038}{online}{}
-      \field{sortinit}{3}
-      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labeltitlesource}{title}
       \field{title}{Lead Exposure in Last Century Shrank IQ Scores of Half of Americans | Duke Today}
       \field{urlday}{5}
@@ -768,8 +857,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_045}{online}{}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labeltitlesource}{title}
       \field{title}{Half of US population exposed to adverse lead levels in early childhood - PNAS}
       \field{urlday}{5}
@@ -785,8 +874,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_046}{online}{}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labeltitlesource}{title}
       \field{title}{Did the elimination of lead from petrol reduce crime in the USA in the 1990s? - PMC}
       \field{urlday}{5}
@@ -802,8 +891,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_047}{online}{}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labeltitlesource}{title}
       \field{title}{Studies Show Lead Linked to Violent Crime Trends - Equal Justice Initiative}
       \field{urlday}{5}
@@ -819,8 +908,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_048}{online}{}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labeltitlesource}{title}
       \field{title}{Highways and Zoning: Tools of Racist Policy}
       \field{urlday}{5}
@@ -938,8 +1027,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_055}{online}{}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
       \field{labeltitlesource}{title}
       \field{title}{Highway Pollution Affects More Black and Latino Communities - Moms Clean Air Force}
       \field{urlday}{5}
@@ -955,8 +1044,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_056}{online}{}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
       \field{labeltitlesource}{title}
       \field{title}{I-630: Divisive Connection - ScholarWorks@UARK}
       \field{urlday}{5}
@@ -972,8 +1061,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_057}{online}{}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
       \field{labeltitlesource}{title}
       \field{title}{Law and Anti-Blackness}
       \field{urlday}{5}
@@ -989,8 +1078,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_058}{online}{}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
       \field{labeltitlesource}{title}
       \field{title}{Washington Park Lead Committee, Inc.~v. United States Environmental Protection Agency - eScholarship.org}
       \field{urlday}{5}
@@ -1108,8 +1197,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_065}{online}{}
-      \field{sortinit}{6}
-      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
       \field{labeltitlesource}{title}
       \field{title}{ETHYL: The 1920s conflict over leaded gasoline \& alternative fuels | Prof.~Kovarik}
       \field{urlday}{5}
@@ -1125,8 +1214,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_066}{online}{}
-      \field{sortinit}{6}
-      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
       \field{labeltitlesource}{title}
       \field{title}{Occupational Disease as the Bane of Workers' Lives: A Chronological Review - PMC}
       \field{urlday}{5}
@@ -1142,8 +1231,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_067}{online}{}
-      \field{sortinit}{6}
-      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
       \field{labeltitlesource}{title}
       \field{title}{How the lead industry lied to the public for decades - Gerald Markowitz and David Rosner}
       \field{urlday}{5}
@@ -1159,8 +1248,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_068}{online}{}
-      \field{sortinit}{6}
-      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
       \field{labeltitlesource}{title}
       \field{title}{The Interstates and the Cities: Highways, Housing, and the Freeway Revolt - PRRAC}
       \field{urlday}{5}
@@ -1278,8 +1367,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_075}{online}{}
-      \field{sortinit}{7}
-      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
       \field{labeltitlesource}{title}
       \field{title}{New documentary reveals how U.S. highway system dismantled Black communities, including Overtown | WLRN}
       \field{urlday}{5}
@@ -1295,8 +1384,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_076}{online}{}
-      \field{sortinit}{7}
-      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
       \field{labeltitlesource}{title}
       \field{title}{Nondiscrimination in Environmental Regulation: A Legal Analysis - EveryCRSReport.com}
       \field{urlday}{5}
@@ -1312,8 +1401,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_077}{online}{}
-      \field{sortinit}{7}
-      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
       \field{labeltitlesource}{title}
       \field{title}{At the Intersection of Race and History: The Unique Relationship Between the Davis Intent Requirement and the Crack Laws}
       \field{urlday}{5}
@@ -1329,8 +1418,8 @@
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_078}{online}{}
-      \field{sortinit}{7}
-      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
       \field{labeltitlesource}{title}
       \field{title}{The Antiracist Constitution - NYU Law}
       \field{urlday}{5}
@@ -1446,6 +1535,431 @@
       \verb{url}
       \verb https://scholarship.law.umn.edu/cgi/viewcontent.cgi?article=1087&context=minnlrev
       \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_085}{article}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=663491ea192788ac98af3d78b72e0d27}{%
+           family={Switzer},
+           familyi={S\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=da4f9220d99c1eb2b6308094ce5b25e7}{%
+           family={Teodoro},
+           familyi={T\bibinitperiod},
+           given={Manuel\bibnamedelima P.},
+           giveni={M\bibinitperiod\bibinitdelim P\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{31c32a4aa0672996de049dcbaf0e424d}
+      \strng{fullhash}{31c32a4aa0672996de049dcbaf0e424d}
+      \strng{bibnamehash}{31c32a4aa0672996de049dcbaf0e424d}
+      \strng{authorbibnamehash}{31c32a4aa0672996de049dcbaf0e424d}
+      \strng{authornamehash}{31c32a4aa0672996de049dcbaf0e424d}
+      \strng{authorfullhash}{31c32a4aa0672996de049dcbaf0e424d}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Proceedings of the National Academy of Sciences}
+      \field{title}{Class, Race, Ethnicity, and Justice in Safe Drinking Water Compliance}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{2022}
+      \field{urldateera}{ce}
+      \true{nocite}
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_086}{article}{}
+      \name{author}{4}{}{%
+        {{un=0,uniquepart=base,hash=1858c3aba5bdb42244924ea689c3ea7a}{%
+           family={Hanna-Attisha},
+           familyi={H\bibinithyphendelim A\bibinitperiod},
+           given={Mona},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=a5270a2986f05d7861415e8e4cb571a4}{%
+           family={LaChance},
+           familyi={L\bibinitperiod},
+           given={Jenny},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=9cdd1ae2745eb39ce85f5e69ca32c32b}{%
+           family={Sadler},
+           familyi={S\bibinitperiod},
+           given={Richard\bibnamedelima Casey},
+           giveni={R\bibinitperiod\bibinitdelim C\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=523468272756c39acab627ac28ac16a1}{%
+           family={Champney\bibnamedelima Schnepp},
+           familyi={C\bibinitperiod\bibinitdelim S\bibinitperiod},
+           given={Allison},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{b9ee3589b0903e1980c732362b56b9fa}
+      \strng{fullhash}{d560fce1c71920d82a0c421a1f5228ab}
+      \strng{bibnamehash}{d560fce1c71920d82a0c421a1f5228ab}
+      \strng{authorbibnamehash}{d560fce1c71920d82a0c421a1f5228ab}
+      \strng{authornamehash}{b9ee3589b0903e1980c732362b56b9fa}
+      \strng{authorfullhash}{d560fce1c71920d82a0c421a1f5228ab}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{American Journal of Public Health}
+      \field{number}{2}
+      \field{title}{Elevated Blood Lead Levels in Children Associated With the Flint Drinking Water Crisis}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{volume}{106}
+      \field{year}{2016}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \field{pages}{283\bibrangedash 290}
+      \range{pages}{8}
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_087}{online}{}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labeltitlesource}{title}
+      \field{title}{Lead in School Drinking Water - GAO Report GAO-18-382}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{2018}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.gao.gov/products/gao-18-382
+      \endverb
+      \verb{url}
+      \verb https://www.gao.gov/products/gao-18-382
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_088}{article}{}
+      \name{author}{7}{}{%
+        {{un=0,uniquepart=base,hash=a66207fd75bb7685d922121087211240}{%
+           family={Doré},
+           familyi={D\bibinitperiod},
+           given={Elin},
+           giveni={E\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=f0b7169775122ab73c91f902121aafe8}{%
+           family={Deshommes},
+           familyi={D\bibinitperiod},
+           given={Elise},
+           giveni={E\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=c4cceff412fdd08128fe8ac03c64767d}{%
+           family={Andrews},
+           familyi={A\bibinitperiod},
+           given={Robert\bibnamedelima C.},
+           giveni={R\bibinitperiod\bibinitdelim C\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=716fb243a8997b10767ff92cf5a6613c}{%
+           family={Nour},
+           familyi={N\bibinitperiod},
+           given={Sami},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=bf9b83af04f843b5bf8fb3486ed80df4}{%
+           family={Bhatt},
+           familyi={B\bibinitperiod},
+           given={Priyanka},
+           giveni={P\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=4c224c91eb572752b380dab2212e6431}{%
+           family={Bhatt},
+           familyi={B\bibinitperiod},
+           given={Reena},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=4c224c91eb572752b380dab2212e6431}{%
+           family={Bhatt},
+           familyi={B\bibinitperiod},
+           given={Reena},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{04148779041dc333d2ac05a542c2de01}
+      \strng{fullhash}{871b9e1eb650c1ddc1a4303bc7b4d92d}
+      \strng{bibnamehash}{871b9e1eb650c1ddc1a4303bc7b4d92d}
+      \strng{authorbibnamehash}{871b9e1eb650c1ddc1a4303bc7b4d92d}
+      \strng{authornamehash}{04148779041dc333d2ac05a542c2de01}
+      \strng{authorfullhash}{871b9e1eb650c1ddc1a4303bc7b4d92d}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Environmental Science \& Technology}
+      \field{title}{Sampling in Schools and Daycares to Assess Lead in Drinking Water}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{2019}
+      \field{urldateera}{ce}
+      \true{nocite}
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_089}{book}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=b5a04b90e3342a3106e72f7c6a469e92}{%
+           family={Baker},
+           familyi={B\bibinitperiod},
+           given={Bruce\bibnamedelima D.},
+           giveni={B\bibinitperiod\bibinitdelim D\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Harvard Education Press}%
+      }
+      \strng{namehash}{b5a04b90e3342a3106e72f7c6a469e92}
+      \strng{fullhash}{b5a04b90e3342a3106e72f7c6a469e92}
+      \strng{bibnamehash}{b5a04b90e3342a3106e72f7c6a469e92}
+      \strng{authorbibnamehash}{b5a04b90e3342a3106e72f7c6a469e92}
+      \strng{authornamehash}{b5a04b90e3342a3106e72f7c6a469e92}
+      \strng{authorfullhash}{b5a04b90e3342a3106e72f7c6a469e92}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Educational Inequality and School Finance: Why Money Matters for America's Students}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{2018}
+      \field{urldateera}{ce}
+      \true{nocite}
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_090}{article}{}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=cbaa3ad64806cc5626bd991614e9dd85}{%
+           family={Cellini},
+           familyi={C\bibinitperiod},
+           given={Stephanie\bibnamedelima Riegg},
+           giveni={S\bibinitperiod\bibinitdelim R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=ce1999a2def4b3e68b1e891baff26fee}{%
+           family={Ferreira},
+           familyi={F\bibinitperiod},
+           given={Fernando},
+           giveni={F\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=19192fe53caa301de3ea1ecacca56af9}{%
+           family={Rothstein},
+           familyi={R\bibinitperiod},
+           given={Jesse},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{d6fdc34c299dd6fcbc0d8692a5d4ce3f}
+      \strng{fullhash}{d6fdc34c299dd6fcbc0d8692a5d4ce3f}
+      \strng{bibnamehash}{d6fdc34c299dd6fcbc0d8692a5d4ce3f}
+      \strng{authorbibnamehash}{d6fdc34c299dd6fcbc0d8692a5d4ce3f}
+      \strng{authornamehash}{d6fdc34c299dd6fcbc0d8692a5d4ce3f}
+      \strng{authorfullhash}{d6fdc34c299dd6fcbc0d8692a5d4ce3f}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Quarterly Journal of Economics}
+      \field{number}{1}
+      \field{title}{The Value of School Facility Investments: Evidence from a Dynamic Regression Discontinuity Design}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{volume}{125}
+      \field{year}{2010}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \field{pages}{215\bibrangedash 261}
+      \range{pages}{47}
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_091}{online}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=1965b1388e13516c345362deae25ad52}{%
+           family={{American Society of Civil Engineers}},
+           familyi={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{1965b1388e13516c345362deae25ad52}
+      \strng{fullhash}{1965b1388e13516c345362deae25ad52}
+      \strng{bibnamehash}{1965b1388e13516c345362deae25ad52}
+      \strng{authorbibnamehash}{1965b1388e13516c345362deae25ad52}
+      \strng{authornamehash}{1965b1388e13516c345362deae25ad52}
+      \strng{authorfullhash}{1965b1388e13516c345362deae25ad52}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{2021 Report Card for America's Infrastructure: Schools}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{2021}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://infrastructurereportcard.org/cat-item/schools-infrastructure/
+      \endverb
+      \verb{url}
+      \verb https://infrastructurereportcard.org/cat-item/schools-infrastructure/
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_092}{book}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=53b4e7cf18a434f7f707425e802802e8}{%
+           family={Lamis},
+           familyi={L\bibinitperiod},
+           given={Alexander\bibnamedelima P.},
+           giveni={A\bibinitperiod\bibinitdelim P\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Louisiana State University Press}%
+      }
+      \strng{namehash}{53b4e7cf18a434f7f707425e802802e8}
+      \strng{fullhash}{53b4e7cf18a434f7f707425e802802e8}
+      \strng{bibnamehash}{53b4e7cf18a434f7f707425e802802e8}
+      \strng{authorbibnamehash}{53b4e7cf18a434f7f707425e802802e8}
+      \strng{authornamehash}{53b4e7cf18a434f7f707425e802802e8}
+      \strng{authorfullhash}{53b4e7cf18a434f7f707425e802802e8}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Southern Politics in the 1990s}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{1999}
+      \field{urldateera}{ce}
+      \true{nocite}
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_093}{article}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=13cd858e1af8f4e1914687eb6c2526b4}{%
+           family={Lawrence},
+           familyi={L\bibinitperiod},
+           given={III},
+           giveni={I\bibinitperiod},
+           givenun=0,
+           suffix={Charles\bibnamedelima R.},
+           suffixi={C\bibinitperiod\bibinitdelim R\bibinitperiod},
+           suffixun=0}}%
+      }
+      \strng{namehash}{13cd858e1af8f4e1914687eb6c2526b4}
+      \strng{fullhash}{13cd858e1af8f4e1914687eb6c2526b4}
+      \strng{bibnamehash}{13cd858e1af8f4e1914687eb6c2526b4}
+      \strng{authorbibnamehash}{13cd858e1af8f4e1914687eb6c2526b4}
+      \strng{authornamehash}{13cd858e1af8f4e1914687eb6c2526b4}
+      \strng{authorfullhash}{13cd858e1af8f4e1914687eb6c2526b4}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Stanford Law Review}
+      \field{title}{The Id, the Ego, and Equal Protection: Reckoning with Unconscious Racism}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{volume}{39}
+      \field{year}{1987}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \field{pages}{317\bibrangedash 388}
+      \range{pages}{72}
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_094}{article}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=4e25cec1c6f4d9c14b70a26d65b3b9ac}{%
+           family={Siegel},
+           familyi={S\bibinitperiod},
+           given={Reva\bibnamedelima B.},
+           giveni={R\bibinitperiod\bibinitdelim B\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{4e25cec1c6f4d9c14b70a26d65b3b9ac}
+      \strng{fullhash}{4e25cec1c6f4d9c14b70a26d65b3b9ac}
+      \strng{bibnamehash}{4e25cec1c6f4d9c14b70a26d65b3b9ac}
+      \strng{authorbibnamehash}{4e25cec1c6f4d9c14b70a26d65b3b9ac}
+      \strng{authornamehash}{4e25cec1c6f4d9c14b70a26d65b3b9ac}
+      \strng{authorfullhash}{4e25cec1c6f4d9c14b70a26d65b3b9ac}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Stanford Law Review}
+      \field{title}{Why Equal Protection No Longer Protects: The Evolving Forms of Status-Enforcing State Action}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{volume}{49}
+      \field{year}{1997}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \field{pages}{1111\bibrangedash 1148}
+      \range{pages}{38}
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_095}{book}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=990caa6fb8935697589bd96f06f0d82d}{%
+           family={Haney\bibnamedelima López},
+           familyi={H\bibinitperiod\bibinitdelim L\bibinitperiod},
+           given={Ian},
+           giveni={I\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Oxford University Press}%
+      }
+      \strng{namehash}{990caa6fb8935697589bd96f06f0d82d}
+      \strng{fullhash}{990caa6fb8935697589bd96f06f0d82d}
+      \strng{bibnamehash}{990caa6fb8935697589bd96f06f0d82d}
+      \strng{authorbibnamehash}{990caa6fb8935697589bd96f06f0d82d}
+      \strng{authornamehash}{990caa6fb8935697589bd96f06f0d82d}
+      \strng{authorfullhash}{990caa6fb8935697589bd96f06f0d82d}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Dog Whistle Politics: How Coded Racial Appeals Have Reinvented Racism and Wrecked the Middle Class}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{2014}
+      \field{urldateera}{ce}
+      \true{nocite}
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_096}{book}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=1be6c6d20a88f6b57e6d940a16308e33}{%
+           family={Alexander},
+           familyi={A\bibinitperiod},
+           given={Michelle},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {The New Press}%
+      }
+      \strng{namehash}{1be6c6d20a88f6b57e6d940a16308e33}
+      \strng{fullhash}{1be6c6d20a88f6b57e6d940a16308e33}
+      \strng{bibnamehash}{1be6c6d20a88f6b57e6d940a16308e33}
+      \strng{authorbibnamehash}{1be6c6d20a88f6b57e6d940a16308e33}
+      \strng{authornamehash}{1be6c6d20a88f6b57e6d940a16308e33}
+      \strng{authorfullhash}{1be6c6d20a88f6b57e6d940a16308e33}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{The New Jim Crow: Mass Incarceration in the Age of Colorblindness}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{2010}
+      \field{urldateera}{ce}
+      \true{nocite}
     \endentry
   \enddatalist
   \datalist[entry]{nty/global//global/global}
@@ -1568,6 +2082,66 @@
       \verb https://environmentalhistory.org/2021/12/09/a-century-of-tragedy-leaded-gasolines-centennial/
       \endverb
     \endentry
+    \entry{lead_highways_and_systemic_harm_ref_096}{book}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=1be6c6d20a88f6b57e6d940a16308e33}{%
+           family={Alexander},
+           familyi={A\bibinitperiod},
+           given={Michelle},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {The New Press}%
+      }
+      \strng{namehash}{1be6c6d20a88f6b57e6d940a16308e33}
+      \strng{fullhash}{1be6c6d20a88f6b57e6d940a16308e33}
+      \strng{bibnamehash}{1be6c6d20a88f6b57e6d940a16308e33}
+      \strng{authorbibnamehash}{1be6c6d20a88f6b57e6d940a16308e33}
+      \strng{authornamehash}{1be6c6d20a88f6b57e6d940a16308e33}
+      \strng{authorfullhash}{1be6c6d20a88f6b57e6d940a16308e33}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{The New Jim Crow: Mass Incarceration in the Age of Colorblindness}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{2010}
+      \field{urldateera}{ce}
+      \true{nocite}
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_091}{online}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=1965b1388e13516c345362deae25ad52}{%
+           family={{American Society of Civil Engineers}},
+           familyi={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{1965b1388e13516c345362deae25ad52}
+      \strng{fullhash}{1965b1388e13516c345362deae25ad52}
+      \strng{bibnamehash}{1965b1388e13516c345362deae25ad52}
+      \strng{authorbibnamehash}{1965b1388e13516c345362deae25ad52}
+      \strng{authornamehash}{1965b1388e13516c345362deae25ad52}
+      \strng{authorfullhash}{1965b1388e13516c345362deae25ad52}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{2021 Report Card for America's Infrastructure: Schools}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{2021}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://infrastructurereportcard.org/cat-item/schools-infrastructure/
+      \endverb
+      \verb{url}
+      \verb https://infrastructurereportcard.org/cat-item/schools-infrastructure/
+      \endverb
+    \endentry
     \entry{lead_highways_and_systemic_harm_ref_011}{online}{}
       \field{sortinit}{A}
       \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
@@ -1619,6 +2193,36 @@
       \verb https://digitalcommons.law.lsu.edu/cgi/viewcontent.cgi?article=1177&context=faculty_scholarship
       \endverb
     \endentry
+    \entry{lead_highways_and_systemic_harm_ref_089}{book}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=b5a04b90e3342a3106e72f7c6a469e92}{%
+           family={Baker},
+           familyi={B\bibinitperiod},
+           given={Bruce\bibnamedelima D.},
+           giveni={B\bibinitperiod\bibinitdelim D\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Harvard Education Press}%
+      }
+      \strng{namehash}{b5a04b90e3342a3106e72f7c6a469e92}
+      \strng{fullhash}{b5a04b90e3342a3106e72f7c6a469e92}
+      \strng{bibnamehash}{b5a04b90e3342a3106e72f7c6a469e92}
+      \strng{authorbibnamehash}{b5a04b90e3342a3106e72f7c6a469e92}
+      \strng{authornamehash}{b5a04b90e3342a3106e72f7c6a469e92}
+      \strng{authorfullhash}{b5a04b90e3342a3106e72f7c6a469e92}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Educational Inequality and School Finance: Why Money Matters for America's Students}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{2018}
+      \field{urldateera}{ce}
+      \true{nocite}
+    \endentry
     \entry{lead_highways_and_systemic_harm_ref_062}{online}{}
       \field{sortinit}{B}
       \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
@@ -1635,6 +2239,50 @@
       \verb{url}
       \verb https://research.nd.edu/news-and-events/news/blood-lead-levels-show-enduring-legacy-of-structural-racism/
       \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_090}{article}{}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=cbaa3ad64806cc5626bd991614e9dd85}{%
+           family={Cellini},
+           familyi={C\bibinitperiod},
+           given={Stephanie\bibnamedelima Riegg},
+           giveni={S\bibinitperiod\bibinitdelim R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=ce1999a2def4b3e68b1e891baff26fee}{%
+           family={Ferreira},
+           familyi={F\bibinitperiod},
+           given={Fernando},
+           giveni={F\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=19192fe53caa301de3ea1ecacca56af9}{%
+           family={Rothstein},
+           familyi={R\bibinitperiod},
+           given={Jesse},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{d6fdc34c299dd6fcbc0d8692a5d4ce3f}
+      \strng{fullhash}{d6fdc34c299dd6fcbc0d8692a5d4ce3f}
+      \strng{bibnamehash}{d6fdc34c299dd6fcbc0d8692a5d4ce3f}
+      \strng{authorbibnamehash}{d6fdc34c299dd6fcbc0d8692a5d4ce3f}
+      \strng{authornamehash}{d6fdc34c299dd6fcbc0d8692a5d4ce3f}
+      \strng{authorfullhash}{d6fdc34c299dd6fcbc0d8692a5d4ce3f}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Quarterly Journal of Economics}
+      \field{number}{1}
+      \field{title}{The Value of School Facility Investments: Evidence from a Dynamic Regression Discontinuity Design}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{volume}{125}
+      \field{year}{2010}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \field{pages}{215\bibrangedash 261}
+      \range{pages}{47}
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_002}{online}{}
       \field{sortinit}{C}
@@ -1737,6 +2385,70 @@
       \verb{url}
       \verb https://www.prrac.org/dividing-lines-and-the-infrastructure-of-racial-inequality-pr-journal-january-april-2025/
       \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_088}{article}{}
+      \name{author}{7}{}{%
+        {{un=0,uniquepart=base,hash=a66207fd75bb7685d922121087211240}{%
+           family={Doré},
+           familyi={D\bibinitperiod},
+           given={Elin},
+           giveni={E\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=f0b7169775122ab73c91f902121aafe8}{%
+           family={Deshommes},
+           familyi={D\bibinitperiod},
+           given={Elise},
+           giveni={E\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=c4cceff412fdd08128fe8ac03c64767d}{%
+           family={Andrews},
+           familyi={A\bibinitperiod},
+           given={Robert\bibnamedelima C.},
+           giveni={R\bibinitperiod\bibinitdelim C\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=716fb243a8997b10767ff92cf5a6613c}{%
+           family={Nour},
+           familyi={N\bibinitperiod},
+           given={Sami},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=bf9b83af04f843b5bf8fb3486ed80df4}{%
+           family={Bhatt},
+           familyi={B\bibinitperiod},
+           given={Priyanka},
+           giveni={P\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=4c224c91eb572752b380dab2212e6431}{%
+           family={Bhatt},
+           familyi={B\bibinitperiod},
+           given={Reena},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=4c224c91eb572752b380dab2212e6431}{%
+           family={Bhatt},
+           familyi={B\bibinitperiod},
+           given={Reena},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{04148779041dc333d2ac05a542c2de01}
+      \strng{fullhash}{871b9e1eb650c1ddc1a4303bc7b4d92d}
+      \strng{bibnamehash}{871b9e1eb650c1ddc1a4303bc7b4d92d}
+      \strng{authorbibnamehash}{871b9e1eb650c1ddc1a4303bc7b4d92d}
+      \strng{authornamehash}{04148779041dc333d2ac05a542c2de01}
+      \strng{authorfullhash}{871b9e1eb650c1ddc1a4303bc7b4d92d}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Environmental Science \& Technology}
+      \field{title}{Sampling in Schools and Daycares to Assess Lead in Drinking Water}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{2019}
+      \field{urldateera}{ce}
+      \true{nocite}
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_039}{online}{}
       \field{sortinit}{E}
@@ -1891,6 +2603,86 @@
       \verb https://www.pnas.org/doi/10.1073/pnas.2118631119
       \endverb
     \endentry
+    \entry{lead_highways_and_systemic_harm_ref_095}{book}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=990caa6fb8935697589bd96f06f0d82d}{%
+           family={Haney\bibnamedelima López},
+           familyi={H\bibinitperiod\bibinitdelim L\bibinitperiod},
+           given={Ian},
+           giveni={I\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Oxford University Press}%
+      }
+      \strng{namehash}{990caa6fb8935697589bd96f06f0d82d}
+      \strng{fullhash}{990caa6fb8935697589bd96f06f0d82d}
+      \strng{bibnamehash}{990caa6fb8935697589bd96f06f0d82d}
+      \strng{authorbibnamehash}{990caa6fb8935697589bd96f06f0d82d}
+      \strng{authornamehash}{990caa6fb8935697589bd96f06f0d82d}
+      \strng{authorfullhash}{990caa6fb8935697589bd96f06f0d82d}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Dog Whistle Politics: How Coded Racial Appeals Have Reinvented Racism and Wrecked the Middle Class}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{2014}
+      \field{urldateera}{ce}
+      \true{nocite}
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_086}{article}{}
+      \name{author}{4}{}{%
+        {{un=0,uniquepart=base,hash=1858c3aba5bdb42244924ea689c3ea7a}{%
+           family={Hanna-Attisha},
+           familyi={H\bibinithyphendelim A\bibinitperiod},
+           given={Mona},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=a5270a2986f05d7861415e8e4cb571a4}{%
+           family={LaChance},
+           familyi={L\bibinitperiod},
+           given={Jenny},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=9cdd1ae2745eb39ce85f5e69ca32c32b}{%
+           family={Sadler},
+           familyi={S\bibinitperiod},
+           given={Richard\bibnamedelima Casey},
+           giveni={R\bibinitperiod\bibinitdelim C\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=523468272756c39acab627ac28ac16a1}{%
+           family={Champney\bibnamedelima Schnepp},
+           familyi={C\bibinitperiod\bibinitdelim S\bibinitperiod},
+           given={Allison},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{b9ee3589b0903e1980c732362b56b9fa}
+      \strng{fullhash}{d560fce1c71920d82a0c421a1f5228ab}
+      \strng{bibnamehash}{d560fce1c71920d82a0c421a1f5228ab}
+      \strng{authorbibnamehash}{d560fce1c71920d82a0c421a1f5228ab}
+      \strng{authornamehash}{b9ee3589b0903e1980c732362b56b9fa}
+      \strng{authorfullhash}{d560fce1c71920d82a0c421a1f5228ab}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{American Journal of Public Health}
+      \field{number}{2}
+      \field{title}{Elevated Blood Lead Levels in Children Associated With the Flint Drinking Water Crisis}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{volume}{106}
+      \field{year}{2016}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \field{pages}{283\bibrangedash 290}
+      \range{pages}{8}
+    \endentry
     \entry{lead_highways_and_systemic_harm_ref_055}{online}{}
       \field{sortinit}{H}
       \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
@@ -2027,6 +2819,36 @@
       \verb https://www.unep.org/news-and-stories/story/inside-20-year-campaign-rid-world-leaded-fuel
       \endverb
     \endentry
+    \entry{lead_highways_and_systemic_harm_ref_092}{book}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=53b4e7cf18a434f7f707425e802802e8}{%
+           family={Lamis},
+           familyi={L\bibinitperiod},
+           given={Alexander\bibnamedelima P.},
+           giveni={A\bibinitperiod\bibinitdelim P\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Louisiana State University Press}%
+      }
+      \strng{namehash}{53b4e7cf18a434f7f707425e802802e8}
+      \strng{fullhash}{53b4e7cf18a434f7f707425e802802e8}
+      \strng{bibnamehash}{53b4e7cf18a434f7f707425e802802e8}
+      \strng{authorbibnamehash}{53b4e7cf18a434f7f707425e802802e8}
+      \strng{authornamehash}{53b4e7cf18a434f7f707425e802802e8}
+      \strng{authorfullhash}{53b4e7cf18a434f7f707425e802802e8}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Southern Politics in the 1990s}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{1999}
+      \field{urldateera}{ce}
+      \true{nocite}
+    \endentry
     \entry{lead_highways_and_systemic_harm_ref_057}{online}{}
       \field{sortinit}{L}
       \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
@@ -2044,6 +2866,40 @@
       \verb https://repository.law.umich.edu/cgi/viewcontent.cgi?article=1374&context=mjrl
       \endverb
     \endentry
+    \entry{lead_highways_and_systemic_harm_ref_093}{article}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=13cd858e1af8f4e1914687eb6c2526b4}{%
+           family={Lawrence},
+           familyi={L\bibinitperiod},
+           given={III},
+           giveni={I\bibinitperiod},
+           givenun=0,
+           suffix={Charles\bibnamedelima R.},
+           suffixi={C\bibinitperiod\bibinitdelim R\bibinitperiod},
+           suffixun=0}}%
+      }
+      \strng{namehash}{13cd858e1af8f4e1914687eb6c2526b4}
+      \strng{fullhash}{13cd858e1af8f4e1914687eb6c2526b4}
+      \strng{bibnamehash}{13cd858e1af8f4e1914687eb6c2526b4}
+      \strng{authorbibnamehash}{13cd858e1af8f4e1914687eb6c2526b4}
+      \strng{authornamehash}{13cd858e1af8f4e1914687eb6c2526b4}
+      \strng{authorfullhash}{13cd858e1af8f4e1914687eb6c2526b4}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Stanford Law Review}
+      \field{title}{The Id, the Ego, and Equal Protection: Reckoning with Unconscious Racism}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{volume}{39}
+      \field{year}{1987}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \field{pages}{317\bibrangedash 388}
+      \range{pages}{72}
+    \endentry
     \entry{lead_highways_and_systemic_harm_ref_038}{online}{}
       \field{sortinit}{L}
       \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
@@ -2059,6 +2915,24 @@
       \endverb
       \verb{url}
       \verb https://today.duke.edu/2022/03/lead-exposure-last-century-shrunk-iq-scores-half-americans
+      \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_087}{online}{}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labeltitlesource}{title}
+      \field{title}{Lead in School Drinking Water - GAO Report GAO-18-382}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{2018}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.gao.gov/products/gao-18-382
+      \endverb
+      \verb{url}
+      \verb https://www.gao.gov/products/gao-18-382
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_023}{online}{}
@@ -2195,6 +3069,35 @@
       \endverb
       \verb{url}
       \verb https://www.archives.gov/milestone-documents/national-interstate-and-defense-highways-act
+      \endverb
+    \endentry
+    \entry{ncbi_social_determinants}{online}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=14b6e5d2c7d6d2e5f536557724e7c73f}{%
+           family={{NCBI Bookshelf}},
+           familyi={N\bibinitperiod}}}%
+      }
+      \strng{namehash}{14b6e5d2c7d6d2e5f536557724e7c73f}
+      \strng{fullhash}{14b6e5d2c7d6d2e5f536557724e7c73f}
+      \strng{bibnamehash}{14b6e5d2c7d6d2e5f536557724e7c73f}
+      \strng{authorbibnamehash}{14b6e5d2c7d6d2e5f536557724e7c73f}
+      \strng{authornamehash}{14b6e5d2c7d6d2e5f536557724e7c73f}
+      \strng{authorfullhash}{14b6e5d2c7d6d2e5f536557724e7c73f}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{How communities are structured influences health equity and public health outcomes}
+      \field{title}{Neighborhoods and the Built Environment: Social Determinants of Health}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.ncbi.nlm.nih.gov/books
+      \endverb
+      \verb{url}
+      \verb https://www.ncbi.nlm.nih.gov/books
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_075}{online}{}
@@ -2367,6 +3270,37 @@
       \verb https://stacks.cdc.gov/view/cdc/181379/cdc_181379_DS1.pdf
       \endverb
     \endentry
+    \entry{lead_highways_and_systemic_harm_ref_094}{article}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=4e25cec1c6f4d9c14b70a26d65b3b9ac}{%
+           family={Siegel},
+           familyi={S\bibinitperiod},
+           given={Reva\bibnamedelima B.},
+           giveni={R\bibinitperiod\bibinitdelim B\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{4e25cec1c6f4d9c14b70a26d65b3b9ac}
+      \strng{fullhash}{4e25cec1c6f4d9c14b70a26d65b3b9ac}
+      \strng{bibnamehash}{4e25cec1c6f4d9c14b70a26d65b3b9ac}
+      \strng{authorbibnamehash}{4e25cec1c6f4d9c14b70a26d65b3b9ac}
+      \strng{authornamehash}{4e25cec1c6f4d9c14b70a26d65b3b9ac}
+      \strng{authorfullhash}{4e25cec1c6f4d9c14b70a26d65b3b9ac}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Stanford Law Review}
+      \field{title}{Why Equal Protection No Longer Protects: The Evolving Forms of Status-Enforcing State Action}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{volume}{49}
+      \field{year}{1997}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \field{pages}{1111\bibrangedash 1148}
+      \range{pages}{38}
+    \endentry
     \entry{lead_highways_and_systemic_harm_ref_047}{online}{}
       \field{sortinit}{S}
       \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
@@ -2383,6 +3317,40 @@
       \verb{url}
       \verb https://eji.org/news/studies-show-lead-linked-to-violent-crime-trends/
       \endverb
+    \endentry
+    \entry{lead_highways_and_systemic_harm_ref_085}{article}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=663491ea192788ac98af3d78b72e0d27}{%
+           family={Switzer},
+           familyi={S\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=da4f9220d99c1eb2b6308094ce5b25e7}{%
+           family={Teodoro},
+           familyi={T\bibinitperiod},
+           given={Manuel\bibnamedelima P.},
+           giveni={M\bibinitperiod\bibinitdelim P\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{31c32a4aa0672996de049dcbaf0e424d}
+      \strng{fullhash}{31c32a4aa0672996de049dcbaf0e424d}
+      \strng{bibnamehash}{31c32a4aa0672996de049dcbaf0e424d}
+      \strng{authorbibnamehash}{31c32a4aa0672996de049dcbaf0e424d}
+      \strng{authornamehash}{31c32a4aa0672996de049dcbaf0e424d}
+      \strng{authorfullhash}{31c32a4aa0672996de049dcbaf0e424d}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Proceedings of the National Academy of Sciences}
+      \field{title}{Class, Race, Ethnicity, and Justice in Safe Drinking Water Compliance}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{2022}
+      \field{urldateera}{ce}
+      \true{nocite}
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_061}{online}{}
       \field{sortinit}{T}
@@ -2807,6 +3775,66 @@
       \endverb
       \verb{url}
       \verb https://www.pnas.org/doi/10.1073/pnas.2408937122
+      \endverb
+    \endentry
+    \entry{vera_condemnation_blackness}{online}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=569648a5f7d5ba43d0a73b98a852406d}{%
+           family={{Vera Institute of Justice}},
+           familyi={V\bibinitperiod}}}%
+      }
+      \strng{namehash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{fullhash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{bibnamehash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{authorbibnamehash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{authornamehash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{authorfullhash}{569648a5f7d5ba43d0a73b98a852406d}
+      \field{extraname}{1}
+      \field{sortinit}{V}
+      \field{sortinithash}{afb52128e5b4dc4b843768c0113d673b}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Crime statistics embed racial bias that justifies bail decisions and aggressive policing in minority communities}
+      \field{title}{The Condemnation of Blackness and Crime Statistics}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.vera.org
+      \endverb
+      \verb{url}
+      \verb https://www.vera.org
+      \endverb
+    \endentry
+    \entry{vera_bail_slavery}{online}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=569648a5f7d5ba43d0a73b98a852406d}{%
+           family={{Vera Institute of Justice}},
+           familyi={V\bibinitperiod}}}%
+      }
+      \strng{namehash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{fullhash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{bibnamehash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{authorbibnamehash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{authornamehash}{569648a5f7d5ba43d0a73b98a852406d}
+      \strng{authorfullhash}{569648a5f7d5ba43d0a73b98a852406d}
+      \field{extraname}{2}
+      \field{sortinit}{V}
+      \field{sortinithash}{afb52128e5b4dc4b843768c0113d673b}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Money bail rooted in ``racist fictions'' of danger; normalized paying money for human freedom; officials use jail detention to drain financial resources and curb political power of minority communities}
+      \field{title}{The Long Shadow of Slavery on the American Bail System}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.vera.org
+      \endverb
+      \verb{url}
+      \verb https://www.vera.org
       \endverb
     \endentry
     \entry{lead_highways_and_systemic_harm_ref_058}{online}{}

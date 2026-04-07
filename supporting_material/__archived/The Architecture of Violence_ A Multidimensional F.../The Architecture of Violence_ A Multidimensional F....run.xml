@@ -44,10 +44,10 @@
   <internal package="biblatex" priority="9" active="1">
     <generic>latex</generic>
     <provides type="dynamic">
-      <file>"Lead, Highways, and Systemic Harm".bcf</file>
+      <file>"The Architecture of Violence_ A Multidimensional F...".bcf</file>
     </provides>
     <requires type="dynamic">
-      <file>"Lead, Highways, and Systemic Harm".bbl</file>
+      <file>"The Architecture of Violence_ A Multidimensional F...".bbl</file>
     </requires>
     <requires type="static">
       <file>blx-dm.def</file>
@@ -65,22 +65,22 @@
     <generic>biber</generic>
     <cmdline>
       <binary>biber</binary>
-      <infile>"Lead, Highways, and Systemic Harm"</infile>
+      <infile>"The Architecture of Violence_ A Multidimensional F..."</infile>
     </cmdline>
     <input>
-      <file>"Lead, Highways, and Systemic Harm".bcf</file>
+      <file>"The Architecture of Violence_ A Multidimensional F...".bcf</file>
     </input>
     <output>
-      <file>"Lead, Highways, and Systemic Harm".bbl</file>
+      <file>"The Architecture of Violence_ A Multidimensional F...".bbl</file>
     </output>
     <provides type="dynamic">
-      <file>"Lead, Highways, and Systemic Harm".bbl</file>
+      <file>"The Architecture of Violence_ A Multidimensional F...".bbl</file>
     </provides>
     <requires type="dynamic">
-      <file>"Lead, Highways, and Systemic Harm".bcf</file>
+      <file>"The Architecture of Violence_ A Multidimensional F...".bcf</file>
     </requires>
     <requires type="editable">
-      <file>Lead_Highways_and_Systemic_Harm.bib</file>
+      <file>The_Architecture_of_Violence_A_Multidimensional_F.bib</file>
     </requires>
   </external>
 </requests>

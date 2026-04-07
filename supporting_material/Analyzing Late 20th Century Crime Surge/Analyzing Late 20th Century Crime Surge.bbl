@@ -144,6 +144,38 @@
       \verb https://www.urban.org/sites/default/files/2023-01/Addressing%5C%20the%5C%20Legacies%5C%20of%5C%20Historical%5C%20Redlining.pdf
       \endverb
     \endentry
+    \entry{atwater_interview}{online}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=1455a0a0eaa7a2d70326a606aa81491d}{%
+           family={Atwater},
+           familyi={A\bibinitperiod},
+           given={Lee},
+           giveni={L\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{1455a0a0eaa7a2d70326a606aa81491d}
+      \strng{fullhash}{1455a0a0eaa7a2d70326a606aa81491d}
+      \strng{bibnamehash}{1455a0a0eaa7a2d70326a606aa81491d}
+      \strng{authorbibnamehash}{1455a0a0eaa7a2d70326a606aa81491d}
+      \strng{authornamehash}{1455a0a0eaa7a2d70326a606aa81491d}
+      \strng{authorfullhash}{1455a0a0eaa7a2d70326a606aa81491d}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Published anonymously in Lamis, \emph{The Two-Party South} (Oxford, 1984); identity confirmed 1999; audio released 2012 by James Carter IV via \emph{The Nation}}
+      \field{title}{Interview with Alexander P. Lamis, 1981}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.thenation.com/article/archive/exclusive-lee-atwater-infamous-1981-interview-southern-strategy/
+      \endverb
+      \verb{url}
+      \verb https://www.thenation.com/article/archive/exclusive-lee-atwater-infamous-1981-interview-southern-strategy/
+      \endverb
+    \endentry
     \entry{analyzing_late_20th_century_crime_surge_ref_059}{online}{}
       \field{sortinit}{B}
       \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
@@ -211,6 +243,14 @@
       \verb{url}
       \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC8059646/
       \endverb
+    \endentry
+    \entry{burleson_v_california}{misc}{}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labeltitlesource}{title}
+      \field{note}{Court denied minimum wage back-pay to inmates; labor deemed ``penological rather than pecuniary''}
+      \field{title}{Burleson v. California}
+      \field{year}{1996}
     \endentry
     \entry{analyzing_late_20th_century_crime_surge_ref_037}{online}{}
       \field{sortinit}{C}
@@ -467,6 +507,30 @@
       \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC3076789/
       \endverb
     \endentry
+    \entry{gilbreath_v_cutter}{misc}{}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labeltitlesource}{title}
+      \field{note}{Court ruled neither private contractors nor state departments meet FLSA definition of ``employer'' for prison labor}
+      \field{title}{Gilbreath v. Cutter Biological}
+    \endentry
+    \entry{anslinger_rhetoric}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{note}{Anti-Mexican and anti-Black rhetoric used to manufacture consent for cannabis criminalization}
+      \field{title}{Harry Anslinger and the Racial Origins of Drug Criminalization}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/Harry_J._Anslinger
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/Harry_J._Anslinger
+      \endverb
+    \endentry
     \entry{analyzing_late_20th_century_crime_surge_ref_042}{online}{}
       \field{sortinit}{H}
       \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
@@ -637,6 +701,35 @@
       \verb https://www.aclu.org/news/smart-justice/how-1994-crime-bill-fed-mass-incarceration-crisis
       \endverb
     \endentry
+    \entry{insight_investment_carceral_bonds}{online}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=769eec37cfd2c7298e3d197d6ea8fda1}{%
+           family={{Insight Investment}},
+           familyi={I\bibinitperiod}}}%
+      }
+      \strng{namehash}{769eec37cfd2c7298e3d197d6ea8fda1}
+      \strng{fullhash}{769eec37cfd2c7298e3d197d6ea8fda1}
+      \strng{bibnamehash}{769eec37cfd2c7298e3d197d6ea8fda1}
+      \strng{authorbibnamehash}{769eec37cfd2c7298e3d197d6ea8fda1}
+      \strng{authornamehash}{769eec37cfd2c7298e3d197d6ea8fda1}
+      \strng{authorfullhash}{769eec37cfd2c7298e3d197d6ea8fda1}
+      \field{sortinit}{I}
+      \field{sortinithash}{8d291c51ee89b6cd86bf5379f0b151d8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Municipal bonds secured by tax revenues or prison facility income streams}
+      \field{title}{Carceral Bonds and Municipal Debt Securities}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.insightinvestment.com
+      \endverb
+      \verb{url}
+      \verb https://www.insightinvestment.com
+      \endverb
+    \endentry
     \entry{analyzing_late_20th_century_crime_surge_ref_008}{online}{}
       \field{sortinit}{L}
       \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
@@ -688,6 +781,23 @@
       \verb https://braverangels.org/library/resources/locking-up-our-own-crime-punishment-in-black-america/
       \endverb
     \endentry
+    \entry{anslinger_marihuana_1937}{online}{}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labeltitlesource}{title}
+      \field{note}{Cannabis listed in U.S. Pharmacopeia since 1850; removed 1941}
+      \field{title}{Marihuana Tax Act of 1937}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/Marihuana_Tax_Act_of_1937
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/Marihuana_Tax_Act_of_1937
+      \endverb
+    \endentry
     \entry{analyzing_late_20th_century_crime_surge_ref_030}{online}{}
       \field{sortinit}{N}
       \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
@@ -720,6 +830,64 @@
       \endverb
       \verb{url}
       \verb https://www.brookings.edu/articles/new-evidence-that-lead-exposure-increases-crime/
+      \endverb
+    \endentry
+    \entry{ehrlichman_admission}{online}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=1d2d9c6d8980307f8fa2e03c8f36b875}{%
+           family={{Positive Health Network}},
+           familyi={P\bibinitperiod}}}%
+      }
+      \strng{namehash}{1d2d9c6d8980307f8fa2e03c8f36b875}
+      \strng{fullhash}{1d2d9c6d8980307f8fa2e03c8f36b875}
+      \strng{bibnamehash}{1d2d9c6d8980307f8fa2e03c8f36b875}
+      \strng{authorbibnamehash}{1d2d9c6d8980307f8fa2e03c8f36b875}
+      \strng{authornamehash}{1d2d9c6d8980307f8fa2e03c8f36b875}
+      \strng{authorfullhash}{1d2d9c6d8980307f8fa2e03c8f36b875}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Ehrlichman admitted Nixon administration associated hippies with marijuana and blacks with heroin to disrupt political enemies}
+      \field{title}{Nixon's War on Drugs: Ehrlichman Admission}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://positivehealthnetwork.com
+      \endverb
+      \verb{url}
+      \verb https://positivehealthnetwork.com
+      \endverb
+    \endentry
+    \entry{princeton_legal_journal}{online}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=9e1b16c95c99903fdf18c96371ad828e}{%
+           family={{Princeton Legal Journal}},
+           familyi={P\bibinitperiod}}}%
+      }
+      \strng{namehash}{9e1b16c95c99903fdf18c96371ad828e}
+      \strng{fullhash}{9e1b16c95c99903fdf18c96371ad828e}
+      \strng{bibnamehash}{9e1b16c95c99903fdf18c96371ad828e}
+      \strng{authorbibnamehash}{9e1b16c95c99903fdf18c96371ad828e}
+      \strng{authornamehash}{9e1b16c95c99903fdf18c96371ad828e}
+      \strng{authorfullhash}{9e1b16c95c99903fdf18c96371ad828e}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Analysis of Burleson v. California, Gilbreath v. Cutter Biological, Economic Reality Test, and double-dipping revenue extraction}
+      \field{title}{Prison Labor and the Thirteenth Amendment}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://legaljournal.princeton.edu
+      \endverb
+      \verb{url}
+      \verb https://legaljournal.princeton.edu
       \endverb
     \endentry
     \entry{analyzing_late_20th_century_crime_surge_ref_072}{online}{}
@@ -1417,6 +1585,35 @@
       \endverb
       \verb{url}
       \verb https://www.reddit.com/r/AskHistorians/comments/rfxew9/why_did_the_number_of_serial_killers_and_victims/
+      \endverb
+    \endentry
+    \entry{yale_slave_mortgages}{online}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=5e85598644e7f123b2ef98ee300db107}{%
+           family={{Yale Department of Economics}},
+           familyi={Y\bibinitperiod}}}%
+      }
+      \strng{namehash}{5e85598644e7f123b2ef98ee300db107}
+      \strng{fullhash}{5e85598644e7f123b2ef98ee300db107}
+      \strng{bibnamehash}{5e85598644e7f123b2ef98ee300db107}
+      \strng{authorbibnamehash}{5e85598644e7f123b2ef98ee300db107}
+      \strng{authornamehash}{5e85598644e7f123b2ef98ee300db107}
+      \strng{authorfullhash}{5e85598644e7f123b2ef98ee300db107}
+      \field{sortinit}{Y}
+      \field{sortinithash}{fd67ad5a9ef0f7456bdd9aab10fe1495}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Enslaved people as ``preferred collateral'' over land due to liquidity; Citizens' Bank of Louisiana and Bank of Kentucky}
+      \field{title}{Slave Mortgages and the Early American Financial System}
+      \field{urlday}{6}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://economics.yale.edu
+      \endverb
+      \verb{url}
+      \verb https://economics.yale.edu
       \endverb
     \endentry
   \enddatalist
