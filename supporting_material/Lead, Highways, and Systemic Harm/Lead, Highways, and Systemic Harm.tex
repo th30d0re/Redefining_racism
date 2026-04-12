@@ -913,6 +913,55 @@ corporate profit.
 \end{figure}
 \FloatBarrier
 
+The national average conceals the racial disparity that is the analytical core of the lead-crime-race nexus. NHANES data disaggregated by race reveals the spatial targeting with devastating clarity.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.92\textwidth,
+    height=9cm,
+    title={\textbf{Figure 6b: Blood Lead Levels in U.S.\ Children by Race, 1976--2016}},
+    ybar,
+    bar width=12pt,
+    enlarge x limits=0.15,
+    ylabel={Geometric Mean BLL ($\mu$g/dL)},
+    symbolic x coords={1976--1980,1988--1991,1991--1994,2011--2016},
+    xtick=data,
+    xticklabel style={font=\small},
+    ymin=0, ymax=25,
+    grid=major,
+    grid style={dashed, gray!30},
+    every axis title/.style={font=\bfseries\small, at={(0.5,1.05)}},
+    legend style={at={(0.98,0.98)}, anchor=north east, font=\small, draw=gray!50},
+    nodes near coords,
+    nodes near coords style={font=\scriptsize\bfseries, anchor=south},
+]
+\addplot[fill=red!60!black, draw=red!80!black] coordinates {
+    (1976--1980, 20.3) (1988--1991, 5.2) (1991--1994, 4.3) (2011--2016, 1.1)
+};
+\addlegendentry{Black Children}
+
+\addplot[fill=blue!40!white, draw=blue!60!black] coordinates {
+    (1976--1980, 13.9) (1988--1991, 3.1) (1991--1994, 2.3) (2011--2016, 0.8)
+};
+\addlegendentry{White Children}
+
+\draw[dashed, orange!70!black, thick] (axis cs:1976--1980,10) -- (axis cs:2011--2016,10);
+\node[font=\tiny, orange!70!black, fill=white, inner sep=1pt, anchor=west] at (axis cs:1988--1991,10.4) {CDC ``Level of Concern'' (10 $\mu$g/dL, set 1991)};
+
+\draw[dashed, red!50!black, thick] (axis cs:1976--1980,5) -- (axis cs:2011--2016,5);
+\node[font=\tiny, red!50!black, fill=white, inner sep=1pt, anchor=west] at (axis cs:1991--1994,5.4) {Revised Reference (5 $\mu$g/dL, 2012)};
+
+\draw[dashed, purple!60!black, thick] (axis cs:1976--1980,3.5) -- (axis cs:2011--2016,3.5);
+\node[font=\tiny, purple!60!black, fill=white, inner sep=1pt, anchor=west] at (axis cs:1991--1994,3.9) {Current BLRV (3.5 $\mu$g/dL, 2021)};
+
+\end{axis}
+\end{tikzpicture}\\[0.4em]
+\parbox{\linewidth}{\raggedright\small\emph{Sources: CDC NHANES II (1976--1980), NHANES III (1988--1994), and subsequent survey cycles. During peak exposure (1976--1980), Black children carried a geometric mean BLL of 20.3 $\mu$g/dL---46\% higher than White children (13.9) and more than double the CDC's subsequent ``level of concern.'' Both groups far exceeded every safety threshold later established. The disparity narrowed but persisted through 2016 (1.1 vs.\ 0.8). The cohort of Black children measured at 20.3 $\mu$g/dL in the late 1970s is the same population that, 15--20 years later, drove the violent crime surge and the intimate partner homicide plateau documented in the companion analysis. The national average conceals this disparity; the racial disaggregation reveals lead operating as a racially targeted variable.}}
+\end{figure}
+\FloatBarrier
+
 \begin{figure}[ht]
 \centering
 \begin{tikzpicture}

@@ -1,0 +1,17 @@
+[0] Config.pm:307> INFO - This is Biber 2.19
+[0] Config.pm:310> INFO - Logfile is 'Analyzing Late 20th Century Crime Surge.blg'
+[34] biber-darwin:340> INFO - === Mon Apr  6, 2026, 05:31:47
+[41] Biber.pm:419> INFO - Reading 'Analyzing Late 20th Century Crime Surge.bcf'
+[80] Biber.pm:976> INFO - Using all citekeys in bib section 0
+[87] Biber.pm:4419> INFO - Processing section 0
+[93] Biber.pm:4610> INFO - Looking for bibtex file 'Analyzing_Late_20th_Century_Crime_Surge.bib' for section 0
+[95] bibtex.pm:1713> INFO - LaTeX decoding ...
+[113] bibtex.pm:1519> INFO - Found BibTeX data source 'Analyzing_Late_20th_Century_Crime_Surge.bib'
+[196] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[196] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[196] Biber.pm:4239> INFO - Sorting list 'nty/global//global/global' of type 'entry' with template 'nty' and locale 'en-US'
+[196] Biber.pm:4245> INFO - No sort tailoring available for locale 'en-US'
+[234] bbl.pm:660> INFO - Writing 'Analyzing Late 20th Century Crime Surge.bbl' with encoding 'UTF-8'
+[244] bbl.pm:763> INFO - Output to Analyzing Late 20th Century Crime Surge.bbl
+[244] Biber.pm:131> WARN - Duplicate entry key: 'analyzing_late_20th_century_crime_surge_ref_007' in file 'Analyzing_Late_20th_Century_Crime_Surge.bib', skipping ...
+[244] Biber.pm:133> INFO - WARNINGS: 1
