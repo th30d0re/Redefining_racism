@@ -2,6 +2,8 @@
 \ProvidesPackage{usc_macros}[2026/04/16 U.S. Code excerpt helpers (nickvido/us-code)]
 
 \RequirePackage{verbatim}
+% Git diffs: keep \verbatiminput (listings breaklines=true can exhaust TeX memory on
+% long OLRC lines). Snippet files under usc_snippets/ are pre-wrapped (e.g.\ fold -s -w 88).
 
 % Git tag used when regenerating snippets (see Makefile / tools/usc_extract.py).
 \newcommand{\USCTag}{\texttt{annual/2025}}
@@ -22,9 +24,17 @@
 % Hyperlinked cross-reference to an appendix label.
 \newcommand{\usclink}[2]{\hyperref[#1]{#2}}
 
-% Git unified diff, verbatim from tools/usc_write_diffs.sh output.
+% Git unified diff, verbatim from tools/usc_write_diffs.sh output (wrap long lines before commit).
 \newcommand{\uscshowdiff}[2]{%
-  \begin{tcolorbox}[breakable,title={#1},fonttitle=\bfseries,colback=black!4,colframe=black!55]
+  \begin{tcolorbox}[%
+    breakable,%
+    enhanced,%
+    colback=black!4,%
+    colframe=black!55,%
+    fonttitle=\bfseries,%
+    title={\parbox{0.92\linewidth}{\raggedright\footnotesize #1}},%
+    fontupper=\ttfamily\footnotesize,%
+  ]%
   \verbatiminput{#2}%
   \end{tcolorbox}%
 }

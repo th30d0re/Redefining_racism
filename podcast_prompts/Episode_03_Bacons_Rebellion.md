@@ -11,6 +11,12 @@ In Episodes 1 and 2, you introduced the framework and traced the algorithm's com
 
 ---
 
+### Series Arc
+
+This 17-episode series mirrors the manuscript's four-part structure: **Part I — Specification and Origins** (Eps 1–3), **Part II — The Installation** (Eps 4–8), **Part III — Scaling and Runtime** (Eps 9–13), **Part IV — Diagnostics and Output** (Eps 14–17). This episode is the closing beat of **Part I**: Bacon's Rebellion is the system crash the Elite patched with the invention of whiteness and then compiled into the Constitutional source code at Philadelphia in 1787. Part II opens in Episode 4 by pulling back to the pre-colonial African kinship baseline the algorithm would later have to overwrite.
+
+---
+
 ### Serialization Rules (CRITICAL)
 
 This is **Episode 3**. You must strictly limit your discussion to **Chapter 3 ("The Application: Bacon's Rebellion, the Buffer Class, and the Constitutional Patch, 1676–1787")**.
@@ -22,18 +28,19 @@ This is **Episode 3**. You must strictly limit your discussion to **Chapter 3 ("
 You may *reference* these by name (e.g., "as we established in Episode 2, the Portuguese model deployed only three variables — and that proved fatally unstable") but do not re-define or re-explain them.
 
 **DO NOT** discuss or preview:
-- The gendered axis, coverture, or the proto-partition (Episodes 4–5)
-- The enforcement engine, slave patrols, or the 13th Amendment loophole (Episode 6)
-- The compounding chain or financial lineage (Episode 7)
-- Redlining, spatial warfare, or the containment field (Episode 8)
-- The Puppet Class scaling, Tweedism, or voter capture (Episode 9)
-- COINTELPRO, the variable swap, or the War on Drugs (Episode 10)
-- The manufactured crisis, lead exposure, or crime bill (Episode 11)
-- Gun control or the disarmament timeline (Episode 12)
-- The gaslighting or nonviolence mandate (Episode 13)
-- The Concession Theorem or Haitian Theorem (Episode 14)
-- The global containment field (Episode 15)
-- The conclusion's terminal findings (Episode 16)
+- Pre-colonial African kinship and the colonial overwrite (Episode 4)
+- The gendered axis, coverture, or the proto-partition (Episodes 5–6)
+- The enforcement engine or slave patrols (Episode 7)
+- The compounding chain, judicial entrenchment of the 13th Amendment loophole, or financial lineage (Episode 8)
+- Redlining, spatial warfare, or the containment field (Episode 9)
+- The Puppet Class scaling, Tweedism, or voter capture (Episode 10)
+- COINTELPRO, the Variable Swap, or the War on Drugs (Episode 11)
+- The Demographic Paradox, cannibalization, or the 5-Tier Reveal (Episode 12)
+- Gun control or the disarmament timeline (Episode 13)
+- The gaslighting or nonviolence mandate (Episode 14)
+- The Concession Theorem or Haitian Theorem (Episode 15)
+- The global containment field (Episode 16)
+- The conclusion's terminal findings (Episode 17)
 
 **ANTI-SUPPRESSION LANGUAGE PROTOCOL (CRITICAL — READ BEFORE GENERATING):**
 
@@ -98,4 +105,4 @@ Cover the following concepts from Chapter 3:
 
 ### Sign-Off
 
-Tease Episode 4: "Next time, the framework turns its diagnostic tools on the variable that predates race by millennia. The gendered axis — the original partition. Coverture, disarmament, and the template the Elite copied when they invented racial hierarchy."
+Tease Episode 4: "Next time, Part II opens with a move the framework has been setting up since Episode 1. Before we can see what the American extraction engine *installed*, we have to see what it had to *overwrite*. Episode 4 pulls back to pre-colonial West Africa — the Igbo, the Yoruba, the Akan — to document the distributed kinship architecture that the algorithm could not compile on, and the demographic and colonial machinery the Elite deployed to make it compile."

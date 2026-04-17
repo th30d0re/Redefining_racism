@@ -11,6 +11,12 @@ In Episode 1, you introduced the framework's core thesis, the virus model, the 5
 
 ---
 
+### Series Arc
+
+This 17-episode series mirrors the manuscript's four-part structure: **Part I — Specification and Origins** (Eps 1–3), **Part II — The Installation** (Eps 4–8), **Part III — Scaling and Runtime** (Eps 9–13), **Part IV — Diagnostics and Output** (Eps 14–17). This episode is the second beat of **Part I**: Portugal is where the racial vector was *specified*, before the United States would later *install* it.
+
+---
+
 ### Serialization Rules (CRITICAL)
 
 This is **Episode 2**. You must strictly limit your discussion to **Chapter 2 ("Version 1.0: Initializing the Vector — 15th-Century Portugal")**.
@@ -28,18 +34,19 @@ You may *name* these concepts as active architecture ("the Min-Max Function we i
 
 **DO NOT** discuss or preview:
 - Bacon's Rebellion, the Buffer Class codification, or the Virginia Slave Codes (Episode 3)
-- The gendered axis, coverture, or the proto-partition (Episodes 4–5)
-- The enforcement engine, slave patrols, or the 13th Amendment loophole (Episode 6)
-- The compounding chain or financial lineage (Episode 7)
-- Redlining, spatial warfare, or the containment field (Episode 8)
-- The Puppet Class, Tweedism, or voter capture (Episode 9)
-- COINTELPRO, the War on Drugs, or variable swap (Episode 10)
-- The manufactured crisis, lead exposure, or crime bill (Episode 11)
-- Gun control or the disarmament timeline (Episode 12)
-- The gaslighting or nonviolence mandate (Episode 13)
-- The Concession Theorem or Haitian Theorem (Episode 14)
-- The global containment field (Episode 15)
-- The conclusion's terminal findings (Episode 16)
+- Pre-colonial African kinship and the colonial overwrite (Episode 4)
+- The gendered axis, coverture, or the proto-partition (Episodes 5–6)
+- The enforcement engine or slave patrols (Episode 7)
+- The compounding chain, judicial entrenchment of the 13th Amendment loophole, or financial lineage (Episode 8)
+- Redlining, spatial warfare, or the containment field (Episode 9)
+- The Puppet Class, Tweedism, or voter capture (Episode 10)
+- COINTELPRO, the War on Drugs, or Variable Swap (Episode 11)
+- The Demographic Paradox, cannibalization, or the 5-Tier Reveal (Episode 12)
+- Gun control or the disarmament timeline (Episode 13)
+- The gaslighting or nonviolence mandate (Episode 14)
+- The Concession Theorem or Haitian Theorem (Episode 15)
+- The global containment field (Episode 16)
+- The conclusion's terminal findings (Episode 17)
 
 **ANTI-SUPPRESSION LANGUAGE PROTOCOL (CRITICAL — READ BEFORE GENERATING):**
 
@@ -98,4 +105,4 @@ Cover the following concepts from Chapter 2:
 
 ### Sign-Off
 
-Tease Episode 3: "Next time, the algorithm crashes. 1676 — Bacon's Rebellion. Cross-racial solidarity burns the colonial capital to the ground. And the Elite's emergency patch creates the most durable partition in American history: the invention of whiteness."
+Tease Episode 3: "Next time, the algorithm crashes. 1676 — Bacon's Rebellion. Cross-racial solidarity burns the colonial capital to the ground. And the Elite's emergency patch creates the most durable partition in American history: the invention of whiteness. That's the closing move of Part I. In Part II we'll pull back to the pre-colonial baseline — because you cannot understand what the algorithm installed without first seeing what it had to overwrite."

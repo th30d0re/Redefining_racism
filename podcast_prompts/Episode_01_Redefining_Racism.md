@@ -11,6 +11,19 @@ This is the series premiere. Set the stage for the listener. Your job is to intr
 
 ---
 
+### Series Arc (Four-Part Structure)
+
+This 17-episode series mirrors the manuscript's four-part structure. Listeners should understand from Episode 1 that they are entering a planned arc:
+
+- **Part I — Specification and Origins (1440s–1787)** — Episodes 1–3: how the racial vector was compiled and installed as source code.
+- **Part II — The Installation (1619–1865)** — Episodes 4–8: the pre-colonial kinship baseline that the algorithm had to overwrite, the gendered reproductive kernel, and the enforcement engine that compounds into the 13th Amendment loophole.
+- **Part III — Scaling and Runtime (1865–Present)** — Episodes 9–13: the algorithm executing at industrial scale — spatial containment, the Tweedism Filter on democracy, the Variable Swap, terminal cannibalization, and the kinetic guarantee.
+- **Part IV — Diagnostics and Output** — Episodes 14–17: the framework's terminal theorems and the vector-valued definition of racism.
+
+This episode sits inside **Part I: Specification and Origins**. It establishes the diagnostic framework the rest of the series will apply.
+
+---
+
 ### Serialization Rules (CRITICAL)
 
 This is **Episode 1**. You must strictly limit your discussion to **Chapter 1 ("Redefining Racism")** and the **Preface**.
@@ -18,14 +31,18 @@ This is **Episode 1**. You must strictly limit your discussion to **Chapter 1 ("
 **DO NOT** discuss or preview:
 - The historical origin of racialization in Portugal (Episode 2)
 - Bacon's Rebellion or the Buffer Class (Episode 3)
-- The gendered axis or coverture (Episodes 4–5)
-- Slave patrols or the 13th Amendment (Episode 6)
-- Redlining, the Puppet Class, or voter capture (Episodes 8–9)
-- The War on Drugs or cannibalization (Episodes 10–11)
-- Gun control or the disarmament timeline (Episode 12)
-- The Concession Theorem or Haitian Theorem (Episode 14)
-- The global containment field (Episode 15)
-- The conclusion's terminal findings (Episode 16)
+- Pre-colonial African kinship and the colonial overwrite (Episode 4)
+- The gendered axis or coverture (Episodes 5–6)
+- Slave patrols or the 13th Amendment (Episodes 7–8)
+- Redlining and the Containment field (Episode 9)
+- The Puppet Class, Tweedism, or voter capture (Episode 10)
+- COINTELPRO, the Variable Swap, or the War on Drugs (Episode 11)
+- The Demographic Paradox, cannibalization, or the 5-Tier Reveal (Episode 12)
+- Gun control or the disarmament timeline (Episode 13)
+- The gaslighting or nonviolence mandate (Episode 14)
+- The Concession Theorem or Haitian Theorem (Episode 15)
+- The global containment field (Episode 16)
+- The conclusion's terminal findings (Episode 17)
 
 You may *name* these topics as upcoming ("in future episodes we'll trace how...") but you must not explain their content or mechanics.
 
@@ -97,4 +114,4 @@ Cover the following concepts from Chapter 1 and the Preface:
 
 ### Sign-Off
 
-Tease Episode 2: "Next time, we boot up Version 1.0. We're going to 15th-century Portugal to watch the Elite compile the original source code of racial hierarchy — and you'll see exactly why this had to be *invented*."
+Tease Episode 2: "Next time, we boot up Version 1.0. We're going to 15th-century Portugal to watch the Elite compile the original source code of racial hierarchy — and you'll see exactly why this had to be *invented*. That episode closes Part I's first move and sets up the 1676 system crash we'll hit in Episode 3."
