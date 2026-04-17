@@ -33,7 +33,7 @@ This is **Episode 13**. You must strictly limit your discussion to **Chapter 11 
 - (Ep 9) Containment Field: Pullman, redlining, massacre pattern, Capture Variable.
 - (Ep 10) Puppet Show: Tweedism Filter, Green Primary, Gilens–Page proof.
 - (Ep 11) Recompile: COINTELPRO, War on Drugs, manufactured crisis, 1994 Crime Bill, Great Crime Decline.
-- (Ep 12) Full Algorithm: Demographic Paradox, cannibalization, 5-Tier Reveal, Modern Security Patch ($P_{\text{spatial}}$, Dexter Taylor), Mental Gun Control, Universal Latent Criminality, Alex Perdi, Epstein stress test, §922(g)(3), Geopolitical Override.
+- (Ep 12) Full Algorithm: Demographic Paradox, cannibalization, 5-Tier Reveal, Modern Security Patch ($P_{\text{spatial}}$, Dexter Taylor), Mental Gun Control, Universal Latent Criminality, Alex Pretti, Epstein stress test, §922(g)(3), Geopolitical Override.
 
 You may reference these freely and extensively — this episode synthesizes threads from the entire series (e.g., "the firearms asymmetry first named in Episode 2," "the 13th Amendment loophole from Episode 7," "the Mulford Act maps onto the Rainbow Coalition assassination from Episode 11," "the post-*Bruen* spatial proxy was already diagnosed in Episode 12"). Do not re-explain the referenced concepts in full.
 

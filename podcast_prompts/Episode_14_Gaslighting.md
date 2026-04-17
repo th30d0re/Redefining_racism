@@ -33,7 +33,7 @@ This is **Episode 14**. You must strictly limit your discussion to the **gasligh
 - (Ep 9) Containment Field: Pullman, redlining, massacre pattern, Capture Variable.
 - (Ep 10) Puppet Show: Tweedism, interference engine, Agenda-Setter Trap, Gilens–Page proof.
 - (Ep 11) Recompile: COINTELPRO, Fred Hampton, Variable Swap, War on Drugs, Manufactured Crisis, 1994 Crime Bill, Great Crime Decline Proof.
-- (Ep 12) Full Algorithm: Demographic Paradox, cannibalization, 5-Tier Reveal, Modern Security Patch, Universal Latent Criminality, Alex Perdi, Epstein Stress Test, §922(g)(3), Geopolitical Override, Atomization of Resilience, Toxin Variable.
+- (Ep 12) Full Algorithm: Demographic Paradox, cannibalization, 5-Tier Reveal, Modern Security Patch, Universal Latent Criminality, Alex Pretti, Epstein Stress Test, §922(g)(3), Geopolitical Override, Atomization of Resilience, Toxin Variable.
 - (Ep 13) Kinetic Guarantee: firearms asymmetry, arms-for-slaves feedback loop, dismantling "Africans sold themselves," constitutional encoding, *Heller*, *McDonald*, full federal disarmament timeline, Mulford Proof, Prohibition Proof, Rhetorical Bridge.
 
 You may reference these briefly as synthesis hooks (e.g., "the Variable Swap from Ep 11 hides the kernel behind neutral language — $P_{\text{gaslight}}$ tells the Out-group the kernel they suspect does not exist"), but do not re-explain. This episode is focused.

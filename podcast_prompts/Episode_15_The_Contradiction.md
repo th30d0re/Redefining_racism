@@ -33,7 +33,7 @@ This is **Episode 15**. You must focus your discussion on the **theorem half of 
 - (Ep 9) Containment Field: Pullman, redlining, massacre pattern, Capture Variable.
 - (Ep 10) Puppet Show: Tweedism, interference engine, Agenda-Setter Trap, Gilens–Page proof.
 - (Ep 11) Recompile: COINTELPRO, Fred Hampton, Variable Swap, War on Drugs, Manufactured Crisis, 1994 Crime Bill, Great Crime Decline Proof.
-- (Ep 12) Full Algorithm: Demographic Paradox, cannibalization, 5-Tier Reveal, Modern Security Patch, Universal Latent Criminality, Alex Perdi, Epstein Stress Test, §922(g)(3), Geopolitical Override.
+- (Ep 12) Full Algorithm: Demographic Paradox, cannibalization, 5-Tier Reveal, Modern Security Patch, Universal Latent Criminality, Alex Pretti, Epstein Stress Test, §922(g)(3), Geopolitical Override.
 - (Ep 13) Kinetic Guarantee: firearms asymmetry, arms-for-slaves, "Africans sold themselves" dismantled, constitutional encoding, *Heller*, *McDonald*, full federal disarmament timeline, Mulford Proof, Prohibition Proof.
 - (Ep 14) Gaslighting: $P_{\text{gaslight}}$, Kernel Denial, Victimhood Inversion / Polish Proof, Nonviolence Mandate as $\min$-management.
 
