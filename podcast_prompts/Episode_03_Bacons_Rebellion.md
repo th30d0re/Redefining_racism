@@ -13,7 +13,7 @@ In Episodes 1 and 2, you introduced the framework and traced the algorithm's com
 
 ### Series Arc
 
-This 17-episode series mirrors the manuscript's four-part structure: **Part I — Specification and Origins** (Eps 1–3), **Part II — The Installation** (Eps 4–8), **Part III — Scaling and Runtime** (Eps 9–13), **Part IV — Diagnostics and Output** (Eps 14–17). This episode is the closing beat of **Part I**: Bacon's Rebellion is the system crash the Elite patched with the invention of whiteness and then compiled into the Constitutional source code at Philadelphia in 1787. Part II opens in Episode 4 by pulling back to the pre-colonial African kinship baseline the algorithm would later have to overwrite.
+This 18-episode series mirrors the manuscript's four-part structure: **Part I — Specification and Origins** (Eps 1–3), **Part II — The Installation** (Eps 4–8), **Part III — Scaling and Runtime** (Eps 9–13), **Part IV — Diagnostics and Output** (Eps 14–18). This episode is the closing beat of **Part I**: Bacon's Rebellion is the system crash the Elite patched with the invention of whiteness and then compiled into the Constitutional source code at Philadelphia in 1787. Part II opens in Episode 4 by pulling back to the pre-colonial African kinship baseline the algorithm would later have to overwrite.
 
 ---
 
@@ -40,7 +40,7 @@ You may *reference* these by name (e.g., "as we established in Episode 2, the Po
 - The gaslighting or nonviolence mandate (Episode 14)
 - The Concession Theorem or Haitian Theorem (Episode 15)
 - The global containment field (Episode 16)
-- The conclusion's terminal findings (Episode 17)
+- The conclusion's terminal findings (Episode 18)
 
 **ANTI-SUPPRESSION LANGUAGE PROTOCOL (CRITICAL — READ BEFORE GENERATING):**
 

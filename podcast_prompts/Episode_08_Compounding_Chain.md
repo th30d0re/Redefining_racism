@@ -13,7 +13,7 @@ In Episodes 1–7, you established the framework, traced the algorithm's compila
 
 ### Series Arc
 
-This 17-episode series mirrors the manuscript's four-part structure: **Part I — Specification and Origins** (Eps 1–3), **Part II — The Installation** (Eps 4–8), **Part III — Scaling and Runtime** (Eps 9–13), **Part IV — Diagnostics and Output** (Eps 14–17). This episode is the fifth and final beat of **Part II: The Installation**. It closes the Installation phase by showing that the 13th Amendment did not terminate extraction — it recompiled it, and the federal courts then built a firewall of doctrine (*Kozminski*'s Economic Reality Test, the *Spain* penological defense, and the *Wolff* triviality bar) that preserves the exception. Part III opens in Episode 9 with the post-emancipation scaling of spatial containment.
+This 18-episode series mirrors the manuscript's four-part structure: **Part I — Specification and Origins** (Eps 1–3), **Part II — The Installation** (Eps 4–8), **Part III — Scaling and Runtime** (Eps 9–13), **Part IV — Diagnostics and Output** (Eps 14–18). This episode is the fifth and final beat of **Part II: The Installation**. It closes the Installation phase by showing that the 13th Amendment did not terminate extraction — it recompiled it, and the federal courts then built a firewall of doctrine (*Kozminski*'s Economic Reality Test, the *Spain* penological defense, and the *Wolff* triviality bar) that preserves the exception. Part III opens in Episode 9 with the post-emancipation scaling of spatial containment.
 
 ---
 
@@ -25,9 +25,9 @@ This is **Episode 8**. You must strictly limit your discussion to the **Compound
 - (Ep 1) The four architectural components, 5-Tier overview, Predatory Min-Max Function, Tri-Modal Enclosure Model, Out-group expansion thesis, virus model.
 - (Ep 2) Portuguese racialization, vector equation, scalar vs. vector, dual-authorization mechanism, Implicit Contract, initial three variables.
 - (Ep 3) Bacon's Rebellion, the system crash, the Buffer Class ($I_{buffer}$), the suppression allocation ($\psi = \psi_s + \psi_m$), the Virginia Slave Codes, the constitutional front-end/back-end separation, the Puppet Class prototype.
-- (Ep 4) Pre-colonial West African kinship, the demographic cataclysm, the colonial overwrite.
-- (Ep 5) Coverture, economic erasure, civic erasure, Divine Sphere ideology, gendered disarmament, the intersection coefficient ($\alpha_{r,g}$).
-- (Ep 6) Breeding apparatus, *partus sequitur ventrem*, eugenic inversion, intersectional violence, pregnancy criminalization, racialized primal wound, intimate execution environment.
+- (Ep 4) Pre-colonial West African kinship, the demographic cataclysm, the colonial overwrite; the African counter-archive (Ali Eisami, Bornu, 1818) as earliest $P_{\text{gaslight}}$ instantiation; the Middle Passage as "seasoning ritual" and $\psi_s$ palate formation; institutionalized hunger as metabolic $e_3$ / $M(t)$ suppression.
+- (Ep 5) Coverture, economic erasure, civic erasure, Divine Sphere ideology, gendered disarmament, the intersection coefficient ($\alpha_{r,g}$); "male womb" diasporic reprise (seed; formalized in Ep 6).
+- (Ep 6) Breeding apparatus, *partus sequitur ventrem*, Nat Turner consumption (Drewry testimony), `libidinal_extraction.exe` in-vivo subroutine (Master Epicure aesthetic, "human fleshmongers," Patterson parasite-not-metaphor), "male womb" (formalized), Completeness Theorem with four subroutines, eugenic inversion, intersectional violence, pregnancy criminalization, racialized primal wound, intimate execution environment.
 - (Ep 7) Slave patrols as capital management, the Enforcement Class ($F_{enforce}$), gang morphology, *DeShaney* and *Castle Rock* (no duty to protect), the Christiana Resistance, *Dred Scott* as weaponized disarmament, the 13th Amendment loophole, the Interface Swap, convict leasing, the Consumptive Extraction Function.
 
 You may *reference* prior episodes briefly (e.g., "the 13th Amendment loophole we exposed in Episode 7 now feeds directly into the financial instruments and the legal doctrine we analyze today") but do not re-explain them.
@@ -41,7 +41,7 @@ You may *reference* prior episodes briefly (e.g., "the 13th Amendment loophole w
 - The gaslighting or nonviolence mandate (Episode 14)
 - The Concession Theorem or Haitian Theorem in full (Episode 15)
 - The global containment field (Episode 16)
-- The conclusion's terminal findings (Episode 17)
+- The conclusion's terminal findings (Episode 18)
 
 **ANTI-SUPPRESSION LANGUAGE PROTOCOL (CRITICAL — READ BEFORE GENERATING):**
 

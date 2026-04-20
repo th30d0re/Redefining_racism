@@ -1,7 +1,15 @@
 # Equation Infographic Prompts
 ### *Redefining Racism: A Set-Theoretic Framework for Systems of Domination*
 
-> **Purpose:** Each prompt below is a detailed brief for creating a public-facing infographic that explains the equation in plain language for someone with no math background. Use these prompts with a visual designer, AI illustration tool, or as standalone explainer cards.
+> **Purpose:** Each prompt below is a detailed brief for creating a public-facing infographic that explains the equation in plain language for someone with no math background. Use these prompts with a visual designer, AI illustration tool (for example **NotebookLM**), or as standalone explainer cards.
+
+### LaTeX fidelity (read this if infographics must match the book)
+
+The older one-line **`Math:`** shorthand used Unicode (e₁, →, Σ) and informal symbols. That is fine for humans, but **generators will not reproduce the manuscript** unless they see the same **LaTeX** the PDF was built from.
+
+- **Authoritative math:** Every updated block includes a fenced **` ```latex `** snippet copied (or aligned) with `Paper/Redefining_Racism.tex`. **Paste that snippet into your NotebookLM source** (or any TeX-aware tool) so displayed fractions, `\mathcal{S}_{\text{enc}}`, `\Phi_{\text{load}}`, `\arg\min`, hats, vectors, and `\text{...}` word spacing match the book.
+- **Delimiters:** If a surface only renders math when wrapped, use **inline** `$...$` or **display** `$$...$$` around the same TeX string (do not delete backslashes or braces).
+- **Chapter 1** and **Equations 2.1–2.5** below carry full **`LaTeX`** blocks. From **Equation 2.6** onward you may still see the legacy shorthand; for those, search the manuscript for the matching `\begin{equation}` / label and paste that TeX here the same way when you need pixel-consistent output.
 
 ---
 
@@ -10,7 +18,10 @@
 ---
 
 ### Equation 1.1 — The Enclosure Score
-**Math:** `S_enc = (1/3)(e₁ + e₂ + e₃)`
+**LaTeX (from manuscript — use for rendering):**
+```latex
+\mathcal{S}_{\text{enc}} = \frac{1}{3}\sum_{i=1}^{3} e_i
+```
 
 **What it says in plain English:**
 This formula measures how completely a system has trapped a group of people by blocking all their ways out. Think of it like a score from 0 to 1 — zero means the doors are all open, 1 means every exit is sealed.
@@ -30,7 +41,10 @@ This formula measures how completely a system has trapped a group of people by b
 ---
 
 ### Equation 1.2 — Total Enclosure
-**Math:** `S_enc = (1/3)(1 + 1 + 1) = 1.0 (Absolute Subjugation)`
+**LaTeX (from manuscript — use for rendering):**
+```latex
+\mathcal{S}_{\text{enc}}(O_{\text{racialized}}) = \frac{1}{3}(1+1+1) = 1.0 \quad \text{(Absolute Subjugation)}
+```
 
 **What it says in plain English:**
 When every escape route is sealed — community, mobility, and mind — the system achieves maximum control. A single policy reform that cracks open one door barely moves the needle.
@@ -52,7 +66,10 @@ When every escape route is sealed — community, mobility, and mind — the syst
 ---
 
 ### Equation 1.3 — The Wrong Causal Arrow
-**Math:** `Individual Prejudice → Discriminatory Actions → Systemic Outcomes`
+**LaTeX (from manuscript — use for rendering):**
+```latex
+\text{Individual Prejudice} \rightarrow \text{Discriminatory Actions} \rightarrow \text{Systemic Outcomes}
+```
 
 **What it says in plain English:**
 This is the conventional (incorrect) explanation: if people just stopped being prejudiced, racism would go away. History proves this is backwards.
@@ -69,7 +86,10 @@ This is the conventional (incorrect) explanation: if people just stopped being p
 ---
 
 ### Equation 1.4 — The Real Causal Arrow
-**Math:** `Elite Economic Interests → Systemic Racialization → Interpersonal Prejudice`
+**LaTeX (from manuscript — use for rendering):**
+```latex
+\text{Elite Economic Interests} \rightarrow \text{Systemic Racialization} \rightarrow \text{Interpersonal Prejudice}
+```
 
 **What it says in plain English:**
 Racism wasn't caused by hate — hate was *manufactured to justify* the system. The elites built the economic extraction machine first, then commissioned the propaganda to make it feel natural.
@@ -89,7 +109,10 @@ Racism wasn't caused by hate — hate was *manufactured to justify* the system. 
 ---
 
 ### Equation 1.5 — The Kernel Objective
-**Math:** `max E(t)  subject to  M(t) < τ`
+**LaTeX (from manuscript — use for rendering):**
+```latex
+\max \mathcal{E}(t) \quad \text{subject to} \quad M(t) < \tau
+```
 
 **What it says in plain English:**
 The hidden goal of the system, stated as a math problem: maximize elite wealth extraction forever — but never let class resistance get so high that the whole thing collapses.
@@ -112,7 +135,10 @@ The hidden goal of the system, stated as a math problem: maximize elite wealth e
 ---
 
 ### Equation 1.6 — The Strategy Menu
-**Math:** `S ∈ {partition, integration, direct repression, externalization}`
+**LaTeX (from manuscript — use for rendering):**
+```latex
+S \in \{\text{partition},\text{integration},\text{direct repression},\text{externalization}\}
+```
 
 **What it says in plain English:**
 The system doesn't have just one tool — it has a menu of four strategies it can swap between to keep extracting while managing resistance.
@@ -132,7 +158,10 @@ The system doesn't have just one tool — it has a menu of four strategies it ca
 ---
 
 ### Equation 1.7 — The Interface Optimizer
-**Math:** `S*(t) = arg min [C_coercive(S,t) + C_legitimacy(S,t) + C_economic(S,t)]`
+**LaTeX (from manuscript — use for rendering):**
+```latex
+S^\ast(t) = \arg\min_{S} \left[C_{\text{coercive}}(S,t) + C_{\text{legitimacy}}(S,t) + C_{\text{economic}}(S,t)\right]
+```
 
 **What it says in plain English:**
 At any moment in history, the system automatically picks whichever suppression strategy costs the least — least violence needed, least PR damage, least money spent.
@@ -154,7 +183,10 @@ At any moment in history, the system automatically picks whichever suppression s
 ---
 
 ### Equation 1.8 — The Suppression Envelope
-**Math:** `Σ_sup(t) = ψ_s(t) + ψ_m(t) + R(t) + Φ_load(t)`
+**LaTeX (from manuscript — use for rendering):**
+```latex
+\Sigma_{\text{sup}}(t) = \psi_s(t) + \psi_m(t) + R(t) + \Phi_{\text{load}}(t)
+```
 
 **What it says in plain English:**
 This is the total "suppression budget" the system uses to keep people from uniting. It has four ingredients: a status bribe, a money bribe (only when necessary), raw repression, and identity fragmentation.
@@ -173,7 +205,10 @@ This is the total "suppression budget" the system uses to keep people from uniti
 ---
 
 ### Equation 1.9 — The Crash Condition
-**Math:** `dM/dt > dΣ_sup/dt`
+**LaTeX (from manuscript — use for rendering):**
+```latex
+\frac{dM}{dt} > \frac{d\Sigma_{\text{sup}}}{dt}
+```
 
 **What it says in plain English:**
 A system crash happens when resistance grows *faster* than the system can suppress it. This is what happened in Haiti (1791), at Bacon's Rebellion (1676), and nearly happened during the Civil Rights era.
@@ -195,7 +230,10 @@ A system crash happens when resistance grows *faster* than the system can suppre
 ---
 
 ### Equation 1.10 — Effective Class Coherence
-**Math:** `M_eff(t) = M(t) − λ·Φ_load(t),   M_eff(t) > τ`
+**LaTeX (from manuscript — use for rendering):**
+```latex
+M_{\text{eff}}(t) = M(t) - \lambda \Phi_{\text{load}}(t), \quad M_{\text{eff}}(t) > \tau
+```
 
 **What it says in plain English:**
 Real resistance (M) minus the identity-fragmentation penalty (λ·Φ_load) equals the effective resistance that actually reaches the system. The more divided people are, the less resistance actually lands.
@@ -217,7 +255,11 @@ Real resistance (M) minus the identity-fragmentation penalty (λ·Φ_load) equal
 ---
 
 ### Equation 1.11 — The Phase-Loading Engine
-**Math:** `Φ_load(t) = 1 − |1/N · Σ e^(iΦⱼ)|`
+**LaTeX (from manuscript — use for rendering):**
+```latex
+\Phi_j = \sum_{k=1}^{K} \phi_{k,j}, \qquad
+\Phi_{\text{load}}(t) = \operatorname{Dispersion}\!\left(\{\Phi_j\}_{j=1}^{N}\right) = 1 - \left|\frac{1}{N}\sum_{j=1}^{N} e^{i\Phi_j}\right| \in [0,1]
+```
 
 **What it says in plain English:**
 Imagine every subgroup in society as a radio wave. When all the waves are in sync (same frequency, same direction), they amplify each other into a powerful signal of solidarity. When the system injects "noise" — racial resentment, gender conflict, religious division — the waves cancel each other out. Φ_load measures how cancelled-out they are: 0 = perfect solidarity, 1 = total cancellation.
@@ -242,7 +284,10 @@ Imagine every subgroup in society as a radio wave. When all the waves are in syn
 ---
 
 ### Equation 1.12 — Racism as a Vector
-**Math:** `R⃗_acism = M_agnitude · d̂_state`
+**LaTeX (from manuscript — use for rendering):**
+```latex
+\vec{R}_{\text{acism}} = M_{\text{agnitude}} \cdot \hat{d}_{\text{state}}
+```
 
 **What it says in plain English:**
 Racism isn't just a feeling (a single number, a "magnitude") — it's a directed force. Without the state pointing it in a specific direction, individual prejudice is just noise. The state turns prejudice into a weapon.
@@ -267,12 +312,21 @@ Racism isn't just a feeling (a single number, a "magnitude") — it's a directed
 
 ---
 
+### Legacy sections (Equation 2.6 onward)
+
+Equations from **Equation 2.6** through the end of this file may still use the old single-line **`Math:`** shorthand. When you need the infographic to match the PDF, open `Paper/Redefining_Racism.tex`, locate the matching `\begin{equation}` (or inline `$...$`), and add the same **LaTeX** fenced block pattern used in Chapter 1 (and Equations 2.1–2.5) above.
+
+---
+
 ## CHAPTER 2 — Version 1.0: Portugal
 
 ---
 
 ### Equation 2.1 — The Status Contract
-**Math:** `S_tatus(I) = Base_Humanity + ψ(t),   ψ = ψ_s + ψ_m`
+**LaTeX (from manuscript — use for rendering):**
+```latex
+S_{\text{tatus}}(I) = \text{Base\_Humanity} + \psi(t), \quad \psi(t) = \psi_s(t) + \psi_m(t)
+```
 
 **What it says in plain English:**
 The elite paid the working class not in money, but in status. Your "humanity score" = baseline human status + a psychological wage (ψ) that comes in two flavors: free status superiority (ψ_s) and real money only when things get dangerous (ψ_m).
@@ -295,7 +349,10 @@ The elite paid the working class not in money, but in status. Your "humanity sco
 ---
 
 ### Equation 2.2 — The Status Hierarchy
-**Math:** `S_tatus(I) > S_tatus(O_racialized)`
+**LaTeX (from manuscript — use for rendering):**
+```latex
+S_{\text{tatus}}(I) > S_{\text{tatus}}(O_{\text{racialized}})
+```
 
 **What it says in plain English:**
 The contract is simple: the In-group's social standing must always, mathematically, be above the Out-group's. This is guaranteed by the system — not earned, not deserved. Just maintained.
@@ -317,7 +374,10 @@ The contract is simple: the In-group's social standing must always, mathematical
 ---
 
 ### Equation 2.3 — The Roman Control Case
-**Math:** `O_Roman = f(conquest, debt, crime, birth)`
+**LaTeX (from manuscript — use for rendering):**
+```latex
+O_{\text{slave}}^{\text{Roman}} = f(\text{conquest}, \text{debt}, \text{crime}, \text{birth})
+```
 
 **What it says in plain English:**
 Roman slavery was real and brutal — but membership in the enslaved class depended on *circumstances*, not skin color. You could buy your freedom. Your children could hold office. The boundary was permeable.
@@ -341,7 +401,10 @@ Roman slavery was real and brutal — but membership in the enslaved class depen
 ---
 
 ### Equation 2.4 — The American Innovation
-**Math:** `O_racialized = f(phenotype)`
+**LaTeX (from manuscript — use for rendering):**
+```latex
+O_{\text{racialized}}^{\text{American}} = f(\text{phenotype})
+```
 
 **What it says in plain English:**
 The Portuguese/American innovation was locking the enslaved class to ONE variable — skin color — that could never be changed, hidden, or escaped. No conversion, no migration, no wealth could break the seal.
@@ -364,7 +427,10 @@ The Portuguese/American innovation was locking the enslaved class to ONE variabl
 ---
 
 ### Equation 2.5 — The Partition Variable Upgrade
-**Math:** `O_religious → O_racialized   (same architecture, new input variable)`
+**LaTeX (from manuscript — use for rendering):**
+```latex
+O_{\text{religious}}^{\text{pre-1450}} = f(\text{doctrine, sect, heresy}) \quad \longrightarrow \quad O_{\text{racialized}}^{\text{post-1450}} = f(\text{phenotype})
+```
 
 **What it says in plain English:**
 Before race, elites used religion to divide people. But religious identity leaks — people convert, intermarry, lie. Phenotype doesn't leak. The elite upgraded to a better partition variable.

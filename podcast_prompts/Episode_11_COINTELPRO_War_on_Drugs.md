@@ -13,7 +13,7 @@ This episode covers **Chapter 9** — *The Recompile: COINTELPRO, the Variable S
 
 ### Series Arc
 
-This 17-episode series mirrors the manuscript's four-part structure: **Part I — Specification and Origins** (Eps 1–3), **Part II — The Installation** (Eps 4–8), **Part III — Scaling and Runtime** (Eps 9–13), **Part IV — Diagnostics and Output** (Eps 14–17). This episode is the third beat of **Part III: Scaling and Runtime**. Episodes 9–10 documented the post-emancipation containment field and the Tweedism filter that coordinates it; this episode shows the system surviving its most dangerous kernel breach (*Brown v. Board*) by recompiling race into carcerality. Episodes 12–13 take this recompile to its terminal state.
+This 18-episode series mirrors the manuscript's four-part structure: **Part I — Specification and Origins** (Eps 1–3), **Part II — The Installation** (Eps 4–8), **Part III — Scaling and Runtime** (Eps 9–13), **Part IV — Diagnostics and Output** (Eps 14–18). This episode is the third beat of **Part III: Scaling and Runtime**. Episodes 9–10 documented the post-emancipation containment field and the Tweedism filter that coordinates it; this episode shows the system surviving its most dangerous kernel breach (*Brown v. Board*) by recompiling race into carcerality. Episodes 12–13 take this recompile to its terminal state.
 
 ---
 
@@ -25,9 +25,9 @@ This is **Episode 11**. You must strictly limit your discussion to **Chapter 9 (
 - (Ep 1) Four architectural components, 5-Tier overview, Min-Max Function, Tri-Modal Enclosure, Out-group expansion, virus model.
 - (Ep 2) Portuguese racialization, vector equation, scalar vs. vector, dual-authorization, Implicit Contract.
 - (Ep 3) Bacon's Rebellion, Buffer Class ($I_{buffer}$), suppression allocation ($\psi = \psi_s + \psi_m$), Virginia Slave Codes, constitutional encoding.
-- (Ep 4) Pre-colonial West African kinship; colonial overwrite.
-- (Ep 5) Gendered axis Part 1: coverture, gendered disarmament, structural immunity, intersection coefficient.
-- (Ep 6) Gendered axis Part 2: *partus sequitur ventrem*, breeding apparatus; post-mortem extraction / ghost value (teeth, skin, hair, Completeness Theorem); the Medical Extraction Laboratory — J. Marion Sims, the Tuskegee Syphilis Study (1932–1972), Operation Avon Park (1955–56), Cincinnati radiation experiments; eugenics; Comstock to *Dobbs*. **Note:** The Tuskegee Syphilis Study was fully covered in Episode 6. When discussing the 1972 revelations here, you may reference them as a cross-episode callback ("as we documented in Episode 6") but do NOT re-explain the study's design or history.
+- (Ep 4) Pre-colonial West African kinship; colonial overwrite; African counter-archive (Ali Eisami, Bornu, 1818) as earliest $P_{\text{gaslight}}$ instantiation; Middle Passage "seasoning ritual" and $\psi_s$ palate formation; institutionalized hunger as metabolic $e_3$ / $M(t)$ suppression.
+- (Ep 5) Gendered axis Part 1: coverture, gendered disarmament, structural immunity, intersection coefficient; "male womb" diasporic reprise (seed).
+- (Ep 6) Gendered axis Part 2: *partus sequitur ventrem*, breeding apparatus; Nat Turner consumption (Drewry testimony); `libidinal_extraction.exe` in-vivo subroutine (Master Epicure aesthetic, "human fleshmongers," Patterson parasite-not-metaphor, *Essex* whaleship, WPA testimonies); "male womb" (formalized); Completeness Theorem with four subroutines; post-mortem extraction / ghost value (teeth, skin, hair); the Medical Extraction Laboratory — J. Marion Sims, the Tuskegee Syphilis Study (1932–1972), Operation Avon Park (1955–56), Cincinnati radiation experiments; eugenics; Comstock to *Dobbs*. **Note:** The Tuskegee Syphilis Study was fully covered in Episode 6. When discussing the 1972 revelations here, you may reference them as a cross-episode callback ("as we documented in Episode 6") but do NOT re-explain the study's design or history.
 - (Ep 7) Enforcement Engine: slave patrols, dual genealogy of policing, $F_{enforce}$ deployment, 13th Amendment loophole.
 - (Ep 8) Compounding Chain: multiplicative harm, Economic Reality Test / penological firewall, financial lineage, Haitian instantiation.
 - (Ep 9) Containment Field: Pullman, redlining, massacre pattern, Detroit 1943, Capture Variable.
@@ -41,7 +41,7 @@ You may briefly reference these (e.g., "the interference engine from Episode 10 
 - Racial gaslighting or the nonviolence mandate (Episode 14)
 - The Concession Theorem or Haitian Theorem (Episode 15)
 - The global containment field (Episode 16)
-- The conclusion's terminal findings (Episode 17)
+- The conclusion's terminal findings (Episode 18)
 
 **ANTI-SUPPRESSION LANGUAGE PROTOCOL (CRITICAL — READ BEFORE GENERATING):**
 
@@ -106,7 +106,7 @@ Cover the following concepts from Chapter 9:
 
 6. **Market Violence and Crack Markets as Runtime Exploitation**: The underground drug economy exploited the void left by deindustrialization. Market violence emerged as the only dispute-resolution mechanism in an economy with no access to legal institutions — no contracts, no courts, no arbitration. Youth were recruited into lethal labor markets because no legal labor market existed. The crack economy was the system's runtime: the inputs (lead, highways, deindustrialization) produced the conditions; the market violence was the predictable execution path.
 
-7. **The Asymmetric Choice Paradigm: Broken Windows and the 1994 Crime Bill**: Broken Windows policing as the enforcement interface for the manufactured crisis — treating symptoms (visible disorder) as cause and criminalizing the population the system's own policies had damaged. The 1994 Crime Bill as the closing move: the community was offered a "choice" between lethal crime (manufactured by the state through environmental and economic policy) and mass incarceration (the state's solution to its own manufactured crisis). Both options serve the extraction kernel. This is the Agenda-Setter Trap (Episode 10) deployed through criminal justice policy.
+7. **The Asymmetric Choice Paradigm: Broken Windows and the 1994 Crime Bill**: Broken Windows policing as the enforcement interface for the manufactured crisis — treating symptoms (visible disorder) as cause and criminalizing the population the system's own policies had damaged. The 1994 Crime Bill as the closing move: the community was offered a "choice" between lethal crime (manufactured by the state through environmental and economic policy) and mass incarceration (the state's solution to its own manufactured crisis). Both options serve the extraction kernel. This is the Agenda-Setter Trap (Episode 10) deployed through criminal justice policy. **Serialization note**: This episode covers the $O_{\text{racialized}}$-facing vector of the 1994 Crime Bill (carceral expansion, CBC asymmetric-choice paradigm). The same statute contained a simultaneous $I_{\text{buffer}}$-facing disarmament vector — the Federal Assault Weapons Ban and the Brady Act — whose causative context (Ruby Ridge, Waco) and hardware targeting are analyzed in Episode 13, and whose diagnosis as joint optimization rather than political compromise is formalized in Episode 15. Do not pre-explain either here.
 
 8. **The Great Crime Decline as Diagnostic Proof**: When the inputs were reduced (lead phased out of gasoline, crack epidemic stabilized through market saturation), crime fell WITHOUT any change in policing strategy, sentencing, or incarceration rates. This is the chapter's closing proof: if the official narrative were correct — that crime was caused by moral failure requiring punitive correction — the decline should have correlated with enforcement. It did not. It correlated with the removal of the environmental input. The system's own data refutes the system's own narrative — and sets up the next chapter's terminal question: with the recompile stable and the carceral apparatus industrialized, what does the algorithm do next?
 
