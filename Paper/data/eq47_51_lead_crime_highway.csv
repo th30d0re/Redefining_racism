@@ -1,0 +1,11 @@
+# eq47_51_lead_crime_highway.csv — Highway displacement + HOLC spatial data (eq:51)
+# Sources: Rothstein (2017) The Color of Law; Mapping Inequality; EPA National Emissions Inventory
+# All cases: highways routed through HOLC-D (Hazardous/Redlined) neighborhoods
+# relative_lead_exposure_vs_nonredlined: ratio of atmospheric lead in highway corridor vs. non-redlined area
+dataset,city,highway_name,construction_year,population_displaced,pct_black_displaced,holc_grade_neighborhood,lead_pipe_prevalence_pct,relative_lead_exposure_vs_nonredlined
+spatial,Memphis TN,I-40,1966,1700,91,D,67,5.2
+spatial,Detroit MI,I-375,1964,2800,78,D,71,4.8
+spatial,Nashville TN,I-40,1967,1200,88,D,63,4.6
+spatial,Baltimore MD,I-395,1962,1000,82,D,69,5.1
+spatial,Washington DC,I-395,1963,1500,79,D,65,4.9
+spatial,Milwaukee WI,I-43,1968,800,85,D,72,5.3

@@ -1,0 +1,20 @@
+# Data sources:
+# 1676 population estimates: Morgan, Edmund S., American Slavery, American Freedom (1975), Chapter 10;
+#   Washburn, Wilcomb E., The Governor and the Rebel (1957); Virginia Colonial Records Project.
+# 1705 post-codification estimates: U.S. Census Bureau, Historical Statistics of the United States,
+#   Colonial Times to 1970, Series Z 1-19.
+# 1860 Census: U.S. Census Bureau, Eighth Census of the United States (1860),
+#   Table IV: Slave Inhabitants (https://www.census.gov/library/publications/1864/dec/1860a.html)
+# slaveholder count: Du Bois, W.E.B., Black Reconstruction in America (1935), Chapter 1;
+#   U.S. Census Bureau, 1860 Agriculture Schedule data (385,000 slaveholders).
+year,epoch,population_group,count,source
+1676,pre_buffer,planter_elite,300,Morgan 1975 Ch.10
+1676,pre_buffer,white_indentured_servants,6000,Morgan 1975 Ch.10
+1676,pre_buffer,enslaved_africans,2000,Morgan 1975 Ch.10
+1676,pre_buffer,total_labor_class,8000,Morgan 1975 Ch.10
+1705,post_buffer,planter_elite,1500,Historical Statistics Z1-19
+1705,post_buffer,white_free_class,55000,Historical Statistics Z1-19
+1705,post_buffer,enslaved_africans,25000,Historical Statistics Z1-19
+1860,antebellum,slaveholder_elite,385000,Census 1860
+1860,antebellum,non_slaveholding_whites,5567229,Census 1860
+1860,antebellum,enslaved_population,3953761,Census 1860

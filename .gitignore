@@ -8,6 +8,7 @@ reference/us-code/
 *.aux
 *.fdb_latexmk
 *.fls
+*.lof
 *.log
 *.out
 *.synctex.gz
@@ -19,3 +20,25 @@ reference/us-code/
 # Xcode user state files
 *.xcuserstate
 xcuserdata/
+
+# Biber / BibLaTeX artifacts
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+
+# Generated spectral figures
+Paper/figures/spectral/*.pdf
+
+# Python environment
+__pycache__/
+*.pyc
+.venv/
+
+# Secrets — never commit API keys
+.env
+.env.local
+
+# Supreme Court opinion PDFs — local research corpus; do not push to remotes
+Paper/research/ia_scotus_pdfs/*.pdf
+Paper/research/ia_scotus_pdfs/split_pdfs/*.pdf

@@ -1,0 +1,1226 @@
+[
+  {
+    "label": "eq:1",
+    "line": 238,
+    "chapter": 1,
+    "chapter_title": "Redefining Racism",
+    "seq": 1,
+    "statement": "\\mathcal{S}_{\\text{enc}} = \\frac{1}{3}\\sum_{i=1}^{3} e_i",
+    "env": "equation"
+  },
+  {
+    "label": "eq:2",
+    "line": 253,
+    "chapter": 1,
+    "chapter_title": "Redefining Racism",
+    "seq": 2,
+    "statement": "\\mathcal{S}_{\\text{enc}}(O_{\\text{racialized}}) = \\frac{1}{3}(1+1+1) = 1.0 \\quad \\text{(Absolute Subjugation)}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:3",
+    "line": 286,
+    "chapter": 1,
+    "chapter_title": "Redefining Racism",
+    "seq": 3,
+    "statement": "\\text{Individual Prejudice} \\rightarrow \\text{Discriminatory Actions} \\rightarrow \\text{Systemic Outcomes}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:4",
+    "line": 291,
+    "chapter": 1,
+    "chapter_title": "Redefining Racism",
+    "seq": 4,
+    "statement": "\\text{Elite Economic Interests} \\rightarrow \\text{Systemic Racialization} \\rightarrow \\text{Interpersonal Prejudice}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:5",
+    "line": 486,
+    "chapter": 1,
+    "chapter_title": "Redefining Racism",
+    "seq": 5,
+    "statement": "\\max \\mathcal{E}(t) \\quad \\text{subject to} \\quad M(t) < \\tau",
+    "env": "equation"
+  },
+  {
+    "label": "eq:6",
+    "line": 535,
+    "chapter": 1,
+    "chapter_title": "Redefining Racism",
+    "seq": 6,
+    "statement": "S \\in \\{\\text{partition},\\text{integration},\\text{direct repression},\\text{externalization}\\}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:7",
+    "line": 539,
+    "chapter": 1,
+    "chapter_title": "Redefining Racism",
+    "seq": 7,
+    "statement": "S^\\ast(t) = \\arg\\min_{S} \\left[C_{\\text{coercive}}(S,t) + C_{\\text{legitimacy}}(S,t) + C_{\\text{economic}}(S,t)\\right]",
+    "env": "equation"
+  },
+  {
+    "label": "eq:8",
+    "line": 657,
+    "chapter": 1,
+    "chapter_title": "Redefining Racism",
+    "seq": 8,
+    "statement": "\\Sigma_{\\text{sup}}(t) = \\psi_s(t) + \\psi_m(t) + R(t) + \\Phi_{\\text{load}}(t)",
+    "env": "equation"
+  },
+  {
+    "label": "eq:9",
+    "line": 661,
+    "chapter": 1,
+    "chapter_title": "Redefining Racism",
+    "seq": 9,
+    "statement": "\\frac{dM}{dt} > \\frac{d\\Sigma_{\\text{sup}}}{dt}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:10",
+    "line": 665,
+    "chapter": 1,
+    "chapter_title": "Redefining Racism",
+    "seq": 10,
+    "statement": "M_{\\text{eff}}(t) = M(t) - \\lambda \\Phi_{\\text{load}}(t), \\quad M_{\\text{eff}}(t) > \\tau",
+    "env": "equation"
+  },
+  {
+    "label": "eq:11",
+    "line": 752,
+    "chapter": 1,
+    "chapter_title": "Redefining Racism",
+    "seq": 11,
+    "statement": "\\Phi_j = \\sum_{k=1}^{K} \\phi_{k,j}, \\qquad\n\\Phi_{\\text{load}}(t) = \\operatorname{Dispersion}\\!\\left(\\{\\Phi_j\\}_{j=1}^{N}\\right) = 1 - \\left|\\frac{1}{N}\\sum_{j=1}^{N} e^{i\\Phi_j}\\right| \\in [0,1]",
+    "env": "equation"
+  },
+  {
+    "label": "eq:12",
+    "line": 1003,
+    "chapter": 2,
+    "chapter_title": "Version 1.0: Initializing the Vector (15th-Century Portugal)",
+    "seq": 1,
+    "statement": "\\vec{R}_{\\text{acism}} = M_{\\text{agnitude}} \\cdot \\hat{d}_{\\text{state}}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:13",
+    "line": 1074,
+    "chapter": 2,
+    "chapter_title": "Version 1.0: Initializing the Vector (15th-Century Portugal)",
+    "seq": 2,
+    "statement": "S_{\\text{tatus}}(I) = \\text{Base\\_Humanity} + \\psi(t), \\quad \\psi(t) = \\psi_s(t) + \\psi_m(t)",
+    "env": "equation"
+  },
+  {
+    "label": "eq:14",
+    "line": 1077,
+    "chapter": 2,
+    "chapter_title": "Version 1.0: Initializing the Vector (15th-Century Portugal)",
+    "seq": 3,
+    "statement": "S_{\\text{tatus}}(I) > S_{\\text{tatus}}(O_{\\text{racialized}})",
+    "env": "equation"
+  },
+  {
+    "label": "eq:15",
+    "line": 1117,
+    "chapter": 2,
+    "chapter_title": "Version 1.0: Initializing the Vector (15th-Century Portugal)",
+    "seq": 4,
+    "statement": "O_{\\text{slave}}^{\\text{Roman}} = f(\\text{conquest}, \\text{debt}, \\text{crime}, \\text{birth})",
+    "env": "equation"
+  },
+  {
+    "label": "eq:16",
+    "line": 1125,
+    "chapter": 2,
+    "chapter_title": "Version 1.0: Initializing the Vector (15th-Century Portugal)",
+    "seq": 5,
+    "statement": "O_{\\text{racialized}}^{\\text{American}} = f(\\text{phenotype})",
+    "env": "equation"
+  },
+  {
+    "label": "eq:17",
+    "line": 1142,
+    "chapter": 2,
+    "chapter_title": "Version 1.0: Initializing the Vector (15th-Century Portugal)",
+    "seq": 6,
+    "statement": "O_{\\text{religious}}^{\\text{pre-1450}} = f(\\text{doctrine, sect, heresy}) \\quad \\longrightarrow \\quad O_{\\text{racialized}}^{\\text{post-1450}} = f(\\text{phenotype})",
+    "env": "equation"
+  },
+  {
+    "label": "eq:18",
+    "line": 1186,
+    "chapter": 2,
+    "chapter_title": "Version 1.0: Initializing the Vector (15th-Century Portugal)",
+    "seq": 7,
+    "statement": "\\text{Benefit}(E) \\gg \\text{Benefit}(I) > \\text{Benefit}(O_{\\text{racialized}})",
+    "env": "equation"
+  },
+  {
+    "label": "eq:19",
+    "line": 1237,
+    "chapter": 2,
+    "chapter_title": "Version 1.0: Initializing the Vector (15th-Century Portugal)",
+    "seq": 8,
+    "statement": "&\\text{Exploitation} \\rightarrow \\text{Observed disparities} \\rightarrow \\text{Theological/Scientific ``explanation''} \\\\\n&\\rightarrow \\text{Naturalization} \\rightarrow \\text{Expanded exploitation}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:20",
+    "line": 1362,
+    "chapter": 3,
+    "chapter_title": "The Application: Bacon's Rebellion, the Buffer Class, and the Constitutional Patch (1676--1787)",
+    "seq": 1,
+    "statement": "\\text{If} \\quad (L_{white} + L_{black}) > E \\quad \\rightarrow \\quad \\text{Revolution}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:21",
+    "line": 1411,
+    "chapter": 3,
+    "chapter_title": "The Application: Bacon's Rebellion, the Buffer Class, and the Constitutional Patch (1676--1787)",
+    "seq": 2,
+    "statement": "I_{\\text{buffer}} \\cap O_{\\text{racialized}} = \\emptyset",
+    "env": "equation"
+  },
+  {
+    "label": "eq:22",
+    "line": 1431,
+    "chapter": 3,
+    "chapter_title": "The Application: Bacon's Rebellion, the Buffer Class, and the Constitutional Patch (1676--1787)",
+    "seq": 3,
+    "statement": "\\text{Buffer Created:} \\quad I_{poor} \\rightarrow \\text{Defender of } E",
+    "env": "equation"
+  },
+  {
+    "label": "eq:23",
+    "line": 1452,
+    "chapter": 3,
+    "chapter_title": "The Application: Bacon's Rebellion, the Buffer Class, and the Constitutional Patch (1676--1787)",
+    "seq": 4,
+    "statement": "\\text{Benefit}(E) \\gg \\text{Benefit}(I_{\\text{buffer}}) > \\text{Benefit}(O_{\\text{racialized}})",
+    "env": "equation"
+  },
+  {
+    "label": "eq:24",
+    "line": 1473,
+    "chapter": 3,
+    "chapter_title": "The Application: Bacon's Rebellion, the Buffer Class, and the Constitutional Patch (1676--1787)",
+    "seq": 5,
+    "statement": "M(t) < \\tau \\iff K_E + K_B > K_O",
+    "env": "equation"
+  },
+  {
+    "label": "eq:25",
+    "line": 2147,
+    "chapter": 5,
+    "chapter_title": "The Gendered Axis: Coverture, Eugenics, and the Reproductive Extraction Kernel",
+    "seq": 1,
+    "statement": "\\Delta(x) \\;=\\; V_c(x) - V_r(x),",
+    "env": "equation"
+  },
+  {
+    "label": "eq:26",
+    "line": 2762,
+    "chapter": 6,
+    "chapter_title": "The Enforcement Engine: Slave Patrols, the 13th Amendment, and the Compounding Model (1704--1865)",
+    "seq": 1,
+    "statement": "\\text{Lethal Autonomy}(F_{\\text{enforce}}) \\gg \\text{Lethal Autonomy}(I_{\\text{buffer}}) \\gg \\text{Lethal Autonomy}(O) = 0",
+    "env": "equation"
+  },
+  {
+    "label": "eq:27",
+    "line": 2779,
+    "chapter": 6,
+    "chapter_title": "The Enforcement Engine: Slave Patrols, the 13th Amendment, and the Compounding Model (1704--1865)",
+    "seq": 2,
+    "statement": "\\text{Benefit}(E) \\gg \\text{Benefit}(F_{\\text{enforce}}) > \\text{Benefit}(I_{\\text{buffer}}) > \\text{Benefit}(O_{\\text{racialized}})",
+    "env": "equation"
+  },
+  {
+    "label": "eq:28",
+    "line": 2923,
+    "chapter": 6,
+    "chapter_title": "The Enforcement Engine: Slave Patrols, the 13th Amendment, and the Compounding Model (1704--1865)",
+    "seq": 3,
+    "statement": "\\text{If} \\quad \\text{Status}(x) = \\text{Criminal}(C) \\quad \\rightarrow \\quad \\text{Status}(x) \\in S \\text{ (Slave)}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:29",
+    "line": 2991,
+    "chapter": 6,
+    "chapter_title": "The Enforcement Engine: Slave Patrols, the 13th Amendment, and the Compounding Model (1704--1865)",
+    "seq": 4,
+    "statement": "\\sum (O_{\\text{racialized}} \\cap P) > \\sum ((I \\setminus E) \\cap P) > \\sum (E \\cap P)",
+    "env": "equation"
+  },
+  {
+    "label": "eq:30",
+    "line": 2997,
+    "chapter": 6,
+    "chapter_title": "The Enforcement Engine: Slave Patrols, the 13th Amendment, and the Compounding Model (1704--1865)",
+    "seq": 5,
+    "statement": "O_t^{\\text{capacity}} = O_{t-1}^{\\text{capacity}} \\cdot (1 - \\alpha P_t)",
+    "env": "equation"
+  },
+  {
+    "label": "eq:31",
+    "line": 3015,
+    "chapter": 6,
+    "chapter_title": "The Enforcement Engine: Slave Patrols, the 13th Amendment, and the Compounding Model (1704--1865)",
+    "seq": 6,
+    "statement": "\\alpha_{O} P_t \\approx 3.73 \\cdot \\alpha_{I \\setminus E} P_t",
+    "env": "equation"
+  },
+  {
+    "label": "eq:32",
+    "line": 3021,
+    "chapter": 6,
+    "chapter_title": "The Enforcement Engine: Slave Patrols, the 13th Amendment, and the Compounding Model (1704--1865)",
+    "seq": 7,
+    "statement": "O_2^{\\text{capacity}} = O_0^{\\text{capacity}} \\cdot (1 - \\alpha P_1) \\cdot (1 - \\beta P_2)",
+    "env": "equation"
+  },
+  {
+    "label": "eq:hist1",
+    "line": 3030,
+    "chapter": 6,
+    "chapter_title": "The Enforcement Engine: Slave Patrols, the 13th Amendment, and the Compounding Model (1704--1865)",
+    "seq": 8,
+    "statement": "O_{1619}^{\\text{capacity}} = O_{1450}^{\\text{capacity}} \\cdot (1 - \\alpha\\, P_{\\text{enslavement}})",
+    "env": "align"
+  },
+  {
+    "label": "eq:hist2",
+    "line": 3031,
+    "chapter": 6,
+    "chapter_title": "The Enforcement Engine: Slave Patrols, the 13th Amendment, and the Compounding Model (1704--1865)",
+    "seq": 9,
+    "statement": "O_{1865}^{\\text{capacity}} = O_{1619}^{\\text{capacity}} \\cdot (1 - \\beta\\, P_{\\text{13thAmendment}})",
+    "env": "align"
+  },
+  {
+    "label": "eq:hist3",
+    "line": 3032,
+    "chapter": 6,
+    "chapter_title": "The Enforcement Engine: Slave Patrols, the 13th Amendment, and the Compounding Model (1704--1865)",
+    "seq": 10,
+    "statement": "O_{1934}^{\\text{capacity}} = O_{1865}^{\\text{capacity}} \\cdot (1 - \\gamma\\, P_{\\text{redlining}})",
+    "env": "align"
+  },
+  {
+    "label": "eq:hist4",
+    "line": 3033,
+    "chapter": 6,
+    "chapter_title": "The Enforcement Engine: Slave Patrols, the 13th Amendment, and the Compounding Model (1704--1865)",
+    "seq": 11,
+    "statement": "O_{1971}^{\\text{capacity}} = O_{1934}^{\\text{capacity}} \\cdot (1 - \\delta\\, P_{\\text{WarOnDrugs}})",
+    "env": "align"
+  },
+  {
+    "label": "eq:33",
+    "line": 3036,
+    "chapter": 6,
+    "chapter_title": "The Enforcement Engine: Slave Patrols, the 13th Amendment, and the Compounding Model (1704--1865)",
+    "seq": 12,
+    "statement": "O_{1971}^{\\text{capacity}} = O_{1450}^{\\text{capacity}} \\cdot (1-\\alpha\\, P_{\\text{enslavement}})(1-\\beta\\, P_{\\text{13thAmendment}})(1-\\gamma\\, P_{\\text{redlining}})(1-\\delta\\, P_{\\text{WarOnDrugs}})",
+    "env": "equation"
+  },
+  {
+    "label": "eq:34",
+    "line": 3435,
+    "chapter": 7,
+    "chapter_title": "The Containment: Pullman, Redlining, and the Wages of Whiteness (1894--1965)",
+    "seq": 1,
+    "statement": "\\psi \\uparrow \\implies \\text{Solidarity}(I_{\\text{buffer}}, O_{\\text{racialized}}) \\downarrow \\implies \\text{Vulnerability}(I_{\\text{buffer}}) \\uparrow \\implies \\mathcal{E}(t) \\uparrow",
+    "env": "equation"
+  },
+  {
+    "label": "eq:35",
+    "line": 3729,
+    "chapter": 8,
+    "chapter_title": "Tweedism and the Puppet Class: The Algorithmic Filter on Democracy",
+    "seq": 1,
+    "statement": "\\mathcal{V} = \\mathcal{V}_L \\cup \\mathcal{V}_F, \\qquad |\\mathcal{V}_L| = m, \\ |\\mathcal{V}_F| = N-m,",
+    "env": "equation"
+  },
+  {
+    "label": "eq:36",
+    "line": 3733,
+    "chapter": 8,
+    "chapter_title": "Tweedism and the Puppet Class: The Algorithmic Filter on Democracy",
+    "seq": 2,
+    "statement": "\\mathcal{V}_L \\longleftrightarrow E, \\qquad \\mathcal{V}_F \\longleftrightarrow P_{\\text{uppet}} \\cup F_{\\text{enforce}} \\cup I_{\\text{buffer}} \\cup O_{\\text{racialized}}.",
+    "env": "equation"
+  },
+  {
+    "label": "eq:fractional-dynamics",
+    "line": 3741,
+    "chapter": 8,
+    "chapter_title": "Tweedism and the Puppet Class: The Algorithmic Filter on Democracy",
+    "seq": 3,
+    "statement": "{}_{\\,0}D_t^{\\alpha}\\, q_i(t) = u_i(t), \\qquad \\alpha \\in (0,1],",
+    "env": "equation"
+  },
+  {
+    "label": "eq:37",
+    "line": 3747,
+    "chapter": 8,
+    "chapter_title": "Tweedism and the Puppet Class: The Algorithmic Filter on Democracy",
+    "seq": 4,
+    "statement": "O_{1971}^{\\text{capacity}} = O_{1450}^{\\text{capacity}} \\cdot (1-\\alpha P_{\\text{enslavement}})(1-\\beta P_{\\text{13thAmendment}})(1-\\gamma P_{\\text{redlining}})(1-\\delta P_{\\text{WarOnDrugs}})",
+    "env": "equation"
+  },
+  {
+    "label": "eq:stationary-leaders",
+    "line": 3755,
+    "chapter": 8,
+    "chapter_title": "Tweedism and the Puppet Class: The Algorithmic Filter on Democracy",
+    "seq": 5,
+    "statement": "{}_{\\,0}D_t^{\\alpha}\\, q_i(t) = 0 \\qquad \\text{for all } i \\in \\mathcal{V}_L.",
+    "env": "equation"
+  },
+  {
+    "label": "eq:state-dep-connectivity",
+    "line": 3837,
+    "chapter": 8,
+    "chapter_title": "Tweedism and the Puppet Class: The Algorithmic Filter on Democracy",
+    "seq": 6,
+    "statement": "\\|q_i(t) - q_j(t)\\|^2 \\leq \\delta.",
+    "env": "equation"
+  },
+  {
+    "label": "eq:navigation-components",
+    "line": 3927,
+    "chapter": 8,
+    "chapter_title": "Tweedism and the Puppet Class: The Algorithmic Filter on Democracy",
+    "seq": 7,
+    "statement": "\\gamma_i(q) = \\sum_{j \\in \\mathcal{N}_i} \\tfrac{1}{2}\\,\\|q_i - q_j\\|^2, \\qquad\n\\beta_i(q) = \\tfrac{1}{2}\\!\\!\\prod_{(i,j) \\in \\mathcal{E}_G}\\!\\! b_{ij}(q),\n\\quad b_{ij}(q) = \\delta - \\|q_i - q_j\\|^2,",
+    "env": "equation"
+  },
+  {
+    "label": "eq:navigation-function",
+    "line": 3933,
+    "chapter": 8,
+    "chapter_title": "Tweedism and the Puppet Class: The Algorithmic Filter on Democracy",
+    "seq": 8,
+    "statement": "\\varphi_i(q) = \\frac{\\gamma_i(q)}{\\bigl(\\gamma_i(q)^k + \\beta_i(q)\\bigr)^{1/k}},",
+    "env": "equation"
+  },
+  {
+    "label": "eq:control-law",
+    "line": 3937,
+    "chapter": 8,
+    "chapter_title": "Tweedism and the Puppet Class: The Algorithmic Filter on Democracy",
+    "seq": 9,
+    "statement": "u_i = -K_i\\, \\nabla_{q_i}\\,\\varphi_i(q), \\qquad K_i > 0.",
+    "env": "equation"
+  },
+  {
+    "label": "eq:38",
+    "line": 4025,
+    "chapter": 8,
+    "chapter_title": "Tweedism and the Puppet Class: The Algorithmic Filter on Democracy",
+    "seq": 10,
+    "statement": "q_i(t) \\longrightarrow \\operatorname{Co}(q^L) \\qquad \\text{as } t \\to \\infty, \\quad i \\in \\mathcal{V}_F.",
+    "env": "equation"
+  },
+  {
+    "label": "eq:39",
+    "line": 4111,
+    "chapter": 8,
+    "chapter_title": "Tweedism and the Puppet Class: The Algorithmic Filter on Democracy",
+    "seq": 11,
+    "statement": "\\|x(t)\\| \\leq \\bigl\\{\\, m[x(t_0)]\\, E_{\\alpha,1}\\!\\bigl(-\\lambda(t-t_0)^{\\alpha}\\bigr)\\bigr\\}^{b},",
+    "env": "equation"
+  },
+  {
+    "label": "eq:40",
+    "line": 4359,
+    "chapter": 8,
+    "chapter_title": "Tweedism and the Puppet Class: The Algorithmic Filter on Democracy",
+    "seq": 12,
+    "statement": "S_{I}(t)=A_I\\sin(2\\pi f_{\\text{class}} t), \\qquad\nS_{O}(t)=A_O\\sin(2\\pi f_{\\text{class}} t)",
+    "env": "equation"
+  },
+  {
+    "label": "eq:41",
+    "line": 4366,
+    "chapter": 8,
+    "chapter_title": "Tweedism and the Puppet Class: The Algorithmic Filter on Democracy",
+    "seq": 13,
+    "statement": "\\Phi_j=\\sum_{k=1}^{K}\\phi_{k,j}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:42",
+    "line": 4370,
+    "chapter": 8,
+    "chapter_title": "Tweedism and the Puppet Class: The Algorithmic Filter on Democracy",
+    "seq": 14,
+    "statement": "S_{\\text{total}}(t)=\\sum_{j=1}^{N}A_j\\sin(2\\pi f_{\\text{class}} t+\\Phi_j)",
+    "env": "equation"
+  },
+  {
+    "label": "eq:43",
+    "line": 4375,
+    "chapter": 8,
+    "chapter_title": "Tweedism and the Puppet Class: The Algorithmic Filter on Democracy",
+    "seq": 15,
+    "statement": "\\max\\left|S_{\\text{total}}(t)\\right|>\\tau",
+    "env": "equation"
+  },
+  {
+    "label": "eq:44",
+    "line": 4379,
+    "chapter": 8,
+    "chapter_title": "Tweedism and the Puppet Class: The Algorithmic Filter on Democracy",
+    "seq": 16,
+    "statement": "\\max\\left|S_{\\text{total}}(t)\\right| \\ll \\tau",
+    "env": "equation"
+  },
+  {
+    "label": "eq:45",
+    "line": 4482,
+    "chapter": 8,
+    "chapter_title": "Tweedism and the Puppet Class: The Algorithmic Filter on Democracy",
+    "seq": 17,
+    "statement": "\\overline{e^{i\\Phi}} = \\frac{1}{N}\\sum_{j=1}^{N} e^{i\\Phi_j}, \\qquad\n\\Phi_{\\text{load}}(t) = 1 - \\left|\\,\\overline{e^{i\\Phi}}\\,\\right| \\in [0,1]",
+    "env": "equation"
+  },
+  {
+    "label": "eq:46",
+    "line": 4680,
+    "chapter": 8,
+    "chapter_title": "Tweedism and the Puppet Class: The Algorithmic Filter on Democracy",
+    "seq": 18,
+    "statement": "x_0 \\rightarrow x_1 \\rightarrow x_2 \\rightarrow \\cdots \\rightarrow x_m",
+    "env": "equation"
+  },
+  {
+    "label": "eq:47",
+    "line": 5153,
+    "chapter": 9,
+    "chapter_title": "The Recompile: COINTELPRO, the Variable Swap, and the War on Drugs (1968--1994)",
+    "seq": 1,
+    "statement": "O_{t+1}^{\\text{capacity}} = O_t^{\\text{capacity}} \\cdot (1 - \\alpha_{P_{\\text{lead}}})",
+    "env": "equation"
+  },
+  {
+    "label": "eq:48",
+    "line": 5236,
+    "chapter": 9,
+    "chapter_title": "The Recompile: COINTELPRO, the Variable Swap, and the War on Drugs (1968--1994)",
+    "seq": 2,
+    "statement": "O_{t_0 + \\Delta t_{\\text{suppress}}}^{\\text{capacity}} = O_{t_0}^{\\text{capacity}} \\cdot (1 - \\alpha_{P_{\\text{lead}}})^{\\Delta t_{\\text{suppress}}}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:49",
+    "line": 5472,
+    "chapter": 9,
+    "chapter_title": "The Recompile: COINTELPRO, the Variable Swap, and the War on Drugs (1968--1994)",
+    "seq": 3,
+    "statement": "P_{\\text{lead}} = P_{\\text{lead}}^{\\text{air}} + P_{\\text{lead}}^{\\text{water}} + P_{\\text{lead}}^{\\text{school}}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:50",
+    "line": 5476,
+    "chapter": 9,
+    "chapter_title": "The Recompile: COINTELPRO, the Variable Swap, and the War on Drugs (1968--1994)",
+    "seq": 4,
+    "statement": "P_{\\text{lead}}^{v}(x) \\propto \\mathbb{1}_{x \\in \\text{Redlined}} \\quad \\text{for each vector } v \\in \\{\\text{air}, \\text{water}, \\text{school}\\}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:funding",
+    "line": 5503,
+    "chapter": 9,
+    "chapter_title": "The Recompile: COINTELPRO, the Variable Swap, and the War on Drugs (1968--1994)",
+    "seq": 5,
+    "statement": "\\text{School funding}(t) \\propto V_t",
+    "env": "align"
+  },
+  {
+    "label": "eq:infra",
+    "line": 5504,
+    "chapter": 9,
+    "chapter_title": "The Recompile: COINTELPRO, the Variable Swap, and the War on Drugs (1968--1994)",
+    "seq": 6,
+    "statement": "\\text{Infrastructure quality}(t) \\propto \\text{School funding}(t)",
+    "env": "align"
+  },
+  {
+    "label": "eq:lead_school",
+    "line": 5505,
+    "chapter": 9,
+    "chapter_title": "The Recompile: COINTELPRO, the Variable Swap, and the War on Drugs (1968--1994)",
+    "seq": 7,
+    "statement": "P_{\\text{lead}}^{\\text{school}}(t) \\propto \\frac{1}{\\text{Infrastructure quality}(t)}",
+    "env": "align"
+  },
+  {
+    "label": "eq:community",
+    "line": 5506,
+    "chapter": 9,
+    "chapter_title": "The Recompile: COINTELPRO, the Variable Swap, and the War on Drugs (1968--1994)",
+    "seq": 8,
+    "statement": "\\text{Community capacity}(t) = O_t^{\\text{capacity}} \\cdot (1 - \\alpha \\cdot P_{\\text{lead}}^{\\text{school}}(t))",
+    "env": "align"
+  },
+  {
+    "label": "eq:propval",
+    "line": 5507,
+    "chapter": 9,
+    "chapter_title": "The Recompile: COINTELPRO, the Variable Swap, and the War on Drugs (1968--1994)",
+    "seq": 9,
+    "statement": "V_{t+1} \\propto \\text{Community capacity}(t)",
+    "env": "align"
+  },
+  {
+    "label": "eq:51",
+    "line": 5549,
+    "chapter": 9,
+    "chapter_title": "The Recompile: COINTELPRO, the Variable Swap, and the War on Drugs (1968--1994)",
+    "seq": 10,
+    "statement": "P_{\\text{lead}}^{\\text{air}}(x) = \\Sigma_{\\text{highway}}(x) \\cdot L_{\\text{TEL}}(t) \\cdot \\mathbb{1}_{x \\in O_{\\text{redlined}}}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:52",
+    "line": 6188,
+    "chapter": 10,
+    "chapter_title": "The Full Algorithm: Demographic Paradox, Cannibalization, and the 5-Tier Reveal (1994--Present)",
+    "seq": 1,
+    "statement": "O_{\\text{racialized}} \\subset O",
+    "env": "equation"
+  },
+  {
+    "label": "eq:53",
+    "line": 6192,
+    "chapter": 10,
+    "chapter_title": "The Full Algorithm: Demographic Paradox, Cannibalization, and the 5-Tier Reveal (1994--Present)",
+    "seq": 2,
+    "statement": "I_{\\text{buffer}}(t) \\subset I_{\\text{buffer}}(t-1) \\quad \\text{and} \\quad O(t) \\supset O(t-1)",
+    "env": "equation"
+  },
+  {
+    "label": "eq:54",
+    "line": 6284,
+    "chapter": 10,
+    "chapter_title": "The Full Algorithm: Demographic Paradox, Cannibalization, and the 5-Tier Reveal (1994--Present)",
+    "seq": 3,
+    "statement": "\\text{Cost}(\\text{Autonomy}) > \\text{Capacity}(O_{\\text{racialized}})",
+    "env": "equation"
+  },
+  {
+    "label": "eq:55",
+    "line": 6396,
+    "chapter": 10,
+    "chapter_title": "The Full Algorithm: Demographic Paradox, Cannibalization, and the 5-Tier Reveal (1994--Present)",
+    "seq": 4,
+    "statement": "E \\;\\subset\\; P_{\\text{uppet}} \\;\\subset\\; I_{\\text{buffer}} \\;\\subset\\; I, \\qquad O_{\\text{racialized}} \\cap I = \\emptyset",
+    "env": "equation"
+  },
+  {
+    "label": "eq:56",
+    "line": 6402,
+    "chapter": 10,
+    "chapter_title": "The Full Algorithm: Demographic Paradox, Cannibalization, and the 5-Tier Reveal (1994--Present)",
+    "seq": 5,
+    "statement": "\\max_{\\{P_i\\}}\\; \\mathcal{E}(t) \\quad \\text{subject to} \\quad M_{\\text{eff}}(t) < \\tau",
+    "env": "equation"
+  },
+  {
+    "label": "eq:57",
+    "line": 6406,
+    "chapter": 10,
+    "chapter_title": "The Full Algorithm: Demographic Paradox, Cannibalization, and the 5-Tier Reveal (1994--Present)",
+    "seq": 6,
+    "statement": "M_{\\text{eff}}(t) = M(t) - \\lambda\\,\\Phi_{\\text{load}}(t)",
+    "env": "equation"
+  },
+  {
+    "label": "eq:58",
+    "line": 6411,
+    "chapter": 10,
+    "chapter_title": "The Full Algorithm: Demographic Paradox, Cannibalization, and the 5-Tier Reveal (1994--Present)",
+    "seq": 7,
+    "statement": "\\Sigma_{\\text{sup}}(t) = \\psi_s(t) + \\psi_m(t) + R(t) + \\Phi_{\\text{load}}(t)",
+    "env": "equation"
+  },
+  {
+    "label": "eq:59",
+    "line": 6416,
+    "chapter": 10,
+    "chapter_title": "The Full Algorithm: Demographic Paradox, Cannibalization, and the 5-Tier Reveal (1994--Present)",
+    "seq": 8,
+    "statement": "\\frac{dM}{dt} > \\frac{d\\Sigma_{\\text{sup}}}{dt} \\quad \\Longleftrightarrow \\quad M_{\\text{eff}}(t) > \\tau",
+    "env": "equation"
+  },
+  {
+    "label": "eq:60",
+    "line": 6421,
+    "chapter": 10,
+    "chapter_title": "The Full Algorithm: Demographic Paradox, Cannibalization, and the 5-Tier Reveal (1994--Present)",
+    "seq": 9,
+    "statement": "\\text{Benefit}(E) \\gg \\text{Benefit}(P_{\\text{uppet}}) > \\text{Benefit}(F_{\\text{enforce}}) > \\text{Benefit}(I_{\\text{buffer}}) > \\text{Benefit}(O_{\\text{racialized}})",
+    "env": "equation"
+  },
+  {
+    "label": "eq:61",
+    "line": 6489,
+    "chapter": 10,
+    "chapter_title": "The Full Algorithm: Demographic Paradox, Cannibalization, and the 5-Tier Reveal (1994--Present)",
+    "seq": 10,
+    "statement": "\\text{Objective:} \\quad \\frac{\\text{Max}(\\text{Extraction})}{\\text{Min}(\\text{Resistance}_{\\text{class}})} \\rightarrow \\text{System Stability}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:62",
+    "line": 6492,
+    "chapter": 10,
+    "chapter_title": "The Full Algorithm: Demographic Paradox, Cannibalization, and the 5-Tier Reveal (1994--Present)",
+    "seq": 11,
+    "statement": "\\text{Dynamic Equivalent:} \\quad \\max \\mathcal{E}(t) \\quad \\text{subject to} \\quad M_{\\text{eff}}(t)=M(t)-\\lambda\\Phi_{\\text{load}}(t)<\\tau",
+    "env": "equation"
+  },
+  {
+    "label": "eq:63",
+    "line": 6601,
+    "chapter": 10,
+    "chapter_title": "The Full Algorithm: Demographic Paradox, Cannibalization, and the 5-Tier Reveal (1994--Present)",
+    "seq": 12,
+    "statement": "O_{\\text{final}} = \\text{Everyone} \\setminus E",
+    "env": "equation"
+  },
+  {
+    "label": "eq:reclassification",
+    "line": 6758,
+    "chapter": 10,
+    "chapter_title": "The Full Algorithm: Demographic Paradox, Cannibalization, and the 5-Tier Reveal (1994--Present)",
+    "seq": 13,
+    "statement": "\\mathcal{R}(x_i) =  I_{\\text{buffer}} & \\text{if } K(x_i) \\leq K_{\\text{tolerated}} \\text{ and } \\mathrm{comply}(x_i) = 1 \\\\ O_{\\text{final}} & \\text{if } K(x_i) > K_{\\text{tolerated}} \\text{ or } \\mathrm{comply}(x_i) = 0",
+    "env": "equation"
+  },
+  {
+    "label": "eq:64",
+    "line": 6792,
+    "chapter": 10,
+    "chapter_title": "The Full Algorithm: Demographic Paradox, Cannibalization, and the 5-Tier Reveal (1994--Present)",
+    "seq": 14,
+    "statement": "\\text{Kinetic}(I_{\\text{buffer}} \\cup O_{\\text{racialized}} \\setminus O_{\\text{incarcerated}}) \\gg \\text{Kinetic}(F_{\\text{enforce}} \\cup E)",
+    "env": "equation"
+  },
+  {
+    "label": "eq:65",
+    "line": 6904,
+    "chapter": 11,
+    "chapter_title": "The Kinetic Guarantee: Arms Asymmetry, the Second Amendment, and the Disarmament Timeline",
+    "seq": 1,
+    "statement": "L_E \\gg L_O \\implies \\text{Extraction feasible}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:66",
+    "line": 7727,
+    "chapter": 11,
+    "chapter_title": "The Kinetic Guarantee: Arms Asymmetry, the Second Amendment, and the Disarmament Timeline",
+    "seq": 2,
+    "statement": "x_0 \\rightarrow x_1 \\rightarrow \\cdots \\rightarrow x_m",
+    "env": "equation"
+  },
+  {
+    "label": "eq:67",
+    "line": 7731,
+    "chapter": 11,
+    "chapter_title": "The Kinetic Guarantee: Arms Asymmetry, the Second Amendment, and the Disarmament Timeline",
+    "seq": 3,
+    "statement": "\\mathcal{R}_{t+1}=\\mathcal{R}_t \\cup \\{r_t\\}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:68",
+    "line": 7735,
+    "chapter": 11,
+    "chapter_title": "The Kinetic Guarantee: Arms Asymmetry, the Second Amendment, and the Disarmament Timeline",
+    "seq": 4,
+    "statement": "\\operatorname{Target}(r_t): O_{\\text{racialized}} \\;\\rightarrow\\; O_{\\text{racialized}} \\cup I_{\\text{buffer}}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:69",
+    "line": 7811,
+    "chapter": 12,
+    "chapter_title": "The Contradiction: Why Reform Serves the Algorithm",
+    "seq": 1,
+    "statement": "\\min(t+1) = \\min(t) - \\epsilon \\cdot \\Delta|O_{\\text{racialized}} \\cap P'|",
+    "env": "equation"
+  },
+  {
+    "label": "eq:70",
+    "line": 7869,
+    "chapter": 12,
+    "chapter_title": "The Contradiction: Why Reform Serves the Algorithm",
+    "seq": 2,
+    "statement": "\\text{Reform Rate}(t) \\propto \\frac{d(\\min)}{dt} \\quad \\text{subject to} \\quad \\Delta\\max = 0",
+    "env": "equation"
+  },
+  {
+    "label": "eq:71",
+    "line": 8017,
+    "chapter": 12,
+    "chapter_title": "The Contradiction: Why Reform Serves the Algorithm",
+    "seq": 3,
+    "statement": "D(P) = \n1 & \\text{if } P \\text{ explicitly invokes racial classification} \\\\\n0 & \\text{if } P \\text{ uses proxy variable } x \\text{ where } \\operatorname{Corr}(x, \\text{race}) \\to 1",
+    "env": "equation"
+  },
+  {
+    "label": "eq:72",
+    "line": 8061,
+    "chapter": 12,
+    "chapter_title": "The Contradiction: Why Reform Serves the Algorithm",
+    "seq": 4,
+    "statement": "|O_{\\text{racialized}} \\cap P_{\\text{explicit}}| \\approx |O_{\\text{racialized}} \\cap P_{\\text{proxy}}|",
+    "env": "equation"
+  },
+  {
+    "label": "eq:73",
+    "line": 8215,
+    "chapter": 12,
+    "chapter_title": "The Contradiction: Why Reform Serves the Algorithm",
+    "seq": 5,
+    "statement": "\\forall\\; R_i \\in \\mathcal{R}: \\quad \\Delta\\max(R_i) = 0",
+    "env": "equation"
+  },
+  {
+    "label": "eq:74",
+    "line": 8218,
+    "chapter": 12,
+    "chapter_title": "The Contradiction: Why Reform Serves the Algorithm",
+    "seq": 6,
+    "statement": "\\exists\\; \\text{Revolution } K_j \\in \\{\\text{kinetic}\\}: \\quad \\max(t_{\\text{post}}) = 0 \\;\\;\\text{(locally)}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:75",
+    "line": 8453,
+    "chapter": 12,
+    "chapter_title": "The Contradiction: Why Reform Serves the Algorithm",
+    "seq": 7,
+    "statement": "O_{\\text{gendered}} = \\{x \\in \\text{Population} \\mid x \\text{ is excluded from lethal autonomy on the basis of gender}\\}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:76",
+    "line": 8458,
+    "chapter": 12,
+    "chapter_title": "The Contradiction: Why Reform Serves the Algorithm",
+    "seq": 8,
+    "statement": "O_{\\text{racialized}} \\cap O_{\\text{gendered}}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:77",
+    "line": 8463,
+    "chapter": 12,
+    "chapter_title": "The Contradiction: Why Reform Serves the Algorithm",
+    "seq": 9,
+    "statement": "O_t^{\\text{capacity}} = O_{t-1}^{\\text{capacity}} \\cdot (1 - \\alpha_r P_t) \\cdot (1 - \\alpha_g P_t)",
+    "env": "equation"
+  },
+  {
+    "label": "eq:78",
+    "line": 8564,
+    "chapter": 12,
+    "chapter_title": "The Contradiction: Why Reform Serves the Algorithm",
+    "seq": 10,
+    "statement": "P_{\\text{gaslight}}^{\\text{nonviolence}}: \\quad \\text{Constrain}(O, I_{\\text{buffer}}) \\text{ to resistance modes where } \\Delta\\max = 0",
+    "env": "equation"
+  },
+  {
+    "label": "eq:79",
+    "line": 8619,
+    "chapter": 13,
+    "chapter_title": "The Global Containment Field: Scaling the Algorithm",
+    "seq": 1,
+    "statement": "O_{\\text{global}}^{\\text{capacity}}(t) = O_{\\text{global}}^{\\text{capacity}}(t_0) \\cdot \\prod_{i} (1 - \\alpha_i P_i^{\\text{imperial}})",
+    "env": "equation"
+  },
+  {
+    "label": "eq:80",
+    "line": 8668,
+    "chapter": 13,
+    "chapter_title": "The Global Containment Field: Scaling the Algorithm",
+    "seq": 2,
+    "statement": "\\max \\mathcal{E}_{\\text{imperial}} - \\min(O_{\\text{colonial}}) \\quad \\text{where} \\quad \\min \\rightarrow \\text{biological death}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:81",
+    "line": 8689,
+    "chapter": 13,
+    "chapter_title": "The Global Containment Field: Scaling the Algorithm",
+    "seq": 3,
+    "statement": "F_{\\text{enforce}}^{\\text{effective}}(t)=F_{\\text{enforce}}^{\\text{Haiti}}(t)+F_{\\text{enforce}}^{\\text{imported}}(t)",
+    "env": "equation"
+  },
+  {
+    "label": "eq:killick-extraction",
+    "line": 8716,
+    "chapter": 13,
+    "chapter_title": "The Global Containment Field: Scaling the Algorithm",
+    "seq": 4,
+    "statement": "\\lim_{\\text{surrender\\_cost} \\to \\infty} \\frac{\\text{value\\_to\\_empire}}{\\text{cost\\_to\\_agent}} = \\text{undefined}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:82",
+    "line": 8734,
+    "chapter": 13,
+    "chapter_title": "The Global Containment Field: Scaling the Algorithm",
+    "seq": 5,
+    "statement": "\\mathcal{L} \\;=\\; \\{\\ell_1,\\, \\ell_2,\\, \\ldots,\\, \\ell_n\\}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:83",
+    "line": 8746,
+    "chapter": 13,
+    "chapter_title": "The Global Containment Field: Scaling the Algorithm",
+    "seq": 6,
+    "statement": "\\text{Valid\\_negotiation}(t) =  1 & \\text{if } A_{\\text{auth}} = 1 \\\\ 0 & \\text{if } A_{\\text{auth}} = 0",
+    "env": "equation"
+  },
+  {
+    "label": "eq:84",
+    "line": 8752,
+    "chapter": 13,
+    "chapter_title": "The Global Containment Field: Scaling the Algorithm",
+    "seq": 7,
+    "statement": "F^L \\;=\\; \\sup\\!\\left\\{\\, F \\;\\Big|\\; \\forall\\, \\text{treaty } T \\text{ signed under force level } F,\\; T \\text{ is valid under } \\mathcal{L} \\,\\right\\}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:85",
+    "line": 8758,
+    "chapter": 13,
+    "chapter_title": "The Global Containment Field: Scaling the Algorithm",
+    "seq": 8,
+    "statement": "F^* \\;=\\; \\inf\\!\\left\\{\\, F \\;\\Big|\\; P(\\text{compliance} \\mid F_{\\text{enforce}} = F) \\geq p_{\\text{target}} \\,\\right\\}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:86",
+    "line": 8771,
+    "chapter": 13,
+    "chapter_title": "The Global Containment Field: Scaling the Algorithm",
+    "seq": 9,
+    "statement": "\\nexists\\; S:\\quad \\mathcal{E}(S) > 0 \\;\\;\\wedge\\;\\; \\mathcal{L}(S) = \\text{valid} \\quad \\text{when } F^* > F^L",
+    "env": "equation"
+  },
+  {
+    "label": "eq:87",
+    "line": 8792,
+    "chapter": 13,
+    "chapter_title": "The Global Containment Field: Scaling the Algorithm",
+    "seq": 10,
+    "statement": "\\Lambda(O_{\\text{global}}, E_{\\text{global}}) \\;=\\; \\frac{\\Delta\\mathcal{E}_{\\text{blocked}}}{\\Delta\\text{Resources}_{O}}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:88",
+    "line": 8800,
+    "chapter": 13,
+    "chapter_title": "The Global Containment Field: Scaling the Algorithm",
+    "seq": 11,
+    "statement": "C_{\\text{legitimacy}}(\\text{violation}) < \\mathcal{E}_{\\text{extraction}} \\;\\Rightarrow\\; E_{\\text{global}} \\text{ abandons } \\mathcal{L}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:89",
+    "line": 8816,
+    "chapter": 13,
+    "chapter_title": "The Global Containment Field: Scaling the Algorithm",
+    "seq": 12,
+    "statement": "O_{\\text{liberated}}^{\\text{capacity}}(t) = O_{\\text{liberated}}^{\\text{capacity}}(t_0) \\cdot (1 - \\alpha_{\\text{embargo}})^{t - t_0}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:90",
+    "line": 8854,
+    "chapter": 13,
+    "chapter_title": "The Global Containment Field: Scaling the Algorithm",
+    "seq": 13,
+    "statement": "\\text{Vote}_{\\text{UN}}(x) =  \\text{No} & \\text{if } x \\in E_{\\text{imperial}} \\\\[4pt] \\text{Abstain} & \\text{if } x \\in I_{\\text{buffer}}^{\\text{global}} \\\\[4pt] \\text{Yes} & \\text{if } x \\in O_{\\text{global}}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:91",
+    "line": 8888,
+    "chapter": 13,
+    "chapter_title": "The Global Containment Field: Scaling the Algorithm",
+    "seq": 14,
+    "statement": "\\text{Either} \\quad F_{\\text{enforce}}^{\\text{global}} \\rightarrow 0 \\quad \\text{or} \\quad O_{\\text{bloc}}^{\\text{capacity}}(t) > \\tau_{\\text{sovereign}} \\;\\;\\forall\\; t",
+    "env": "equation"
+  },
+  {
+    "label": "eq:algo_prior_inheritance",
+    "line": 8967,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 1,
+    "statement": "P_{\\text{algo}} = \\arg\\min_{P} \\; \\mathcal{L}(P; \\mathcal{H}) \\quad \\Longrightarrow \\quad |O_{\\text{racialized}} \\cap P_{\\text{algo}}| \\gg |I \\cap P_{\\text{algo}}|",
+    "env": "equation"
+  },
+  {
+    "label": "eq:realtime_proximity",
+    "line": 8984,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 2,
+    "statement": "\\rho_{\\tau}(t) = f\\bigl(\\Phi_{\\text{load}}(t),\\, \\lambda_2(G(t)),\\, \\deg_{\\text{cross}}(G(t))\\bigr)",
+    "env": "equation"
+  },
+  {
+    "label": "eq:orthogonal_vector",
+    "line": 8999,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 3,
+    "statement": "\\mathcal{E}(G(t)) : G(t) \\longmapsto G'(t) \\quad \\text{such that} \\quad \\lambda_2(G'(t)) \\ll \\lambda_2(G(t))",
+    "env": "equation"
+  },
+  {
+    "label": "eq:damped_oscillator",
+    "line": 9013,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 4,
+    "statement": "\\ddot{\\psi}_{\\text{correction}} + \\Delta(t)\\,\\dot{\\psi}_{\\text{correction}} + \\omega_0^2 \\psi_{\\text{correction}} = 0, \\quad \\Delta(t) \\uparrow \\text{ with trauma severity}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:optical_enclosure",
+    "line": 9026,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 5,
+    "statement": "\\theta_{E} = \\theta_{P_{\\text{uppet}}} = \\theta_{F_{\\text{enforce}}} = \\theta_{I_{\\text{buffer}}} \\quad (\\text{within perceptual tolerance}).",
+    "env": "equation"
+  },
+  {
+    "label": "eq:decoy_transfer",
+    "line": 9038,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 6,
+    "statement": "\\frac{\\partial \\max(E, t)}{\\partial K(t)} \\approx 0 \\quad \\text{so long as} \\quad K(t) \\leq K_{\\text{decoy}}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:ddos_bandwidth",
+    "line": 9059,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 7,
+    "statement": "n > \\Gamma \\quad \\Longrightarrow \\quad \\text{Localized enforcement superiority fails at} \\ (n - \\Gamma) \\ \\text{nodes.}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:kinetic_parity",
+    "line": 9067,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 8,
+    "statement": "\\Gamma_{\\text{armed}} = \\frac{\\Gamma_{\\text{total}}}{\\gamma(k_{\\text{node}})}, \\quad \\text{with} \\ \\gamma(k_{\\text{armed}}) \\gg \\gamma(k_{\\text{unarmed}}).",
+    "env": "equation"
+  },
+  {
+    "label": "eq:kinetic_asymmetry",
+    "line": 9082,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 9,
+    "statement": "\\kappa(I_{\\text{buffer}}) \\;\\gg\\; \\kappa(O_{\\text{racialized}})",
+    "env": "equation"
+  },
+  {
+    "label": "eq:green_zone_exception",
+    "line": 9097,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 10,
+    "statement": "S(x_0) \\;\\approx\\; \\alpha \\cdot \\gamma(k_{x_0}) \\cdot T_{\\text{siege}}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:escalation_ceiling",
+    "line": 9110,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 11,
+    "statement": "\\Gamma_{\\text{Tier}_k} < \\Gamma_{\\text{Tier}_{k-1}}, \\quad k \\in \\{1,2,3,4\\}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:inclusion_predicate",
+    "line": 9137,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 12,
+    "statement": "\\mathbb{I}_{\\text{include}}(x, t) \\;=\\; \\mathbb{1}\\bigl[\\,V(x,t) \\;>\\; R(x,t)\\,\\bigr].",
+    "env": "equation"
+  },
+  {
+    "label": "eq:terminal_swap",
+    "line": 9147,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 13,
+    "statement": "\\lim_{t \\to t_{\\text{automation}}^{-}} V(x, t) \\;=\\; 0, \\quad R(x, t) > 0 \\quad \\Longrightarrow \\quad \\mathbb{I}_{\\text{include}}(x, t) = 0 \\ \\forall \\ x \\in \\{P, F, I, O\\}.",
+    "env": "equation"
+  },
+  {
+    "label": "eq:liability_phase",
+    "line": 9157,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 14,
+    "statement": "\\min_{E} \\mathcal{L}(E, t) \\;\\Rightarrow\\; \\min_{E} \\int c(x, t) \\, dt, \\quad \\text{subject to} \\ V(x, t) = 0.",
+    "env": "equation"
+  },
+  {
+    "label": "eq:noise_spectrum",
+    "line": 9203,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 15,
+    "statement": "\\mathcal{N}(t) \\;=\\; H\\bigl(\\pi_1(t), \\pi_2(t), \\ldots, \\pi_n(t)\\bigr)",
+    "env": "equation"
+  },
+  {
+    "label": "eq:agnostic_swarm",
+    "line": 9221,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 16,
+    "statement": "\\mathcal{B}(t^{*}) : \\{x_1, \\ldots, x_n\\} \\longmapsto \\bigcup_{i=1}^{n} \\text{action}_i(t^{*}), \\quad \\text{where action}_i \\ \\text{is sampled from} \\ \\pi_i \\ \\text{independently.}",
+    "env": "equation"
+  },
+  {
+    "label": "eq:botnet_load",
+    "line": 9234,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 17,
+    "statement": "n(t) > \\Gamma_{\\text{armed}} \\quad \\wedge \\quad \\mathcal{N}(t) \\to H_{\\max}.",
+    "env": "equation"
+  },
+  {
+    "label": "eq:ideological_routing",
+    "line": 9254,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 18,
+    "statement": "\\mathcal{R}_{\\text{topo}} : x_i \\longmapsto (x_i^{\\text{local}}, y_i^{\\text{local}})",
+    "env": "equation"
+  },
+  {
+    "label": "eq:zugzwang_payoff",
+    "line": 9302,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 19,
+    "statement": "\\Pi_E(a) \\;=\\; -\\Delta\\min(a) \\quad \\text{where} \\quad \\Delta\\min(a) < 0 \\;\\; \\forall \\, a.",
+    "env": "equation"
+  },
+  {
+    "label": "eq:defection_cascade",
+    "line": 9341,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 20,
+    "statement": "w_{\\text{community}}(v, t) > w_{\\text{state}}(v, t) \\quad \\Longrightarrow \\quad v \\text{ defects from } G_{\\text{state}} \\text{ to } G_{\\text{community}}.",
+    "env": "equation"
+  },
+  {
+    "label": "eq:empathy_permeability",
+    "line": 9370,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 21,
+    "statement": "\\delta_{\\text{trauma}}(F_{\\text{Polish}}, O_{\\text{Haitian}}) \\;\\approx\\; 1",
+    "env": "equation"
+  },
+  {
+    "label": "eq:semantic_overwrite",
+    "line": 9395,
+    "chapter": 14,
+    "chapter_title": "The Algorithmic Epoch: Real-Time Subjugation and the Necessity of the Counter-Virus",
+    "seq": 22,
+    "statement": "\\text{Noir}_{\\text{Dessalines}} \\;:=\\; \\{\\,x : x \\text{ has demonstrated alignment with the } \\tau \\text{ Singularity}\\,\\}, \\quad \\text{independent of phenotype}(x).",
+    "env": "equation"
+  },
+  {
+    "label": "eq:92",
+    "line": 9673,
+    "chapter": 17,
+    "chapter_title": "Conclusion",
+    "seq": 1,
+    "statement": "\\vec{R}_{\\text{systemic}} = \\left\\| F_{\\text{institutional}} \\right\\| \\cdot \\hat{d}_{\\text{hierarchy}} \\quad \\neq \\quad \\left| \\text{prejudice}_{\\text{individual}} \\right|",
+    "env": "equation"
+  },
+  {
+    "label": "eq:93",
+    "line": 9722,
+    "chapter": 17,
+    "chapter_title": "Conclusion",
+    "seq": 2,
+    "statement": "O_{\\text{final}} = \\text{Everyone} \\setminus E",
+    "env": "equation"
+  },
+  {
+    "label": "eq:94",
+    "line": 9854,
+    "chapter": 19,
+    "chapter_title": "Equation Registry and Era-Level Calibration",
+    "seq": 1,
+    "statement": "\\max_{\\{P_i\\}}\\; \\mathcal{E}(t) \\quad \\text{subject to} \\quad M_{\\text{eff}}(t) = M(t) - \\lambda\\,\\Phi_{\\text{load}}(t) < \\tau",
+    "env": "equation"
+  },
+  {
+    "label": "eq:95",
+    "line": 9858,
+    "chapter": 19,
+    "chapter_title": "Equation Registry and Era-Level Calibration",
+    "seq": 2,
+    "statement": "\\Sigma_{\\text{sup}}(t) = \\psi_s(t) + \\psi_m(t) + R(t) + \\Phi_{\\text{load}}(t)",
+    "env": "equation"
+  },
+  {
+    "label": "eq:96",
+    "line": 9862,
+    "chapter": 19,
+    "chapter_title": "Equation Registry and Era-Level Calibration",
+    "seq": 3,
+    "statement": "\\frac{dM}{dt} > \\frac{d\\Sigma_{\\text{sup}}}{dt} \\quad \\Longleftrightarrow \\quad M_{\\text{eff}}(t) > \\tau",
+    "env": "equation"
+  },
+  {
+    "label": "eq:97",
+    "line": 9866,
+    "chapter": 19,
+    "chapter_title": "Equation Registry and Era-Level Calibration",
+    "seq": 4,
+    "statement": "\\text{Benefit}(E) \\gg \\text{Benefit}(P_{\\text{uppet}}) > \\text{Benefit}(F_{\\text{enforce}}) > \\text{Benefit}(I_{\\text{buffer}}) > \\text{Benefit}(O_{\\text{racialized}})",
+    "env": "equation"
+  }
+]

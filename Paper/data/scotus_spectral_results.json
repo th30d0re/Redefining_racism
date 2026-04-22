@@ -1,0 +1,62 @@
+{
+  "source": "scotus_corpus_analysis.ipynb",
+  "corpus": {
+    "n_pdfs": 55,
+    "year_range": "1873\u20132018",
+    "data_available": true
+  },
+  "analysis_1_class_identity_ratio": {
+    "pre_1950_class_share_mean": 0.5091,
+    "post_1950_class_share_mean": 0.3655,
+    "class_share_slope_per_yr": -0.001607,
+    "class_share_r2": 0.0432,
+    "class_share_p": 0.1243
+  },
+  "analysis_2_lomb_scargle": {
+    "per_axis_dominant_periods": {
+      "race": 3.59,
+      "gender": 6.18,
+      "religion": 8.52,
+      "sexuality": 50.0
+    },
+    "boundary_artifact_axes": [
+      "sexuality"
+    ],
+    "per_axis_boundary_artifact": {
+      "race": false,
+      "gender": false,
+      "religion": false,
+      "sexuality": true
+    },
+    "period_range_yr_all_axes": 46.41,
+    "period_range_yr_valid_axes": 4.93,
+    "periods_distinct_3yr": true,
+    "n_valid_axes": 3,
+    "corpus_size_cases": 57,
+    "year_span": 145,
+    "stub": false
+  },
+  "analysis_3_majority_dissent": {
+    "n_cases_with_dissent": 2,
+    "mean_class_per_1k_majority": 2.2098,
+    "mean_class_per_1k_dissent": 0.9133,
+    "dissent_majority_ratio": 0.4133,
+    "n_high_divergence_cases": 1,
+    "top_high_divergence_cases": [
+      {
+        "case_name": "Jones v. Alfred H. Mayer Co.",
+        "year": 1968,
+        "divergence_ratio": 1.5547439546091784
+      }
+    ],
+    "underpowered": true,
+    "note": "UNDERPOWERED",
+    "direction_note": "majority > dissent (opposite to prediction)"
+  },
+  "figures": [
+    "Paper/figures/spectral/scotus_class_identity_ratio.pdf",
+    "Paper/figures/spectral/scotus_lomb_scargle.pdf",
+    "Paper/figures/spectral/scotus_majority_dissent.pdf"
+  ],
+  "note": "55-case corpus; Lomb-Scargle handles non-uniform sampling but frequency resolution is limited by corpus size. Results are exploratory. Cross-validate with GDELT and CR data."
+}

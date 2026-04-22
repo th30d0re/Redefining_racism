@@ -28,4 +28,13 @@ Two targeted patches from Grok's Chapters 15–17 review. Both close genuine int
 ## TODOs
 
 - [x] ch15-17-perpetual-battle: Expand Perpetual Battle section (Ch. 15) to name Counter-AI as machine-speed substrate
-- [ ] ch15-17-emergent-fractures: Add emergent vs engineered distinction sentences in Ch. 16
+- [x] ch15-17-emergent-fractures: Add emergent vs engineered distinction sentences in Ch. 16
+
+## Reconciliation status (2026-04-21)
+
+Both gaps are satisfied in `Paper/Redefining_Racism.tex`:
+
+- **Gap 1:** `\section{The Perpetual Battle for Solidarity}` — machine-speed auditing, Ch.~\ref{ch:algorithmic_epoch} asymmetry, Counter-AI mandate with Ch.~\ref{sec:counter_ai} — see approximately lines 9502–9510.
+- **Gap 2:** After the “coalition fractures before it can even form” paragraph in the Boston chapter, the emergent vs.\ amplified distinction is explicit — see approximately lines 9527–9528.
+
+Plan drift is closed; no further `.tex` edits required for this hardening pass.

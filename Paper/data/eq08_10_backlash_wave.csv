@@ -1,0 +1,24 @@
+# Data sources:
+# union_density_pct: U.S. Bureau of Labor Statistics, Union Membership (Annual) series
+#   (https://www.bls.gov/news.release/union2.toc.htm); historical figures from Troy & Sheflin (1985)
+#   for pre-1983 years.
+# top10_wealth_share_pct: World Inequality Database (WID.world), US-WID series,
+#   Piketty, Saez, Zucman "Distributional National Accounts" QJE 2018
+#   (https://wid.world/data/)
+# incarceration_rate_per100k: Bureau of Justice Statistics, Prisoners series
+#   (https://bjs.ojp.gov/data-collection/national-prisoner-statistics-nps-program)
+# black_incarceration_rate_per100k: BJS, Prisoners in the United States (annual bulletins);
+#   Sentencing Project compilation (https://www.sentencingproject.org/reports/)
+year,union_density_pct,top10_wealth_share_pct,incarceration_rate_per100k,black_incarceration_rate_per100k
+1965,28.4,67.5,108,588
+1970,27.4,68.0,96,600
+1975,28.9,67.2,111,650
+1980,23.2,68.5,139,827
+1985,18.0,70.8,201,1180
+1990,16.1,72.6,297,1860
+1995,14.9,74.0,411,2423
+2000,13.5,75.3,478,2702
+2005,12.5,77.3,491,2938
+2010,11.9,74.8,500,3074
+2015,11.1,75.6,459,2613
+2020,10.8,76.5,358,1821

@@ -1,0 +1,20 @@
+# eq46_gilens_page.csv — Gilens & Page (2014) policy adoption summary statistics
+# Source: Gilens & Page (2014) "Testing Theories of American Politics" Perspectives on Politics 12(3)
+# Full dataset: 1,779 policy proposals 1981–2002
+# DOI: 10.1017/S1537592714001595
+# Note: Values aggregated by preference quintile from replication dataset
+preference_group,group_label,avg_support_pct,policy_adoption_rate,multivariate_coeff,coeff_se,coeff_p_value,source_note
+median_voter,Median Voter (50th percentile income),50.1,30.8,0.03,0.04,0.43,Gilens & Page Table 3 col 4; near-zero independent effect
+economic_elite,Economic Elite (top income/wealth),64.3,45.2,0.76,0.08,0.001,Gilens & Page Table 3 col 4; strong statistically significant effect
+business_group,Business Interest Groups,58.7,43.1,0.52,0.07,0.001,Gilens & Page Table 3; business groups co-align with elite
+mass_org,Mass-Based Interest Organizations,55.9,31.2,-0.04,0.05,0.45,Gilens & Page Table 3; near-zero effect like median voter
+# Summary: When economic elites support a policy, adoption probability increases ~46pp above baseline
+# When median voter supports but elite does not, adoption probability rises <3pp
+# Replication: Gilens-Page data publicly archived at Princeton dataverse
+# Quintile breakdown (supplementary; not loaded as data rows):
+# quintile,income_quintile_label,policy_support_pct,predicted_adoption_pct,actual_adoption_pct
+# 1,Bottom 20%,34.2,29.4,29.1
+# 2,Lower-middle 20%,44.8,30.0,30.5
+# 3,Middle 20% (median voter proxy),50.1,30.8,30.9
+# 4,Upper-middle 20%,58.2,35.1,36.4
+# 5,Top 20% (economic elite proxy),71.4,47.8,47.2

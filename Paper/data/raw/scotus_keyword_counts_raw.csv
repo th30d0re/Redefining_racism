@@ -1,0 +1,81 @@
+# raw: SCOTUS per-1k-word keyword counts for 55 opinions (1873-2018)
+# source: Internet Archive SCOTUS PDF collection
+# extraction_tool: pdfplumber
+# keyword_baskets: class / race / gender / religion / sexuality
+# is_dissent: True = dissent section; False = majority section
+# generated_by: Paper/scripts/scotus_text_extract.py
+case_name,year,total_words,class_count,race_count,gender_count,religion_count,sexuality_count,is_dissent,class_per_1k,race_per_1k,gender_per_1k,religion_per_1k,sexuality_per_1k
+Slaughterhouse Cases,1873,14399,50,0,0,0,0,False,3.4725,0.0,0.0,0.0,0.0
+United States v. Cruikshank,1876,107361,49,28,1,1,0,False,0.4564,0.2608,0.0093,0.0093,0.0
+United States v. Reese,1876,9454,1,0,0,0,0,False,0.1058,0.0,0.0,0.0,0.0
+Strauder v. West Virginia,1880,157932,81,101,11,20,2,False,0.5129,0.6395,0.0697,0.1266,0.0127
+Civil Rights Cases,1883,2287,0,0,0,0,0,False,0.0,0.0,0.0,0.0,0.0
+Yick Wo v. Hopkins,1886,7602,2,10,0,0,0,False,0.2631,1.3154,0.0,0.0,0.0
+Plessy v. Ferguson,1896,86750,8,51,3,2,0,False,0.0922,0.5879,0.0346,0.0231,0.0
+Williams v. Mississippi,1898,70708,9,22,1,0,8,False,0.1273,0.3111,0.0141,0.0,0.1131
+Bailey v. Alabama,1911,45673,69,3,1,0,1,False,1.5107,0.0657,0.0219,0.0,0.0219
+Bailey v. Alabama,1911,1586,4,0,0,0,0,True,2.5221,0.0,0.0,0.0,0.0
+United States v. Reynolds,1914,39778,168,0,0,0,0,False,4.2234,0.0,0.0,0.0,0.0
+Ozawa v. United States,1922,92066,37,32,8,7,1,False,0.4019,0.3476,0.0869,0.076,0.0109
+Moore v. Dempsey,1923,87965,67,6,11,3,0,False,0.7617,0.0682,0.125,0.0341,0.0
+Moore v. Dempsey,1923,3748,0,0,0,0,0,True,0.0,0.0,0.0,0.0,0.0
+United States v. Bhagat Singh Thind,1923,24114,9,24,1,15,0,False,0.3732,0.9953,0.0415,0.622,0.0
+Buck v. Bell,1927,71951,10,25,18,4,0,False,0.139,0.3475,0.2502,0.0556,0.0
+Nixon v. Herndon,1927,822,0,1,0,0,0,False,0.0,1.2165,0.0,0.0,0.0
+Nixon v. Condon,1932,82944,18,29,8,3,0,False,0.217,0.3496,0.0965,0.0362,0.0
+Grovey v. Townsend,1935,52533,15,12,3,0,0,False,0.2855,0.2284,0.0571,0.0,0.0
+NLRB v. Jones & Laughlin Steel,1937,363516,3806,45,14,1,3,False,10.47,0.1238,0.0385,0.0028,0.0083
+Skinner v. Oklahoma,1942,45665,6,7,2,2,1,False,0.1314,0.1533,0.0438,0.0438,0.0219
+Korematsu v. United States,1944,14633,2,2,0,0,0,False,0.1367,0.1367,0.0,0.0,0.0
+Smith v. Allwright,1944,153309,26,32,1,2,1,False,0.1696,0.2087,0.0065,0.013,0.0065
+Shelley v. Kraemer,1948,120036,65,334,4,35,5,False,0.5415,2.7825,0.0333,0.2916,0.0417
+McLaurin v. Oklahoma State Regents,1950,92400,10,285,3,5,1,False,0.1082,3.0844,0.0325,0.0541,0.0108
+McLaurin v. Oklahoma State Regents,1950,7289,8,61,1,0,0,True,1.0975,8.3688,0.1372,0.0,0.0
+Sweatt v. Painter,1950,372155,80,947,14,27,3,False,0.215,2.5446,0.0376,0.0726,0.0081
+Sweatt v. Painter,1950,64317,25,438,10,19,0,True,0.3887,6.81,0.1555,0.2954,0.0
+Brown v. Board of Education,1954,709305,307,3362,32,78,4,False,0.4328,4.7399,0.0451,0.11,0.0056
+Brown v. Board of Education,1954,200936,36,709,15,18,1,True,0.1792,3.5285,0.0747,0.0896,0.005
+Cooper v. Aaron,1958,4781,0,1,0,0,0,False,0.0,0.2092,0.0,0.0,0.0
+Harper v. Virginia State Board of Elections,1966,91241,43,51,6,7,3,False,0.4713,0.559,0.0658,0.0767,0.0329
+Harper v. Virginia State Board of Elections,1966,2246,0,5,0,0,0,True,0.0,2.2262,0.0,0.0,0.0
+South Carolina v. Katzenbach,1966,276483,124,525,8,25,0,False,0.4485,1.8989,0.0289,0.0904,0.0
+Green v. County School Board,1968,94423,40,862,1,6,0,False,0.4236,9.1291,0.0106,0.0635,0.0
+Jones v. Alfred H. Mayer Co.,1968,12036,2,28,0,1,0,False,0.1662,2.3264,0.0,0.0831,0.0
+Jones v. Alfred H. Mayer Co.,1968,270047,99,1623,3,92,4,True,0.3666,6.0101,0.0111,0.3407,0.0148
+Terry v. Ohio,1968,71666,13,1,0,2,0,False,0.1814,0.014,0.0,0.0279,0.0
+Terry v. Ohio,1968,46264,2,6,0,1,0,True,0.0432,0.1297,0.0,0.0216,0.0
+Swann v. Charlotte-Mecklenburg,1971,446283,48,1214,6,15,0,False,0.1076,2.7202,0.0134,0.0336,0.0
+Swann v. Charlotte-Mecklenburg,1971,520983,33,3171,23,51,1,True,0.0633,6.0866,0.0441,0.0979,0.0019
+San Antonio ISD v. Rodriguez,1973,8661,2,0,0,0,0,False,0.2309,0.0,0.0,0.0,0.0
+Milliken v. Bradley,1974,985633,139,5217,6,74,6,False,0.141,5.293,0.0061,0.0751,0.0061
+Buckley v. Valeo,1976,667274,285,46,19,21,4,False,0.4271,0.0689,0.0285,0.0315,0.006
+Buckley v. Valeo,1976,208057,179,62,10,49,0,True,0.8603,0.298,0.0481,0.2355,0.0
+Regents of University of California v. Bakke,1978,882122,369,6831,227,128,9,False,0.4183,7.7438,0.2573,0.1451,0.0102
+Batson v. Kentucky,1986,87566,73,323,16,15,0,False,0.8337,3.6886,0.1827,0.1713,0.0
+McCleskey v. Kemp,1987,401572,30,1338,20,2,0,False,0.0747,3.3319,0.0498,0.005,0.0
+Harmelin v. Michigan,1991,69512,14,3,2,1,0,False,0.2014,0.0432,0.0288,0.0144,0.0
+Harmelin v. Michigan,1991,65194,16,0,1,0,1,True,0.2454,0.0,0.0153,0.0,0.0153
+Purkett v. Elem,1995,30696,74,82,8,0,0,False,2.4107,2.6714,0.2606,0.0,0.0
+United States v. Armstrong,1996,246045,64,675,50,9,0,False,0.2601,2.7434,0.2032,0.0366,0.0
+Atwater v. City of Lago Vista,2001,183349,35,52,5,3,2,False,0.1909,0.2836,0.0273,0.0164,0.0109
+Grutter v. Bollinger,2003,281557,18,1459,61,28,0,False,0.0639,5.1819,0.2167,0.0994,0.0
+Grutter v. Bollinger,2003,827519,280,5961,579,75,31,True,0.3384,7.2035,0.6997,0.0906,0.0375
+Hudson v. Michigan,2006,79620,15,2,1,0,3,False,0.1884,0.0251,0.0126,0.0,0.0377
+Hudson v. Michigan,2006,9387,0,0,0,0,0,True,0.0,0.0,0.0,0.0,0.0
+Parents Involved v. Seattle,2007,769476,202,10145,384,106,11,False,0.2625,13.1843,0.499,0.1378,0.0143
+Crawford v. Marion County Election Board,2008,509791,148,366,119,91,1,False,0.2903,0.7179,0.2334,0.1785,0.002
+District of Columbia v. Heller,2008,461905,197,94,54,72,8,False,0.4265,0.2035,0.1169,0.1559,0.0173
+District of Columbia v. Heller,2008,422490,86,120,463,71,100,True,0.2036,0.284,1.0959,0.1681,0.2367
+Citizens United v. FEC,2010,79434,62,25,1,17,43,False,0.7805,0.3147,0.0126,0.214,0.5413
+Citizens United v. FEC,2010,427008,706,32,48,8,17,True,1.6534,0.0749,0.1124,0.0187,0.0398
+McDonald v. City of Chicago,2010,640785,234,351,220,71,3,False,0.3652,0.5478,0.3433,0.1108,0.0047
+NFIB v. Sebelius,2012,186892,46,13,2,0,0,False,0.2461,0.0696,0.0107,0.0,0.0
+Shelby County v. Holder,2013,800630,288,4272,107,50,10,False,0.3597,5.3358,0.1336,0.0625,0.0125
+McCutcheon v. FEC,2014,278500,109,22,13,11,3,False,0.3914,0.079,0.0467,0.0395,0.0108
+Caetano v. Massachusetts,2016,30226,8,0,9,6,0,False,0.2647,0.0,0.2978,0.1985,0.0
+Fisher v. University of Texas,2016,1191819,409,6406,837,162,45,False,0.3432,5.375,0.7023,0.1359,0.0378
+Fisher v. University of Texas,2016,836,0,6,0,0,0,True,0.0,7.177,0.0,0.0,0.0
+Foster v. Chatman,2016,13401,57,11,0,5,0,False,4.2534,0.8208,0.0,0.3731,0.0
+Foster v. Chatman,2016,5101,8,1,0,1,0,True,1.5683,0.196,0.0,0.196,0.0
+Utah v. Strieff,2016,139665,16,8,7,0,0,False,0.1146,0.0573,0.0501,0.0,0.0
+Abbott v. Perez,2018,378311,30,1276,4,12,4,False,0.0793,3.3729,0.0106,0.0317,0.0106

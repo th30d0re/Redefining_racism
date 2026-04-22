@@ -1,0 +1,74 @@
+[
+  {
+    "shock_year": 1865,
+    "label": "End of Reconstruction / abolition shock",
+    "backlash_onset_year": 1866,
+    "description": "Thirteenth Amendment and post-bellum Black political enfranchisement",
+    "damping_ratio_guess": 0.08,
+    "natural_period_years": 20.0
+  },
+  {
+    "shock_year": 1917,
+    "label": "Great Migration + Red Summer",
+    "backlash_onset_year": 1919,
+    "description": "Great Migration north (1916–1920) and Red Summer race riots (1919); KKK revival reaching 3M members by 1924",
+    "damping_ratio_guess": 0.12,
+    "natural_period_years": 8.0,
+    "intermediate": true,
+    "backlash_proxy_source": "NAACP 30 Years of Lynching (1919), Trelease (1971) KKK membership estimates, Moore (2003)"
+  },
+  {
+    "shock_year": 1954,
+    "label": "Brown v. Board of Education",
+    "backlash_onset_year": 1956,
+    "description": "Brown v. Board (1954) ordering school desegregation; Southern Manifesto (1956) and White Citizens' Council organizing",
+    "damping_ratio_guess": 0.15,
+    "natural_period_years": 10.0,
+    "intermediate": true,
+    "backlash_proxy_source": "Klarman (2004) From Jim Crow to Civil Rights — WCC chapter formation data"
+  },
+  {
+    "shock_year": 1964,
+    "label": "Civil Rights Act",
+    "backlash_onset_year": 1968,
+    "description": "Civil Rights Act of 1964 / Voting Rights Act of 1965",
+    "damping_ratio_guess": 0.18,
+    "natural_period_years": 12.0
+  },
+  {
+    "shock_year": 1968,
+    "label": "MLK assassination / Kerner Commission",
+    "backlash_onset_year": 1969,
+    "description": "MLK assassination (April 1968), Kerner Commission report, Nixon law-and-order campaign; Southern Strategy",
+    "damping_ratio_guess": 0.20,
+    "natural_period_years": 9.0,
+    "intermediate": true,
+    "backlash_proxy_source": "Gallup crime-panic polling 1968–1979; Carter (1996) Politics of Rage"
+  },
+  {
+    "shock_year": 1992,
+    "label": "Rodney King verdict / LA uprising",
+    "backlash_onset_year": 1993,
+    "description": "Rodney King verdict and LA uprising (April 1992); Clinton crime bill (1994) as legislative backlash",
+    "damping_ratio_guess": 0.22,
+    "natural_period_years": 6.5,
+    "intermediate": true,
+    "backlash_proxy_source": "DOJ legislative tracker; Western (2006) Punishment and Inequality"
+  },
+  {
+    "shock_year": 2008,
+    "label": "Obama election",
+    "backlash_onset_year": 2009,
+    "description": "Election of first Black U.S. president",
+    "damping_ratio_guess": 0.22,
+    "natural_period_years": 6.0
+  },
+  {
+    "shock_year": 2020,
+    "label": "George Floyd protests / Jan 6 precursor",
+    "backlash_onset_year": 2020,
+    "description": "Floyd protests, racial-justice mobilisation, Jan 6 2021 Capitol attack",
+    "damping_ratio_guess": 0.12,
+    "natural_period_years": 4.0
+  }
+]

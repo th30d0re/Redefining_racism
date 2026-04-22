@@ -1,0 +1,423 @@
+[
+  {
+    "case": "Slaughterhouse Cases",
+    "year": 1873,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/slaughterhouse_cases_1873.pdf",
+    "bytes": 15367381
+  },
+  {
+    "case": "United States v. Cruikshank",
+    "year": 1876,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/united_states_v_cruikshank_1876.pdf",
+    "bytes": 135759240
+  },
+  {
+    "case": "United States v. Reese",
+    "year": 1876,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/united_states_v_reese_1876.pdf",
+    "bytes": 11997010
+  },
+  {
+    "case": "Strauder v. West Virginia",
+    "year": 1880,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/strauder_v_west_virginia_1880.pdf",
+    "bytes": 175890647
+  },
+  {
+    "case": "Civil Rights Cases",
+    "year": 1883,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/civil_rights_cases_1883.pdf",
+    "bytes": 4723369
+  },
+  {
+    "case": "Yick Wo v. Hopkins",
+    "year": 1886,
+    "status": "ok_external",
+    "lucene": "EXTERNAL:loc_usrep118356",
+    "pdf_url": "https://tile.loc.gov/storage-services/service/ll/usrep/usrep118/usrep118356/usrep118356.pdf",
+    "external_source": "loc_usrep118356",
+    "saved_as": "research/ia_scotus_pdfs/yick_wo_v_hopkins_1886.pdf",
+    "bytes": 751007,
+    "note": "U.S. Reports vol. 118 from Library of Congress; not indexed under party names in Internet Archive us-supreme-court collection."
+  },
+  {
+    "case": "Plessy v. Ferguson",
+    "year": 1896,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/plessy_v_ferguson_1896.pdf",
+    "bytes": 85001691
+  },
+  {
+    "case": "Williams v. Mississippi",
+    "year": 1898,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/williams_v_mississippi_1898.pdf",
+    "bytes": 20163276
+  },
+  {
+    "case": "Bailey v. Alabama",
+    "year": 1911,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/bailey_v_alabama_1911.pdf",
+    "bytes": 19101258
+  },
+  {
+    "case": "United States v. Reynolds",
+    "year": 1914,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/united_states_v_reynolds_1914.pdf",
+    "bytes": 17572821
+  },
+  {
+    "case": "Ozawa v. United States",
+    "year": 1922,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/ozawa_v_united_states_1922.pdf",
+    "bytes": 49364993
+  },
+  {
+    "case": "Moore v. Dempsey",
+    "year": 1923,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/moore_v_dempsey_1923.pdf",
+    "bytes": 37983221
+  },
+  {
+    "case": "United States v. Bhagat Singh Thind",
+    "year": 1923,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/united_states_v_bhagat_singh_thind_1923.pdf",
+    "bytes": 13647786
+  },
+  {
+    "case": "Nixon v. Herndon",
+    "year": 1927,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/nixon_v_herndon_1927.pdf",
+    "bytes": 374164
+  },
+  {
+    "case": "Buck v. Bell",
+    "year": 1927,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/buck_v_bell_1927.pdf",
+    "bytes": 23295826
+  },
+  {
+    "case": "Nixon v. Condon",
+    "year": 1932,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/nixon_v_condon_1932.pdf",
+    "bytes": 58940546
+  },
+  {
+    "case": "Grovey v. Townsend",
+    "year": 1935,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/grovey_v_townsend_1935.pdf",
+    "bytes": 29171152
+  },
+  {
+    "case": "NLRB v. Jones & Laughlin Steel",
+    "year": 1937,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/nlrb_v_jones_laughlin_steel_1937.pdf",
+    "bytes": 261821470
+  },
+  {
+    "case": "Skinner v. Oklahoma",
+    "year": 1942,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/skinner_v_oklahoma_1942.pdf",
+    "bytes": 32856814
+  },
+  {
+    "case": "Korematsu v. United States",
+    "year": 1944,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/korematsu_v_united_states_1944.pdf",
+    "bytes": 8871984
+  },
+  {
+    "case": "Smith v. Allwright",
+    "year": 1944,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/smith_v_allwright_1944.pdf",
+    "bytes": 74033870
+  },
+  {
+    "case": "Shelley v. Kraemer",
+    "year": 1948,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/shelley_v_kraemer_1948.pdf",
+    "bytes": 92098728
+  },
+  {
+    "case": "Sweatt v. Painter",
+    "year": 1950,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/sweatt_v_painter_1950.pdf",
+    "bytes": 307963599
+  },
+  {
+    "case": "McLaurin v. Oklahoma State Regents",
+    "year": 1950,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/mclaurin_v_oklahoma_state_regents_1950.pdf",
+    "bytes": 67215505
+  },
+  {
+    "case": "Brown v. Board of Education",
+    "year": 1954,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/brown_v_board_of_education_1954.pdf",
+    "bytes": 463684523
+  },
+  {
+    "case": "Cooper v. Aaron",
+    "year": 1958,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/cooper_v_aaron_1958.pdf",
+    "bytes": 2765885
+  },
+  {
+    "case": "South Carolina v. Katzenbach",
+    "year": 1966,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/south_carolina_v_katzenbach_1966.pdf",
+    "bytes": 116944804
+  },
+  {
+    "case": "Harper v. Virginia State Board of Elections",
+    "year": 1966,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/harper_v_virginia_state_board_of_elections_1966.pdf",
+    "bytes": 45427638
+  },
+  {
+    "case": "Green v. County School Board",
+    "year": 1968,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/green_v_county_school_board_1968.pdf",
+    "bytes": 69468122
+  },
+  {
+    "case": "Jones v. Alfred H. Mayer Co.",
+    "year": 1968,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/jones_v_alfred_h_mayer_co_1968.pdf",
+    "bytes": 217991387
+  },
+  {
+    "case": "Terry v. Ohio",
+    "year": 1968,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/terry_v_ohio_1968.pdf",
+    "bytes": 81244391
+  },
+  {
+    "case": "Swann v. Charlotte-Mecklenburg",
+    "year": 1971,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/swann_v_charlotte_mecklenburg_1971.pdf",
+    "bytes": 441203821
+  },
+  {
+    "case": "San Antonio ISD v. Rodriguez",
+    "year": 1973,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/san_antonio_isd_v_rodriguez_1973.pdf",
+    "bytes": 4169314
+  },
+  {
+    "case": "Milliken v. Bradley",
+    "year": 1974,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/milliken_v_bradley_1974.pdf",
+    "bytes": 574235898
+  },
+  {
+    "case": "Buckley v. Valeo",
+    "year": 1976,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/buckley_v_valeo_1976.pdf",
+    "bytes": 381808613
+  },
+  {
+    "case": "Regents of University of California v. Bakke",
+    "year": 1978,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/regents_of_university_of_california_v_bakke_1978.pdf",
+    "bytes": 469627866
+  },
+  {
+    "case": "Batson v. Kentucky",
+    "year": 1986,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/batson_v_kentucky_1986.pdf",
+    "bytes": 60439401
+  },
+  {
+    "case": "McCleskey v. Kemp",
+    "year": 1987,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/mccleskey_v_kemp_1987.pdf",
+    "bytes": 185879526
+  },
+  {
+    "case": "Harmelin v. Michigan",
+    "year": 1991,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/harmelin_v_michigan_1991.pdf",
+    "bytes": 82438864
+  },
+  {
+    "case": "United States v. Armstrong",
+    "year": 1996,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/united_states_v_armstrong_1996.pdf",
+    "bytes": 141189752
+  },
+  {
+    "case": "Purkett v. Elem",
+    "year": 1995,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/purkett_v_elem_1995.pdf",
+    "bytes": 18057190
+  },
+  {
+    "case": "Atwater v. City of Lago Vista",
+    "year": 2001,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/atwater_v_city_of_lago_vista_2001.pdf",
+    "bytes": 118947149
+  },
+  {
+    "case": "Hudson v. Michigan",
+    "year": 2006,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/hudson_v_michigan_2006.pdf",
+    "bytes": 60270070
+  },
+  {
+    "case": "Parents Involved v. Seattle",
+    "year": 2007,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/parents_involved_v_seattle_2007.pdf",
+    "bytes": 563145098
+  },
+  {
+    "case": "Crawford v. Marion County Election Board",
+    "year": 2008,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/crawford_v_marion_county_election_board_2008.pdf",
+    "bytes": 417802503
+  },
+  {
+    "case": "District of Columbia v. Heller",
+    "year": 2008,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/district_of_columbia_v_heller_2008.pdf",
+    "bytes": 805863221
+  },
+  {
+    "case": "Citizens United v. FEC",
+    "year": 2010,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/citizens_united_v_fec_2010.pdf",
+    "bytes": 420294148
+  },
+  {
+    "case": "McDonald v. City of Chicago",
+    "year": 2010,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/mcdonald_v_city_of_chicago_2010.pdf",
+    "bytes": 498954240
+  },
+  {
+    "case": "NFIB v. Sebelius",
+    "year": 2012,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/nfib_v_sebelius_2012.pdf",
+    "bytes": 156912127
+  },
+  {
+    "case": "Shelby County v. Holder",
+    "year": 2013,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/shelby_county_v_holder_2013.pdf",
+    "bytes": 718033636
+  },
+  {
+    "case": "McCutcheon v. FEC",
+    "year": 2014,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/mccutcheon_v_fec_2014.pdf",
+    "bytes": 248388445
+  },
+  {
+    "case": "Grutter v. Bollinger",
+    "year": 2003,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/grutter_v_bollinger_2003.pdf",
+    "bytes": 769650521
+  },
+  {
+    "case": "Caetano v. Massachusetts",
+    "year": 2016,
+    "status": "skipped_exists",
+    "saved_as": "research/ia_scotus_pdfs/caetano_v_massachusetts_2016.pdf",
+    "bytes": 20384180
+  },
+  {
+    "case": "Fisher v. University of Texas",
+    "year": 2016,
+    "status": "ok",
+    "lucene": "title:Fisher AND title:University",
+    "identifier": "micro_IA40385015_0743",
+    "picked_title": "Fisher v. University of Texas at Austin, 570 U.S. 297 (2013) (No. 11-345)",
+    "pdf_url": "https://archive.org/download/micro_IA40385015_0743/micro_IA40385015_0743.pdf",
+    "saved_as": "research/ia_scotus_pdfs/fisher_v_university_of_texas_2016.pdf",
+    "bytes": 975227229
+  },
+  {
+    "case": "Foster v. Chatman",
+    "year": 2016,
+    "status": "ok_external",
+    "lucene": "EXTERNAL:ia_14-8349_slip",
+    "pdf_url": "https://archive.org/download/14-8349-6k-47/14-8349_6k47.pdf",
+    "external_source": "ia_14-8349_slip",
+    "identifier": "14-8349-6k-47",
+    "picked_title": "Supreme Court slip opinion, No. 14-8349 (Foster v. Chatman)",
+    "saved_as": "research/ia_scotus_pdfs/foster_v_chatman_2016.pdf",
+    "bytes": 250127,
+    "note": "Official slip PDF on Internet Archive; full microfilm bundle was not retrievable via party-name Solr query."
+  },
+  {
+    "case": "Utah v. Strieff",
+    "year": 2016,
+    "status": "ok",
+    "lucene": "title:Utah AND title:Strieff",
+    "identifier": "micro_IA40385016_0552",
+    "picked_title": "Utah v. Strieff, 136 S. Ct. 2056 (2016) (No. 14-1373)",
+    "pdf_url": "https://archive.org/download/micro_IA40385016_0552/micro_IA40385016_0552.pdf",
+    "saved_as": "research/ia_scotus_pdfs/utah_v_strieff_2016.pdf",
+    "bytes": 114647841
+  },
+  {
+    "case": "Abbott v. Perez",
+    "year": 2018,
+    "status": "ok",
+    "lucene": "title:Abbott AND title:Perez",
+    "identifier": "micro_IA40385016_0792",
+    "picked_title": "Abbott v. Perez, 138 S. Ct. 735 (2018) (No. 17-586)",
+    "pdf_url": "https://archive.org/download/micro_IA40385016_0792/micro_IA40385016_0792.pdf",
+    "saved_as": "research/ia_scotus_pdfs/abbott_v_perez_2018.pdf",
+    "bytes": 274228300
+  }
+]

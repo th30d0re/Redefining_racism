@@ -1,0 +1,10 @@
+# eq33_cannabis_redlining.csv — Compounding capacity-reduction factors for eq:33
+# Sources: Baptist (2014) The Half Has Never Been Told; Blackmon (2008) Slavery by Another Name;
+#          Mapping Inequality / U of Richmond HOLC data; ACLU (2020) A Tale of Two Countries;
+#          Darity & Mullen (2020) From Here to Equality; Census Bureau dissimilarity index series
+# DOIs: Baptist 10.1465/atotf; Blackmon ISBN 978-0-385-50625-8; ACLU https://www.aclu.org/report/tale-two-countries
+year_start,year_end,policy_label,policy_variable,factor_name,capacity_factor,cumulative_capacity,source,notes
+1619,1865,Enslavement + Chattel System,alpha,1 - alpha*P_enslavement,0.09,0.09,Baptist (2014); Darity & Mullen (2020),Fraction of initial generational wealth NOT stripped; ~91% extraction rate based on Darity & Mullen reparations baseline of $14T cumulative
+1865,1934,13th Amendment Exception + Convict Leasing,beta,1 - beta*P_13thAmendment,0.61,0.055,Blackmon (2008); BJS historical,Convict leasing mortality ~40% over 10-yr sentence; re-incarceration rate 3x White through 1920s; net capacity retention ~61%
+1934,1968,HOLC Redlining + FHA Exclusion,gamma,1 - gamma*P_redlining,0.48,0.026,Mapping Inequality; Rothstein (2017),Black homeownership rate 1940: 23%; White 1940: 46%; gap widened to 28% vs 65% by 1968 under HOLC; capacity retention ~48%
+1971,2020,War on Drugs + Cannabis Enforcement,delta,1 - delta*P_WarOnDrugs,0.73,0.019,ACLU (2020) A Tale of Two Countries,Black arrest rate 3.73x White for cannabis despite equal usage rates; net capacity retention ~73% (asymmetric enforcement not total prohibition)

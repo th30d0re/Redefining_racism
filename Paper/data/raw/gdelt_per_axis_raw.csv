@@ -1,0 +1,16 @@
+# raw: GDELT GKG per-axis monthly theme article counts, 1979-01 to 2024-12
+# source: GDELT Global Knowledge Graph v2, BigQuery public dataset (gdelt-bq.gdeltv2.gkg)
+# retrieval_method: BigQuery console or python3 Paper/scripts/gdelt_per_axis_query.py
+# retrieval_date: PENDING — run gdelt_per_axis_query.py to populate this file
+# theme_taxonomy:
+#   race_count:     themes matching: discrimination|civil_rights|race_relations|protest|racial|ethnicity
+#   gender_count:   themes matching: women|gender_discrimination|feminism|sexual_harassment
+#   religion_count: themes matching: religion|religious_rights|evangelical|prayer
+#   sexuality_count:themes matching: lgbtq|gay_rights|transgender|homosexual
+#   total_count:    all articles in the filtered dataset (U.S. source, non-null URL)
+# NOTE: This file is a placeholder. Populate by running:
+#   python3 Paper/scripts/gdelt_per_axis_query.py --method bigquery
+#   (requires google-cloud-bigquery and BigQuery project access)
+# Alternatively, run the SQL printed by --method console in the BigQuery web UI
+# and export the result here.
+year_month,race_count,gender_count,religion_count,sexuality_count,total_count

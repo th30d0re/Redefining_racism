@@ -1,0 +1,54 @@
+# eq65_68_2a_case_law.csv — U.S. 2A legislation, ATF rules & SCOTUS rulings time-series (1911–2024)
+# Equations: eq:65 (L_E >> L_O extraction precondition), eq:66 (agenda path x_0→x_m),
+#            eq:67 (restriction accumulation R_t), eq:68 (target expansion O_racialized→O_racialized∪I_buffer)
+#
+# Sources:
+#   Legislation / ATF rules:
+#   - Sullivan Law (1911): N.Y. Laws ch. 195 [cite: sullivanlaw] — STATE legislation
+#   - National Firearms Act (1934): 26 U.S.C. ch. 53 [cite: nfa1934] — FEDERAL legislation
+#   - Mulford Act (1967): California AB 1591 [cite: mulford1967] — STATE legislation
+#   - Gun Control Act (1968): Pub. L. 90-618 [cite: gca1968] — FEDERAL legislation
+#   - Hughes Amendment (1986): FOPA, Pub. L. 99-308 [cite: hughes1986] — FEDERAL legislation
+#   - Brady Act (1993): Pub. L. 103-159 [cite: brady1993] — FEDERAL legislation
+#   - Federal AWB (1994): Pub. L. 103-322 [cite: awb1994] — FEDERAL legislation (sunset 2004)
+#   - AWB Lapse (2004): sunset clause expired — FEDERAL restriction removed
+#   - Bump Stock Ban (2018): 83 Fed. Reg. 66514, ATF reclassified as machinegun — ATF ADMIN RULE
+#   - Ghost Gun / Frame-Receiver Rule (2022): ATF Final Rule 2021R-05F — ATF ADMIN RULE
+#   - Pistol Brace Rule (2023): ATF Final Rule 2021R-08F — ATF ADMIN RULE (later vacated)
+#   SCOTUS rulings:
+#   - DC v. Heller (2008): 554 U.S. 570 [cite: heller] — individual right; DC handgun ban STRUCK DOWN
+#   - McDonald v. Chicago (2010): 561 U.S. 742 [cite: mcdonald] — 2A incorporated vs. states
+#   - NYSRPA v. Bruen (2022): 597 U.S. 1 [cite: bruen] — proper-cause STRUCK DOWN; historical-tradition
+#     test established; Thomas majority explicitly called out Sullivan Law's racial targeting
+#   - Garland v. Cargill (2024): 602 U.S. ___ — bump stock ban STRUCK DOWN 6-3; ATF exceeded authority
+#   - United States v. Rahimi (2024): 602 U.S. ___ [cite: rahimi2024] — DV restraining order ban
+#     UPHELD 8-1; narrow; does NOT overturn Bruen; Thomas sole dissenter; multiple law reviews
+#     characterize as "reinforcing" Bruen, not limiting it (Harv. JLPP 2024; Va. L. Rev. 2024)
+#   - Winkler (2011) Gunfight [cite: winkler2011]; Cottrol & Diamond (1991) [cite: cottrol_diamond1991]
+#
+# COLUMN NOTES:
+#   event_class: legislation | atf_admin_rule | scotus_ruling
+#   jurisdiction: federal | state | scotus
+#   ruling_direction: adds_restriction | removes_restriction | expands_rights | upholds_restriction
+#   net_restriction_delta: +1 adds restriction (or upholds); -1 removes/expands rights
+#   federal_legislation_cumulative: running count of active FEDERAL ACTS OF CONGRESS only
+#   net_restriction_cumulative: true net across all event types
+#   target_expansion_flag: 1 if scope expanded beyond original target population
+#   notes: legal status / key context
+year,event,event_class,jurisdiction,ruling_direction,initial_target,scope_at_passage,scope_current_or_status,net_restriction_delta,federal_legislation_cumulative,net_restriction_cumulative,target_expansion_flag,notes
+1911,Sullivan_Law,legislation,state,adds_restriction,O_racialized,Italian and Jewish immigrants in NYC,All New York residents requiring pistol license,1,0,1,1,Still in effect; sponsor Timothy Sullivan explicitly cited Italian/Jewish immigrant targets
+1934,NFA,legislation,federal,adds_restriction,O_racialized,Black and immigrant urban communities,All U.S. persons for NFA items; extensive regulatory apparatus,1,1,2,1,Still in effect; 200 tax stamp effectively priced out racialized populations
+1967,Mulford_Act,legislation,state,adds_restriction,O_racialized,Black Panther Party open-carry patrols,All California residents; banned loaded open carry in incorporated areas,1,1,3,0,Still in effect; signed after Reagan called armed Panthers 'alarming'
+1968,GCA,legislation,federal,adds_restriction,O_racialized+I_buffer,Urban Black communities and post-assassination context,All U.S. persons; dealer licensing; prohibited persons list,1,2,4,1,Still in effect
+1986,Hughes_Amendment,legislation,federal,adds_restriction,I_buffer,Machine gun registry freeze; voice vote contested,All U.S. civilians permanently banned from post-1986 machine gun ownership,1,3,5,1,Still in effect; economic partition: pre-1986 transferable MGs now $10k–$50k+
+1993,Brady_Act,legislation,federal,adds_restriction,I_buffer,General public safety framing; background check mandate,All FFL purchasers nationwide; NICS database established,1,4,6,1,Still in effect
+1994,AWB,legislation,federal,adds_restriction,I_buffer,Semi-automatic appearance restrictions,All U.S. civilians; assault weapon and magazine capacity limits,1,5,7,1,Sunset clause: lapsed September 2004
+2004,AWB_Lapse,legislation,federal,removes_restriction,I_buffer,AWB sunset provision expired,Federal assault weapon ban no longer in effect,-1,4,6,0,No congressional action to renew; net federal legislation count drops to 4
+2008,Heller,scotus_ruling,scotus,expands_rights,I_buffer,Individual right recognized; DC handgun ban STRUCK DOWN,D.C. and federal handgun bans void; core regulations explicitly upheld (felons; school zones),-1,4,5,0,Thomas in majority; NFA/GCA/Hughes/Brady untouched
+2010,McDonald,scotus_ruling,scotus,expands_rights,I_buffer,2A incorporated against states; Chicago handgun ban STRUCK DOWN,All state/local handgun bans presumptively invalid; Heller regulations remain valid,-1,4,4,0,NFA/GCA/Hughes/Brady untouched
+2018,Bump_Stock_Ban,atf_admin_rule,federal,adds_restriction,I_buffer,ATF reclassified bump stocks as machine guns under NFA § 5845(b),All bump stock owners required to destroy or surrender devices; possession = federal felony,1,4,5,1,~500k devices affected overnight; later struck down by Cargill (2024)
+2022,Bruen,scotus_ruling,scotus,expands_rights,I_buffer,NY proper-cause licensing STRUCK DOWN; historical-tradition test established,All states must justify regulations via historical analogue; carry permits broadened,-1,4,4,0,Thomas majority explicitly called out Sullivan Law's racial targeting as example of laws Bruen guards against
+2022,Ghost_Gun_Rule,atf_admin_rule,federal,adds_restriction,I_buffer,ATF expanded 'firearm' definition to include unfinished frames/receivers and parts kits,80% lowers and buy-build-shoot kits now regulated as NFA items; parts sellers required to serialize,1,4,5,1,Millions of parts overnight reclassified; VanDerStok (2024) upheld the rule 7-2
+2023,Pistol_Brace_Rule,atf_admin_rule,federal,adds_restriction,I_buffer,ATF reclassified braced pistols as SBRs under NFA — registration or surrender required,~10–40 million braced pistols instantly subject to NFA; possession without registration = federal felony,1,4,6,1,Vacated by federal courts; DOJ dropped appeal July 2025; included here as point-in-time restriction
+2024,Cargill,scotus_ruling,scotus,expands_rights,I_buffer,Bump stock ban STRUCK DOWN 6-3; ATF exceeded statutory authority — bump stock ≠ machinegun,Bump stocks legal again at federal level; ATF cannot expand machinegun definition via rulemaking,-1,4,5,0,Decided June 14 2024; Bruen historical-tradition framework not invoked — statutory interpretation case
+2024,Rahimi,scotus_ruling,scotus,upholds_restriction,I_buffer,DV restraining order gun ban upheld 8-1; narrow holding on adjudicated dangerous persons,Persons subject to DV civil protective orders may be temporarily disarmed; Bruen test intact,1,4,6,1,Thomas sole dissenter; Roberts majority explicitly reaffirms Bruen; Harvard JLPP: 'Much Ado About Nothing'; narrow — applies only where court has adjudicated credible threat

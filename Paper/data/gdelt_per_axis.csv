@@ -1,0 +1,10 @@
+# processed: monthly GDELT GKG per-axis theme shares (fraction of total coverage)
+# source_raw: Paper/data/raw/gdelt_per_axis_raw.csv
+# source_upstream: GDELT Global Knowledge Graph v2, BigQuery public dataset
+# transformations:
+#   1. sort ascending by year_month
+#   2. compute race_share = race_count / total_count (and analogues for each axis)
+#   3. round to 6 decimal places
+#   4. replace zero total_count with NaN to avoid division artifacts
+# preprocessed_by: Paper/scripts/preprocess_spectral_data.py
+year_month,race_share,gender_share,religion_share,sexuality_share,total_count

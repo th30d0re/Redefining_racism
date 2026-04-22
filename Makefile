@@ -10,3 +10,99 @@ usc-diffs:
 	bash tools/usc_diff.sh
 
 usc-all: usc-snippets usc-diffs
+
+# ---------------------------------------------------------------------------
+# LaTeX / BibLaTeX build targets
+# ---------------------------------------------------------------------------
+
+.PHONY: pdf empirical data-refresh companion index readme all clean
+
+pdf: empirical
+	cd Paper && latexmk -pdf -interaction=nonstopmode Redefining_Racism.tex
+
+VENV          := .venv
+VENV_PYTHON   := $(VENV)/bin/python3
+VENV_PIP      := $(VENV)/bin/pip
+VENV_JUPYTER  := $(VENV)/bin/jupyter
+# Override with e.g. `make venv SYSTEM_PYTHON=python3.12` if needed
+SYSTEM_PYTHON ?= python3
+
+# ---------------------------------------------------------------------------
+# Virtual-environment bootstrap
+# ---------------------------------------------------------------------------
+
+.PHONY: venv
+
+venv:
+	@if [ ! -x "$(VENV_PYTHON)" ]; then \
+	  echo "Creating virtual environment at $(VENV)/..."; \
+	  $(SYSTEM_PYTHON) -m venv $(VENV); \
+	  $(VENV_PIP) install --upgrade pip -q; \
+	  $(VENV_PIP) install -r Paper/scripts/requirements.txt nbconvert ipykernel -q; \
+	  $(VENV_PYTHON) -m ipykernel install --user --name redefining-racism --display-name "Redefining Racism (arm64)"; \
+	  echo "✓ venv ready. Activate with: source $(VENV)/bin/activate"; \
+	else \
+	  echo "✓ venv already exists at $(VENV)/"; \
+	fi
+
+empirical: venv
+	@mkdir -p Paper/figures/spectral
+	@# (1) SCOTUS corpus — must run first; exports scotus_spectral_results.json
+	@# consumed by eq40_45_interference_engine.ipynb in step (3).
+	@if ls Paper/scripts/scotus_*.ipynb 1>/dev/null 2>&1; then \
+	  $(VENV_JUPYTER) nbconvert --to notebook --execute --inplace Paper/scripts/scotus_*.ipynb; \
+	else \
+	  echo "No scotus_*.ipynb notebooks found in Paper/scripts/ — skipping."; \
+	fi
+	@# (2) Spectral helper notebooks (Fourier / Laplace foundations)
+	@if ls Paper/scripts/spectral_*.ipynb 1>/dev/null 2>&1; then \
+	  $(VENV_JUPYTER) nbconvert --to notebook --execute --inplace Paper/scripts/spectral_*.ipynb; \
+	else \
+	  echo "No spectral_*.ipynb notebooks found in Paper/scripts/ — skipping."; \
+	fi
+	@# (3) Equation-level notebooks — consume outputs from steps (1) and (2)
+	@if ls Paper/scripts/eq*.ipynb 1>/dev/null 2>&1; then \
+	  $(VENV_JUPYTER) nbconvert --to notebook --execute --inplace Paper/scripts/eq*.ipynb; \
+	else \
+	  echo "No eq*.ipynb notebooks found in Paper/scripts/ — skipping."; \
+	fi
+
+# Regenerate processed spectral datasets from the archived raw exports under
+# Paper/data/raw/. Intentional curatorial step — run only when raw files
+# change. `make empirical` is a pure consumer of the processed files and
+# never invokes this target.
+data-refresh: venv
+	@if [ -f Paper/scripts/preprocess_spectral_data.py ]; then \
+	  $(VENV_PYTHON) Paper/scripts/preprocess_spectral_data.py; \
+	else \
+	  echo "data-refresh: Paper/scripts/preprocess_spectral_data.py not found — skipping."; \
+	fi
+
+companion:
+	@if [ -f Paper/Empirical_Validation_Companion.tex ]; then \
+	  cd Paper && latexmk -pdf -interaction=nonstopmode Empirical_Validation_Companion.tex; \
+	else \
+	  echo "companion: Paper/Empirical_Validation_Companion.tex not yet created — skipping (implement in T10)."; \
+	fi
+
+index:
+	@if [ -f Paper/scripts/generate_index.py ]; then \
+	  python3 Paper/scripts/generate_index.py; \
+	else \
+	  echo "index: Paper/scripts/generate_index.py not yet created — skipping."; \
+	fi
+
+readme:
+	@if [ -f Paper/scripts/generate_readme.py ]; then \
+	  python3 Paper/scripts/generate_readme.py; \
+	else \
+	  echo "readme: Paper/scripts/generate_readme.py not yet created — skipping."; \
+	fi
+
+all: empirical pdf companion
+
+clean:
+	cd Paper && rm -f \
+	  *.aux *.fdb_latexmk *.fls *.log *.out *.synctex.gz *.toc \
+	  *.bbl *.blg *.bcf *.run.xml
+	rm -f Paper/figures/spectral/*.pdf

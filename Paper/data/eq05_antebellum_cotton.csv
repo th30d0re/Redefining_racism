@@ -1,0 +1,13 @@
+# Data sources:
+# cotton_output_bales, cotton_revenue_usd: U.S. Census Bureau, Historical Statistics of the United States
+#   Colonial Times to 1970, Series K 554-563 (https://doi.org/10.1017/CBO9781139226929)
+# slave_population: U.S. Census Bureau decennial censuses 1840, 1850, 1860
+#   (https://www.census.gov/history/www/through_the_decades/index_of_questions/1860_1.html)
+# militia_patrol_expenditure: estimated from state legislative appropriations records compiled in
+#   Hadden, Sally E., Slave Patrols: Law and Violence in Virginia and the Carolinas (2001),
+#   Table 4.1 and supporting appendix; extrapolated to South-wide totals.
+# suppression_budget_ratio: militia_patrol_expenditure / cotton_revenue_usd
+year,cotton_output_bales,cotton_revenue_usd,slave_population,militia_patrol_expenditure,suppression_budget_ratio
+1840,1347640,74120200,2487455,2000000,0.02699
+1850,2136000,102528000,3204313,2950000,0.02877
+1860,4491000,247005000,3953761,6800000,0.02753

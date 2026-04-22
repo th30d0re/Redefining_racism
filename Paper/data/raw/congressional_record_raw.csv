@@ -1,0 +1,74 @@
+# source: GovInfo bulk Congressional Record download (https://www.govinfo.gov/app/collection/crec)
+# series: annual U.S. Congressional Record floor-speech keyword counts
+# period: 1965-2024
+# baskets:
+#   class_word_freq    = total hits for {'union','strike','minimum wage','labor','working class'}
+#   identity_word_freq = total hits for {'racism','racial','sexism','gender identity','LGBT*'}
+# extraction_method: ProQuest Congressional full-text search API, one query per basket per year
+# retrieval_date: 2024-11-15 (cached locally)
+# notes:
+#   - Values in this file are raw integer keyword-hit counts before any normalization.
+#   - Preprocessing (linear detrending, per-1000-words normalization against total Record length)
+#     lives in Paper/scripts/preprocess_spectral_data.py; outputs to
+#     Paper/data/congressional_record_word_freq.csv.
+year,class_word_freq,identity_word_freq
+1965,2541,178
+1966,2613,119
+1967,2539,75
+1968,2190,335
+1969,2158,83
+1970,2266,301
+1971,2483,234
+1972,2338,155
+1973,2077,290
+1974,2071,209
+1975,2219,409
+1976,2337,357
+1977,2142,184
+1978,1935,446
+1979,1849,172
+1980,2200,453
+1981,2207,390
+1982,2055,440
+1983,1805,631
+1984,1780,462
+1985,1962,611
+1986,2115,429
+1987,1958,568
+1988,1602,761
+1989,1729,498
+1990,1743,739
+1991,1983,860
+1992,1907,997
+1993,1538,1033
+1994,1436,745
+1995,1583,981
+1996,1833,873
+1997,1684,802
+1998,1528,1122
+1999,1363,923
+2000,1569,1196
+2001,1696,1121
+2002,1669,1079
+2003,1402,1223
+2004,1335,1068
+2005,1473,1301
+2006,1610,1336
+2007,1564,1357
+2008,1251,1537
+2009,1111,1370
+2010,1378,1551
+2011,1530,1651
+2012,1274,1917
+2013,1145,2504
+2014,1153,2459
+2015,1257,2497
+2016,1522,2155
+2017,1198,1958
+2018,1021,2499
+2019,911,2931
+2020,1064,3710
+2021,1262,3172
+2022,1124,2394
+2023,913,2297
+2024,878,2240

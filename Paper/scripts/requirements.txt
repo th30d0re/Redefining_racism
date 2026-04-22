@@ -1,0 +1,9 @@
+numpy
+scipy
+pandas
+matplotlib
+jupyter
+nbconvert
+pyyaml
+pdfplumber
+google-cloud-bigquery

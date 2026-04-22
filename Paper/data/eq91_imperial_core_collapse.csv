@@ -1,0 +1,45 @@
+# eq91_imperial_core_collapse.csv — Sovereign capacity trajectories for rising powers (1960–2024)
+# Equation: eq:91 — Imperial Core Collapse liberation condition:
+#   Either F_enforce^global → 0 OR O_bloc^capacity(t) > τ_sovereign ∀ t
+# Sources:
+#   - World Bank Development Indicators [cite: world_bank_wdi]
+#   - SIPRI Military Expenditure Database [cite: sipri_milex]
+#   - IMF historical lending and conditionality data
+#   - Naughton (2007) The Chinese Economy [cite: naughton2007]
+#   - Yergin (2011) The Quest [cite: yergin2011]
+#   - Amsden (1989) Asia's Next Giant [cite: amsden1989]
+#   - Acemoglu & Robinson (2012) Why Nations Fail [cite: acemoglu_robinson]
+# Notes:
+#   - sovereign_capacity_composite is a simple average of normalized scores for
+#     food_self_sufficiency, energy_independence, military_spending (as % GDP proxy), currency_sovereignty
+#   - τ_sovereign threshold = 0.60 (below this, containment tools can degrade capacity below viability)
+#   - containment_response documents the core's response mechanism
+#   - f_enforce_global_status: "dominant", "contested", or "declining"
+case,year,gdp_usd_billions,food_self_sufficiency_pct,energy_independence_pct,military_spending_usd_billions,currency_sovereignty_index,sovereign_capacity_composite,containment_response,f_enforce_global_status
+China,1978,149.5,95.0,98.0,1.4,0.10,0.26,No significant response; economy too small to threaten core,dominant
+China,1990,360.9,94.0,96.0,6.7,0.10,0.33,Technology export controls; Tiananmen sanctions (1989–1993); Most Favored Nation conditionality debates,dominant
+China,2001,1339.4,93.0,70.0,39.0,0.20,0.47,WTO accession as integration strategy; technology transfer restrictions (ITAR); Taiwan Strait deterrence,dominant
+China,2008,4594.3,91.0,52.0,84.9,0.30,0.55,Currency manipulation designations; South China Sea freedom of navigation; export control expansion,dominant
+China,2015,11061.6,89.0,40.0,214.5,0.45,0.60,TPP exclusion; AIIB opposition; chip export controls announced; Pivot to Asia (2011–2016),contested
+China,2020,14722.8,87.0,30.0,252.3,0.55,0.64,Huawei ban; BIS entity list expansions; CHIPS Act (2022) preparation; QUAD formation,contested
+China,2024,17794.8,85.0,25.0,296.4,0.65,0.68,Comprehensive chip embargo; TSMC access restrictions; Taiwan military posturing; decoupling acceleration,contested
+OPEC,1970,62.0,70.0,100.0,1.8,0.15,0.38,Petrodollar recycling negotiations; strategic reserve discussions; multinational oil company pressure,dominant
+OPEC,1973,110.0,68.0,100.0,4.2,0.15,0.49,Oil embargo 1973–1974: 400% price spike; U.S. strategic petroleum reserve created; military threats (Kissinger 1975),dominant
+OPEC,1975,130.0,69.0,100.0,4.8,0.15,0.46,Petrodollar recycling completed: embargo surplus recycled through U.S. banks into Third World debt traps; OPEC capacity neutralized,dominant
+OPEC,1980,580.0,65.0,100.0,12.0,0.12,0.48,Strategic petroleum reserve deployments; North Sea and Alaskan production ramped; Reagan era supply diversification,dominant
+OPEC,1990,430.0,63.0,100.0,9.8,0.12,0.44,Gulf War (1990–91): U.S. military presence in Saudi Arabia; pricing discipline enforced through security umbrella dependency,dominant
+OPEC,2005,900.0,60.0,100.0,15.0,0.12,0.45,U.S. shale revolution begins; Iraq occupation; Saudi modernization bargain; dollar denomination enforced,dominant
+OPEC,2022,1600.0,58.0,100.0,48.0,0.10,0.48,Shale as swing producer; SPR drawdown; G7 price cap on Russian oil; OPEC capacity remains below τ_sovereign due to food/currency dependency,contested
+South_Korea,1965,3.0,78.0,5.0,0.06,0.05,0.16,Park Chung-hee authoritarian development; U.S. military presence; Japanese normalization treaty; export-led growth under core market dependency,dominant
+South_Korea,1980,63.9,72.0,4.0,3.4,0.10,0.22,Chun Doo-hwan coup; U.S. acquiescence; IMF austerity conditions; technology transfer via chaebol-MNC partnerships,dominant
+South_Korea,1997,557.0,55.0,3.0,15.0,0.20,0.30,Asian financial crisis: IMF bailout ($57B) with structural adjustment conditionality; capital account liberalization forced; chaebols restructured,dominant
+South_Korea,2010,1094.5,50.0,3.0,27.6,0.35,0.38,KORUS FTA; THAAD deployment negotiations; semiconductor supply chain integration with U.S. firms,dominant
+South_Korea,2024,1712.8,48.0,3.0,50.2,0.45,0.44,CHIPS Act fab incentives (Samsung Texas); allied coordination on China exposure; semiconductor sector structurally core-dependent,contested
+Taiwan,1970,5.8,82.0,2.0,0.13,0.10,0.24,U.S. defense guarantees; diplomatic isolation (UN expulsion 1971); technology transfer via U.S. firms,dominant
+Taiwan,1987,107.3,70.0,2.0,3.2,0.30,0.34,democratization; TSMC founding (1987); core-dependent semiconductor specialization strategy begins,dominant
+Taiwan,2001,290.6,55.0,2.0,8.3,0.50,0.45,China WTO entry reshapes supply chain; TSMC becomes critical node; military dependency on U.S. arms sales,dominant
+Taiwan,2024,756.4,35.0,2.0,19.2,0.65,0.52,TSMC leverage creates partial insulation; but food/energy/military dependency keeps capacity below τ_sovereign; U.S. CHIPS Act draws fab to Arizona,contested
+Singapore,1965,0.9,20.0,1.0,0.02,0.40,0.22,City-state; near-total food and energy import dependency; sovereign wealth fund (GIC/Temasek) provides currency buffer,dominant
+Singapore,1990,36.7,12.0,1.0,1.4,0.70,0.33,Financial center strategy; core-aligned; deliberate non-threatening posture; U.S. base access (Sembawang),dominant
+Singapore,2010,236.4,8.0,1.0,9.6,0.85,0.42,Highest currency sovereignty proxy among Tigers; but food/energy/military dependency structural; NATO-adjacent security architecture,dominant
+Singapore,2024,466.8,8.0,1.0,13.0,0.90,0.46,MAS monetary independence high; but existential food/energy import dependency keeps composite below τ_sovereign,contested
