@@ -8,8 +8,8 @@ statement: |
   \text{If} \quad \text{Status}(x) = \text{Criminal}(C) \quad \rightarrow \quad \text{Status}(x) \in S \text{ (Slave)}
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - Convict leasing 1865–1940
@@ -19,7 +19,7 @@ data_sources:
   - {name: Alexander (2010) — The New Jim Crow, type: "peer-reviewed", url: ""}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: ~3080
 falsification: "Falsified if 13th Amendment exception clause is shown to have been applied non-racially in incarceration data across the post-Civil War period."
 ---
 

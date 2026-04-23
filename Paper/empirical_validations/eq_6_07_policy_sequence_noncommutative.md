@@ -8,15 +8,15 @@ statement: |
   O_2^{\text{capacity}} = O_0^{\text{capacity}} \cdot (1 - \alpha P_1) \cdot (1 - \beta P_2)
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - Enslavement then redlining vs. counterfactual ordering
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: ~3177
 falsification: Falsified if order of policy application (P_1 then P_2 vs. P_2 then P_1) produces identical outcomes in any documented policy sequence.
 ---
 

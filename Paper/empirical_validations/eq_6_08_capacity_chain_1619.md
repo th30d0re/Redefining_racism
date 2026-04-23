@@ -8,8 +8,8 @@ statement: |
   O_{1619}^{\text{capacity}} = O_{1450}^{\text{capacity}} \cdot (1 - \alpha\, P_{\text{enslavement}})
 type: quantitative
 tier: 2
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - Transatlantic slave trade 1619 — first enslaved Africans in Virginia
@@ -17,7 +17,7 @@ data_sources:
   - {name: "Darity & Mullen (2020) — From Here to Equality (reparations calculations)", type: "peer-reviewed", url: ""}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: ~3193
 falsification: "Falsified if O_1619 capacity is non-significantly different from O_1450 after controlling for pre-existing African economic structures."
 ---
 

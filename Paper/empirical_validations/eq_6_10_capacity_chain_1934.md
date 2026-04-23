@@ -8,8 +8,8 @@ statement: |
   O_{1934}^{\text{capacity}} = O_{1865}^{\text{capacity}} \cdot (1 - \gamma\, P_{\text{redlining}})
 type: quantitative
 tier: 1
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - HOLC redlining 1934–1968
@@ -18,8 +18,8 @@ data_sources:
   - {name: Mapping Inequality — HOLC Redlining Maps, type: "public-dataset", url: "https://dsl.richmond.edu/panorama/redlining/"}
   - {name: Rothstein (2017) — The Color of Law, type: "peer-reviewed", url: ""}
 difficulty: M
-notebook: "nb_ch06_eq10_capacity_chain_1934.ipynb"
-case_study_line: null
+notebook: "eq_hist3_redlining_capacity.ipynb"
+case_study_line: ~3199
 falsification: "Falsified if redlining-exposed tracts show no differential wealth accumulation decline relative to non-redlined areas in HOLC map data."
 ---
 

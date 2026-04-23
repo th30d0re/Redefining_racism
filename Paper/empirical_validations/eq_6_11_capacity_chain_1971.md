@@ -8,8 +8,8 @@ statement: |
   O_{1971}^{\text{capacity}} = O_{1934}^{\text{capacity}} \cdot (1 - \delta\, P_{\text{WarOnDrugs}})
 type: quantitative
 tier: 1
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - War on Drugs 1971–present
@@ -18,8 +18,8 @@ data_sources:
   - {name: ACLU (2020) — Cannabis Arrests Report, type: report, url: "https://www.aclu.org/report/tale-two-countries-racially-targeted-arrests-era-marijuana-reform"}
   - {name: BJS Drug Offense Incarceration Statistics, type: "public-dataset", url: "https://www.bjs.gov/"}
 difficulty: M
-notebook: "nb_ch06_eq11_capacity_chain_1971.ipynb"
-case_study_line: null
+notebook: "eq_hist4_war_on_drugs_capacity.ipynb"
+case_study_line: ~3230
 falsification: Falsified if War on Drugs enforcement shows no differential impact on O_racialized capacity in incarceration and wealth data.
 ---
 

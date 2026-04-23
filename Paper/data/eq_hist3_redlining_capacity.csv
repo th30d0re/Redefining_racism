@@ -1,0 +1,26 @@
+# eq_hist3_redlining_capacity.csv — Homeownership rates and wealth gap, 1940–1970
+# Sources: U.S. Census Bureau decennial census 1940, 1950, 1960, 1970 (homeownership rates)
+#          University of Richmond Mapping Inequality HOLC data (https://dsl.richmond.edu/panorama/redlining/)
+#          Rothstein (2017) The Color of Law — documenting HOLC/FHA exclusion of Black homebuyers
+#          Federal Housing Administration (FHA) Historical Statistics
+#          U.S. Census Bureau — Median home values by race (Current Population Survey)
+# Note: capacity_factor = black_homeownership_rate / white_homeownership_rate (wealth proxy)
+#       holc_grade denotes predominant HOLC grade in Black neighborhoods (C=yellow/declining, D=red/hazardous)
+#       median_home_value in 1940 dollars for 1940 baseline; adjusted for inflation in later years
+year,black_homeownership_rate,white_homeownership_rate,gap,capacity_factor,holc_grade,median_home_value_black,median_home_value_white
+1940,23.0,46.0,23.0,0.50,D,2600,4400
+1942,22.4,46.8,24.4,0.48,D,2550,4600
+1944,21.8,47.4,25.6,0.46,D,2500,4900
+1946,22.1,48.1,26.0,0.46,D,2800,5800
+1948,22.6,49.0,26.4,0.46,D,3200,7400
+1950,24.5,55.0,30.5,0.45,D,4200,12400
+1952,25.1,57.3,32.2,0.44,D,4600,13800
+1954,25.8,59.0,33.2,0.44,D,5100,14900
+1956,26.2,61.0,34.8,0.43,D,5400,15800
+1958,26.6,62.2,35.6,0.43,D,5900,16700
+1960,27.3,64.0,36.7,0.43,C/D,6800,18400
+1962,27.5,64.3,36.8,0.43,C/D,7200,19300
+1964,27.6,64.7,37.1,0.43,C/D,7700,20400
+1966,27.8,65.0,37.2,0.43,C/D,8300,21800
+1968,28.0,65.4,37.4,0.43,C/D,9100,23600
+1970,28.9,65.9,37.0,0.44,C/D,10200,25800

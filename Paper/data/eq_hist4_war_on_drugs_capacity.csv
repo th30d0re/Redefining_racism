@@ -1,0 +1,47 @@
+# eq_hist4_war_on_drugs_capacity.csv — Incarceration and enforcement disparities, War on Drugs 1971–2020
+# Sources: Bureau of Justice Statistics (BJS) — National Prisoner Statistics Program
+#          https://bjs.ojp.gov/data-collection/national-prisoner-statistics-nps-program
+#          ACLU (2020) "A Tale of Two Countries" — cannabis arrest racial disparities
+#          https://www.aclu.org/report/tale-two-countries-racially-targeted-arrests-era-marijuana-reform
+#          The Sentencing Project — Trends in U.S. Corrections: State-by-State Incarceration Rates by Race/Ethnicity
+#          https://www.sentencingproject.org/reports/
+#          Lead data: Nevin (2007) "Understanding international crime trends: The legacy of preschool lead exposure"
+#          Environmental Research 104(3):315-336. doi:10.1016/j.envres.2007.02.008
+#          Reyes (2007) "Environmental Policy as Social Policy? The Impact of Childhood Lead Exposure on Crime"
+#          B.E. Journal of Economic Analysis & Policy 7(1). doi:10.2202/1935-1682.1796
+#          CDC NHANES I (1976-80), II (1988-91), III (1991-94), 1999-2002, 2007-10 geometric mean BLL by race
+#          CDC MMWR 2013 "Blood lead levels in children aged 1-5 years — United States, 1999-2010"
+# Note: incarceration rates are per 100,000 population within racial group
+#       drug_offense_share = proportion of sentenced prisoners serving time for drug offenses
+#       capacity_factor = (1 - ratio-normalized enforcement burden) — net capacity retained by O_racialized
+#       black_lead_lag20_ugdl / white_lead_lag20_ugdl = geometric mean blood lead level (µg/dL) of
+#         children aged 1-5 measured at (year - 20), i.e., the cohort reaching ~age 20 in the data year.
+#         Pre-NHANES values (before 1976) modeled from Nevin (2007) gasoline lead consumption series.
+#         Racial disparity in BLL reflects differential exposure from older housing (lead paint, redlining)
+#         and proximity to highways/industrial sites. Sources: NHANES I-III, CDC MMWR, Nevin (2007).
+year,black_incarceration_rate,white_incarceration_rate,ratio,drug_offense_share,capacity_factor,black_lead_lag20_ugdl,white_lead_lag20_ugdl
+1972,600,80,7.5,0.16,0.87,21.3,16.9
+1974,650,85,7.6,0.18,0.87,22.4,17.8
+1976,700,90,7.8,0.20,0.86,22.8,18.1
+1978,760,96,7.9,0.22,0.86,23.1,18.4
+1980,820,104,7.9,0.25,0.85,23.4,18.7
+1982,900,115,7.8,0.29,0.85,23.7,19.0
+1984,1010,130,7.8,0.34,0.84,23.9,19.2
+1986,1200,152,7.9,0.40,0.83,24.1,19.4
+1988,1520,185,8.2,0.44,0.82,24.2,19.5
+1990,1860,218,8.5,0.46,0.81,24.0,19.2
+1992,2020,236,8.6,0.47,0.81,23.1,18.3
+1994,2240,253,8.9,0.48,0.80,20.3,16.1
+1996,2360,261,9.0,0.48,0.79,17.6,13.4
+1998,2430,268,9.1,0.47,0.79,14.2,10.5
+2000,2457,271,9.1,0.46,0.79,11.1,7.8
+2002,2380,265,8.98,0.45,0.79,8.3,5.6
+2004,2330,258,9.03,0.44,0.79,6.5,4.2
+2006,2290,254,9.02,0.43,0.79,5.6,3.5
+2008,2190,248,8.83,0.41,0.79,4.8,2.9
+2010,2040,232,8.79,0.39,0.80,4.2,2.4
+2012,1870,218,8.58,0.37,0.80,3.7,2.1
+2014,1710,204,8.38,0.35,0.81,3.3,1.9
+2016,1608,195,8.25,0.34,0.81,3.0,1.7
+2018,1501,188,7.98,0.32,0.82,2.8,1.6
+2020,1402,179,7.83,0.30,0.83,2.6,1.5

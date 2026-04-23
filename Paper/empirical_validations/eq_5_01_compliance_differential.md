@@ -8,17 +8,18 @@ statement: |
   \Delta(x) \;=\; V_c(x) - V_r(x),
 type: quantitative
 tier: 2
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - Antebellum slave resistance economics
   - "Post-Reconstruction sharecropper compliance"
 data_sources: 
   - {name: Baptist (2014) — The Half Has Never Been Told, type: "peer-reviewed", url: ""}
+  - {name: Darity & Mullen (2020) — From Here to Equality, type: "peer-reviewed", url: ""}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: ~2272
 falsification: Falsified if V_c(x) ≤ V_r(x) for subjects in documented extraction regimes with no corresponding increase in M(t).
 ---
 

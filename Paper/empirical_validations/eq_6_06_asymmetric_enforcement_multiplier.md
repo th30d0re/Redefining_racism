@@ -8,16 +8,16 @@ statement: |
   \alpha_{O} P_t \approx 3.73 \cdot \alpha_{I \setminus E} P_t
 type: quantitative
 tier: 1
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - ACLU cannabis arrests 2010–2018
 data_sources: 
   - {name: "ACLU (2020) — A Tale of Two Countries: Racially Targeted Arrests in the Era of Marijuana Reform", type: report, url: "https://www.aclu.org/report/tale-two-countries-racially-targeted-arrests-era-marijuana-reform"}
 difficulty: M
-notebook: "nb_ch06_eq06_asymmetric_enforcement_multiplier.ipynb"
-case_study_line: null
+notebook: "eq31_asymmetric_enforcement.ipynb"
+case_study_line: ~3172
 falsification: Falsified if ACLU cannabis arrest data shows no racial disparity in policy multiplier when behavioral rate B is held constant.
 ---
 

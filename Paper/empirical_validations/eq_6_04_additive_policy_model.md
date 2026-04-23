@@ -8,14 +8,14 @@ statement: |
   \sum (O_{\text{racialized}} \cap P) > \sum ((I \setminus E) \cap P) > \sum (E \cap P)
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: []
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: ~3144
 falsification: Falsified if additive accumulation predicts compound policy outcomes with equal accuracy to the multiplicative model.
 ---
 

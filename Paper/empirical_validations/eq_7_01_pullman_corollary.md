@@ -8,8 +8,8 @@ statement: |
   \psi \uparrow \implies \text{Solidarity}(I_{\text{buffer}}, O_{\text{racialized}}) \downarrow \implies \text{Vulnerability}(I_{\text{buffer}}) \uparrow \implies \mathcal{E}(t) \uparrow
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - Pullman Strike 1894 — Strikebreaker recruitment from Black workers
@@ -18,7 +18,7 @@ data_sources:
   - {name: Roediger (1991) — The Wages of Whiteness, type: "peer-reviewed", url: ""}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: ~3624
 falsification: Falsified if a documented case shows I_buffer achieving collective gains through exclusion of O without subsequent Elite weaponization.
 ---
 

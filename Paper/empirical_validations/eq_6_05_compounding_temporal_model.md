@@ -8,8 +8,8 @@ statement: |
   O_t^{\text{capacity}} = O_{t-1}^{\text{capacity}} \cdot (1 - \alpha P_t)
 type: quantitative
 tier: 2
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - Black wealth trajectory 1865–2024
@@ -17,7 +17,7 @@ data_sources:
   - {name: "Hamilton & Darity (2017) — The Political Economy of Education, Financial Literacy, and the Racial Wealth Gap", type: "peer-reviewed", url: ""}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: ~3154
 falsification: Falsified if policy shock effects on O^capacity are shown to be independent across periods in longitudinal wealth data.
 ---
 

@@ -8,18 +8,22 @@ statement: |
   \text{Lethal Autonomy}(F_{\text{enforce}}) \gg \text{Lethal Autonomy}(I_{\text{buffer}}) \gg \text{Lethal Autonomy}(O) = 0
 type: quantitative
 tier: 2
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
-  - Police killings 2013–2024
-  - LEOSA statutory analysis
+  - LEOSA statutory analysis (18 U.S.C. §926B)
+  - Mulford Act (1967) — disarmament of Black Panthers
+  - Sullivan Law (1911) — discretionary licensing
 data_sources: 
-  - {name: Mapping Police Violence database 2013–2024, type: "public-dataset", url: "https://mappingpoliceviolence.us/"}
-  - {name: Fatal Encounters database, type: "public-dataset", url: "https://fatalencounters.org/"}
+  - {name: "LEOSA — 18 U.S.C. §926B statutory text", type: "legislation", url: ""}
+  - {name: Mulford Act (1967) — California Assembly Bill 1591, type: "legislation", url: ""}
+  - {name: Sullivan Law (1911 N.Y. Laws ch. 195), type: "legislation", url: ""}
+  - {name: "Mapping Police Violence (MPV) — police killings database by race", type: "database", url: "https://mappingpoliceviolence.org/"}
+  - {name: "Fatal Encounters — national database of deaths during police interactions", type: "database", url: "https://fatalencounters.org/"}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: ~2889
 falsification: Falsified if Mapping Police Violence data shows parity in police killings per capita across racial groups after controlling for encounter rates.
 ---
 
