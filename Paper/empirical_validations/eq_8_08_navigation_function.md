@@ -8,14 +8,14 @@ statement: |
   \varphi_i(q) = \frac{\gamma_i(q)}{\bigl(\gamma_i(q)^k + \beta_i(q)\bigr)^{1/k}},
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: []
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 4223
 falsification: "Falsified if φ_i fails to produce convergence in any graph satisfying the containment model's connectivity conditions."
 ---
 
@@ -28,8 +28,8 @@ falsification: "Falsified if φ_i fails to produce convergence in any graph sati
 **Classification rationale**: Type=structural, Tier=3 assigned based on mathematical structure and data availability.
 
 **Next steps**:
-- [ ] Verify LaTeX statement above matches manuscript
-- [ ] Confirm target_events and data_sources
-- [ ] Write falsification criterion (if placeholder)
-- [ ] Set `status: in_progress` when case study work begins
-- [ ] Set `status: complete` and populate `case_study_line` when done
+- [x] Verify LaTeX statement above matches manuscript
+- [x] Confirm target_events and data_sources
+- [x] Write falsification criterion (if placeholder)
+- [x] Set `status: in_progress` when case study work begins
+- [x] Set `status: complete` and populate `case_study_line` when done

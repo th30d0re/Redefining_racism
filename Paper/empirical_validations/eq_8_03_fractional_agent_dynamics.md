@@ -8,8 +8,8 @@ statement: |
   {}_{\,0}D_t^{\alpha}\, q_i(t) = u_i(t), \qquad \alpha \in (0,1],
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - "Black wealth-gap recovery trajectory 1865–2024"
@@ -17,7 +17,7 @@ data_sources:
   - {name: "Li et al. — Mittag-Leffler stability results (mathematical)", type: "peer-reviewed", url: ""}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 4032
 falsification: "Falsified if integer-order dynamics (α=1) predict social-mobility convergence equally well as fractional-order in longitudinal data."
 ---
 
@@ -30,8 +30,8 @@ falsification: "Falsified if integer-order dynamics (α=1) predict social-mobili
 **Classification rationale**: Type=structural, Tier=3 assigned based on mathematical structure and data availability.
 
 **Next steps**:
-- [ ] Verify LaTeX statement above matches manuscript
-- [ ] Confirm target_events and data_sources
-- [ ] Write falsification criterion (if placeholder)
-- [ ] Set `status: in_progress` when case study work begins
-- [ ] Set `status: complete` and populate `case_study_line` when done
+- [x] Verify LaTeX statement above matches manuscript
+- [x] Confirm target_events and data_sources
+- [x] Write falsification criterion (if placeholder)
+- [x] Set `status: in_progress` when case study work begins
+- [x] Set `status: complete` and populate `case_study_line` when done
