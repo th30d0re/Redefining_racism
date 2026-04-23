@@ -8,14 +8,14 @@ statement: |
   \vec{R}_{\text{systemic}} = \left\| F_{\text{institutional}} \right\| \cdot \hat{d}_{\text{hierarchy}} \quad \neq \quad \left| \text{prejudice}_{\text{individual}} \right|
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: []
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 11498
 falsification: "Falsified if documented cases of marginalized-group prejudice achieve systemic harm at rates comparable to Elite-backed prejudice without institutional support."
 ---
 

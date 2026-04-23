@@ -8,14 +8,14 @@ statement: |
   \frac{dM}{dt} > \frac{d\Sigma_{\text{sup}}}{dt} \quad \Longleftrightarrow \quad M_{\text{eff}}(t) > \tau
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: []
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 11692
 falsification: "Redundant with eq:9 and eq:59; falsified by the same conditions as those equations."
 ---
 

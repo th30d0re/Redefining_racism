@@ -8,14 +8,14 @@ statement: |
   \Sigma_{\text{sup}}(t) = \psi_s(t) + \psi_m(t) + R(t) + \Phi_{\text{load}}(t)
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: []
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 11688
 falsification: "Redundant with eq:8 and eq:58; falsified by the same conditions as those equations."
 ---
 

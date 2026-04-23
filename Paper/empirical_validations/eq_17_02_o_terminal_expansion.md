@@ -8,8 +8,8 @@ statement: |
   O_{\text{final}} = \text{Everyone} \setminus E
 type: quantitative
 tier: 2
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - Contemporary US demographic trends 2000–2040 projections
@@ -18,7 +18,7 @@ data_sources:
   - {name: Pew Research Center — US future demographics, type: "public-dataset", url: "https://www.pewresearch.org/"}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 11553
 falsification: Falsified if documented demographic trends show O contracting rather than expanding under current algorithmic operation.
 ---
 
