@@ -4,7 +4,7 @@ generate_index.py — T4 skeleton equation index generator
 ==========================================================
 Reads all YAML-frontmatter .md files in Paper/empirical_validations/,
 validates required fields, and outputs Paper/empirical_index.tex — a
-LaTeX longtable with one row per equation.
+LaTeX longtable (5 columns) with one row per equation.
 
 Usage (via Makefile):
     make index
@@ -71,6 +71,46 @@ def _tex_escape(s: str) -> str:
     ]
     for old, new in replacements:
         s = s.replace(old, new)
+    # pdflatex: Unicode → LaTeX **after** escaping so inserted `\\Gamma` etc. are not mangled.
+    unicode_math = {
+        "Σ": r"$\Sigma$",
+        "σ": r"$\sigma$",
+        "τ": r"$\tau$",
+        "Φ": r"$\Phi$",
+        "φ": r"$\phi$",
+        "ρ": r"$\rho$",
+        "ψ": r"$\psi$",
+        "δ": r"$\delta$",
+        "α": r"$\alpha$",
+        "β": r"$\beta$",
+        "γ": r"$\gamma$",
+        "θ": r"$\theta$",
+        "λ": r"$\lambda$",
+        "μ": r"$\mu$",
+        "ω": r"$\omega$",
+        "Ω": r"$\Omega$",
+        "Δ": r"$\Delta$",
+        "Γ": r"$\Gamma$",
+        "∈": r"$\in$",
+        "∩": r"$\cap$",
+        "∪": r"$\cup$",
+        "∅": r"$\emptyset$",
+        "∞": r"$\infty$",
+        "≥": r"$\geq$",
+        "≤": r"$\leq$",
+        "≠": r"$\neq$",
+        "≈": r"$\approx$",
+        "→": r"$\rightarrow$",
+        "←": r"$\leftarrow$",
+        "…": r"\ldots",
+        "\u2013": r"--",  # en dash
+        "\u2014": r"---",  # em dash
+        "\u2019": r"'",
+        "\u201c": r"``",
+        "\u201d": r"''",
+    }
+    for u, tex in unicode_math.items():
+        s = s.replace(u, tex)
     return s
 
 
@@ -94,6 +134,76 @@ def _status_badge(status: str) -> str:
     colors = {"complete": "green!60!black", "in_progress": "orange!80!black", "pending": "gray!60"}
     col = colors.get(status, "gray!60")
     return rf"\textcolor{{{col}}}{{\small\texttt{{{_tex_escape(status)}}}}}"
+
+
+_VALID_LABEL_RE = re.compile(r"^[A-Za-z][A-Za-z0-9:_\-\.]*$")
+
+
+def _looks_like_latex_label(s: str) -> bool:
+    """True if case_study_line should be emitted as \\pageref{...}."""
+    if not s or ":" not in s:
+        return False
+    # Numeric manuscript lines may contain ':' rarely; require letter-start segment before ':'
+    return bool(re.match(r"^[A-Za-z][A-Za-z0-9_]*:.+$", s.strip()))
+
+
+def _validate_label_key(s: str) -> str | None:
+    """Return the raw label key if it is safe to use inside \\pageref{}, else None.
+
+    LaTeX label keys must not contain unescaped special characters other than
+    the handful that LaTeX allows in cross-reference keys (letters, digits,
+    colon, underscore, hyphen, dot).  We validate the key directly rather than
+    text-escaping it, because _tex_escape() would mangle underscores into
+    ``\\_`` and break the cross-reference lookup.
+    """
+    if not s:
+        return None
+    # Strip surrounding whitespace that may have crept in from YAML parsing
+    s = s.strip()
+    if _VALID_LABEL_RE.match(s):
+        return s
+    return None
+
+
+def _case_study_location_cell(rec: dict) -> str:
+    """Case study column: pageref for LaTeX labels, else Ch.~n + line, else chapter only."""
+    ch = rec.get("chapter", "?")
+    csl = rec.get("case_study_line")
+    if csl is None or (isinstance(csl, str) and not str(csl).strip()):
+        return rf"Ch.~{_tex_escape(str(ch))}"
+    s = str(csl).strip()
+    if _looks_like_latex_label(s):
+        # Use the raw validated key — do NOT text-escape it.  Escaping would
+        # convert underscores to ``\_`` which would not match the original
+        # \label{...} token and produce an unresolved reference.
+        raw_key = _validate_label_key(s)
+        if raw_key is not None:
+            return rf"p.~\pageref{{{raw_key}}}"
+        # Key contains characters unsafe for \pageref — fall through to
+        # display as escaped text so the document still compiles.
+        return rf"Ch.~{_tex_escape(str(ch))}, \textit{{(invalid label)}}"
+    line_disp = s.lstrip("~")
+    return rf"Ch.~{_tex_escape(str(ch))}, l.~{_tex_escape(line_disp)}"
+
+
+def _primary_data_source_cell(rec: dict) -> str:
+    """First data_sources[].name, else (ordinal) for Tier 3, else (pending)."""
+    tier = int(rec.get("tier", 3))
+    ds = rec.get("data_sources") or []
+    if isinstance(ds, list) and ds:
+        first = ds[0]
+        if isinstance(first, dict):
+            name = (first.get("name") or "").strip()
+            if name:
+                return _shorten(name, maxlen=52)
+    if tier == 3:
+        return r"\textit{(ordinal)}"
+    return r"\textit{(pending)}"
+
+
+def _tier_badge(tier: int) -> str:
+    col = _tier_color(tier)
+    return rf"\textcolor{{{col}}}{{\textbf{{T{tier}}}}}"
 
 
 # ── Registry loader ───────────────────────────────────────────────────────────
@@ -143,8 +253,11 @@ def load_registry(registry_dir: Path) -> tuple[list[dict], list[str], list[str]]
 
 # ── LaTeX output ──────────────────────────────────────────────────────────────
 
-_LONGTABLE_PREAMBLE = r"""% empirical_index.tex — auto-generated by Paper/scripts/generate_index.py (T4 skeleton)
+_LONGTABLE_PREAMBLE = r"""% empirical_index.tex — auto-generated by Paper/scripts/generate_index.py
 % Do NOT edit manually. Regenerate with: make index
+%
+% Columns: equation label | case study location | confidence tier (badge) |
+%          primary data source | falsification (truncated)
 %
 % Include in main document with:
 %   \input{empirical_index}
@@ -155,39 +268,26 @@ _LONGTABLE_PREAMBLE = r"""% empirical_index.tex — auto-generated by Paper/scri
 \small
 \setlength{\LTpre}{6pt}
 \setlength{\LTpost}{6pt}
-\begin{longtable}{%
-  >{\raggedright}p{1.8cm}   % label
-  >{\centering}p{0.5cm}     % ch
-  >{\raggedright}p{2.0cm}   % type
-  >{\centering}p{0.5cm}     % tier
-  >{\centering}p{0.5cm}     % diff
-  >{\centering}p{0.8cm}     % status
-  >{\raggedright}p{5.2cm}   % falsification (truncated)
-}
-\toprule
-\textbf{Label} &
-\textbf{Ch} &
-\textbf{Type} &
-\textbf{T} &
-\textbf{D} &
-\textbf{Status} &
-\textbf{Falsification criterion (truncated)} \\
-\midrule
+\begin{longtable}{@{}%
+  >{\raggedright\arraybackslash}p{2.4cm}
+  >{\raggedright\arraybackslash}p{2.6cm}
+  >{\centering\arraybackslash}p{1.0cm}
+  >{\raggedright\arraybackslash}p{3.6cm}
+  >{\raggedright\arraybackslash}p{5.6cm}@{}}
+\textbf{Equation label} &
+\textbf{Case study location} &
+\textbf{Tier} &
+\textbf{Primary data source} &
+\textbf{Falsification (truncated)} \\
 \endfirsthead
-\toprule
-\textbf{Label} &
-\textbf{Ch} &
-\textbf{Type} &
-\textbf{T} &
-\textbf{D} &
-\textbf{Status} &
-\textbf{Falsification criterion (truncated)} \\
-\midrule
+\textbf{Equation label} &
+\textbf{Case study location} &
+\textbf{Tier} &
+\textbf{Primary data source} &
+\textbf{Falsification (truncated)} \\
 \endhead
-\midrule
-\multicolumn{7}{r}{\small\itshape continued on next page} \\
+\multicolumn{5}{r}{\small\itshape continued on next page} \\
 \endfoot
-\bottomrule
 \endlastfoot
 """
 
@@ -208,24 +308,18 @@ def build_longtable(records: list[dict]) -> str:
     prev_chapter = None
 
     for rec in records_sorted:
-        ch     = rec.get("chapter", "?")
-        label  = str(rec.get("label", ""))
-        typ    = str(rec.get("type", "structural"))
-        tier   = int(rec.get("tier", 3))
-        diff   = str(rec.get("difficulty", "M"))
-        status = str(rec.get("status", "pending"))
-        falsi  = str(rec.get("falsification", "") or "")
-        p3     = rec.get("phase3_headline", False)
+        ch = rec.get("chapter", "?")
+        label = str(rec.get("new_label") or rec.get("label", ""))
+        tier = int(rec.get("tier", 3))
+        falsi = str(rec.get("falsification", "") or "")
+        p3 = rec.get("phase3_headline", False)
 
         # Chapter separator row
         if ch != prev_chapter:
             ch_title = _tex_escape(str(rec.get("chapter_title", f"Chapter {ch}")))
-            if prev_chapter is not None:
-                rows.append(r"\addlinespace[4pt]")
             rows.append(
-                rf"\multicolumn{{7}}{{l}}{{\small\bfseries Chapter {ch}: {ch_title}}} \\"
+                rf"\multicolumn{{5}}{{l}}{{\small\bfseries Chapter {ch}: {ch_title}}} \\"
             )
-            rows.append(r"\midrule")
             prev_chapter = ch
 
         # Compose label cell — bold for Phase 3 headlines
@@ -233,15 +327,12 @@ def build_longtable(records: list[dict]) -> str:
         if p3:
             label_cell = rf"\textbf{{{label_cell}}}"
 
-        tier_cell   = rf"\textcolor{{{_tier_color(tier)}}}{{{tier}}}"
-        status_cell = _status_badge(status)
-        falsi_cell  = _shorten(falsi, maxlen=70)
-        type_cell   = _tex_escape(typ)
+        loc_cell = _case_study_location_cell(rec)
+        tier_cell = _tier_badge(tier)
+        src_cell = _primary_data_source_cell(rec)
+        falsi_cell = _shorten(falsi, maxlen=72)
 
-        row = (
-            f"{label_cell} & {ch} & {type_cell} & "
-            f"{tier_cell} & {diff} & {status_cell} & {falsi_cell} \\\\"
-        )
+        row = f"{label_cell} & {loc_cell} & {tier_cell} & {src_cell} & {falsi_cell} \\\\"
         rows.append(row)
 
     return "\n".join(rows)
@@ -249,12 +340,13 @@ def build_longtable(records: list[dict]) -> str:
 
 def write_tex(records: list[dict], n_valid: int, n_missing: int) -> None:
     body = build_longtable(records)
+    n_complete = sum(1 for r in records if str(r.get("status", "")).strip() == "complete")
     comment_header = textwrap.dedent(f"""\
         % ── Empirical Validation Index ────────────────────────────────────────────
-        % Generated: 2026-04-21
         % Equations: {len(records)} total | {n_valid} fully specified | {n_missing} with missing fields
+        % status=complete: {n_complete} (abstract stats: N={len(records)}, M={n_complete})
+        % Columns: label | case study location | tier (T1--T3 badge) | primary source | falsification
         % Tier legend: 1=peer-reviewed quantitative  2=public dataset  3=ordinal/structural
-        % Status: pending / in_progress / complete
         % Bold label = Phase 3 headline equation
         % ──────────────────────────────────────────────────────────────────────────
 
@@ -310,9 +402,11 @@ def main() -> int:
         by_tier[ti] = by_tier.get(ti, 0) + 1
 
     print(f"\n  ─── Summary ───────────────────────────────────────────────")
+    n_complete = sum(1 for r in records if str(r.get("status", "")).strip() == "complete")
     print(f"  Files parsed   : {len(records)}")
     print(f"  Fully specified: {n_valid}")
     print(f"  Missing fields : {n_missing}")
+    print(f"  status=complete: {n_complete}  (abstract: N={len(records)} anchor cases, M={n_complete} historical events)")
     for t, n in sorted(by_type.items()):
         print(f"  type={t:<16}: {n}")
     for t, n in sorted(by_tier.items()):

@@ -4,46 +4,46 @@ overview: "Integrate Sources/Haiti's Post-Revolutionary Influence.md into Redefi
 todos:
   - id: insert_chapter_skeleton
     content: Insert new \chapter{The Haitian Export...} with \label{ch:haitian_export} and opening RUNTIME LOG tcolorbox at line 1884 of Paper/Redefining_Racism.tex (immediately after \part{The Installation (1619--1865)}).
-    status: pending
+    status: completed
   - id: write_section_1_inverse_contagion
     content: Write §4.1 Inverse Contagion (framing as dual of \ref{sec:haitian_contagion}, ~350 words).
-    status: pending
+    status: completed
   - id: write_section_2_consumptive_function
     content: "Write §4.2 Consumptive Extraction Function (quantitative anchor: 10.7M / Caribbean 35% / 2-5%/yr / 7-10yr burn / Saint-Domingue 1767 production, ~400 words)."
-    status: pending
+    status: completed
   - id: write_section_3_petion_condition
     content: Write §4.3 Pétion's Condition with four subsections (Bolívar, Mina, Geffrard/DR, Boyer/Greece), historicalsource tcolorbox for Pétion's letter, summary longtable, Bolívar-betrayal subsection cross-referencing \ref{sec:complicity_trap} (~1200 words).
-    status: pending
+    status: completed
   - id: write_section_4_vexillological
     content: Write §4.4 Vexillological Contagion with four subsections (Arcahaie / Jacmel / Trinitaria / Grito de Lares), historicalsource tcolorbox for Arcahaie, and Fig 4.1 TikZ flag-lineage tree (~800 words).
-    status: pending
+    status: completed
   - id: write_section_5_firmin_protocol
     content: Write §4.5 Môle Saint-Nicolas Gambit / Firmin Protocol with \label{sec:firmin_protocol}, framed as legalistic defection cascade sibling to \ref{sec:polish_proof} (~500 words).
-    status: pending
+    status: completed
   - id: write_section_6_cic_double_debt
     content: Write §4.6 CIC Double-Debt section extending \ref{sec:haitian_contagion} ransom subsection; reuse NYT investigative series cite; bridge forward to line 3726 (~350 words).
-    status: pending
+    status: completed
   - id: write_section_7_synthesis
     content: "Write §4.7 Synthesis with Fig 4.2 export-vs-containment symmetry table and forward pointers to Hispaniola eq.\_12.7-12.8 and 2023 MSS mission (~400 words)."
-    status: pending
+    status: completed
   - id: build_figure_4_1_flag_tree
     content: Build Fig 4.1 TikZ flag-lineage tree (single-column) with Arcahaie 1803 at root and two branches to Gran Colombia sub-tree and DR/PR sub-tree.
-    status: pending
+    status: completed
   - id: build_figure_4_2_symmetry_table
     content: Build Fig 4.2 two-column symmetry table (Elite containment vs Out-group export mechanisms).
-    status: pending
+    status: completed
   - id: add_bib_entries
     content: "Add at most 2 new entries to Paper/references.bib: Pétion-Bolívar composite record, Miranda/Jacmel 1806 vexillological primary."
-    status: pending
+    status: completed
   - id: add_cross_references
     content: "Add three one-line cross-reference updates: at line 1398 (Firmin anthropology->diplomacy), at line 3726 (1915 occupation->Haitian-export arc), at line 11212 (Polish Proof->Firmin Protocol sibling)."
-    status: pending
+    status: completed
   - id: build_and_verify
     content: Run make pdf, ReadLints on modified .tex, audit_scotus_corpus.py, and visually confirm Fig 4.1 and Fig 4.2 render correctly and all \ref{...} resolve.
-    status: pending
+    status: completed
   - id: session_log
     content: Write session log at __Avenue/harper/logs/session-YYYY-MM-DD-HHMMSS.md per the session-logging rule.
-    status: pending
+    status: completed
 isProject: false
 ---
 

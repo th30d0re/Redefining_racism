@@ -17,7 +17,7 @@ usc-all: usc-snippets usc-diffs
 
 .PHONY: pdf empirical data-refresh companion index readme all clean
 
-pdf: empirical scotus-audit
+pdf: index empirical scotus-audit
 	cd Paper && latexmk -pdf -interaction=nonstopmode Redefining_Racism.tex
 
 .PHONY: scotus-audit
@@ -91,9 +91,9 @@ companion:
 	  echo "companion: Paper/Empirical_Validation_Companion.tex not yet created — skipping (implement in T10)."; \
 	fi
 
-index:
+index: venv
 	@if [ -f Paper/scripts/generate_index.py ]; then \
-	  python3 Paper/scripts/generate_index.py; \
+	  $(VENV_PYTHON) Paper/scripts/generate_index.py; \
 	else \
 	  echo "index: Paper/scripts/generate_index.py not yet created — skipping."; \
 	fi
