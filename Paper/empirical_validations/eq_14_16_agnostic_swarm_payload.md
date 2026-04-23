@@ -8,7 +8,7 @@ statement: |
   \mathcal{B}(t^{*}) : \{x_1, \ldots, x_n\} \longmapsto \bigcup_{i=1}^{n} \text{action}_i(t^{*}), \quad \text{where action}_i \ \text{is sampled from} \ \pi_i \ \text{independently.}
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -16,7 +16,7 @@ target_events:
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 11036
 falsification: "Falsified if documented multi-node mobilizations with ideological diversity fail to execute coordinated simultaneous action."
 ---
 

@@ -8,7 +8,7 @@ statement: |
   S(x_0) \;\approx\; \alpha \cdot \gamma(k_{x_0}) \cdot T_{\text{siege}}
 type: quantitative
 tier: 2
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -17,7 +17,7 @@ target_events:
 data_sources: []
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 10909
 falsification: Falsified if F_enforce besieges multiple simultaneous armed nodes with total cost significantly below sum of individual siege costs.
 ---
 

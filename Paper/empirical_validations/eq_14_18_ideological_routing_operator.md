@@ -8,14 +8,14 @@ statement: |
   \mathcal{R}_{\text{topo}} : x_i \longmapsto (x_i^{\text{local}}, y_i^{\text{local}})
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: []
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 11072
 falsification: Falsified if nodes in documented distributed mobilizations fail to route to their own community coordinates.
 ---
 

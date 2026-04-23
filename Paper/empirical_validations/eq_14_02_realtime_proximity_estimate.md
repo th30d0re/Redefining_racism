@@ -8,7 +8,7 @@ statement: |
   \rho_{\tau}(t) = f\bigl(\Phi_{\text{load}}(t),\, \lambda_2(G(t)),\, \deg_{\text{cross}}(G(t))\bigr)
 type: quantitative
 tier: 2
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -17,7 +17,7 @@ data_sources:
   - {name: Twitter/X political affinity graph data (academic dataset), type: "public-dataset", url: ""}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 10777
 falsification: "Falsified if real-time social-affinity graph G(t) shows no correlation with Φ_load in social-media network data."
 ---
 

@@ -8,7 +8,7 @@ statement: |
   \min_{E} \mathcal{L}(E, t) \;\Rightarrow\; \min_{E} \int c(x, t) \, dt, \quad \text{subject to} \ V(x, t) = 0.
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -16,7 +16,7 @@ target_events:
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 10969
 falsification: "Falsified if documented terminal-phase extraction shows E maintaining I_buffer benefits above enforcement-compliance minimum."
 ---
 

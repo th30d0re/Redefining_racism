@@ -8,7 +8,7 @@ statement: |
   \kappa(I_{\text{buffer}}) \;\gg\; \kappa(O_{\text{racialized}})
 type: quantitative
 tier: 2
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -17,7 +17,7 @@ data_sources:
   - {name: Pew Research Center — Gun Ownership Survey 2017, type: "public-dataset", url: "https://www.pewresearch.org/social-trends/2017/06/22/americas-complex-relationship-with-guns/"}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 10887
 falsification: "Falsified if gun-ownership data shows no racial asymmetry in kinetic capital distribution after controlling for income."
 ---
 

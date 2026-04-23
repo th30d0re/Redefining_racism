@@ -8,7 +8,7 @@ statement: |
   \ddot{\psi}_{\text{correction}} + \Delta(t)\,\dot{\psi}_{\text{correction}} + \omega_0^2 \psi_{\text{correction}} = 0, \quad \Delta(t) \uparrow \text{ with trauma severity}
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -16,7 +16,7 @@ target_events:
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 10807
 falsification: "Falsified if scale-accurate counter-signals are shown to reduce identity-axis amplitude in documented media-correction episodes."
 ---
 

@@ -8,7 +8,7 @@ statement: |
   \mathbb{I}_{\text{include}}(x, t) \;=\; \mathbb{1}\bigl[\,V(x,t) \;>\; R(x,t)\,\bigr].
 type: quantitative
 tier: 2
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -17,7 +17,7 @@ data_sources:
   - {name: Bureau of Labor Statistics contingent worker survey, type: "public-dataset", url: "https://www.bls.gov/cps/contingent-and-alternative-arrangements.htm"}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 10948
 falsification: Falsified if data shows V(x,t) ≤ R(x,t) for majority members of I_buffer in any documented extraction period.
 ---
 

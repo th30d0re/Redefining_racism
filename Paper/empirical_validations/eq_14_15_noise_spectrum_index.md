@@ -8,7 +8,7 @@ statement: |
   \mathcal{N}(t) \;=\; H\bigl(\pi_1(t), \pi_2(t), \ldots, \pi_n(t)\bigr)
 type: quantitative
 tier: 2
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -18,7 +18,7 @@ data_sources:
   - {name: ACLED — US social movements 2011–2020, type: "public-dataset", url: "https://acleddata.com/"}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 11017
 falsification: "Falsified if noise-spectrum index of a documented swarm fails to predict whether interference operator successfully redirects it."
 ---
 

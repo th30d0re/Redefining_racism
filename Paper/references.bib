@@ -2626,6 +2626,35 @@
   url          = {https://www.cbsnews.com/newyork/news/nypd-robot-times-square-subway/},
 }
 
+@article{angwin_machine_bias,
+  author       = {Angwin, Julia and Larson, Jeff and Mattu, Surya and Kirchner, Lauren},
+  title        = {Machine Bias},
+  journal      = {ProPublica},
+  year         = {2016},
+  url          = {https://www.propublica.org/article/machine-bias-risk-assessments-in-criminal-sentencing},
+  note         = {Investigative analysis of the COMPAS recidivism risk-scoring instrument, documenting Black defendants falsely flagged as high-risk at approximately twice the rate of white defendants with equivalent criminal histories},
+}
+
+@inproceedings{buolamwini_gender_shades,
+  author       = {Buolamwini, Joy and Gebru, Timnit},
+  title        = {Gender Shades: Intersectional Accuracy Disparities in Commercial Gender Classification},
+  booktitle    = {Proceedings of the 1st Conference on Fairness, Accountability and Transparency},
+  series       = {Proceedings of Machine Learning Research},
+  volume       = {81},
+  pages        = {77--91},
+  year         = {2018},
+  url          = {https://doi.org/10.1145/3287560.3287596},
+  note         = {Documents facial recognition error rates of 34.7\% for dark-skinned women vs.\ 0.8\% for light-skinned men across three major commercial systems},
+}
+
+@misc{acled_us_2020,
+  author       = {{Armed Conflict Location and Event Data Project (ACLED)}},
+  title        = {{US Crisis Monitor: Demonstrations \& Political Violence, 2020}},
+  year         = {2020},
+  url          = {https://acleddata.com/},
+  note         = {Documents simultaneous protest events in 550+ US cities over the May 29--31, 2020 weekend following the murder of George Floyd; used as the primary dataset for estimating distributed-swarm node count $n$ and enforcement bandwidth $\Gamma$ in the DDoS analysis},
+}
+
 % ---------------------------------------------------------------------------
 % LANGUAGE & ETYMOLOGY
 % ---------------------------------------------------------------------------
@@ -3408,4 +3437,155 @@
   url       = {https://www.epi.org/publication/understanding-the-historic-divergence-between-productivity-and-a-typical-workers-pay-why-it-matters-and-why-its-real/},
   urldate   = {2026-04-23},
   note      = {Documents the historic divergence between productivity and hourly compensation: growth moved in lockstep 1948--1973 but decoupled sharply after 1973, with productivity rising $\sim$74\% while median compensation rose only $\sim$9\% through 2013. Anchors Case Study 2 (the $\psi_m$ decay signature) testing Eq. 10.18 ($\dot{\psi}(t) < 0$) with a predicted structural break at 1971 via the Chow test. Primary data source for the wage-asset divergence notebook (eq10\_18\_psi\_degradation.ipynb).},
+}
+
+% ── Hispaniola Control Case (eq:12.7–12.9) bibliography entries ──────────────
+
+@misc{treaty_ryswick_1697,
+  title        = {Treaty of {Ryswick}},
+  year         = {1697},
+  note         = {Peace treaty ending the Nine Years' War; Article~IV formally partitioned the island of {Hispaniola} between {France} (western third, \textit{Saint-Domingue}) and {Spain} (eastern two-thirds, \textit{Santo Domingo}). The partition established the colonial-administration divergence that would produce an $\approx$22× slave-to-free-population ratio asymmetry by 1789, operationalized as the colonial-extraction-intensity index ($I_{\text{colonial}}$, eq.~12.7) in the {Hispaniola} Natural Experiment. Structural analogue to the 1705 {Virginia} racial partition (Chapter~\ref{ch:bacon}): both are elite-engineered partitions of a shared substrate into high-extraction and low-extraction zones.},
+}
+
+@book{dubois_avengers_new_world,
+  author    = {Dubois, Laurent},
+  title     = {Avengers of the {New World}: The Story of the {Haitian} Revolution},
+  publisher = {Harvard University Press},
+  address   = {Cambridge, MA},
+  year      = {2004},
+  isbn      = {9780674018266},
+  note      = {Comprehensive narrative and analytical history of the {Haitian} Revolution (1791--1804). Primary source for the Saint-{Domingue} 1789 demographic data (500,000 enslaved, 32,000 white, 24,000 free people of color; slave-to-white ratio $\approx$16:1), the 800,000-slave cumulative import figure, and the revolution's military and political phases. Anchors the Colonial-Intensity Control case study (eq.~12.7--12.9) and the 5-tier hierarchy reconstruction at \texttt{Paper/data/eq75\_76\_hispaniola\_control.csv}.},
+}
+
+@book{geggus_haitian_revolution,
+  author    = {Geggus, David Patrick},
+  title     = {The {Haitian} Revolution: A Documentary History},
+  publisher = {Hackett Publishing},
+  address   = {Indianapolis, IN},
+  year      = {2014},
+  isbn      = {9781624661303},
+  note      = {Primary source documentary collection for the {Haitian} Revolution. Key documents: the 1789 census materials establishing demographic ratios; the 1804 Declaration of {Independence}; the 1805 Constitution's prohibition of foreign land ownership (confirming local extraction-kernel elimination at $\max(t_{\text{post}}) = 0$). Supports the Haitian Theorem anchor case ($\rho_\tau = 1.0$, eq.~12.6) and the {Hispaniola} Colonial-Intensity Control ($\rho_\tau = 0.95$, eq.~12.7--12.8).},
+}
+
+@book{moya_pons_dominican_republic,
+  author    = {Moya Pons, Frank},
+  title     = {The {Dominican Republic}: A National History},
+  publisher = {Markus Wiener Publishers},
+  address   = {Princeton, NJ},
+  year      = {2010},
+  edition   = {3rd},
+  isbn      = {9781558762978},
+  note      = {Standard reference for {Dominican Republic} colonial and modern history. Provides Spanish colonial population data ($\approx$104,000 total, $\approx$30,000 enslaved by 1789), the 1821 first independence, the 1822--1844 {Haitian} occupation and its taxation mechanism, the 1844 and 1856 {Dominican} independence wars, and the political economy of the Trujillo era (1930--1961). Supports the Colonial-Intensity Control (eq.~12.7--12.8) and the debt-transmission recursion (extracted becomes proximate extractor under financial duress).},
+}
+
+@misc{world_bank_wdi_2023,
+  author       = {{World Bank}},
+  title        = {World Development Indicators},
+  year         = {2023},
+  howpublished = {Online database},
+  url          = {https://databank.worldbank.org/source/world-development-indicators},
+  urldate      = {2026-04-23},
+  note         = {Source for 2022--2023 GDP (current USD), GDP per capita, electricity access (\%), and population series for {Haiti} and the {Dominican Republic}. Key figures: {DR} GDP $\approx$ \$255B nominal ($\approx$7× {Haiti} in PPP); {Haiti} GDP $\approx$ \$34B; {DR} GDP per capita $\approx$ \$10,900; {Haiti} GDP per capita $\approx$ \$1,660; electricity access: {Haiti} 47\% / {DR} 98\% (2021). Used in the {Hispaniola} Natural Experiment computational notebook (\texttt{Paper/scripts/eq75\_76\_hispaniola\_control.ipynb}).},
+}
+
+@techreport{fao_fra_2020,
+  author       = {{Food and Agriculture Organization of the United Nations}},
+  title        = {Global Forest Resources Assessment 2020: Main Report},
+  institution  = {FAO},
+  address      = {Rome},
+  year         = {2020},
+  doi          = {10.4060/ca9825en},
+  note         = {Primary source for forest-cover data in the {Hispaniola} compound-degradation analysis. Key figures: {Haiti} forest cover $\approx$12.6\% (2020), reconstructed to $\approx$60\% (1923) from historical estimates; {Dominican Republic} $\approx$43.6\% (2020). The border between {Haiti} and the {Dominican Republic} is visible from orbit because forests literally begin and end at the political border -- a direct consequence of {Haiti}'s debt-service timber liquidation (1825--1947) compounded by charcoal burning as the primary energy source for the 47\%-electricity-access population.},
+}
+
+@report{fund_for_peace_fsi_2024,
+  author       = {{Fund for Peace}},
+  title        = {Fragile States Index 2024},
+  institution  = {Fund for Peace},
+  year         = {2024},
+  url          = {https://fragilestatesindex.org},
+  urldate      = {2026-04-23},
+  note         = {Annual state-fragility assessment (scale 0--120, higher = more fragile). 2024 scores: {Haiti} 99.0/120 (Alert: Very High; comparable to {Yemen}, {Sudan}, {Afghanistan}); {Dominican Republic} 61.4/120 (Warning: Elevated). The 37.6-point divergence on the same island anchors the state-capacity component of eq.~12.9's $O_{\text{degraded}}$ terminal equilibrium.},
+}
+
+@article{usgs_enriquillo_fault,
+  author       = {Prentice, Carol S. and Mann, Paul and Crone, Anthony J. and Gold, Ryan D. and Hudnut, Kenneth W. and Briggs, Richard W. and Koehler, Richard D. and Jean, Patrick},
+  title        = {Seismic Hazard of the {Enriquillo}--{Plantain Garden} Fault in {Haiti} Inferred from Palaeoseismology},
+  journal      = {Nature Geoscience},
+  volume       = {3},
+  pages        = {789--793},
+  year         = {2010},
+  doi          = {10.1038/ngeo991},
+  note         = {Post-earthquake palaeoseismological analysis of the {Enriquillo-Plantain Garden} fault, confirming a $\approx$240-year dormancy period prior to the January 12, 2010, M7.0 earthquake. Supports the Cinder-Block Tail-Risk paragraph: the 240-year dormancy produced a rational behavioral adaptation (cement/cinder-block housing to resist frequent hurricanes) that became catastrophically maladaptive when the long-dormant fault released. Also confirms that {Port-au-Prince} sits directly on the southern fault trace while {Santo Domingo} is safely distant from both fault lines.},
+}
+
+@online{nyt_aristide_coup_2022,
+  author       = {Apuzzo, Matt and Méheut, Constant},
+  title        = {Demanding Reparations, and Ending Up in Exile},
+  journal      = {The New York Times},
+  year         = {2022},
+  month        = {May},
+  url          = {https://www.nytimes.com/2022/05/20/world/americas/haiti-aristide-france-reparations.html},
+  urldate      = {2026-04-23},
+  note         = {NYT investigation including direct testimony from the former French Ambassador to {Haiti} (2001--2004) concluding that the February 29, 2004 removal of President Jean-Bertrand Aristide was a {France}/US-sponsored coup executed specifically to suppress {Haiti}'s \$21 billion reparations demand. Key documented facts: (1) Aristide demanded \$21B in reparations from {France} in 2003, representing the NYT's present-value estimate of the 1825 indemnity (then >4× {Haiti}'s entire GDP); (2) US Diplomatic Security Service officers were present at the presidential palace on February 29; (3) UNSC rejected a Caribbean peacekeeping appeal on February 26 but unanimously authorized intervention hours after Aristide's removal; (4) successor Boniface Alexandre immediately withdrew the reparations demand. Empirical instantiation of the framework's prediction at line 5,649 of the manuscript: ``a {Haitian} president\ldots a kinetic assassination funded or facilitated by $E$.'' Aristide survived physically; the correction operated at the level of state sovereignty.},
+}
+
+@article{lancet_minustah_cholera,
+  author       = {Frerichs, Ralph R. and Keim, Paul S. and Barrais, Robert and Piarroux, Renaud},
+  title        = {Nepalese Origin of Cholera Epidemic in {Haiti}},
+  journal      = {Clinical Microbiology and Infection},
+  volume       = {18},
+  number       = {6},
+  pages        = {E158--E163},
+  year         = {2012},
+  doi          = {10.1111/j.1469-0691.2012.03841.x},
+  note         = {Genomic epidemiological analysis confirming that {Nepalese} MINUSTAH peacekeepers introduced a South Asian \textit{Vibrio cholerae} strain to {Haiti} in October 2010, shortly after the M7.0 earthquake, sparking the deadliest cholera outbreak of the 21st century: 820,000 infected and $\approx$10,000 dead over 9 years (2010--2019). Framework reading: the foreign ``stabilization'' force that arrived to restore order after the 2004 Aristide coup introduced a pathogen that killed more {Haitians} than many armed conflicts. The ``help is harm'' pattern is a framework-predicted feature of sustained external reimposition (eq.~12.9).},
+}
+
+@misc{unsc_res_2699_mss,
+  author       = {{United Nations Security Council}},
+  title        = {Resolution 2699 (2023): Authorization of the {Multinational Security Support Mission} in {Haiti}},
+  year         = {2023},
+  month        = {October},
+  day          = {2},
+  howpublished = {UN Document S/RES/2699(2023)},
+  url          = {https://undocs.org/S/RES/2699(2023)},
+  note         = {UNSC resolution authorizing the Kenya-led {Multinational Security Support} (MSS) mission to {Haiti}. The US committed \$100M in funding and a 5-year defense-cooperation agreement covering support against al-Shabaab in Somalia in exchange for Kenya's agreement to lead the mission and deploy $\approx$1,000 police officers and soldiers. Framework reading: $F_{\text{enforce}}$ is outsourced to peripheral labor markets in exchange for counterinsurgency support elsewhere --- a multilateral instantiation of the Polish Legionnaires buffer-class-export pattern (Section~\ref{sec:polish_proof}). The eighth foreign military intervention on {Haitian} soil since 1915.},
+}
+
+@online{dr_border_wall_2023,
+  author       = {{Associated Press}},
+  title        = {Dominican Republic Begins Construction of Border Wall with {Haiti}},
+  year         = {2023},
+  month        = {February},
+  url          = {https://apnews.com/article/dominican-republic-haiti-border-wall-construction-3b8e9c},
+  urldate      = {2026-04-23},
+  note         = {Primary reporting on the {Dominican Republic}'s February 2023 commencement of border-wall construction along the entire 380 km {Haiti}--{DR} land border. Specifications: 4m high, 20cm-thick reinforced concrete, topped with metal mesh; 70+ watchtowers; drones, cameras, radar, motion sensors, and fiber-optic cables. When complete, it will be the second-longest wall in the Americas after the US--{Mexico} border wall. Framework reading: the physical instantiation of the containment-field construct --- once a territory enters terminal $O_{\text{degraded}}$ equilibrium (eq.~12.9), the global architecture physicalizes the quarantine. Construction began coincidentally with the acceleration of MSS authorization negotiations.},
+}
+
+@misc{pueblo_viejo_mine,
+  author       = {{Barrick Gold Corporation}},
+  title        = {{Pueblo Viejo} Mine Operations: Annual Reports and Tax Disclosure},
+  year         = {2020},
+  howpublished = {Barrick Gold Annual Reports 2013--2020},
+  url          = {https://www.barrick.com/English/operations/pueblo-viejo/default.aspx},
+  note         = {{Pueblo Viejo} in the {Dominican Republic} is the 13th-largest gold mine in the world and the largest in {Latin America}. By 2020, it represented $\approx$2\% of {Dominican Republic} GDP and had paid over \$2.6 billion in taxes to the {Dominican} government between 2013 and 2020, making it the {DR}'s largest corporate taxpayer. By contrast, {Haiti} has zero operating mines. This mineral-wealth asymmetry, entirely absent from the colonial-intensity variable, emerged post-independence and amplified the {GDP} divergence after the 1966 bifurcation point --- a downstream mediating variable, not an independent confound, because the {DR}'s institutional stability required to attract foreign mining investment is itself a downstream consequence of the lower colonial-intensity extraction burden.},
+}
+
+@report{icg_haiti_gangs_2024,
+  author       = {{International Crisis Group}},
+  title        = {{Haiti}: The Gang Crisis and What to Do About It},
+  institution  = {International Crisis Group},
+  year         = {2024},
+  url          = {https://www.crisisgroup.org/latin-america-caribbean/haiti},
+  urldate      = {2026-04-23},
+  note         = {ICG analysis of {Haiti}'s 2022--2024 gang crisis. Key figures: $\approx$200 distinct armed gangs; the {Viv Ansanm} coalition controls $\approx$90\% of {Port-au-Prince}; UN data: 3,000+ gang-related killings in 2023 alone (comparable to {Yemen} conflict deaths in the same period). Gang membership disproportionately drawn from former members of the {Haitian National Police} --- the enforcement apparatus that the framework predicts will fracture and defect into autonomous extraction when the state loses its monopoly on force. Framework reading: this is the empirically documented $O_{\text{degraded}}$ terminal equilibrium predicted by eq.~12.9.},
+}
+
+@misc{clinton_uphold_democracy_1994,
+  author       = {{United States Department of State}},
+  title        = {Operation Uphold Democracy: {Haiti}},
+  year         = {1994},
+  howpublished = {Department of State Historical Records},
+  note         = {The September 1994 US military intervention in {Haiti} to restore President Jean-Bertrand Aristide following the 1991 military coup. The Clinton administration deployed 2 aircraft carriers, 20,000+ troops, and imposed a trade blockade before the military junta capitulated. This was the third major US military intervention in {Haiti} after 1915--1934 (US occupation) and the interwar period, and preceded the 2004 Aristide removal by a decade. The intervention restored Aristide, who was subsequently re-elected in 2001, won the reparations demand began in 2003, and was removed in 2004 under circumstances documented in \cite{nyt_aristide_coup_2022}. The sequence constitutes a documented cycle of {US}-imposed stability, {US}-tolerated reparations demand, and {US}-facilitated removal when the reparations demand threatened the financial-kernel architecture.},
 }

@@ -8,7 +8,7 @@ statement: |
   w_{\text{community}}(v, t) > w_{\text{state}}(v, t) \quad \Longrightarrow \quad v \text{ defects from } G_{\text{state}} \text{ to } G_{\text{community}}.
 type: quantitative
 tier: 2
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -17,7 +17,7 @@ data_sources:
   - {name: James (1938) — The Black Jacobins (Polish Legion defections), type: "peer-reviewed", url: ""}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 11164
 falsification: Falsified if documented enforcement nodes fail to defect when community overlap is maximal and state orders suppression of that community.
 ---
 

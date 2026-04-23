@@ -8,7 +8,7 @@ statement: |
   \text{Noir}_{\text{Dessalines}} \;:=\; \{\,x : x \text{ has demonstrated alignment with the } \tau \text{ Singularity}\,\}, \quad \text{independent of phenotype}(x).
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -17,7 +17,7 @@ data_sources:
   - {name: Haitian Constitution of 1805 (primary source), type: "primary-source", url: ""}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 11222
 falsification: "Falsified if 1805 Haitian Constitution's ideological redefinition failed to include non-phenotypically Black allies within constitutional protections."
 ---
 

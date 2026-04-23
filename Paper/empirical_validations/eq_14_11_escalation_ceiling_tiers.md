@@ -8,7 +8,7 @@ statement: |
   \Gamma_{\text{Tier}_k} < \Gamma_{\text{Tier}_{k-1}}, \quad k \in \{1,2,3,4\}
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -16,7 +16,7 @@ target_events:
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 10919
 falsification: "Falsified if F_enforce escalation tiers do not follow the predicted bandwidth-ceiling sequence in any documented counter-insurgency case."
 ---
 

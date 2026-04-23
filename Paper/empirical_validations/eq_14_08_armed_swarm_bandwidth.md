@@ -8,7 +8,7 @@ statement: |
   \Gamma_{\text{armed}} = \frac{\Gamma_{\text{total}}}{\gamma(k_{\text{node}})}, \quad \text{with} \ \gamma(k_{\text{armed}}) \gg \gamma(k_{\text{unarmed}}).
 type: quantitative
 tier: 2
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -16,7 +16,7 @@ target_events:
 data_sources: []
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 10869
 falsification: "Falsified if F_enforce simultaneously neutralizes armed nodes with force-multiplier cost significantly below predicted minimum."
 ---
 

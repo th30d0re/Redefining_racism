@@ -8,7 +8,7 @@ statement: |
   n(t) > \Gamma_{\text{armed}} \quad \wedge \quad \mathcal{N}(t) \to H_{\max}.
 type: quantitative
 tier: 2
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -17,7 +17,7 @@ data_sources:
   - {name: ACLED — 2020 US protest dataset, type: "public-dataset", url: "https://acleddata.com/"}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 11051
 falsification: "Falsified if enforcement grid contains a swarm with n > Γ_armed nodes and high N(t) in any documented mobilization."
 ---
 

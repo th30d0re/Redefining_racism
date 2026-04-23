@@ -8,7 +8,7 @@ statement: |
   \mathcal{E}(G(t)) : G(t) \longmapsto G'(t) \quad \text{such that} \quad \lambda_2(G'(t)) \ll \lambda_2(G(t))
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -17,7 +17,7 @@ target_events:
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 10793
 falsification: "Falsified if documented interference engine operations increase class-axis coalition energy rather than redistributing it to identity axes."
 ---
 

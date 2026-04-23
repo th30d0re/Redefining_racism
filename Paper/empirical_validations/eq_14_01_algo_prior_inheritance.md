@@ -8,7 +8,7 @@ statement: |
   P_{\text{algo}} = \arg\min_{P} \; \mathcal{L}(P; \mathcal{H}) \quad \Longrightarrow \quad |O_{\text{racialized}} \cap P_{\text{algo}}| \gg |I \cap P_{\text{algo}}|
 type: quantitative
 tier: 2
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -19,7 +19,7 @@ data_sources:
   - {name: "Buolamwini & Gebru (2018) — Gender Shades", type: "peer-reviewed", url: "https://doi.org/10.1145/3287560.3287596"}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 10757
 falsification: "Falsified if ML systems trained on pre-2024 US data show no racial disparity in predictive outputs relative to ground truth after controlling for relevant covariates."
 ---
 

@@ -8,7 +8,7 @@ statement: |
   \delta_{\text{trauma}}(F_{\text{Polish}}, O_{\text{Haitian}}) \;\approx\; 1
 type: quantitative
 tier: 2
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -18,7 +18,7 @@ data_sources:
   - {name: James (1938) — The Black Jacobins, type: "peer-reviewed", url: ""}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 11196
 falsification: "Falsified if trauma overlap between enforcement and out-group nodes fails to predict defection rates in documented historical cases."
 ---
 

@@ -8,7 +8,7 @@ statement: |
   n > \Gamma \quad \Longrightarrow \quad \text{Localized enforcement superiority fails at} \ (n - \Gamma) \ \text{nodes.}
 type: quantitative
 tier: 2
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -17,7 +17,7 @@ data_sources:
   - {name: "Armed Conflict Location & Event Data (ACLED) — US protests 2020", type: "public-dataset", url: "https://acleddata.com/"}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 10858
 falsification: "Falsified if F_enforce simultaneously suppresses n > Γ nodes in any documented distributed mobilization event."
 ---
 

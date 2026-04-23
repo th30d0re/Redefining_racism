@@ -8,7 +8,7 @@ statement: |
   \lim_{t \to t_{\text{automation}}^{-}} V(x, t) \;=\; 0, \quad R(x, t) > 0 \quad \Longrightarrow \quad \mathbb{I}_{\text{include}}(x, t) = 0 \ \forall \ x \in \{P, F, I, O\}.
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -16,7 +16,7 @@ target_events:
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 10959
 falsification: "Falsified if documented late-stage extraction shows I_buffer benefits maintained above minimum enforcement-compliance level."
 ---
 

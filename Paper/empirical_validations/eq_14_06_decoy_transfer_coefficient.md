@@ -8,7 +8,7 @@ statement: |
   \frac{\partial \max(E, t)}{\partial K(t)} \approx 0 \quad \text{so long as} \quad K(t) \leq K_{\text{decoy}}
 type: quantitative
 tier: 2
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -16,7 +16,7 @@ target_events:
 data_sources: []
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 10834
 falsification: Falsified if documented cases show kinetic class energy passing to E at rate significantly below k_d.
 ---
 

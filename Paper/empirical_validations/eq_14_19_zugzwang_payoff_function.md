@@ -8,7 +8,7 @@ statement: |
   \Pi_E(a) \;=\; -\Delta\min(a) \quad \text{where} \quad \Delta\min(a) < 0 \;\; \forall \, a.
 type: quantitative
 tier: 2
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -16,7 +16,7 @@ target_events:
 data_sources: []
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 11122
 falsification: "Falsified if Elite actors systematically choose attack over stand-down when swarm exceeds Γ in documented cases."
 ---
 

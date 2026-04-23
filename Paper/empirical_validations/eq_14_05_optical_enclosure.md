@@ -8,7 +8,7 @@ statement: |
   \theta_{E} = \theta_{P_{\text{uppet}}} = \theta_{F_{\text{enforce}}} = \theta_{I_{\text{buffer}}} \quad (\text{within perceptual tolerance}).
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -17,7 +17,7 @@ data_sources:
   - {name: "Pew Research — Police-community relations by race", type: "public-dataset", url: "https://www.pewresearch.org/"}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 10820
 falsification: "Falsified if documented perception studies show O's population maintaining clear angular distinction between tiers."
 ---
 
