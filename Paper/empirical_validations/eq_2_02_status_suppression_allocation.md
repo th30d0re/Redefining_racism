@@ -8,7 +8,7 @@ statement: |
   S_{\text{tatus}}(I) = \text{Base\_Humanity} + \psi(t), \quad \psi(t) = \psi_s(t) + \psi_m(t)
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -18,7 +18,7 @@ data_sources:
   - {name: Du Bois (1935) — Black Reconstruction in America, type: "peer-reviewed", url: ""}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 1163
 falsification: "Falsified if Buffer Class loyalty is maintained without a non-material compensation component (ψ_s) when material wages are below subsistence."
 ---
 

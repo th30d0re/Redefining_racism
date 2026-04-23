@@ -8,14 +8,14 @@ statement: |
   O_{\text{religious}}^{\text{pre-1450}} = f(\text{doctrine, sect, heresy}) \quad \longrightarrow \quad O_{\text{racialized}}^{\text{post-1450}} = f(\text{phenotype})
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: []
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 1235
 falsification: Falsified if the structural mapping between Roman and American slavery is analytically invalid on more than one key architectural dimension.
 ---
 

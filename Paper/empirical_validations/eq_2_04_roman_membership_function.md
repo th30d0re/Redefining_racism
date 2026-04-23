@@ -8,7 +8,7 @@ statement: |
   O_{\text{slave}}^{\text{Roman}} = f(\text{conquest}, \text{debt}, \text{crime}, \text{birth})
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -17,7 +17,7 @@ data_sources:
   - {name: Bradley (1994) — Slavery and Society at Rome, type: "peer-reviewed", url: ""}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 1208
 falsification: Falsified if Roman enslaved population is shown to be phenotypically homogeneous across a significant sample of documented cases.
 ---
 

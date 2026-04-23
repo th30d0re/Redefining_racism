@@ -8,7 +8,7 @@ statement: |
   O_{\text{racialized}}^{\text{American}} = f(\text{phenotype})
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -17,7 +17,7 @@ data_sources:
   - {name: "Hening's Statutes at Large (Virginia) Vol. 2", type: "primary-source", url: "https://www.encyclopediavirginia.org/Hening_s_Statutes_at_Large"}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 1217
 falsification: "Falsified if documented American slavery assigned status based on non-phenotypic criteria at scale comparable to phenotypic assignment."
 ---
 

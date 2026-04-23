@@ -9,7 +9,7 @@ statement: |
   &\rightarrow \text{Naturalization} \rightarrow \text{Expanded exploitation}
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -19,7 +19,7 @@ data_sources:
   - {name: Cartwright (1851) — Diseases and Peculiarities of the Negro Race, type: "primary-source", url: ""}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 1335
 falsification: "Falsified if the religious-scientific legitimation loop is disrupted from within (without external kinetic pressure) in any documented colonial-era case."
 ---
 

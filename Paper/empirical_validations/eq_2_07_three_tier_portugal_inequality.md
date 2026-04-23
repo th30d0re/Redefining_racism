@@ -8,7 +8,7 @@ statement: |
   \text{Benefit}(E) \gg \text{Benefit}(I) > \text{Benefit}(O_{\text{racialized}})
 type: ordinal
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -16,7 +16,7 @@ target_events:
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 1280
 falsification: "Falsified if measured material outcomes show Benefit(I_buffer) ≥ Benefit(E) in any documented 15th-century Portuguese colonial case."
 ---
 

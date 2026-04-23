@@ -8,7 +8,7 @@ statement: |
   S_{\text{tatus}}(I) > S_{\text{tatus}}(O_{\text{racialized}})
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -17,7 +17,7 @@ target_events:
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 1167
 falsification: Falsified if material wages to Buffer Class are shown to be independent of kinetic threat level in any documented historical period.
 ---
 

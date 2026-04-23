@@ -8,14 +8,14 @@ statement: |
   \vec{R}_{\text{acism}} = M_{\text{agnitude}} \cdot \hat{d}_{\text{state}}
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: []
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 1091
 falsification: "Falsified if documented racism operates without a state-power directional component, proceeding purely through decentralized interpersonal acts."
 ---
 
