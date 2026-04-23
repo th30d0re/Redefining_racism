@@ -8,7 +8,7 @@ statement: |
   F^* \;=\; \inf\!\left\{\, F \;\Big|\; P(\text{compliance} \mid F_{\text{enforce}} = F) \geq p_{\text{target}} \,\right\}
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -16,7 +16,7 @@ target_events:
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 10062
 falsification: "Falsified if E_global achieves extraction with deployed force below F* in any documented coercion case."
 ---
 

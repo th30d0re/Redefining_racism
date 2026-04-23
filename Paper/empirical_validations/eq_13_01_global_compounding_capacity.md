@@ -8,7 +8,7 @@ statement: |
   O_{\text{global}}^{\text{capacity}}(t) = O_{\text{global}}^{\text{capacity}}(t_0) \cdot \prod_{i} (1 - \alpha_i P_i^{\text{imperial}})
 type: quantitative
 tier: 2
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -19,7 +19,7 @@ data_sources:
   - {name: IMF historical debt data, type: "public-dataset", url: "https://www.imf.org/en/Data"}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 9925
 falsification: "Falsified if post-colonial nation's capacity trajectory shows exponential recovery rather than Mittag-Leffler slow recovery after independence."
 ---
 

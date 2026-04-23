@@ -8,7 +8,7 @@ statement: |
   \mathcal{L} \;=\; \{\ell_1,\, \ell_2,\, \ldots,\, \ell_n\}
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -16,7 +16,7 @@ target_events:
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 10039
 falsification: Falsified if E_global actors consistently operate outside their stated legitimation constraints without institutional cost.
 ---
 

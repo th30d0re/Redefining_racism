@@ -8,7 +8,7 @@ statement: |
   C_{\text{legitimacy}}(\text{violation}) < \mathcal{E}_{\text{extraction}} \;\Rightarrow\; E_{\text{global}} \text{ abandons } \mathcal{L}
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -16,7 +16,7 @@ target_events:
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 10107
 falsification: Falsified if E_global maintains legitimation constraints even when extraction value clearly exceeds institutional legitimacy value.
 ---
 

@@ -8,7 +8,7 @@ statement: |
   F_{\text{enforce}}^{\text{effective}}(t)=F_{\text{enforce}}^{\text{Haiti}}(t)+F_{\text{enforce}}^{\text{imported}}(t)
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -18,7 +18,7 @@ data_sources:
   - {name: UN MINUSTAH mission records, type: "primary-source", url: "https://peacekeeping.un.org/mission/past/minustah/"}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 9993
 falsification: "Falsified if Haiti's domestic coercive capacity is shown to be structurally independent of external enforcement alignment."
 ---
 

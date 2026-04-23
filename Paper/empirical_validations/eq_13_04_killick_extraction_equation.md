@@ -8,7 +8,7 @@ statement: |
   \lim_{\text{surrender\_cost} \to \infty} \frac{\text{value\_to\_empire}}{\text{cost\_to\_agent}} = \text{undefined}
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -18,7 +18,7 @@ data_sources:
   - {name: "NYT 'The Ransom' (2022)", type: journalism, url: "https://www.nytimes.com/2022/05/20/world/americas/haiti-history-colonized-france.html"}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 10021
 falsification: "Falsified if the extraction equation fails to predict subsequent debt imposition after kinetic breach in any post-colonial case."
 ---
 

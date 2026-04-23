@@ -8,7 +8,7 @@ statement: |
   F^L \;=\; \sup\!\left\{\, F \;\Big|\; \forall\, \text{treaty } T \text{ signed under force level } F,\; T \text{ is valid under } \mathcal{L} \,\right\}
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -17,7 +17,7 @@ target_events:
 data_sources: []
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 10056
 falsification: "Falsified if observed coercion levels in 'voluntary' agreements consistently exceed C_max without triggering legitimation challenges."
 ---
 

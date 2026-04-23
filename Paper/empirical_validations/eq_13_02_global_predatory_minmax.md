@@ -8,7 +8,7 @@ statement: |
   \max \mathcal{E}_{\text{imperial}} - \min(O_{\text{colonial}}) \quad \text{where} \quad \min \rightarrow \text{biological death}
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -17,7 +17,7 @@ data_sources:
   - {name: Klein (2007) — The Shock Doctrine, type: "peer-reviewed", url: ""}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 9973
 falsification: "Falsified if documented international economic relationships fail to map onto the five-tier extraction hierarchy."
 ---
 

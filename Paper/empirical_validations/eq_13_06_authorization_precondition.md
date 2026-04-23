@@ -8,7 +8,7 @@ statement: |
   \text{Valid\_negotiation}(t) =  1 & \text{if } A_{\text{auth}} = 1 \\ 0 & \text{if } A_{\text{auth}} = 0
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -16,7 +16,7 @@ target_events:
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 10050
 falsification: Falsified if E_global achieves extraction without satisfying authorization precondition under active legitimation constraint.
 ---
 

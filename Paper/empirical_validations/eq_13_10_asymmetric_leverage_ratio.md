@@ -7,8 +7,8 @@ line: 8792
 statement: |
   \Lambda(O_{\text{global}}, E_{\text{global}}) \;=\; \frac{\Delta\mathcal{E}_{\text{blocked}}}{\Delta\text{Resources}_{O}}
 type: structural
-tier: 3
-status: pending
+tier: 2
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -17,7 +17,7 @@ data_sources:
   - {name: "Firmin (1885) — De l'égalité des races humaines", type: "primary-source", url: ""}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 10100
 falsification: "Falsified if a weaker actor's invocation of E_global's legitimation architecture generates no constraint on stronger actor's behavior."
 ---
 

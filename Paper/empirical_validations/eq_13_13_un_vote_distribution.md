@@ -8,7 +8,7 @@ statement: |
   \text{Vote}_{\text{UN}}(x) =  \text{No} & \text{if } x \in E_{\text{imperial}} \\[4pt] \text{Abstain} & \text{if } x \in I_{\text{buffer}}^{\text{global}} \\[4pt] \text{Yes} & \text{if } x \in O_{\text{global}}
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -17,7 +17,7 @@ data_sources:
   - {name: UN Digital Library — UNSC vote records, type: "public-dataset", url: "https://digitallibrary.un.org/"}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 10162
 falsification: "Falsified if UN Security Council voting distribution fails to map onto the international 5-tier hierarchy."
 ---
 

@@ -8,7 +8,7 @@ statement: |
   O_{\text{liberated}}^{\text{capacity}}(t) = O_{\text{liberated}}^{\text{capacity}}(t_0) \cdot (1 - \alpha_{\text{embargo}})^{t - t_0}
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -16,7 +16,7 @@ target_events:
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 10123
 falsification: "Falsified if global containment strategies differ structurally from the domestic min-max function's interface options."
 ---
 
