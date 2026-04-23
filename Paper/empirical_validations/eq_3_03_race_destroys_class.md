@@ -8,7 +8,7 @@ statement: |
   \text{Buffer Created:} \quad I_{poor} \rightarrow \text{Defender of } E
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -18,7 +18,7 @@ data_sources:
   - {name: Morgan (1975) — American Slavery, American Freedom, type: "peer-reviewed", url: ""}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 1539
 falsification: "Falsified if colonial-era racial coding produced class solidarity rather than suppressing it in any documented case."
 ---
 

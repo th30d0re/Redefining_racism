@@ -8,7 +8,7 @@ statement: |
   I_{\text{buffer}} \cap O_{\text{racialized}} = \emptyset
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -17,7 +17,7 @@ data_sources:
   - {name: "Hening's Statutes at Large (Virginia) Vol. 3", type: "primary-source", url: "https://www.encyclopediavirginia.org/Hening_s_Statutes_at_Large"}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 1507
 falsification: "Falsified if racial boundary enforcement persisted without legal penalty mechanism in any colonial-era American case."
 ---
 

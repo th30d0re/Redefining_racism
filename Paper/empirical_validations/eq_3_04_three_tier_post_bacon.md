@@ -8,7 +8,7 @@ statement: |
   \text{Benefit}(E) \gg \text{Benefit}(I_{\text{buffer}}) > \text{Benefit}(O_{\text{racialized}})
 type: ordinal
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -16,7 +16,7 @@ target_events:
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 1560
 falsification: "Falsified if the post-Bacon ordering shows Buffer Class benefits exceeding Elite benefits in any documented metric."
 ---
 

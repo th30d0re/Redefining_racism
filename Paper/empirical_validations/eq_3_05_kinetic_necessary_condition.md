@@ -8,8 +8,8 @@ statement: |
   M(t) < \tau \iff K_E + K_B > K_O
 type: quantitative
 tier: 1
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - "Bacon's Rebellion kinetics 1676"
@@ -19,8 +19,8 @@ data_sources:
   - {name: Morgan (1975) — American Slavery, American Freedom, type: "peer-reviewed", url: ""}
   - {name: Dubois (1935) — Black Reconstruction in America, type: "peer-reviewed", url: ""}
 difficulty: M
-notebook: "nb_ch03_eq05_kinetic_necessary_condition.ipynb"
-case_study_line: null
+notebook: "eq20_24_bacons_rebellion.ipynb"
+case_study_line: 1595
 falsification: Falsified if documented cases show Elite extraction maintained when K_E ≤ K_B + K_O in any sustained historical period.
 ---
 
