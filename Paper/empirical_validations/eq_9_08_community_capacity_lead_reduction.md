@@ -20,7 +20,7 @@ difficulty: M
 notebook: "Paper/scripts/eq_funding_propval_feedback.ipynb"
 data_file: "Paper/data/eq_funding_propval_feedback.csv"
 figure: "Paper/figures/eq_funding_propval_feedback.png"
-case_study_line: 6340
+case_study_line: 6337
 bib_keys: [aizer_currie, tel_gao, edbuild_23b]
 falsification: Falsified if community economic capacity is shown to be independent of school lead exposure after controlling for income.
 ---

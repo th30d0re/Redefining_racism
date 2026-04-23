@@ -23,7 +23,7 @@ difficulty: M
 notebook: "Paper/scripts/eq_funding_propval_feedback.ipynb"
 data_file: "Paper/data/eq_funding_propval_feedback.csv"
 figure: "Paper/figures/eq_funding_propval_feedback.png"
-case_study_line: 6340
+case_study_line: 6337
 bib_keys: [tel_gao, tel_dore, tel_nces, edbuild_23b]
 falsification: "Falsified if school infrastructure quality is shown to be unrelated to lead exposure rates in NCES or EPA school-building data."
 ---

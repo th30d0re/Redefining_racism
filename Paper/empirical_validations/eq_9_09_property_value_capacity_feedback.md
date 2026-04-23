@@ -22,7 +22,7 @@ difficulty: M
 notebook: "Paper/scripts/eq_funding_propval_feedback.ipynb"
 data_file: "Paper/data/eq_funding_propval_feedback.csv"
 figure: "Paper/figures/eq_funding_propval_feedback.png"
-case_study_line: 6340
+case_study_line: 6337
 bib_keys: [tel_nces, edbuild_23b, tel_gao, tel_dore, tel_asce, aizer_currie, san_antonio_v_rodriguez, mapping_inequality]
 falsification: Falsified if property values in subsequent periods are shown to be independent of community economic capacity in longitudinal housing data.
 ---

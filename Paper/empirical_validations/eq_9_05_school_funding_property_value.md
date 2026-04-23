@@ -21,7 +21,7 @@ difficulty: M
 notebook: "Paper/scripts/eq_funding_propval_feedback.ipynb"
 data_file: "Paper/data/eq_funding_propval_feedback.csv"
 figure: "Paper/figures/eq_funding_propval_feedback.png"
-case_study_line: 6340
+case_study_line: 6337
 bib_keys: [tel_nces, edbuild_23b, tel_gao, tel_dore, tel_asce, aizer_currie, san_antonio_v_rodriguez]
 falsification: Falsified if school funding is shown to be independent of property values in a national dataset controlling for state equalization formulas.
 ---
