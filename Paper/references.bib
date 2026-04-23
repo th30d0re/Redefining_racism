@@ -2759,6 +2759,14 @@
   year         = {1975},
 }
 
+@book{zinn1980,
+  author       = {Zinn, Howard},
+  title        = {A People's History of the United States},
+  publisher    = {Harper \& Row},
+  year         = {1980},
+  address      = {New York},
+}
+
 @misc{census_hist_stats,
   author       = {{U.S. Census Bureau}},
   title        = {Historical Statistics of the United States, Colonial Times to 1970},
@@ -3664,3 +3672,78 @@
   howpublished = {Department of State Historical Records},
   note         = {The September 1994 US military intervention in {Haiti} to restore President Jean-Bertrand Aristide following the 1991 military coup. The Clinton administration deployed 2 aircraft carriers, 20,000+ troops, and imposed a trade blockade before the military junta capitulated. This was the third major US military intervention in {Haiti} after 1915--1934 (US occupation) and the interwar period, and preceded the 2004 Aristide removal by a decade. The intervention restored Aristide, who was subsequently re-elected in 2001, won the reparations demand began in 2003, and was removed in 2004 under circumstances documented in \cite{nyt_aristide_coup_2022}. The sequence constitutes a documented cycle of {US}-imposed stability, {US}-tolerated reparations demand, and {US}-facilitated removal when the reparations demand threatened the financial-kernel architecture.},
 }
+
+% ============================================================
+% CS9 Spatial Confluence — New References
+% ============================================================
+
+@article{boutwell_lead_crime,
+  author       = {Boutwell, Brian B. and Barnes, J.C. and Beaver, Kevin M. and Haynes, Randi D. and Nedelec, Joseph L. and Gibson, Chris L.},
+  title        = {The Association Between Lead Exposure and Crime: A Systematic Review},
+  journal      = {PLOS ONE},
+  volume       = {11},
+  number       = {8},
+  pages        = {e0161528},
+  year         = {2016},
+  doi          = {10.1371/journal.pone.0161528},
+  note         = {Systematic review and meta-analysis of 15 studies on lead exposure and crime. Key findings for CS9: aggregate meta-analytic correlation $r = 0.31$ between blood lead levels and violent crime; spatial autocorrelation analysis of {St.\ Louis} data shows significant clustering of high-BLL and high-crime census tracts. Confirms that the lead-crime association exhibits spatial structure consistent with the $\Sigma_{\text{highway}}$ operator (eq.~\ref{eq:9.10-highway-lead-spatial-concentration}) --- the toxin is not randomly distributed but concentrates in predictable geographic patterns shaped by infrastructure and housing policy.},
+}
+
+@article{guinn_lead_bayesian,
+  author       = {Guinn, Caroline and Zahran, Sammy and Mielke, Howard W. and Gonzales, Chris R.},
+  title        = {Topsoil Lead Contamination and Violent Crime: A {Bayesian} Spatial Generalized Linear Mixed Model Analysis of {Jefferson County, Kentucky}},
+  journal      = {Environmental Research},
+  volume       = {248},
+  pages        = {118271},
+  year         = {2024},
+  doi          = {10.1016/j.envres.2024.118271},
+  note         = {Bayesian spatial generalized linear mixed model (SGLMM) analysis linking topsoil lead concentrations at the census-tract level to violent crime rates in {Jefferson County, KY} (Louisville), controlling for socioeconomic covariates. Posterior mean effect of a one-unit increase in log-topsoil-lead on log-violent-crime rate: $\beta = 0.41$ (95\% credible interval 0.29--0.53). The BYM2 spatial random effect captures residual clustering not explained by lead or demographics alone. Confirms CS9 methodology: tract-level spatial join of environmental toxin data and crime outcomes, with Bayesian uncertainty quantification. Jefferson County was not in HOLC mapping coverage, so HOLC grade is treated as a prior rather than an observed covariate in their model.},
+}
+
+@report{ppi_prison_origins,
+  author       = {{Prison Policy Initiative}},
+  title        = {Where People in Prison Come From: The Geography of Mass Incarceration},
+  institution  = {Prison Policy Initiative},
+  year         = {2020},
+  url          = {https://www.prisonpolicy.org/origin/},
+  urldate      = {2026-04-23},
+  note         = {State-by-state incarceration origin reports mapping where incarcerated people come from at the census-tract level (for states with sufficient data) or county level. Tract-level data available for {MD}, {MI}, and {DC}; county-level only for {TN} and {WI}. Used in CS9 as the incarceration extraction output variable: the rate at which each tract ``produces'' incarcerated people is operationalized as the PPI origin rate, which captures not merely who is arrested locally but who is actually removed from the community into the carceral system. The spatial concentration of origin tracts in HOLC-D zones confirms the carceral pipeline geography predicted by the framework.},
+}
+
+@online{mapping_inequality_dsl,
+  author       = {Nelson, Robert K. and Winling, LaDale and Marciano, Richard and Connolly, Nathan},
+  title        = {Mapping Inequality: Redlining in {New Deal} {America}},
+  year         = {2023},
+  url          = {https://dsl.richmond.edu/panorama/redlining/},
+  urldate      = {2026-04-23},
+  organization = {Digital Scholarship Lab, University of Richmond},
+  note         = {The authoritative digital archive of HOLC residential security maps (``redlining maps'') for 202 American cities, 1935--1940. Provides GeoJSON polygon files for each city's HOLC grade boundaries (A=Best, B=Still Desirable, C=Declining, D=Hazardous), used in CS9 as the primary spatial definition of the $P_{\text{redlining}}$ containment field. Identical base layer to Rothstein (2017) \cite{rothstein} spatial analysis. All HOLC polygon data in CS9 are downloaded from the DSL public API endpoint.},
+}
+
+@online{gva_methodology,
+  author       = {{Gun Violence Archive}},
+  title        = {Gun Violence Archive: Methodology and Data Collection},
+  year         = {2024},
+  url          = {https://www.gunviolencearchive.org/methodology},
+  urldate      = {2026-04-23},
+  note         = {Gun Violence Archive (GVA) collects incident-level firearm violence data from 7,500+ law enforcement, media, government, and commercial sources in near-real time. Coverage: all 50 states and DC, 2014--present. Variables include incident date, city/county, address, number killed, number injured, and geolocation coordinates. Used in CS9 as the primary firearm homicide density layer for the 2014--2024 window. GVA data for pre-2014 are not available; CDC WONDER county-level firearm mortality (1999--2013) is used as a fallback for the earlier window. Annual incident-level CSVs must be exported manually via the GVA query interface (data-gap limitation documented in CS9 notebook).},
+}
+
+@techreport{ejscreen_technical,
+  author       = {{U.S. Environmental Protection Agency}},
+  title        = {{EJScreen}: Environmental Justice Screening and Mapping Tool --- Technical Documentation},
+  institution  = {U.S. Environmental Protection Agency},
+  year         = {2023},
+  number       = {EPA/600/R-21/021},
+  url          = {https://www.epa.gov/ejscreen/ejscreen-technical-documentation},
+  urldate      = {2026-04-23},
+  note         = {Technical documentation for EJScreen 2023, the EPA's nationwide environmental justice screening tool at the census-tract level. Key indicators used in CS9: LDPNT (lead paint indicator --- percentage of housing units built before 1960, weighted by proximity to low-income populations), PTRAF (traffic proximity and volume --- daily traffic count at roads within 500m of each tract centroid, a proxy for the $\Sigma_{\text{highway}}$ atmospheric lead concentration operator). EJScreen 2023 covers all 50 states and territories; national CSV downloadable from the EPA FTP server at \url{https://gaftp.epa.gov/EJSCREEN/}.},
+}
+
+@unpublished{spatial_confluence_forthcoming,
+  author       = {Theodore, Emmanuel},
+  title        = {Spatial Confluence of Structural Racism: {HOLC} Redlining, Firearm Homicide, Lead Exposure, and Incarceration Origin Across Six {American} Cities},
+  year         = {2026},
+  note         = {Manuscript in preparation. Targets \textit{Environmental Research}, \textit{Social Science \& Medicine}, or \textit{PNAS Nexus}. Full pipeline at \texttt{Paper/scripts/eq47\_51\_spatial\_overlay.ipynb}; data at \texttt{Paper/data/spatial/}.},
+}
+

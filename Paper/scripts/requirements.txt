@@ -7,3 +7,20 @@ nbconvert
 pyyaml
 pdfplumber
 google-cloud-bigquery
+
+# Spatial packages (CS9 Spatial Confluence case study)
+# Full environment: conda env create -f Paper/scripts/spatial_env.yml
+# These are listed here for pip-based installs; conda is preferred for
+# geopandas/libpysal due to GDAL/GEOS binary dependencies.
+geopandas
+contextily
+folium
+libpysal
+esda
+spreg
+pyarrow
+requests
+tqdm
+shapely
+# osmnx and cenpy require conda-forge for reliable binary resolution:
+#   conda install -c conda-forge osmnx cenpy

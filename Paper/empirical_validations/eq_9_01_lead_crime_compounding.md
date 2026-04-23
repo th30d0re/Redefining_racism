@@ -34,6 +34,10 @@ falsification: "Falsified if Reyes (2007) blood-lead time-series fails to predic
 
 **Classification rationale**: Phase 3 headline — full quantitative case study target.
 
+**CS9 cross-reference**: This equation is also covered by the CS9 "Spatial Confluence" case study (`\label{cs:spatial_confluence}`, registry: `eq_9_10_highway_lead_spatial_concentration.md`). CS9 extends the aggregate lead-crime compounding analysis (CS7) to a tract-level four-layer spatial pipeline across six cities, adding Moran's I spatial autocorrelation, bivariate LISA cluster analysis, and SLM/SEM spatial regression. The CS7 notebook (`eq47_51_lead_crime.ipynb`) and figure (`eq47_51_lead_crime.png`) remain the primary empirical validation for this equation; CS9 provides the spatial disaggregation.
+
+**Standalone paper**: The CS9 analysis is developed as a standalone manuscript at `Paper/standalone/spatial_confluence_draft.md` (targeting *Environmental Research* / *Social Science & Medicine* / *PNAS Nexus*).
+
 **Next steps**:
 - [x] Verify LaTeX statement above matches manuscript
 - [x] Confirm target_events and data_sources
