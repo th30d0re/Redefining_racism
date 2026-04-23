@@ -8,14 +8,14 @@ statement: |
   S \in \{\text{partition},\text{integration},\text{direct repression},\text{externalization}\}
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: []
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 576
 falsification: "Falsified if a documented Elite extraction system used a strategy outside this four-element set."
 ---
 

@@ -8,14 +8,14 @@ statement: |
   \text{Individual Prejudice} \rightarrow \text{Discriminatory Actions} \rightarrow \text{Systemic Outcomes}
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: []
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 291
 falsification: Falsified if documented evidence shows individual prejudice predating Elite economic interest in any historical case.
 ---
 

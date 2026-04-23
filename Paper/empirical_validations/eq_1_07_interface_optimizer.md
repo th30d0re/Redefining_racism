@@ -8,7 +8,7 @@ statement: |
   S^\ast(t) = \arg\min_{S} \left[C_{\text{coercive}}(S,t) + C_{\text{legitimacy}}(S,t) + C_{\text{economic}}(S,t)\right]
 type: quantitative
 tier: 2
-status: pending
+status: complete
 existing_case_study: true
 phase3_headline: false
 target_events: 
@@ -19,7 +19,7 @@ data_sources:
   - {name: Alexander (2010) — The New Jim Crow, type: "peer-reviewed", url: ""}
 difficulty: M
 notebook: ""
-case_study_line: 555
+case_study_line: 608
 falsification: Falsified if a historical interface transition increased net cost C_total relative to available alternatives.
 ---
 

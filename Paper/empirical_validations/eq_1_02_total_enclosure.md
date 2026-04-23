@@ -8,7 +8,7 @@ statement: |
   \mathcal{S}_{\text{enc}}(O_{\text{racialized}}) = \frac{1}{3}(1+1+1) = 1.0 \quad \text{(Absolute Subjugation)}
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -16,7 +16,7 @@ target_events:
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 257
 falsification: "Falsified if a fully blocked population (e_1=e_2=e_3=1) achieves coordinated resistance without external support."
 ---
 

@@ -9,7 +9,7 @@ statement: |
   \Phi_{\text{load}}(t) = \operatorname{Dispersion}\!\left(\{\Phi_j\}_{j=1}^{N}\right) = 1 - \left|\frac{1}{N}\sum_{j=1}^{N} e^{i\Phi_j}\right| \in [0,1]
 type: quantitative
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -20,7 +20,7 @@ data_sources:
   - {name: Pew Research Political Polarization Series, type: "public-dataset", url: "https://www.pewresearch.org/politics/"}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 838
 falsification: "Falsified if survey-measured cross-group solidarity remains high when Φ_load is high in ANES or Pew polarization data."
 ---
 

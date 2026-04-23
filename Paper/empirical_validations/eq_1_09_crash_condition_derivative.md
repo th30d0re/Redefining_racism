@@ -8,7 +8,7 @@ statement: |
   \frac{dM}{dt} > \frac{d\Sigma_{\text{sup}}}{dt}
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -17,7 +17,7 @@ target_events:
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 710
 falsification: "Falsified if a crash event (Bacon's Rebellion, Haitian Revolution) occurs without dM/dt exceeding dΣ_sup/dt in the preceding period."
 ---
 

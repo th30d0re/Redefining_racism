@@ -8,7 +8,7 @@ statement: |
   M_{\text{eff}}(t) = M(t) - \lambda \Phi_{\text{load}}(t), \quad M_{\text{eff}}(t) > \tau
 type: quantitative
 tier: 2
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -18,7 +18,7 @@ data_sources:
   - {name: "ANES cross-racial coalition data 1948–2020", type: "public-dataset", url: "https://electionstudies.org/"}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 716
 falsification: "Falsified if a crash event occurs when M_eff(t) < τ, or if no crash occurs when M_eff(t) > τ persistently."
 ---
 

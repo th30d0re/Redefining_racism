@@ -8,7 +8,7 @@ statement: |
   \mathcal{S}_{\text{enc}} = \frac{1}{3}\sum_{i=1}^{3} e_i
 type: structural
 tier: 3
-status: pending
+status: complete
 existing_case_study: false
 phase3_headline: false
 target_events: 
@@ -16,7 +16,7 @@ target_events:
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 241
 falsification: "Falsified if a population with all three outlets blocked (e_i=1) shows sustained autonomous mobilization without external support."
 ---
 
