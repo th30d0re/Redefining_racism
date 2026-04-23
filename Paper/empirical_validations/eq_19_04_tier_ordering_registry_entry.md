@@ -15,7 +15,7 @@ target_events: []
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: 11696
+case_study_line: 11729
 falsification: "Redundant with eq:60; falsified if any tier ordering is reversed in comprehensive data."
 ---
 

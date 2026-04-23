@@ -8,8 +8,9 @@ statement: |
   \text{Benefit}(E) \gg \text{Benefit}(F_{\text{enforce}}) > \text{Benefit}(I_{\text{buffer}}) > \text{Benefit}(O_{\text{racialized}})
 type: ordinal
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
+case_study_title: "Police Killings and the Enforcement Benefit Hierarchy"
 phase3_headline: true
 target_events: 
   - Contemporary US income/wealth distribution 2000–2024
@@ -18,7 +19,7 @@ data_sources:
   - {name: BJS incarceration by race series, type: "public-dataset", url: "https://www.bjs.gov/"}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 2994
 falsification: Falsified if comprehensive wealth, health, or carceral data shows Benefit(I_buffer) exceeding Benefit(F_enforce) systematically.
 ---
 

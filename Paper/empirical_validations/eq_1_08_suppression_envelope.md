@@ -8,8 +8,9 @@ statement: |
   \Sigma_{\text{sup}}(t) = \psi_s(t) + \psi_m(t) + R(t) + \Phi_{\text{load}}(t)
 type: quantitative
 tier: 2
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
+case_study_title: "The Post-1965 Backlash Wave"
 phase3_headline: true
 target_events: 
   - "Post-1965 backlash wave — union density, wealth share, incarceration rate"
@@ -19,7 +20,7 @@ data_sources:
   - {name: "Saez-Zucman wealth concentration series", type: "peer-reviewed", url: "http://gabriel-zucman.eu/usdina/"}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 714
 falsification: Falsified if M(t) consistently exceeds Σ_sup(t) for extended periods without triggering a crash or interface swap.
 ---
 

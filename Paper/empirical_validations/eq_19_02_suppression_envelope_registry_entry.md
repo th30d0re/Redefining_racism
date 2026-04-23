@@ -15,7 +15,7 @@ target_events: []
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: 11688
+case_study_line: 11721
 falsification: "Redundant with eq:8 and eq:58; falsified by the same conditions as those equations."
 ---
 

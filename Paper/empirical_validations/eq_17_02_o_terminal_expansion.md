@@ -18,7 +18,7 @@ data_sources:
   - {name: Pew Research Center — US future demographics, type: "public-dataset", url: "https://www.pewresearch.org/"}
 difficulty: M
 notebook: ""
-case_study_line: 11553
+case_study_line: 11586
 falsification: Falsified if documented demographic trends show O contracting rather than expanding under current algorithmic operation.
 ---
 

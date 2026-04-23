@@ -8,8 +8,9 @@ statement: |
   \text{If} \quad (L_{white} + L_{black}) > E \quad \rightarrow \quad \text{Revolution}
 type: quantitative
 tier: 1
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
+case_study_title: "Bacon's Rebellion and the Coalition Arithmetic"
 phase3_headline: true
 target_events: 
   - "Bacon's Rebellion 1676"
@@ -20,7 +21,7 @@ data_sources:
   - {name: "Zinn (1980) — A People's History of the United States Ch. 3", type: "peer-reviewed", url: ""}
 difficulty: M
 notebook: "nb_ch03_eq01_bacon_solidarity_condition.ipynb"
-case_study_line: null
+case_study_line: 1580
 falsification: "Falsified if an antebellum cross-racial coalition reached M(t) > τ without subsequent Elite codification of racial partition."
 ---
 

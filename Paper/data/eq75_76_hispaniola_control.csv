@@ -1,0 +1,58 @@
+# eq75_76_hispaniola_control.csv — Hispaniola Natural Experiment: Colonial Intensity Control (1789–2023)
+# Equations: eq:12.7  I_colonial(c) := (slave_count / free_population) × extraction_duration_yrs
+#            eq:12.8  GDP_per_capita_2023(c) = α − β · I_colonial(c) + ε, β > 0
+#            eq:12.9  lim_{t→∞} O_degraded(Haiti,t) → failed-state equilibrium
+# Sources:
+#   - James, C.L.R. (1938). The Black Jacobins [cite: james_black_jacobins]
+#   - Dubois, L. (2004). Avengers of the New World [cite: dubois_avengers_new_world]
+#   - Geggus, D. (2014). The Haitian Revolution: A Documentary History [cite: geggus_haitian_revolution]
+#   - Moya Pons, F. (2010). The Dominican Republic: A National History [cite: moya_pons_dominican_republic]
+#   - NYT "The Ransom" investigation (May 2022) [cite: nyt_ransom_2022]
+#   - NYT "Demanding Reparations, and Ending Up in Exile" (May 2022) [cite: nyt_aristide_coup_2022]
+#   - World Bank WDI 2023 [cite: world_bank_wdi_2023]
+#   - FAO Global Forest Resources Assessment 2020 [cite: fao_fra_2020]
+#   - Fund for Peace Fragile States Index 2024 [cite: fund_for_peace_fsi_2024]
+#   - USGS Enriquillo-Plantain Garden fault [cite: usgs_enriquillo_fault]
+#   - ICG Haiti 2024 [cite: icg_haiti_gangs_2024]
+# Notes:
+#   - I_colonial computed as (slave_population / free_population) at key census year.
+#     Duration weighting: Haiti extraction period ~100yr (1697-1804); DR ~280yr (1496-1821)
+#     but with low intensity; intensity-adjusted I_colonial reflects slaves/free at 1789 peak.
+#   - GDP figures: colonial-era GDP are proxies for sugar/coffee export value (James 1938);
+#     modern figures from World Bank WDI current USD.
+#   - forest_cover_pct: 1923 from FAO historical reconstruction; 2020/2023 from FAO FRA 2020.
+#   - state_fragility_index: Fund for Peace FSI 2024 (scale 0–120, higher = more fragile).
+#   - foreign_intervention_active: 1 if foreign military/occupation present, 0 otherwise.
+#   - electricity_access_pct and poverty_pct_365_day: World Bank WDI 2021.
+territory,year,event_label,colonial_power,slave_population,free_population,cumulative_slaves_imported,extraction_duration_yrs,I_colonial,forest_cover_pct,gdp_nominal_billions_usd,gdp_per_capita_usd,electricity_access_pct,poverty_pct_365_day,state_fragility_index,foreign_intervention_active
+Haiti,1789,Pre-revolution peak census,France,500000,56000,800000,100,8.93,60.0,,,,,,1
+Dominican Republic,1789,Pre-independence census,Spain,30000,74000,30000,293,0.41,55.0,,,,,,0
+Haiti,1804,Independence declared,None,,,800000,,0.0,58.0,,,,,,0
+Dominican Republic,1821,First independence from Spain,None,,,30000,,0.0,54.0,,,,,,0
+Haiti,1825,French indemnity imposed at gunpoint,None,,,800000,,,57.0,,,,,,0
+Dominican Republic,1844,Independence from Haiti (second),None,,,30000,,,52.0,,,,,,0
+Haiti,1915,US invasion begins (Citibank lobbied),United States,,,800000,,,45.0,,,,,,1
+Dominican Republic,1916,US invasion begins,United States,,,30000,,,50.0,,,,,,1
+Haiti,1934,US occupation ends (19 years),None,,,800000,,,43.0,,,,,,0
+Dominican Republic,1924,US occupation ends (8 years),None,,,30000,,,50.0,,,,,,0
+Haiti,1947,Final double-debt payment to France/Citibank,None,,,,,,40.0,,,,,,0
+Haiti,1957,Duvalier dictatorship begins,None,,,800000,,,38.0,,,,,,0
+Dominican Republic,1930,Trujillo dictatorship begins,None,,,30000,,,49.0,,,,,,0
+Dominican Republic,1961,Trujillo assassinated,None,,,30000,,,48.0,,,,,,0
+Haiti,1980,Haiti GDP-per-capita all-time peak,None,,,800000,,,35.0,,0.84,,,0
+Dominican Republic,1966,DR elections; US withdraws,None,,,30000,,,47.0,,0.30,,,0
+Haiti,1986,Duvalier regime falls (29 years),None,,,800000,,,30.0,,0.78,,,0
+Haiti,1990,First free Haitian election; Aristide wins,None,,,800000,,,29.0,,0.77,,,0
+Haiti,1991,Military coup against Aristide (7 months in),None,,,800000,,,28.0,,0.78,,,0
+Haiti,1994,Operation Uphold Democracy restores Aristide,United States,,,800000,,,27.0,,0.71,,,1
+Dominican Republic,1996,DR free and fair elections,None,,,30000,,,46.0,,0.21,,,0
+Haiti,2001,Aristide re-elected,None,,,800000,,,26.0,,0.72,,,0
+Haiti,2003,Aristide demands $21B reparations from France,None,,,800000,,,25.0,,0.71,,,0
+Haiti,2004,Aristide coup; MINUSTAH arrives,United States,,,800000,,,24.0,,0.76,,,1
+Haiti,2010,M7.0 earthquake; 250k dead; cholera begins,None,,,800000,,,22.0,13.5,,0.60,,1
+Haiti,2016,Hurricane Matthew; Moïse elected,None,,,800000,,,21.0,,,,,1
+Haiti,2019,MINUSTAH withdraws after 15 years,None,,,800000,,,20.0,47.0,,0.58,,0
+Haiti,2021,Moïse assassinated; M7.2 earthquake; Henry in power,None,,,800000,,,19.0,47.0,,,99.0,0
+Dominican Republic,2022,Economy booming; 8.2M tourists,None,,,30000,,,43.0,98.0,,0.04,61.4,0
+Haiti,2023,90% of Port-au-Prince under gang control; Kenya-led MSS authorized,None,,,800000,,,18.0,1.66,47.0,0.58,0.58,99.0,1
+Dominican Republic,2023,DR constructs border wall; GDP per capita ~$10900,None,,,30000,,,43.0,10.90,98.0,,0.04,61.4,0

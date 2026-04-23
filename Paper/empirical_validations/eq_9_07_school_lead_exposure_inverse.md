@@ -17,7 +17,7 @@ target_events:
   - GAO-18-382 (2018) — 37% of tested schools found elevated lead
 data_sources: 
   - {name: EPA 3Ts for Reducing Lead in Drinking Water in Schools, type: "public-dataset", url: "https://www.epa.gov/ground-water-and-drinking-water/3ts-reducing-lead-drinking-water-schools"}
-  - {name: GAO-18-382 (2018) — K-12 Education: Lead Testing of School Drinking Water, type: "report", url: ""}
+  - {name: "GAO-18-382 (2018) — K-12 Education: Lead Testing of School Drinking Water", type: "report", url: ""}
   - {name: "Dore et al. (2019) — Sampling in Schools and Daycares to Assess Lead in Drinking Water", type: "peer-reviewed", url: ""}
 difficulty: M
 notebook: "Paper/scripts/eq_funding_propval_feedback.ipynb"

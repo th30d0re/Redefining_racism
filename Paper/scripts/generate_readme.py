@@ -27,6 +27,8 @@ README_PATH = VAL_DIR / "README.md"
 
 _FM_RE = re.compile(r'^---\s*\n(.*?)\n---\s*\n', re.DOTALL)
 
+_SEQ_RE = re.compile(r'^eq_\d+_(\d+)_')
+
 def load_md(path: Path) -> dict:
     text = path.read_text(encoding="utf-8")
     m = _FM_RE.match(text)
@@ -34,6 +36,11 @@ def load_md(path: Path) -> dict:
         raise ValueError(f"No YAML frontmatter in {path}")
     data = yaml.safe_load(m.group(1))
     data["_file"] = path.name
+    # Populate seq from filename if missing or null in YAML
+    if not data.get("seq"):
+        ms = _SEQ_RE.match(path.name)
+        if ms:
+            data["seq"] = int(ms.group(1))
     return data
 
 
@@ -90,14 +97,14 @@ def main() -> None:
 These {len(phase3)} equations are the single canonical headline equation per Phase 3 numbered group.
 Each represents a full quantitative or ordinal case study to be written as a
 `\\subsection*{{Case Study: …}}` block in the manuscript.
-Group 6 (Interference Engine, `eq:40`) is deferred to Phase 4.
+All 12 groups are now complete. Group 6 (Interference Engine, `eq:40`) was completed in T5/T6 via `Paper/scripts/eq40_45_interference_engine.ipynb`.
 
 | # | Label | File | Type | Tier | Difficulty | Existing CS |
 |---|-------|------|------|------|------------|-------------|
 """
 
     for idx, r in enumerate(phase3, 1):
-        cs = "✓" if r.get("existing_case_study") else ""
+        cs = "✓" if r.get("status") == "complete" else ""
         summary += (
             f"| {idx} | `{r['label']}` | `{r['_file']}` "
             f"| {short_type(r.get('type','?'))} "
@@ -111,7 +118,7 @@ Group 6 (Interference Engine, `eq:40`) is deferred to Phase 4.
     summary += "|----|-----|-------|------|------|------|------------|-------------|\n"
 
     for r in others:
-        cs = "✓" if r.get("existing_case_study") else ""
+        cs = "✓" if r.get("status") == "complete" else ""
         summary += (
             f"| {r.get('chapter','?')} "
             f"| {str(r.get('seq','?')).zfill(2)} "

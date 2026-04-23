@@ -17,8 +17,14 @@ usc-all: usc-snippets usc-diffs
 
 .PHONY: pdf empirical data-refresh companion index readme all clean
 
-pdf: empirical
+pdf: empirical scotus-audit
 	cd Paper && latexmk -pdf -interaction=nonstopmode Redefining_Racism.tex
+
+.PHONY: scotus-audit
+scotus-audit:
+	@echo "Running SCOTUS corpus audit..."
+	@python3 Paper/scripts/audit_scotus_corpus.py || true
+	@echo ""
 
 VENV          := .venv
 VENV_PYTHON   := $(VENV)/bin/python3

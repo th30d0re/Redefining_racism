@@ -15,7 +15,7 @@ target_events: []
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: 11498
+case_study_line: 11531
 falsification: "Falsified if documented cases of marginalized-group prejudice achieve systemic harm at rates comparable to Elite-backed prejudice without institutional support."
 ---
 

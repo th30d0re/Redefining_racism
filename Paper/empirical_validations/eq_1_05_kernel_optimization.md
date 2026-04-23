@@ -8,8 +8,9 @@ statement: |
   \max \mathcal{E}(t) \quad \text{subject to} \quad M(t) < \tau
 type: quantitative
 tier: 1
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
+case_study_title: "Kernel Optimization in the Antebellum South, 1840--1860"
 phase3_headline: true
 target_events: 
   - "Antebellum South 1840–1860 (cotton output vs. slave-rebellion suppression budget)"
@@ -19,7 +20,7 @@ data_sources:
   - {name: Gilens and Page (2014) — Testing Theories of American Politics, type: "peer-reviewed", url: "https://doi.org/10.1017/S1537592714001595"}
 difficulty: L
 notebook: "nb_ch01_eq05_kernel_optimization.ipynb"
-case_study_line: null
+case_study_line: 495
 falsification: "Falsified if a documented period shows sustained decline in Elite extraction share while M(t) < τ without kernel-level intervention."
 ---
 
