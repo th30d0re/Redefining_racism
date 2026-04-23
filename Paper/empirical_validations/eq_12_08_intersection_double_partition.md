@@ -8,15 +8,15 @@ statement: |
   O_{\text{racialized}} \cap O_{\text{gendered}}
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: []
 data_sources: 
   - {name: Crenshaw (1989) — Demarginalizing the Intersection of Race and Sex, type: "peer-reviewed", url: ""}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 9602
 falsification: Falsified if intersection O_racialized ∩ O_gendered does not show compounded extraction rates relative to either component alone.
 ---
 

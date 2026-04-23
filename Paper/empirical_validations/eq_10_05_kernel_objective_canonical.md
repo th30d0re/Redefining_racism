@@ -8,16 +8,18 @@ statement: |
   \max_{\{P_i\}}\; \mathcal{E}(t) \quad \text{subject to} \quad M_{\text{eff}}(t) < \tau
 type: quantitative
 tier: 1
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - "Post-Civil Rights Era 1965–2024"
+  - "Great Compression 1933–1978 (New Deal psi_m deployment)"
+  - "Post-1978 recovery to Gilded Age levels (Delta_max=0)"
 data_sources: 
   - {name: "Piketty-Saez-Zucman Distributional National Accounts", type: "peer-reviewed", url: "http://gabriel-zucman.eu/usdina/"}
 difficulty: L
-notebook: "nb_ch10_eq05_kernel_objective_canonical.ipynb"
-case_study_line: null
+notebook: "eq56_kernel_objective.ipynb"
+case_study_line: 7477
 falsification: "Falsified if a documented period shows sustained Elite wealth-share decline while M_eff(t) < τ without external kinetic intervention."
 ---
 

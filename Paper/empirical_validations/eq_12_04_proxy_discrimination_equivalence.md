@@ -8,8 +8,8 @@ statement: |
   |O_{\text{racialized}} \cap P_{\text{explicit}}| \approx |O_{\text{racialized}} \cap P_{\text{proxy}}|
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - War on Drugs racial disparities vs. Jim Crow explicit racial targeting
@@ -17,7 +17,7 @@ data_sources:
   - {name: Alexander (2010) — The New Jim Crow, type: "peer-reviewed", url: ""}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 9111
 falsification: Falsified if P_proxy achieves racial separation at rates significantly below P_explicit with similar enforcement investment.
 ---
 

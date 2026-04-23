@@ -8,8 +8,8 @@ statement: |
   \frac{dM}{dt} > \frac{d\Sigma_{\text{sup}}}{dt} \quad \Longleftrightarrow \quad M_{\text{eff}}(t) > \tau
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - "Bacon's Rebellion 1676"
@@ -17,7 +17,7 @@ target_events:
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 7319
 falsification: "Falsified if crash events occur in documented cases without M_eff(t) > τ."
 ---
 

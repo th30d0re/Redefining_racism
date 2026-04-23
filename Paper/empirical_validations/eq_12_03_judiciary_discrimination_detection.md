@@ -10,8 +10,8 @@ statement: |
   0 & \text{if } P \text{ uses proxy variable } x \text{ where } \operatorname{Corr}(x, \text{race}) \to 1
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - Washington v. Davis (1976) — intent standard
@@ -21,7 +21,7 @@ data_sources:
   - {name: McCleskey v. Kemp, 481 U.S. 279 (1987), type: "primary-source", url: ""}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 9071
 falsification: Falsified if judicial detection function produces false positives for proxy discrimination at rates comparable to explicit discrimination.
 ---
 

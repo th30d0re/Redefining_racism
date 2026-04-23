@@ -8,8 +8,8 @@ statement: |
   O_{\text{gendered}} = \{x \in \text{Population} \mid x \text{ is excluded from lethal autonomy on the basis of gender}\}
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - Coverture law period 1600–1920
@@ -17,7 +17,7 @@ target_events:
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 9597
 falsification: Falsified if O_gendered is shown to be structured differently from O_racialized in its extraction mechanics.
 ---
 

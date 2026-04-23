@@ -8,14 +8,14 @@ statement: |
   E \;\subset\; P_{\text{uppet}} \;\subset\; I_{\text{buffer}} \;\subset\; I, \qquad O_{\text{racialized}} \cap I = \emptyset
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: []
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 7303
 falsification: "Falsified if the five-tier hierarchy fails to map onto any contemporary national extraction system."
 ---
 

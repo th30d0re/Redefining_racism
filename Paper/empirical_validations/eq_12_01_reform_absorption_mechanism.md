@@ -8,8 +8,8 @@ statement: |
   \min(t+1) = \min(t) - \epsilon \cdot \Delta|O_{\text{racialized}} \cap P'|
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - Civil Rights Act 1964 — reduced min without touching max
@@ -18,7 +18,7 @@ data_sources:
   - {name: "Piketty-Saez top income share data", type: "peer-reviewed", url: "http://gabriel-zucman.eu/usdina/"}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 8859
 falsification: Falsified if a documented reform reduces Elite extraction share (max) rather than just reducing resistance pressure (min).
 ---
 

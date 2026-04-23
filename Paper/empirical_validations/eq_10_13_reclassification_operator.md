@@ -8,8 +8,8 @@ statement: |
   \mathcal{R}(x_i) =  I_{\text{buffer}} & \text{if } K(x_i) \leq K_{\text{tolerated}} \text{ and } \mathrm{comply}(x_i) = 1 \\ O_{\text{final}} & \text{if } K(x_i) > K_{\text{tolerated}} \text{ or } \mathrm{comply}(x_i) = 0
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - "Obama-era Black professional class reclassification"
@@ -17,7 +17,7 @@ target_events:
 data_sources: []
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 7734
 falsification: Falsified if the operator fails to predict observed ideological sorting in any documented historical reclassification case.
 ---
 

@@ -8,8 +8,8 @@ statement: |
   \text{Cost}(\text{Autonomy}) > \text{Capacity}(O_{\text{racialized}})
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - "Reagan-era income redistribution 1980–1990"
@@ -18,7 +18,7 @@ data_sources:
   - {name: "Saez-Zucman wealth share series", type: "peer-reviewed", url: "http://gabriel-zucman.eu/usdina/"}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 7153
 falsification: Falsified if documented Elite extraction rate increases without corresponding Buffer Class income decline in same period.
 ---
 

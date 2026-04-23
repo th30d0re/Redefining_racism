@@ -8,8 +8,8 @@ statement: |
   O_t^{\text{capacity}} = O_{t-1}^{\text{capacity}} \cdot (1 - \alpha_r P_t) \cdot (1 - \alpha_g P_t)
 type: quantitative
 tier: 2
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - "Black women's wage and wealth gap 2000–2024"
@@ -18,7 +18,7 @@ data_sources:
   - {name: Federal Reserve SCF wealth by race × gender, type: "public-dataset", url: "https://www.federalreserve.gov/econres/scfindex.htm"}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 9607
 falsification: "Falsified if Black women's wealth gap from white men is not multiplicatively larger than either racial or gender gap alone."
 ---
 

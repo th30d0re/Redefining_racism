@@ -8,8 +8,8 @@ statement: |
   O_{\text{racialized}} \subset O
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - Contemporary US population demographics 2000–2024
@@ -17,7 +17,7 @@ data_sources:
   - {name: US Census Bureau demographic data, type: "public-dataset", url: "https://www.census.gov/"}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 7051
 falsification: Falsified if O_racialized is shown to be coextensive with O rather than a strict subset in current demographic data.
 ---
 

@@ -8,14 +8,14 @@ statement: |
   \text{Dynamic Equivalent:} \quad \max \mathcal{E}(t) \quad \text{subject to} \quad M_{\text{eff}}(t)=M(t)-\lambda\Phi_{\text{load}}(t)<\tau
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: []
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 7405
 falsification: Falsified if system stability is maintained when extraction/resistance ratio is not optimized.
 ---
 

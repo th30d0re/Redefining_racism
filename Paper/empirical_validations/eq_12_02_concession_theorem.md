@@ -8,8 +8,8 @@ statement: |
   \text{Reform Rate}(t) \propto \frac{d(\min)}{dt} \quad \text{subject to} \quad \Delta\max = 0
 type: quantitative
 tier: 2
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - New Deal concessions 1930s (preceded by labor militancy)
@@ -18,7 +18,7 @@ data_sources:
   - {name: "Piven & Cloward (1977) — Poor People's Movements", type: "peer-reviewed", url: ""}
 difficulty: M
 notebook: ""
-case_study_line: null
+case_study_line: 8920
 falsification: "Falsified if Elite-initiated reforms consistently exceed the minimum required to prevent kinetic threshold breach."
 ---
 

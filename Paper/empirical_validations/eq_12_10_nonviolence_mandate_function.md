@@ -8,8 +8,8 @@ statement: |
   P_{\text{gaslight}}^{\text{nonviolence}}: \quad \text{Constrain}(O, I_{\text{buffer}}) \text{ to resistance modes where } \Delta\max = 0
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - Civil Rights nonviolence doctrine vs. kinetic threshold analysis
@@ -17,7 +17,7 @@ data_sources:
   - {name: "Carson (1981) — In Struggle: SNCC and the Black Awakening of the 1960s", type: "peer-reviewed", url: ""}
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 9709
 falsification: "Falsified if documented liberation movements adopting nonviolence achieve Δmax < 0 without external kinetic pressure."
 ---
 

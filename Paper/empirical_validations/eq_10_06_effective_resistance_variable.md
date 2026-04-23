@@ -8,14 +8,14 @@ statement: |
   M_{\text{eff}}(t) = M(t) - \lambda\,\Phi_{\text{load}}(t)
 type: structural
 tier: 3
-status: pending
-existing_case_study: false
+status: complete
+existing_case_study: true
 phase3_headline: false
 target_events: []
 data_sources: []
 difficulty: S
 notebook: ""
-case_study_line: null
+case_study_line: 7309
 falsification: "Falsified if M_eff fails to capture the difference between raw class coherence and interference-engine dampening in ANES data."
 ---
 
