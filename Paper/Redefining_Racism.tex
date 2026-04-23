@@ -4881,11 +4881,21 @@ Figure~\ref{fig:fractal-oscilloscope} now visualizes the full runtime sequence i
         name=plot1,
         title={[RUNTIME ERROR] Unmanaged State: carrier $f_{\text{class}}$ + single identity mode, constructive},
         xtick=\empty,
+        legend style={at={(0.98,0.08)}, anchor=south east, font=\scriptsize, fill=white, fill opacity=0.85, draw=black!30, text opacity=1},
     ]
         \addplot[dashed, thick, red!80!black, domain=0:15] {1.4};
         \addplot[dashed, thick, red!80!black, domain=0:15] {-1.4};
         \addplot[very thick, red!90!black, samples=260, domain=0:15] {1.0*sin(deg(0.6*x)) + 0.9*sin(deg(0.6*x))};
         \node[anchor=south, font=\scriptsize, text=red!90!black] at (axis cs:7.85, 1.4) {\textbf{$P_{\text{class}}$ BAND BREACHES $\tau$}};
+        % Legend entries placed here so the box lives inside panel 1 (bottom-right)
+        \addlegendimage{thick, black!55}
+        \addlegendentry{carrier $f_{\text{class}}$}
+        \addlegendimage{thick, blue!70}
+        \addlegendentry{$f_{\text{race}}$ (race)}
+        \addlegendimage{thick, orange!80!black}
+        \addlegendentry{$f_{\text{gender}}$ (gender)}
+        \addlegendimage{thick, purple!70}
+        \addlegendentry{$f_{\text{religion}}$ (religion)}
     \end{axis}
 
     % PANEL 2: THE MECHANISM (Spectral Injection) --- distinct f_k across axes
@@ -4896,19 +4906,12 @@ Figure~\ref{fig:fractal-oscilloscope} now visualizes the full runtime sequence i
         yshift=-0.85cm,
         title={[EXECUTE: v5.1] Spectral Injection: distinct axis frequencies $\{f_k\}$},
         xtick=\empty,
+        legend style={draw=none},
     ]
         \addplot[thick, black!55, samples=260, domain=0:15] {0.55*sin(deg(0.6*x))};
-        \addlegendentry{carrier $f_{\text{class}}$}
-
         \addplot[thick, blue!70, samples=260, domain=0:15] {0.45*sin(deg(2.0*x) + 30)};
-        \addlegendentry{$f_{\text{race}}$ (race)}
-
         \addplot[thick, orange!80!black, samples=260, domain=0:15] {0.40*sin(deg(2.7*x) + 110)};
-        \addlegendentry{$f_{\text{gender}}$ (gender)}
-
         \addplot[thick, purple!70, samples=260, domain=0:15] {0.35*sin(deg(3.5*x) + 200)};
-        \addlegendentry{$f_{\text{religion}}$ (religion)}
-
         \addplot[dashed, thick, red!80!black, domain=0:15] {1.4};
         \addplot[dashed, thick, red!80!black, domain=0:15] {-1.4};
     \end{axis}
