@@ -21,7 +21,7 @@ difficulty: M
 notebook: "Paper/scripts/eq47_51_lead_crime.ipynb"
 data_file: "Paper/data/eq47_51_lead_crime_reyes.csv, Paper/data/eq47_51_lead_crime_aizer.csv, Paper/data/eq47_51_lead_crime_highway.csv"
 figure: "Paper/figures/eq47_51_lead_crime.png"
-case_study_line: 5744
+case_study_line: 6344
 bib_keys: [reyes2007, aizer_currie, rothstein, mapping_inequality]
 falsification: "Falsified if spatial concentration of automotive lead is not correlated with highway placement in redlined vs. non-redlined areas."
 ---

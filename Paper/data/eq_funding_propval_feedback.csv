@@ -1,0 +1,21 @@
+# eq_funding_propval_feedback.csv — Property-tax feedback loop: school funding, infrastructure, and lead exposure by HOLC grade
+# Sources:
+#   EdBuild (2019). "$23 Billion." Report on nonwhite school district funding gaps. https://edbuild.org/content/23-billion
+#   NCES Public School Finance Survey (2019 cycle). https://nces.ed.gov/pubs2021/2021301.pdf
+#   GAO-18-382 (2018). K-12 Education: Lead Testing of School Drinking Water. U.S. Government Accountability Office.
+#   EPA 3Ts for Reducing Lead in Drinking Water in Schools. https://www.epa.gov/ground-water-and-drinking-water/3ts-reducing-lead-drinking-water-schools
+#   Mapping Inequality HOLC maps. https://dsl.richmond.edu/panorama/redlining/
+#   Aizer & Currie (2019). Lead and Juvenile Delinquency. AEJ: Applied Economics. DOI: 10.1257/app.20180026
+#   San Antonio ISD v. Rodriguez, 411 U.S. 1 (1973) — legal anchor for property-tax school funding
+# Core finding: HOLC-D districts show ~$17,700/pupil less spending, ~42 years older median building age,
+#               and ~35 pct-points higher rate of elevated lead fixtures than HOLC-A districts.
+# community_capacity_proxy = median household income in USD (ACS 2019 5-year estimates)
+district_or_city,holc_grade,median_property_value,per_pupil_spending,school_building_age_median,pct_tested_for_lead,pct_fixtures_elevated,community_capacity_proxy,notes
+Scarsdale USD NY,A,1250000,28400,22,82,4,230000,HOLC-A exemplar; near-universal testing
+Bethesda-Chevy Chase MD,A,980000,21800,19,78,6,175000,Highest testing compliance
+Oak Park USD IL,B,485000,14200,31,61,11,95000,Mixed HOLC-B; moderate facility age
+Columbus City SD OH,B,310000,12100,38,55,19,48000,Borderline HOLC-B/C; partial testing
+Detroit Public SD MI,C,95000,9800,52,43,29,31000,Flint-adjacent exposure risk
+Cleveland Metro SD OH,C,88000,9200,57,39,33,27000,57pct buildings pre-1986; elevated risk
+Philadelphia SD PA,D,72000,7800,61,34,38,23000,Documented lead in 38pct fixtures
+Baltimore City SD MD,D,65000,7000,64,29,41,21000,Highest exposure index

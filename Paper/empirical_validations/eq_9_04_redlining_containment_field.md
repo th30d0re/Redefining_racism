@@ -21,7 +21,7 @@ difficulty: M
 notebook: "Paper/scripts/eq47_51_lead_crime.ipynb"
 data_file: "Paper/data/eq47_51_lead_crime_reyes.csv, Paper/data/eq47_51_lead_crime_aizer.csv, Paper/data/eq47_51_lead_crime_highway.csv"
 figure: "Paper/figures/eq47_51_lead_crime.png"
-case_study_line: 5744
+case_study_line: 6344
 bib_keys: [reyes2007, aizer_currie, rothstein, mapping_inequality]
 falsification: "Falsified if HOLC map grades show no statistically significant correlation with lead exposure levels in matched same-city tract comparison."
 ---
@@ -35,8 +35,8 @@ falsification: "Falsified if HOLC map grades show no statistically significant c
 **Classification rationale**: Type=quantitative, Tier=1 assigned based on mathematical structure and data availability.
 
 **Next steps**:
-- [ ] Verify LaTeX statement above matches manuscript
-- [ ] Confirm target_events and data_sources
-- [ ] Write falsification criterion (if placeholder)
-- [ ] Set `status: in_progress` when case study work begins
-- [ ] Set `status: complete` and populate `case_study_line` when done
+- [x] Verify LaTeX statement above matches manuscript
+- [x] Confirm target_events and data_sources
+- [x] Write falsification criterion (if placeholder)
+- [x] Set `status: in_progress` when case study work begins
+- [x] Set `status: complete` and populate `case_study_line` when done
