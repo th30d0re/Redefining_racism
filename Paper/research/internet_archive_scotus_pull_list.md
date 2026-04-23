@@ -296,7 +296,7 @@ Each of these is a documented kernel patch in the manuscript's formal timeline:
 | Cluster 12: Affirmative Action | 4 |
 | Cluster 13: 2nd Amendment | 3 |
 | Cluster 14: Commerce Clause / Labor | 2 |
-| **Total** | **58 cases** |
+| **Total** | **57 cases** |
 
 ---
 

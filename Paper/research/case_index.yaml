@@ -1,0 +1,1320 @@
+# SCOTUS Case Index — single source of truth for the corpus
+# Generated: 2026-04-23
+# Format: cite_key → slug → pdf_path → md_path → cluster → chapters_cited_in → cited_count
+
+cases:
+  - case: "Abbott v. Perez"
+    year: 2018
+    slug: abbott_v_perez_2018
+    tier: baseline
+    cluster: voting_rights
+    chapters: ['ch7']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/abbott_v_perez_2018.pdf
+    md_path: Paper/research/markdown_cases/abbott_v_perez_2018.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Atwater v. City of Lago Vista"
+    year: 2001
+    slug: atwater_v_city_of_lago_vista_2001
+    tier: baseline
+    cluster: carceral_enforcement
+    chapters: ['ch6', 'ch9']
+    cite_keys: ['atwater']
+    cited_count: 1
+    pdf_path: Paper/research/ia_scotus_pdfs/atwater_v_city_of_lago_vista_2001.pdf
+    md_path: Paper/research/markdown_cases/atwater_v_city_of_lago_vista_2001.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Bailey v. Alabama"
+    year: 1911
+    slug: bailey_v_alabama_1911
+    tier: baseline
+    cluster: peonage_13th
+    chapters: ['ch6']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/bailey_v_alabama_1911.pdf
+    md_path: Paper/research/markdown_cases/bailey_v_alabama_1911.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Batson v. Kentucky"
+    year: 1986
+    slug: batson_v_kentucky_1986
+    tier: baseline
+    cluster: jury_selection
+    chapters: ['ch9']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/batson_v_kentucky_1986.pdf
+    md_path: Paper/research/markdown_cases/batson_v_kentucky_1986.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Brown v. Board of Education"
+    year: 1954
+    slug: brown_v_board_of_education_1954
+    tier: baseline
+    cluster: naacp_brown
+    chapters: ['ch8']
+    cite_keys: ['brown_v_board_record_1951']
+    cited_count: 1
+    pdf_path: Paper/research/ia_scotus_pdfs/brown_v_board_of_education_1954.pdf
+    md_path: Paper/research/markdown_cases/brown_v_board_of_education_1954.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Buck v. Bell"
+    year: 1927
+    slug: buck_v_bell_1927
+    tier: baseline
+    cluster: eugenics
+    chapters: ['ch4']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/buck_v_bell_1927.pdf
+    md_path: Paper/research/markdown_cases/buck_v_bell_1927.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Buckley v. Valeo"
+    year: 1976
+    slug: buckley_v_valeo_1976
+    tier: baseline
+    cluster: campaign_finance
+    chapters: ['ch7']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/buckley_v_valeo_1976.pdf
+    md_path: Paper/research/markdown_cases/buckley_v_valeo_1976.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Caetano v. Massachusetts"
+    year: 2016
+    slug: caetano_v_massachusetts_2016
+    tier: baseline
+    cluster: second_amendment
+    chapters: ['ch10']
+    cite_keys: ['caetano']
+    cited_count: 2
+    pdf_path: Paper/research/ia_scotus_pdfs/caetano_v_massachusetts_2016.pdf
+    md_path: Paper/research/markdown_cases/caetano_v_massachusetts_2016.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Citizens United v. FEC"
+    year: 2010
+    slug: citizens_united_v_fec_2010
+    tier: baseline
+    cluster: campaign_finance
+    chapters: ['ch7']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/citizens_united_v_fec_2010.pdf
+    md_path: Paper/research/markdown_cases/citizens_united_v_fec_2010.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Civil Rights Cases"
+    year: 1883
+    slug: civil_rights_cases_1883
+    tier: baseline
+    cluster: reconstruction_amendments
+    chapters: ['ch5', 'ch6']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/civil_rights_cases_1883.pdf
+    md_path: Paper/research/markdown_cases/civil_rights_cases_1883.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Cooper v. Aaron"
+    year: 1958
+    slug: cooper_v_aaron_1958
+    tier: baseline
+    cluster: naacp_brown
+    chapters: ['ch8']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/cooper_v_aaron_1958.pdf
+    md_path: Paper/research/markdown_cases/cooper_v_aaron_1958.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Crawford v. Marion County Election Board"
+    year: 2008
+    slug: crawford_v_marion_county_election_board_2008
+    tier: baseline
+    cluster: voting_rights
+    chapters: ['ch7']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/crawford_v_marion_county_election_board_2008.pdf
+    md_path: Paper/research/markdown_cases/crawford_v_marion_county_election_board_2008.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "District of Columbia v. Heller"
+    year: 2008
+    slug: district_of_columbia_v_heller_2008
+    tier: baseline
+    cluster: second_amendment
+    chapters: ['ch10']
+    cite_keys: ['heller']
+    cited_count: 5
+    pdf_path: Paper/research/ia_scotus_pdfs/district_of_columbia_v_heller_2008.pdf
+    md_path: Paper/research/markdown_cases/district_of_columbia_v_heller_2008.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Fisher v. University of Texas"
+    year: 2016
+    slug: fisher_v_university_of_texas_2016
+    tier: baseline
+    cluster: affirmative_action
+    chapters: ['ch11']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/fisher_v_university_of_texas_2016.pdf
+    md_path: Paper/research/markdown_cases/fisher_v_university_of_texas_2016.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Foster v. Chatman"
+    year: 2016
+    slug: foster_v_chatman_2016
+    tier: baseline
+    cluster: jury_selection
+    chapters: ['ch9']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/foster_v_chatman_2016.pdf
+    md_path: Paper/research/markdown_cases/foster_v_chatman_2016.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Green v. County School Board"
+    year: 1968
+    slug: green_v_county_school_board_1968
+    tier: baseline
+    cluster: naacp_brown
+    chapters: ['ch8']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/green_v_county_school_board_1968.pdf
+    md_path: Paper/research/markdown_cases/green_v_county_school_board_1968.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Grovey v. Townsend"
+    year: 1935
+    slug: grovey_v_townsend_1935
+    tier: baseline
+    cluster: white_primaries
+    chapters: ['ch7']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/grovey_v_townsend_1935.pdf
+    md_path: Paper/research/markdown_cases/grovey_v_townsend_1935.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Grutter v. Bollinger"
+    year: 2003
+    slug: grutter_v_bollinger_2003
+    tier: baseline
+    cluster: affirmative_action
+    chapters: ['ch11']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/grutter_v_bollinger_2003.pdf
+    md_path: Paper/research/markdown_cases/grutter_v_bollinger_2003.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Harmelin v. Michigan"
+    year: 1991
+    slug: harmelin_v_michigan_1991
+    tier: baseline
+    cluster: carceral_enforcement
+    chapters: ['ch9']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/harmelin_v_michigan_1991.pdf
+    md_path: Paper/research/markdown_cases/harmelin_v_michigan_1991.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Harper v. Virginia State Board of Elections"
+    year: 1966
+    slug: harper_v_virginia_state_board_of_elections_1966
+    tier: baseline
+    cluster: voting_rights
+    chapters: ['ch7']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/harper_v_virginia_state_board_of_elections_1966.pdf
+    md_path: Paper/research/markdown_cases/harper_v_virginia_state_board_of_elections_1966.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Hudson v. Michigan"
+    year: 2006
+    slug: hudson_v_michigan_2006
+    tier: baseline
+    cluster: carceral_enforcement
+    chapters: ['ch9']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/hudson_v_michigan_2006.pdf
+    md_path: Paper/research/markdown_cases/hudson_v_michigan_2006.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Jones v. Alfred H. Mayer Co."
+    year: 1968
+    slug: jones_v_alfred_h_mayer_co_1968
+    tier: baseline
+    cluster: spatial_containment
+    chapters: ['ch6']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/jones_v_alfred_h_mayer_co_1968.pdf
+    md_path: Paper/research/markdown_cases/jones_v_alfred_h_mayer_co_1968.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Korematsu v. United States"
+    year: 1944
+    slug: korematsu_v_united_states_1944
+    tier: baseline
+    cluster: racial_classification
+    chapters: ['ch5']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/korematsu_v_united_states_1944.pdf
+    md_path: Paper/research/markdown_cases/korematsu_v_united_states_1944.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "McCleskey v. Kemp"
+    year: 1987
+    slug: mccleskey_v_kemp_1987
+    tier: baseline
+    cluster: carceral_enforcement
+    chapters: ['ch9']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/mccleskey_v_kemp_1987.pdf
+    md_path: Paper/research/markdown_cases/mccleskey_v_kemp_1987.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "McCutcheon v. FEC"
+    year: 2014
+    slug: mccutcheon_v_fec_2014
+    tier: baseline
+    cluster: campaign_finance
+    chapters: ['ch7']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/mccutcheon_v_fec_2014.pdf
+    md_path: Paper/research/markdown_cases/mccutcheon_v_fec_2014.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "McDonald v. City of Chicago"
+    year: 2010
+    slug: mcdonald_v_city_of_chicago_2010
+    tier: baseline
+    cluster: second_amendment
+    chapters: ['ch10']
+    cite_keys: ['mcdonald']
+    cited_count: 2
+    pdf_path: Paper/research/ia_scotus_pdfs/mcdonald_v_city_of_chicago_2010.pdf
+    md_path: Paper/research/markdown_cases/mcdonald_v_city_of_chicago_2010.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "McLaurin v. Oklahoma State Regents"
+    year: 1950
+    slug: mclaurin_v_oklahoma_state_regents_1950
+    tier: baseline
+    cluster: naacp_brown
+    chapters: ['ch8']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/mclaurin_v_oklahoma_state_regents_1950.pdf
+    md_path: Paper/research/markdown_cases/mclaurin_v_oklahoma_state_regents_1950.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Milliken v. Bradley"
+    year: 1974
+    slug: milliken_v_bradley_1974
+    tier: baseline
+    cluster: spatial_containment
+    chapters: ['ch6']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/milliken_v_bradley_1974.pdf
+    md_path: Paper/research/markdown_cases/milliken_v_bradley_1974.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Moore v. Dempsey"
+    year: 1923
+    slug: moore_v_dempsey_1923
+    tier: baseline
+    cluster: peonage_13th
+    chapters: ['ch6']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/moore_v_dempsey_1923.pdf
+    md_path: Paper/research/markdown_cases/moore_v_dempsey_1923.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "NFIB v. Sebelius"
+    year: 2012
+    slug: nfib_v_sebelius_2012
+    tier: baseline
+    cluster: commerce_clause
+    chapters: ['ch9']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/nfib_v_sebelius_2012.pdf
+    md_path: Paper/research/markdown_cases/nfib_v_sebelius_2012.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Nixon v. Condon"
+    year: 1932
+    slug: nixon_v_condon_1932
+    tier: baseline
+    cluster: white_primaries
+    chapters: ['ch7']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/nixon_v_condon_1932.pdf
+    md_path: Paper/research/markdown_cases/nixon_v_condon_1932.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Nixon v. Herndon"
+    year: 1927
+    slug: nixon_v_herndon_1927
+    tier: baseline
+    cluster: white_primaries
+    chapters: ['ch7']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/nixon_v_herndon_1927.pdf
+    md_path: Paper/research/markdown_cases/nixon_v_herndon_1927.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "NLRB v. Jones & Laughlin Steel"
+    year: 1937
+    slug: nlrb_v_jones_laughlin_steel_1937
+    tier: baseline
+    cluster: commerce_clause
+    chapters: ['ch9']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/nlrb_v_jones_laughlin_steel_1937.pdf
+    md_path: Paper/research/markdown_cases/nlrb_v_jones_laughlin_steel_1937.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Ozawa v. United States"
+    year: 1922
+    slug: ozawa_v_united_states_1922
+    tier: baseline
+    cluster: racial_classification
+    chapters: ['ch1', 'ch2']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/ozawa_v_united_states_1922.pdf
+    md_path: Paper/research/markdown_cases/ozawa_v_united_states_1922.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Parents Involved v. Seattle"
+    year: 2007
+    slug: parents_involved_v_seattle_2007
+    tier: baseline
+    cluster: affirmative_action
+    chapters: ['ch11']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/parents_involved_v_seattle_2007.pdf
+    md_path: Paper/research/markdown_cases/parents_involved_v_seattle_2007.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Plessy v. Ferguson"
+    year: 1896
+    slug: plessy_v_ferguson_1896
+    tier: baseline
+    cluster: reconstruction_amendments
+    chapters: ['ch5']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/plessy_v_ferguson_1896.pdf
+    md_path: Paper/research/markdown_cases/plessy_v_ferguson_1896.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Purkett v. Elem"
+    year: 1995
+    slug: purkett_v_elem_1995
+    tier: baseline
+    cluster: jury_selection
+    chapters: ['ch9']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/purkett_v_elem_1995.pdf
+    md_path: Paper/research/markdown_cases/purkett_v_elem_1995.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Regents of University of California v. Bakke"
+    year: 1978
+    slug: regents_of_university_of_california_v_bakke_1978
+    tier: baseline
+    cluster: affirmative_action
+    chapters: ['ch11']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/regents_of_university_of_california_v_bakke_1978.pdf
+    md_path: Paper/research/markdown_cases/regents_of_university_of_california_v_bakke_1978.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "San Antonio ISD v. Rodriguez"
+    year: 1973
+    slug: san_antonio_isd_v_rodriguez_1973
+    tier: baseline
+    cluster: spatial_containment
+    chapters: ['ch6']
+    cite_keys: ['san_antonio_v_rodriguez']
+    cited_count: 1
+    pdf_path: Paper/research/ia_scotus_pdfs/san_antonio_isd_v_rodriguez_1973.pdf
+    md_path: Paper/research/markdown_cases/san_antonio_isd_v_rodriguez_1973.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Shelby County v. Holder"
+    year: 2013
+    slug: shelby_county_v_holder_2013
+    tier: baseline
+    cluster: voting_rights
+    chapters: ['ch7']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/shelby_county_v_holder_2013.pdf
+    md_path: Paper/research/markdown_cases/shelby_county_v_holder_2013.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Shelley v. Kraemer"
+    year: 1948
+    slug: shelley_v_kraemer_1948
+    tier: baseline
+    cluster: spatial_containment
+    chapters: ['ch6']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/shelley_v_kraemer_1948.pdf
+    md_path: Paper/research/markdown_cases/shelley_v_kraemer_1948.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Skinner v. Oklahoma"
+    year: 1942
+    slug: skinner_v_oklahoma_1942
+    tier: baseline
+    cluster: eugenics
+    chapters: ['ch4']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/skinner_v_oklahoma_1942.pdf
+    md_path: Paper/research/markdown_cases/skinner_v_oklahoma_1942.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Slaughterhouse Cases"
+    year: 1873
+    slug: slaughterhouse_cases_1873
+    tier: baseline
+    cluster: reconstruction_amendments
+    chapters: ['ch5', 'ch6']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/slaughterhouse_cases_1873.pdf
+    md_path: Paper/research/markdown_cases/slaughterhouse_cases_1873.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Smith v. Allwright"
+    year: 1944
+    slug: smith_v_allwright_1944
+    tier: baseline
+    cluster: white_primaries
+    chapters: ['ch7']
+    cite_keys: ['smith_v_allwright']
+    cited_count: 2
+    pdf_path: Paper/research/ia_scotus_pdfs/smith_v_allwright_1944.pdf
+    md_path: Paper/research/markdown_cases/smith_v_allwright_1944.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "South Carolina v. Katzenbach"
+    year: 1966
+    slug: south_carolina_v_katzenbach_1966
+    tier: baseline
+    cluster: voting_rights
+    chapters: ['ch7']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/south_carolina_v_katzenbach_1966.pdf
+    md_path: Paper/research/markdown_cases/south_carolina_v_katzenbach_1966.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Strauder v. West Virginia"
+    year: 1880
+    slug: strauder_v_west_virginia_1880
+    tier: baseline
+    cluster: jury_selection
+    chapters: ['ch9']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/strauder_v_west_virginia_1880.pdf
+    md_path: Paper/research/markdown_cases/strauder_v_west_virginia_1880.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Swann v. Charlotte-Mecklenburg"
+    year: 1971
+    slug: swann_v_charlotte_mecklenburg_1971
+    tier: baseline
+    cluster: spatial_containment
+    chapters: ['ch6']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/swann_v_charlotte_mecklenburg_1971.pdf
+    md_path: Paper/research/markdown_cases/swann_v_charlotte_mecklenburg_1971.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Sweatt v. Painter"
+    year: 1950
+    slug: sweatt_v_painter_1950
+    tier: baseline
+    cluster: naacp_brown
+    chapters: ['ch8']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/sweatt_v_painter_1950.pdf
+    md_path: Paper/research/markdown_cases/sweatt_v_painter_1950.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Terry v. Ohio"
+    year: 1968
+    slug: terry_v_ohio_1968
+    tier: baseline
+    cluster: carceral_enforcement
+    chapters: ['ch9']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/terry_v_ohio_1968.pdf
+    md_path: Paper/research/markdown_cases/terry_v_ohio_1968.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "United States v. Armstrong"
+    year: 1996
+    slug: united_states_v_armstrong_1996
+    tier: baseline
+    cluster: carceral_enforcement
+    chapters: ['ch9']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/united_states_v_armstrong_1996.pdf
+    md_path: Paper/research/markdown_cases/united_states_v_armstrong_1996.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "United States v. Bhagat Singh Thind"
+    year: 1923
+    slug: united_states_v_bhagat_singh_thind_1923
+    tier: baseline
+    cluster: racial_classification
+    chapters: ['ch1', 'ch2']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/united_states_v_bhagat_singh_thind_1923.pdf
+    md_path: Paper/research/markdown_cases/united_states_v_bhagat_singh_thind_1923.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "United States v. Cruikshank"
+    year: 1876
+    slug: united_states_v_cruikshank_1876
+    tier: baseline
+    cluster: reconstruction_amendments
+    chapters: ['ch5', 'ch6']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/united_states_v_cruikshank_1876.pdf
+    md_path: Paper/research/markdown_cases/united_states_v_cruikshank_1876.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "United States v. Reese"
+    year: 1876
+    slug: united_states_v_reese_1876
+    tier: baseline
+    cluster: reconstruction_amendments
+    chapters: ['ch5']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/united_states_v_reese_1876.pdf
+    md_path: Paper/research/markdown_cases/united_states_v_reese_1876.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "United States v. Reynolds"
+    year: 1914
+    slug: united_states_v_reynolds_1914
+    tier: baseline
+    cluster: peonage_13th
+    chapters: ['ch6']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/united_states_v_reynolds_1914.pdf
+    md_path: Paper/research/markdown_cases/united_states_v_reynolds_1914.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Utah v. Strieff"
+    year: 2016
+    slug: utah_v_strieff_2016
+    tier: baseline
+    cluster: carceral_enforcement
+    chapters: ['ch9']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/utah_v_strieff_2016.pdf
+    md_path: Paper/research/markdown_cases/utah_v_strieff_2016.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Williams v. Mississippi"
+    year: 1898
+    slug: williams_v_mississippi_1898
+    tier: baseline
+    cluster: reconstruction_amendments
+    chapters: ['ch5']
+    cite_keys: ['williams_v_miss']
+    cited_count: 3
+    pdf_path: Paper/research/ia_scotus_pdfs/williams_v_mississippi_1898.pdf
+    md_path: Paper/research/markdown_cases/williams_v_mississippi_1898.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Yick Wo v. Hopkins"
+    year: 1886
+    slug: yick_wo_v_hopkins_1886
+    tier: baseline
+    cluster: reconstruction_amendments
+    chapters: ['ch5']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/yick_wo_v_hopkins_1886.pdf
+    md_path: Paper/research/markdown_cases/yick_wo_v_hopkins_1886.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Dred Scott v. Sandford"
+    year: 1857
+    slug: dred_scott_v_sandford_1857
+    tier: 1
+    cluster: racial_classification
+    chapters: ['ch1', 'ch2', 'ch10']
+    cite_keys: ['dredscott', 'fehrenbacher']
+    cited_count: 2
+    pdf_path: Paper/research/ia_scotus_pdfs/dred_scott_v_sandford_1857.pdf
+    md_path: Paper/research/markdown_cases/dred_scott_v_sandford_1857.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Loving v. Virginia"
+    year: 1967
+    slug: loving_v_virginia_1967
+    tier: 1
+    cluster: reconstruction_amendments
+    chapters: ['ch3']
+    cite_keys: ['loving_v_virginia_record_1967', 'bazile_opinion_1965']
+    cited_count: 3
+    pdf_path: Paper/research/ia_scotus_pdfs/loving_v_virginia_1967.pdf
+    md_path: Paper/research/markdown_cases/loving_v_virginia_1967.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "DeShaney v. Winnebago County"
+    year: 1989
+    slug: deshaney_v_winnebago_county_1989
+    tier: 1
+    cluster: carceral_enforcement
+    chapters: ['ch6', 'ch10', 'ch13']
+    cite_keys: ['deshaney']
+    cited_count: 1
+    pdf_path: Paper/research/ia_scotus_pdfs/deshaney_v_winnebago_county_1989.pdf
+    md_path: Paper/research/markdown_cases/deshaney_v_winnebago_county_1989.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Town of Castle Rock v. Gonzales"
+    year: 2005
+    slug: town_of_castle_rock_v_gonzales_2005
+    tier: 1
+    cluster: carceral_enforcement
+    chapters: ['ch6', 'ch10', 'ch13']
+    cite_keys: ['castlerock']
+    cited_count: 1
+    pdf_path: Paper/research/ia_scotus_pdfs/town_of_castle_rock_v_gonzales_2005.pdf
+    md_path: Paper/research/markdown_cases/town_of_castle_rock_v_gonzales_2005.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Washington v. Davis"
+    year: 1976
+    slug: washington_v_davis_1976
+    tier: 1
+    cluster: intent_doctrine
+    chapters: ['ch11']
+    cite_keys: ['tel_wash_v_davis']
+    cited_count: 1
+    pdf_path: Paper/research/ia_scotus_pdfs/washington_v_davis_1976.pdf
+    md_path: Paper/research/markdown_cases/washington_v_davis_1976.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Village of Arlington Heights v. Metropolitan Housing Development Corp."
+    year: 1977
+    slug: village_of_arlington_heights_v_metropolitan_housing_development_corp_1977
+    tier: 1
+    cluster: intent_doctrine
+    chapters: ['ch11']
+    cite_keys: ['tel_arlington_heights']
+    cited_count: 1
+    pdf_path: Paper/research/ia_scotus_pdfs/village_of_arlington_heights_v_metropolitan_housing_development_corp_1977.pdf
+    md_path: Paper/research/markdown_cases/village_of_arlington_heights_v_metropolitan_housing_development_corp_1977.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "New York State Rifle & Pistol Association v. Bruen"
+    year: 2022
+    slug: new_york_state_rifle_pistol_association_v_bruen_2022
+    tier: 1
+    cluster: second_amendment
+    chapters: ['ch10']
+    cite_keys: ['bruen']
+    cited_count: 12
+    pdf_path: Paper/research/ia_scotus_pdfs/new_york_state_rifle_pistol_association_v_bruen_2022.pdf
+    md_path: Paper/research/markdown_cases/new_york_state_rifle_pistol_association_v_bruen_2022.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Dobbs v. Jackson Women's Health Organization"
+    year: 2022
+    slug: dobbs_v_jackson_women_s_health_organization_2022
+    tier: 1
+    cluster: gendered_kernel
+    chapters: ['ch4', 'ch18']
+    cite_keys: ['dobbs']
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/dobbs_v_jackson_women_s_health_organization_2022.pdf
+    md_path: Paper/research/markdown_cases/dobbs_v_jackson_women_s_health_organization_2022.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Marbury v. Madison"
+    year: 1803
+    slug: marbury_v_madison_1803
+    tier: 1
+    cluster: reconstruction_amendments
+    chapters: ['ch11']
+    cite_keys: ['marbury_1803']
+    cited_count: 1
+    pdf_path: Paper/research/ia_scotus_pdfs/marbury_v_madison_1803.pdf
+    md_path: Paper/research/markdown_cases/marbury_v_madison_1803.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Perry v. United States"
+    year: 1935
+    slug: perry_v_united_states_1935
+    tier: 1
+    cluster: macroeconomics_finance
+    chapters: ['ch13']
+    cite_keys: ['perry_v_us_1935']
+    cited_count: 1
+    pdf_path: Paper/research/ia_scotus_pdfs/perry_v_united_states_1935.pdf
+    md_path: Paper/research/markdown_cases/perry_v_united_states_1935.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Richmond Newspapers v. Virginia"
+    year: 1980
+    slug: richmond_newspapers_v_virginia_1980
+    tier: 1
+    cluster: first_amendment
+    chapters: ['ch6']
+    cite_keys: ['richmond_newspapers_1980']
+    cited_count: 1
+    pdf_path: Paper/research/ia_scotus_pdfs/richmond_newspapers_v_virginia_1980.pdf
+    md_path: Paper/research/markdown_cases/richmond_newspapers_v_virginia_1980.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "United States v. Rahimi"
+    year: 2024
+    slug: united_states_v_rahimi_2024
+    tier: 1
+    cluster: second_amendment
+    chapters: ['ch10']
+    cite_keys: ['rahimi2024']
+    cited_count: 1
+    pdf_path: Paper/research/ia_scotus_pdfs/united_states_v_rahimi_2024.pdf
+    md_path: Paper/research/markdown_cases/united_states_v_rahimi_2024.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Bradwell v. Illinois"
+    year: 1873
+    slug: bradwell_v_illinois_1873
+    tier: 2
+    cluster: gendered_kernel
+    chapters: ['ch4']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/bradwell_v_illinois_1873.pdf
+    md_path: Paper/research/markdown_cases/bradwell_v_illinois_1873.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Muller v. Oregon"
+    year: 1908
+    slug: muller_v_oregon_1908
+    tier: 2
+    cluster: gendered_kernel
+    chapters: ['ch4']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/muller_v_oregon_1908.pdf
+    md_path: Paper/research/markdown_cases/muller_v_oregon_1908.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Reed v. Reed"
+    year: 1971
+    slug: reed_v_reed_1971
+    tier: 2
+    cluster: gendered_kernel
+    chapters: ['ch4']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/reed_v_reed_1971.pdf
+    md_path: Paper/research/markdown_cases/reed_v_reed_1971.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Roe v. Wade"
+    year: 1973
+    slug: roe_v_wade_1973
+    tier: 2
+    cluster: gendered_kernel
+    chapters: ['ch4']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/roe_v_wade_1973.pdf
+    md_path: Paper/research/markdown_cases/roe_v_wade_1973.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Relf v. Weinberger"
+    year: 1974
+    slug: relf_v_weinberger_1974
+    tier: 2
+    cluster: gendered_kernel
+    chapters: ['ch4']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: Paper/research/markdown_cases/relf_v_weinberger_1974.md
+    pdf_exists: false
+    md_exists: true
+    note: "D.D.C. (not SCOTUS) — markdown stub"
+
+  - case: "Madrigal v. Quilligan"
+    year: 1978
+    slug: madrigal_v_quilligan_1978
+    tier: 2
+    cluster: gendered_kernel
+    chapters: ['ch4']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: Paper/research/markdown_cases/madrigal_v_quilligan_1978.md
+    pdf_exists: false
+    md_exists: true
+    note: "C.D. Cal. (not SCOTUS) — markdown stub"
+
+  - case: "Obergefell v. Hodges"
+    year: 2015
+    slug: obergefell_v_hodges_2015
+    tier: 2
+    cluster: buffer_class_expansion
+    chapters: ['ch13']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/obergefell_v_hodges_2015.pdf
+    md_path: Paper/research/markdown_cases/obergefell_v_hodges_2015.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Personnel Administrator of Massachusetts v. Feeney"
+    year: 1979
+    slug: personnel_administrator_of_massachusetts_v_feeney_1979
+    tier: 3
+    cluster: intent_doctrine
+    chapters: ['ch11']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Mobile v. Bolden"
+    year: 1980
+    slug: mobile_v_bolden_1980
+    tier: 3
+    cluster: voting_rights
+    chapters: ['ch7']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/mobile_v_bolden_1980.pdf
+    md_path: Paper/research/markdown_cases/mobile_v_bolden_1980.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "City of Richmond v. J.A. Croson Co."
+    year: 1989
+    slug: city_of_richmond_v_j_a_croson_co_1989
+    tier: 3
+    cluster: affirmative_action
+    chapters: ['ch11']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Adarand Constructors v. Pena"
+    year: 1995
+    slug: adarand_constructors_v_pena_1995
+    tier: 3
+    cluster: affirmative_action
+    chapters: ['ch11']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/adarand_constructors_v_pena_1995.pdf
+    md_path: Paper/research/markdown_cases/adarand_constructors_v_pena_1995.md
+    pdf_exists: true
+    md_exists: true
+
+  - case: "Gratz v. Bollinger"
+    year: 2003
+    slug: gratz_v_bollinger_2003
+    tier: 3
+    cluster: affirmative_action
+    chapters: ['ch11']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: Paper/research/ia_scotus_pdfs/gratz_v_bollinger_2003.pdf
+    md_path: null
+    pdf_exists: true
+    md_exists: false
+
+  - case: "Schuette v. Coalition to Defend Affirmative Action"
+    year: 2014
+    slug: schuette_v_coalition_to_defend_affirmative_action_2014
+    tier: 3
+    cluster: affirmative_action
+    chapters: ['ch11']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Students for Fair Admissions v. Harvard"
+    year: 2023
+    slug: students_for_fair_admissions_v_harvard_2023
+    tier: 3
+    cluster: affirmative_action
+    chapters: ['ch11']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Tennessee v. Garner"
+    year: 1985
+    slug: tennessee_v_garner_1985
+    tier: 3
+    cluster: carceral_enforcement
+    chapters: ['ch6']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Graham v. Connor"
+    year: 1989
+    slug: graham_v_connor_1989
+    tier: 3
+    cluster: carceral_enforcement
+    chapters: ['ch6']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Whren v. United States"
+    year: 1996
+    slug: whren_v_united_states_1996
+    tier: 3
+    cluster: carceral_enforcement
+    chapters: ['ch6', 'ch9']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Scott v. Harris"
+    year: 2007
+    slug: scott_v_harris_2007
+    tier: 3
+    cluster: carceral_enforcement
+    chapters: ['ch6']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Rodriguez v. United States"
+    year: 2015
+    slug: rodriguez_v_united_states_2015
+    tier: 3
+    cluster: carceral_enforcement
+    chapters: ['ch6']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Roper v. Simmons"
+    year: 2005
+    slug: roper_v_simmons_2005
+    tier: 3
+    cluster: carceral_enforcement
+    chapters: ['ch9']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Graham v. Florida"
+    year: 2010
+    slug: graham_v_florida_2010
+    tier: 3
+    cluster: carceral_enforcement
+    chapters: ['ch9']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Miller v. Alabama"
+    year: 2012
+    slug: miller_v_alabama_2012
+    tier: 3
+    cluster: carceral_enforcement
+    chapters: ['ch9']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Ramos v. Louisiana"
+    year: 2020
+    slug: ramos_v_louisiana_2020
+    tier: 3
+    cluster: carceral_enforcement
+    chapters: ['ch9']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Rucho v. Common Cause"
+    year: 2019
+    slug: rucho_v_common_cause_2019
+    tier: 3
+    cluster: voting_rights
+    chapters: ['ch7']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Brnovich v. Democratic National Committee"
+    year: 2021
+    slug: brnovich_v_democratic_national_committee_2021
+    tier: 3
+    cluster: voting_rights
+    chapters: ['ch7']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Allen v. Milligan"
+    year: 2023
+    slug: allen_v_milligan_2023
+    tier: 3
+    cluster: voting_rights
+    chapters: ['ch7']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Moore v. Harper"
+    year: 2023
+    slug: moore_v_harper_2023
+    tier: 3
+    cluster: voting_rights
+    chapters: ['ch7']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Flowers v. Mississippi"
+    year: 2019
+    slug: flowers_v_mississippi_2019
+    tier: 3
+    cluster: jury_selection
+    chapters: ['ch9']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Trump v. Hawaii"
+    year: 2018
+    slug: trump_v_hawaii_2018
+    tier: 3
+    cluster: racial_classification
+    chapters: ['ch13']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Kennedy v. Bremerton School District"
+    year: 2022
+    slug: kennedy_v_bremerton_school_district_2022
+    tier: 3
+    cluster: first_amendment
+    chapters: ['ch18']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "303 Creative LLC v. Elenis"
+    year: 2023
+    slug: 303_creative_llc_v_elenis_2023
+    tier: 3
+    cluster: first_amendment
+    chapters: ['ch18']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+
+  - case: "Timbs v. Indiana"
+    year: 2019
+    slug: timbs_v_indiana_2019
+    tier: 3
+    cluster: carceral_enforcement
+    chapters: ['ch9']
+    cite_keys: []
+    cited_count: 0
+    pdf_path: null
+    md_path: null
+    pdf_exists: false
+    md_exists: false
+

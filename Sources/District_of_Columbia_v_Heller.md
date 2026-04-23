@@ -1,3 +1,5 @@
+> **Tier note:** This file is an *analysis summary* (curated framework notes). Full primary text (markitdown-converted from the Internet Archive SCOTUS PDF) is at [`Paper/research/markdown_cases/district_of_columbia_v_heller_2008.md`](../Paper/research/markdown_cases/district_of_columbia_v_heller_2008.md).
+
 # District of Columbia v. Heller, 554 U.S. 570 (2008)
 
 ## Case Citation

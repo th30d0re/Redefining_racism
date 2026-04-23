@@ -1,3 +1,5 @@
+> **Tier note:** This file is an *analysis summary* (curated framework notes). Full primary text (markitdown-converted from the Internet Archive SCOTUS PDF) is at [`Paper/research/markdown_cases/mcdonald_v_city_of_chicago_2010.md`](../Paper/research/markdown_cases/mcdonald_v_city_of_chicago_2010.md).
+
 # McDonald v. City of Chicago, 561 U.S. 742 (2010)
 
 ## Case Citation

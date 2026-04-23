@@ -1,3 +1,5 @@
+> **Tier note:** This is a *Massachusetts Supreme Judicial Court* case (not SCOTUS). It is held in `Sources/` as an analysis file — there is no corresponding entry in `Paper/research/markdown_cases/` since that library is scoped to federal courts. The case is cited in the manuscript as `\cite{canjura}`.
+
 # Commonwealth v. David E. Canjura
 
 **Citation:** SJC-13432 (Mass. Supreme Judicial Court, 2023-2024)

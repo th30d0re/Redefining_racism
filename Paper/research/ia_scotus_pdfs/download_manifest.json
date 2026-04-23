@@ -419,5 +419,330 @@
     "pdf_url": "https://archive.org/download/micro_IA40385016_0792/micro_IA40385016_0792.pdf",
     "saved_as": "research/ia_scotus_pdfs/abbott_v_perez_2018.pdf",
     "bytes": 274228300
+  },
+  {
+    "case": "Dred Scott v. Sandford",
+    "year": 1857,
+    "tier": 1,
+    "slug": "dred_scott_v_sandford_1857",
+    "cite_keys": [
+      "dredscott",
+      "fehrenbacher"
+    ],
+    "cluster": "racial_classification",
+    "chapters": [
+      "ch1",
+      "ch2",
+      "ch10"
+    ],
+    "status": "ok",
+    "source": "direct_url",
+    "pdf_url": "https://tile.loc.gov/storage-services/service/ll/usrep/usrep060/usrep060393/usrep060393.pdf",
+    "pdf": "research/ia_scotus_pdfs/dred_scott_v_sandford_1857.pdf",
+    "pdf_bytes": 50752,
+    "md": "research/markdown_cases/dred_scott_v_sandford_1857.md",
+    "md_bytes": 3279
+  },
+  {
+    "case": "Loving v. Virginia",
+    "year": 1967,
+    "tier": 1,
+    "slug": "loving_v_virginia_1967",
+    "cite_keys": [
+      "loving_v_virginia_record_1967",
+      "bazile_opinion_1965"
+    ],
+    "cluster": "reconstruction_amendments",
+    "chapters": [
+      "ch3"
+    ],
+    "status": "ok",
+    "source": "internet_archive",
+    "identifier": "micro_IA40386412_0091",
+    "pdf_url": "https://archive.org/download/micro_IA40386412_0091/micro_IA40386412_0091.pdf",
+    "pdf": "research/ia_scotus_pdfs/loving_v_virginia_1967.pdf",
+    "pdf_bytes": 92662263,
+    "md": "research/markdown_cases/loving_v_virginia_1967.md",
+    "md_bytes": 796308
+  },
+  {
+    "case": "DeShaney v. Winnebago County",
+    "year": 1989,
+    "tier": 1,
+    "slug": "deshaney_v_winnebago_county_1989",
+    "cite_keys": [
+      "deshaney"
+    ],
+    "cluster": "carceral_enforcement",
+    "chapters": [
+      "ch6",
+      "ch10",
+      "ch13"
+    ],
+    "status": "ok",
+    "source": "internet_archive",
+    "identifier": "micro_IA40385012_0828",
+    "pdf_url": "https://archive.org/download/micro_IA40385012_0828/micro_IA40385012_0828.pdf",
+    "pdf": "research/ia_scotus_pdfs/deshaney_v_winnebago_county_1989.pdf",
+    "pdf_bytes": 88162277,
+    "md": "research/markdown_cases/deshaney_v_winnebago_county_1989.md",
+    "md_bytes": 1021330
+  },
+  {
+    "case": "Town of Castle Rock v. Gonzales",
+    "year": 2005,
+    "tier": 1,
+    "slug": "town_of_castle_rock_v_gonzales_2005",
+    "cite_keys": [
+      "castlerock"
+    ],
+    "cluster": "carceral_enforcement",
+    "chapters": [
+      "ch6",
+      "ch10",
+      "ch13"
+    ],
+    "status": "ok",
+    "source": "internet_archive",
+    "identifier": "micro_IA40385016_0187",
+    "pdf_url": "https://archive.org/download/micro_IA40385016_0187/micro_IA40385016_0187.pdf",
+    "pdf": "research/ia_scotus_pdfs/town_of_castle_rock_v_gonzales_2005.pdf",
+    "pdf_bytes": 7923971,
+    "md": "research/markdown_cases/town_of_castle_rock_v_gonzales_2005.md",
+    "md_bytes": 117599
+  },
+  {
+    "case": "Washington v. Davis",
+    "year": 1976,
+    "tier": 1,
+    "slug": "washington_v_davis_1976",
+    "cite_keys": [
+      "tel_wash_v_davis"
+    ],
+    "cluster": "intent_doctrine",
+    "chapters": [
+      "ch11"
+    ],
+    "status": "ok",
+    "source": "internet_archive",
+    "identifier": "micro_IA40385003_0470",
+    "pdf_url": "https://archive.org/download/micro_IA40385003_0470/micro_IA40385003_0470.pdf",
+    "pdf": "research/ia_scotus_pdfs/washington_v_davis_1976.pdf",
+    "pdf_bytes": 129730602,
+    "md": "research/markdown_cases/washington_v_davis_1976.md",
+    "md_bytes": 1210545
+  },
+  {
+    "case": "Village of Arlington Heights v. Metropolitan Housing Development Corp.",
+    "year": 1977,
+    "tier": 1,
+    "slug": "village_of_arlington_heights_v_metropolitan_housing_development_corp_1977",
+    "cite_keys": [
+      "tel_arlington_heights"
+    ],
+    "cluster": "intent_doctrine",
+    "chapters": [
+      "ch11"
+    ],
+    "status": "ok",
+    "source": "internet_archive",
+    "identifier": "micro_IA40385003_2129",
+    "pdf_url": "https://archive.org/download/micro_IA40385003_2129/micro_IA40385003_2129.pdf",
+    "pdf": "research/ia_scotus_pdfs/village_of_arlington_heights_v_metropolitan_housing_development_corp_1977.pdf",
+    "pdf_bytes": 109968561,
+    "md": "research/markdown_cases/village_of_arlington_heights_v_metropolitan_housing_development_corp_1977.md",
+    "md_bytes": 944563
+  },
+  {
+    "case": "New York State Rifle & Pistol Association v. Bruen",
+    "year": 2022,
+    "tier": 1,
+    "slug": "new_york_state_rifle_pistol_association_v_bruen_2022",
+    "cite_keys": [
+      "bruen"
+    ],
+    "cluster": "second_amendment",
+    "chapters": [
+      "ch10"
+    ],
+    "status": "skipped_exists",
+    "pdf": "research/ia_scotus_pdfs/new_york_state_rifle_pistol_association_v_bruen_2022.pdf",
+    "md": "research/markdown_cases/new_york_state_rifle_pistol_association_v_bruen_2022.md"
+  },
+  {
+    "case": "Dobbs v. Jackson Women's Health Organization",
+    "year": 2022,
+    "tier": 1,
+    "slug": "dobbs_v_jackson_women_s_health_organization_2022",
+    "cite_keys": [
+      "dobbs"
+    ],
+    "cluster": "gendered_kernel",
+    "chapters": [
+      "ch4",
+      "ch18"
+    ],
+    "status": "skipped_exists",
+    "pdf": "research/ia_scotus_pdfs/dobbs_v_jackson_women_s_health_organization_2022.pdf",
+    "md": "research/markdown_cases/dobbs_v_jackson_women_s_health_organization_2022.md"
+  },
+  {
+    "case": "Marbury v. Madison",
+    "year": 1803,
+    "tier": 1,
+    "slug": "marbury_v_madison_1803",
+    "cite_keys": [
+      "marbury_1803"
+    ],
+    "cluster": "reconstruction_amendments",
+    "chapters": [
+      "ch11"
+    ],
+    "status": "skipped_exists",
+    "pdf": "research/ia_scotus_pdfs/marbury_v_madison_1803.pdf",
+    "md": "research/markdown_cases/marbury_v_madison_1803.md"
+  },
+  {
+    "case": "Perry v. United States",
+    "year": 1935,
+    "tier": 1,
+    "slug": "perry_v_united_states_1935",
+    "cite_keys": [
+      "perry_v_us_1935"
+    ],
+    "cluster": "macroeconomics_finance",
+    "chapters": [
+      "ch13"
+    ],
+    "status": "skipped_exists",
+    "pdf": "research/ia_scotus_pdfs/perry_v_united_states_1935.pdf",
+    "md": "research/markdown_cases/perry_v_united_states_1935.md"
+  },
+  {
+    "case": "Richmond Newspapers v. Virginia",
+    "year": 1980,
+    "tier": 1,
+    "slug": "richmond_newspapers_v_virginia_1980",
+    "cite_keys": [
+      "richmond_newspapers_1980"
+    ],
+    "cluster": "first_amendment",
+    "chapters": [
+      "ch6_fn"
+    ],
+    "status": "skipped_exists",
+    "pdf": "research/ia_scotus_pdfs/richmond_newspapers_v_virginia_1980.pdf",
+    "md": "research/markdown_cases/richmond_newspapers_v_virginia_1980.md"
+  },
+  {
+    "case": "United States v. Rahimi",
+    "year": 2024,
+    "tier": 1,
+    "slug": "united_states_v_rahimi_2024",
+    "cite_keys": [
+      "rahimi2024"
+    ],
+    "cluster": "second_amendment",
+    "chapters": [
+      "ch10"
+    ],
+    "status": "skipped_exists",
+    "pdf": "research/ia_scotus_pdfs/united_states_v_rahimi_2024.pdf",
+    "md": "research/markdown_cases/united_states_v_rahimi_2024.md"
+  },
+  {
+    "case": "Personnel Administrator of Massachusetts v. Feeney",
+    "year": 1979,
+    "tier": 3,
+    "slug": "personnel_administrator_of_massachusetts_v_feeney_1979",
+    "cite_keys": [],
+    "cluster": "intent_doctrine",
+    "chapters": [
+      "ch11"
+    ],
+    "status": "ok",
+    "source": "internet_archive",
+    "identifier": "micro_IA40385005_1509",
+    "pdf_url": "https://archive.org/download/micro_IA40385005_1509/micro_IA40385005_1509%2002.%20Appendix.pdf",
+    "pdf": "research/ia_scotus_pdfs/personnel_administrator_of_massachusetts_v_feeney_1979.pdf",
+    "pdf_bytes": 41150187,
+    "md": "research/markdown_cases/personnel_administrator_of_massachusetts_v_feeney_1979.md",
+    "md_bytes": 459326
+  },
+  {
+    "case": "Mobile v. Bolden",
+    "year": 1980,
+    "tier": 3,
+    "slug": "mobile_v_bolden_1980",
+    "cite_keys": [],
+    "cluster": "voting_rights",
+    "chapters": [
+      "ch7"
+    ],
+    "status": "ok",
+    "source": "internet_archive",
+    "identifier": "micro_IA40385006_0012",
+    "pdf_url": "https://archive.org/download/micro_IA40385006_0012/micro_IA40385006_0012.pdf",
+    "pdf": "research/ia_scotus_pdfs/mobile_v_bolden_1980.pdf",
+    "pdf_bytes": 164271690,
+    "md": "research/markdown_cases/mobile_v_bolden_1980.md",
+    "md_bytes": 1718092
+  },
+  {
+    "case": "City of Richmond v. J.A. Croson Co.",
+    "year": 1989,
+    "tier": 3,
+    "slug": "city_of_richmond_v_j_a_croson_co_1989",
+    "cite_keys": [],
+    "cluster": "affirmative_action",
+    "chapters": [
+      "ch11"
+    ],
+    "status": "ok",
+    "source": "internet_archive",
+    "identifier": "micro_IA40385012_0613",
+    "pdf_url": "https://archive.org/download/micro_IA40385012_0613/micro_IA40385012_0613%2004.%20Supplemental%20Appendix.pdf",
+    "pdf": "research/ia_scotus_pdfs/city_of_richmond_v_j_a_croson_co_1989.pdf",
+    "pdf_bytes": 34509818,
+    "md": "research/markdown_cases/city_of_richmond_v_j_a_croson_co_1989.md",
+    "md_bytes": 243042
+  },
+  {
+    "case": "Adarand Constructors v. Pena",
+    "year": 1995,
+    "tier": 3,
+    "slug": "adarand_constructors_v_pena_1995",
+    "cite_keys": [],
+    "cluster": "affirmative_action",
+    "chapters": [
+      "ch11"
+    ],
+    "status": "ok",
+    "source": "internet_archive",
+    "identifier": "micro_IA40385013_0514",
+    "pdf_url": "https://archive.org/download/micro_IA40385013_0514/micro_IA40385013_0514.pdf",
+    "pdf": "research/ia_scotus_pdfs/adarand_constructors_v_pena_1995.pdf",
+    "pdf_bytes": 179641681,
+    "md": "research/markdown_cases/adarand_constructors_v_pena_1995.md",
+    "md_bytes": 1776802
+  },
+  {
+    "case": "Gratz v. Bollinger",
+    "year": 2003,
+    "tier": 3,
+    "slug": "gratz_v_bollinger_2003",
+    "cite_keys": [],
+    "cluster": "affirmative_action",
+    "chapters": [
+      "ch11"
+    ],
+    "status": "ok",
+    "source": "internet_archive",
+    "identifier": "micro_IA40385014_0608",
+    "pdf_url": "https://archive.org/download/micro_IA40385014_0608/micro_IA40385014_0608.pdf",
+    "pdf": "research/ia_scotus_pdfs/gratz_v_bollinger_2003.pdf",
+    "pdf_bytes": 493241298,
+    "md": "research/markdown_cases/gratz_v_bollinger_2003.md",
+    "md_bytes": 4852344
   }
 ]

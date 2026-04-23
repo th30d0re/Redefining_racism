@@ -1,3 +1,5 @@
+> **Tier note:** This file is an *analysis summary* (curated framework notes). Full primary text (markitdown-converted from the Internet Archive SCOTUS PDF) is at [`Paper/research/markdown_cases/caetano_v_massachusetts_2016.md`](../Paper/research/markdown_cases/caetano_v_massachusetts_2016.md).
+
 # Caetano v. Massachusetts, 577 U.S. 411 (2016)
 
 ## Case Citation

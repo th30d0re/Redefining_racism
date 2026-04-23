@@ -1,3 +1,5 @@
+> **Tier note:** This file is the *slip opinion text* (raw markitdown of the official SCOTUS slip). A clean markitdown conversion from the SCOTUS.gov PDF is also at [`Paper/research/markdown_cases/new_york_state_rifle_pistol_association_v_bruen_2022.md`](../Paper/research/markdown_cases/new_york_state_rifle_pistol_association_v_bruen_2022.md).
+
 (Slip Opinion)
 
 OCTOBER  TERM,  2021
