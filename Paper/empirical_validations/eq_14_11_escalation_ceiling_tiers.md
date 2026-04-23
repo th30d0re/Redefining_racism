@@ -9,7 +9,7 @@ statement: |
 type: structural
 tier: 3
 status: complete
-existing_case_study: false
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - George Floyd protests 2020 — National Guard deployment capacity limits

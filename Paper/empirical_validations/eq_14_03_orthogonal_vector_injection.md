@@ -9,7 +9,7 @@ statement: |
 type: structural
 tier: 3
 status: complete
-existing_case_study: false
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - Southern Strategy 1968 — race axis injection

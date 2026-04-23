@@ -9,7 +9,7 @@ statement: |
 type: quantitative
 tier: 2
 status: complete
-existing_case_study: false
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - Ruby Ridge siege 1992 (18 days, FBI HRT, surveillance aircraft)

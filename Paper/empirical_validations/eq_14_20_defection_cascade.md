@@ -9,7 +9,7 @@ statement: |
 type: quantitative
 tier: 2
 status: complete
-existing_case_study: false
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - Haitian Revolution 1791–1804 — Polish soldiers defecting to Haitian side

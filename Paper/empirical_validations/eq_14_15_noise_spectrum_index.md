@@ -9,7 +9,7 @@ statement: |
 type: quantitative
 tier: 2
 status: complete
-existing_case_study: false
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - Occupy Wall Street 2011 — high noise spectrum, successful redirection

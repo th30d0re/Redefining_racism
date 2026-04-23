@@ -9,7 +9,7 @@ statement: |
 type: quantitative
 tier: 2
 status: complete
-existing_case_study: false
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - "George Floyd protests 2020 — National Guard stand-down in some cities"

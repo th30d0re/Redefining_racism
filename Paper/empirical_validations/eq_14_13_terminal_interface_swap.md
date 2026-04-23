@@ -9,7 +9,7 @@ statement: |
 type: structural
 tier: 3
 status: complete
-existing_case_study: false
+existing_case_study: true
 phase3_headline: false
 target_events: 
   - "Middle-class erosion 2008–2024 — automation + offshoring"
