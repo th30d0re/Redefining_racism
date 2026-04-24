@@ -34,7 +34,7 @@ falsification: "Falsified if Reyes (2007) blood-lead time-series fails to predic
 
 **Classification rationale**: Phase 3 headline — full quantitative case study target.
 
-**CS9 cross-reference**: This equation is also covered by the CS9 "Spatial Confluence" case study (`\label{cs:spatial_confluence}`, registry: `eq_9_10_highway_lead_spatial_concentration.md`). CS9 extends the aggregate lead-crime compounding analysis (CS7) to a tract-level four-layer spatial pipeline across six cities, adding Moran's I spatial autocorrelation, bivariate LISA cluster analysis, and SLM/SEM spatial regression. The CS7 notebook (`eq47_51_lead_crime.ipynb`) and figure (`eq47_51_lead_crime.png`) remain the primary empirical validation for this equation; CS9 provides the spatial disaggregation.
+**CS9 (canonical for tract-level replication)**: For equations in the 9.1--9.10 lead-crime and spatial-concentration family, **CS9** (Spatial Confluence, `cs:spatial_confluence`, this registry's companion file `eq_9_10_highway_lead_spatial_concentration.md`, notebook `eq47_51_spatial_overlay.ipynb`) is the **canonical** tract-level replication target. **CS7** remains the **historical, national** block (Reyes, Aizer--Currie, three-panel figure, `eq47_51_lead_crime.ipynb` / `eq47_51_lead_crime.png`). CS7 is not duplicated by CS9; it provides literature-scale evidence while CS9 operationalizes the multi-layer operator at census-tract resolution when `fetch_spatial_data.py` + `make empirical` are run.
 
 **Standalone paper**: The CS9 analysis is developed as a standalone manuscript at `Paper/standalone/spatial_confluence_draft.md` (targeting *Environmental Research* / *Social Science & Medicine* / *PNAS Nexus*).
 

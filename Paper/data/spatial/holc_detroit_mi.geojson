@@ -1,0 +1,79 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "holc_grade": "C",
+        "grade": "C",
+        "city": "Detroit",
+        "name": "modeled C polygon (west half) for Detroit MI",
+        "_data_source": "modeled_holc_bbox_placeholder_not_dsl"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -83.3,
+              42.25
+            ],
+            [
+              -83.1,
+              42.25
+            ],
+            [
+              -83.1,
+              42.45
+            ],
+            [
+              -83.3,
+              42.45
+            ],
+            [
+              -83.3,
+              42.25
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "holc_grade": "D",
+        "grade": "D",
+        "city": "Detroit",
+        "name": "modeled D polygon (east half) for Detroit MI",
+        "_data_source": "modeled_holc_bbox_placeholder_not_dsl"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -83.1,
+              42.25
+            ],
+            [
+              -82.9,
+              42.25
+            ],
+            [
+              -82.9,
+              42.45
+            ],
+            [
+              -83.1,
+              42.45
+            ],
+            [
+              -83.1,
+              42.25
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

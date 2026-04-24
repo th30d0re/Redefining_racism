@@ -1,0 +1,79 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "holc_grade": "C",
+        "grade": "C",
+        "city": "Baltimore",
+        "name": "modeled C polygon (west half) for Baltimore MD",
+        "_data_source": "modeled_holc_bbox_placeholder_not_dsl"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -76.75,
+              39.2
+            ],
+            [
+              -76.625,
+              39.2
+            ],
+            [
+              -76.625,
+              39.4
+            ],
+            [
+              -76.75,
+              39.4
+            ],
+            [
+              -76.75,
+              39.2
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "holc_grade": "D",
+        "grade": "D",
+        "city": "Baltimore",
+        "name": "modeled D polygon (east half) for Baltimore MD",
+        "_data_source": "modeled_holc_bbox_placeholder_not_dsl"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -76.625,
+              39.2
+            ],
+            [
+              -76.5,
+              39.2
+            ],
+            [
+              -76.5,
+              39.4
+            ],
+            [
+              -76.625,
+              39.4
+            ],
+            [
+              -76.625,
+              39.2
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -45,8 +45,11 @@ bib_keys:
   - spatial_confluence_forthcoming
 falsification: "Falsified if HOLC-D tracts show no excess firearm or lead burden relative to HOLC-A/B after income controls; or if Moran's I for HOLC-D flag is non-significant; or if SLM coefficient on HOLC-D flag for incarceration origin is null or negative after controlling for contemporary racial composition."
 data_gaps:
-  - "PPI tract-level data unavailable for TN (Memphis, Nashville) and WI (Milwaukee) — county-level fallback used; attenuates within-county spatial contrast."
-  - "GVA incident data (2014–2024) requires manual bulk export from GVA query interface; pre-2014 covered by CDC WONDER county-level firearm mortality."
+  - "PPI: when public bulk CSVs 404, fetch writes a modeled tract-level rate table; replace with Prison Policy origin tables when a stable download URL is available."
+  - "EJScreen: when EPA national zip is unreachable, fetch writes modeled tract LDPNT/PTRAF from ACS GEOIDs; replace with EPA extract when available."
+  - "HOLC: if Mapping Inequality static GeoJSON returns the SPA HTML shell, fetch writes two C/D half-bbox polygons; replace with real GeoJSON for the city when network permits."
+  - "Firearm: CSV is written programmatically (synthetic in-bbox points, UCR magnitude) unless a user-supplied GVA file is present; not a substitute for the live GVA export."
+  - "PPI tract-level for TN/WI may still be coarser in principle than for MD/MI/DC; county-level *interpretation* remains where PPI only publishes county aggregates."
 ---
 
 # Notes
@@ -57,7 +60,9 @@ data_gaps:
 
 **Classification rationale**: Type=quantitative, Tier=1 assigned based on mathematical structure and data availability. CS9 adds Tier 1 full coverage for MD, MI, DC; Tier 2 for incarceration layer in TN, WI.
 
-**CS9 upgrade**: This registry entry now covers the full CS9 "Spatial Confluence" case study (`\label{cs:spatial_confluence}`), which extends the CS7 lead-crime analysis to a four-layer tract-level spatial pipeline. The original CS7 analysis (three-panel figure `eq47_51_lead_crime.png`, notebook `eq47_51_lead_crime.ipynb`) is preserved; CS9 adds the spatial join pipeline, choropleth figures, Moran's I / bivariate LISA / SLM-SEM statistics, and pooled forest plot.
+**CS7 vs CS9 roles**: `eq_9_01_lead_crime_compounding.md` and this file concern the same equation *family*. **CS7** in the PDF is explicitly labeled the national/historical case block; **CS9** is the **canonical** tract-level implementation for 9.1--9.10 in this project (four-layer join, Moran's I, bivariate LISA, SLM/SEM, `eq47_51_spatial_overlay.ipynb`). The CS7 three-panel figure and `eq47_51_lead_crime.ipynb` are **not** superseded for national-scale claims; they are a different layer of evidence.
+
+**Input provenance (CS9)**: HOLC, EJ, and PPI are acquired via `Paper/scripts/fetch_spatial_data.py`. When public bulk URLs are unreachable, the script may write **tagged modeled** files (HOLC half-bbox C/D, tract-level LDPNT/PTRAF-compatible columns, tract `rate_per_1000`); these support pipeline and sensitivity runs but are **not** Tier-1 archival substitutes. Inferential text in the manuscript is tied to executed notebook output under strict input checks (`CS9_STRICT=1` default in the notebook).
 
 **Standalone paper**: `Paper/standalone/spatial_confluence_draft.md` — manuscript outline targeting *Environmental Research*, *Social Science & Medicine*, or *PNAS Nexus*.
 

@@ -1,0 +1,79 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "holc_grade": "C",
+        "grade": "C",
+        "city": "Washington",
+        "name": "modeled C polygon (west half) for Washington DC",
+        "_data_source": "modeled_holc_bbox_placeholder_not_dsl"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -77.2,
+              38.8
+            ],
+            [
+              -77.05000000000001,
+              38.8
+            ],
+            [
+              -77.05000000000001,
+              39.0
+            ],
+            [
+              -77.2,
+              39.0
+            ],
+            [
+              -77.2,
+              38.8
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "holc_grade": "D",
+        "grade": "D",
+        "city": "Washington",
+        "name": "modeled D polygon (east half) for Washington DC",
+        "_data_source": "modeled_holc_bbox_placeholder_not_dsl"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -77.05000000000001,
+              38.8
+            ],
+            [
+              -76.9,
+              38.8
+            ],
+            [
+              -76.9,
+              39.0
+            ],
+            [
+              -77.05000000000001,
+              39.0
+            ],
+            [
+              -77.05000000000001,
+              38.8
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

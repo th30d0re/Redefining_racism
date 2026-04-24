@@ -1,0 +1,79 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "holc_grade": "C",
+        "grade": "C",
+        "city": "Nashville",
+        "name": "modeled C polygon (west half) for Nashville TN",
+        "_data_source": "modeled_holc_bbox_placeholder_not_dsl"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -86.95,
+              36.05
+            ],
+            [
+              -86.725,
+              36.05
+            ],
+            [
+              -86.725,
+              36.2
+            ],
+            [
+              -86.95,
+              36.2
+            ],
+            [
+              -86.95,
+              36.05
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "holc_grade": "D",
+        "grade": "D",
+        "city": "Nashville",
+        "name": "modeled D polygon (east half) for Nashville TN",
+        "_data_source": "modeled_holc_bbox_placeholder_not_dsl"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -86.725,
+              36.05
+            ],
+            [
+              -86.5,
+              36.05
+            ],
+            [
+              -86.5,
+              36.2
+            ],
+            [
+              -86.725,
+              36.2
+            ],
+            [
+              -86.725,
+              36.05
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

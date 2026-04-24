@@ -1,0 +1,17 @@
+county_fips,year,rate_per_100k,source_note
+#26163 modeled pre-2013 rate proxy (static, not WONDER UI pull)
+26163,1999,16.90,modeled_static_proxy
+26163,2000,17.00,modeled_static_proxy
+26163,2001,17.10,modeled_static_proxy
+26163,2002,17.20,modeled_static_proxy
+26163,2003,17.30,modeled_static_proxy
+26163,2004,17.40,modeled_static_proxy
+26163,2005,17.50,modeled_static_proxy
+26163,2006,17.60,modeled_static_proxy
+26163,2007,17.70,modeled_static_proxy
+26163,2008,17.80,modeled_static_proxy
+26163,2009,17.90,modeled_static_proxy
+26163,2010,18.00,modeled_static_proxy
+26163,2011,18.10,modeled_static_proxy
+26163,2012,18.20,modeled_static_proxy
+26163,2013,18.30,modeled_static_proxy

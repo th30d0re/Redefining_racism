@@ -1,0 +1,79 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "holc_grade": "C",
+        "grade": "C",
+        "city": "Memphis",
+        "name": "modeled C polygon (west half) for Memphis TN",
+        "_data_source": "modeled_holc_bbox_placeholder_not_dsl"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -90.1,
+              35.0
+            ],
+            [
+              -89.94999999999999,
+              35.0
+            ],
+            [
+              -89.94999999999999,
+              35.25
+            ],
+            [
+              -90.1,
+              35.25
+            ],
+            [
+              -90.1,
+              35.0
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "holc_grade": "D",
+        "grade": "D",
+        "city": "Memphis",
+        "name": "modeled D polygon (east half) for Memphis TN",
+        "_data_source": "modeled_holc_bbox_placeholder_not_dsl"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -89.94999999999999,
+              35.0
+            ],
+            [
+              -89.8,
+              35.0
+            ],
+            [
+              -89.8,
+              35.25
+            ],
+            [
+              -89.94999999999999,
+              35.25
+            ],
+            [
+              -89.94999999999999,
+              35.0
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

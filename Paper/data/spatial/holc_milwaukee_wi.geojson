@@ -1,0 +1,79 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "holc_grade": "C",
+        "grade": "C",
+        "city": "Milwaukee",
+        "name": "modeled C polygon (west half) for Milwaukee WI",
+        "_data_source": "modeled_holc_bbox_placeholder_not_dsl"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -88.2,
+              42.9
+            ],
+            [
+              -88.0,
+              42.9
+            ],
+            [
+              -88.0,
+              43.2
+            ],
+            [
+              -88.2,
+              43.2
+            ],
+            [
+              -88.2,
+              42.9
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "holc_grade": "D",
+        "grade": "D",
+        "city": "Milwaukee",
+        "name": "modeled D polygon (east half) for Milwaukee WI",
+        "_data_source": "modeled_holc_bbox_placeholder_not_dsl"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -88.0,
+              42.9
+            ],
+            [
+              -87.8,
+              42.9
+            ],
+            [
+              -87.8,
+              43.2
+            ],
+            [
+              -88.0,
+              43.2
+            ],
+            [
+              -88.0,
+              42.9
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
