@@ -13,12 +13,12 @@ This is the series premiere. Set the stage for the listener. Your job is to intr
 
 ### Series Arc (Four-Part Structure)
 
-This 18-episode series mirrors the manuscript's four-part structure. Listeners should understand from Episode 1 that they are entering a planned arc:
+This 21-episode series mirrors the manuscript's four-part structure. Listeners should understand from Episode 1 that they are entering a planned arc:
 
 - **Part I — Specification and Origins (1440s–1787)** — Episodes 1–3: how the racial vector was compiled and installed as source code.
-- **Part II — The Installation (1619–1865)** — Episodes 4–8: the pre-colonial kinship baseline that the algorithm had to overwrite, the gendered reproductive kernel, and the enforcement engine that compounds into the 13th Amendment loophole.
-- **Part III — Scaling and Runtime (1865–Present)** — Episodes 9–13: the algorithm executing at industrial scale — spatial containment, the Tweedism Filter on democracy, the Variable Swap, terminal cannibalization, and the kinetic guarantee.
-- **Part IV — Diagnostics and Output** — Episodes 14–17: the framework's terminal theorems and the vector-valued definition of racism.
+- **Part II — The Installation (1619–1865)** — Episodes 5–9: the pre-colonial kinship baseline that the algorithm had to overwrite, the gendered reproductive kernel, and the enforcement engine that compounds into the 13th Amendment loophole.
+- **Part III — Scaling and Runtime (1865–Present)** — Episodes 10–14: the algorithm executing at industrial scale — spatial containment, the Tweedism Filter on democracy, the Variable Swap, terminal cannibalization, and the kinetic guarantee.
+- **Part IV — Diagnostics and Output** — Episodes 15–20: the framework's terminal theorems and the vector-valued definition of racism.
 
 This episode sits inside **Part I: Specification and Origins**. It establishes the diagnostic framework the rest of the series will apply.
 
@@ -31,18 +31,18 @@ This is **Episode 1**. You must strictly limit your discussion to **Chapter 1 ("
 **DO NOT** discuss or preview:
 - The historical origin of racialization in Portugal (Episode 2)
 - Bacon's Rebellion or the Buffer Class (Episode 3)
-- Pre-colonial African kinship and the colonial overwrite (Episode 4)
+- Pre-colonial African kinship and the colonial overwrite (Episode 5)
 - The gendered axis or coverture (Episodes 5–6)
 - Slave patrols or the 13th Amendment (Episodes 7–8)
-- Redlining and the Containment field (Episode 9)
-- The Puppet Class, Tweedism, or voter capture (Episode 10)
-- COINTELPRO, the Variable Swap, or the War on Drugs (Episode 11)
-- The Demographic Paradox, cannibalization, or the 5-Tier Reveal (Episode 12)
-- Gun control or the disarmament timeline (Episode 13)
-- The gaslighting or nonviolence mandate (Episode 14)
-- The Concession Theorem or Haitian Theorem (Episode 15)
-- The global containment field (Episode 16)
-- The conclusion's terminal findings (Episode 18)
+- Redlining and the Containment field (Episode 10)
+- The Puppet Class, Tweedism, or voter capture (Episode 11)
+- COINTELPRO, the Variable Swap, or the War on Drugs (Episode 12)
+- The Demographic Paradox, cannibalization, or the 5-Tier Reveal (Episode 13)
+- Gun control or the disarmament timeline (Episode 14)
+- The gaslighting or nonviolence mandate (Episode 15)
+- The Concession Theorem or Haitian Theorem (Episode 16)
+- The global containment field (Episode 17)
+- The conclusion's terminal findings (Episode 21)
 
 You may *name* these topics as upcoming ("in future episodes we'll trace how...") but you must not explain their content or mechanics.
 
@@ -71,7 +71,7 @@ This podcast dissects the architecture of oppression. Its language must not repr
 
 **4. General principle:** If a phrase encodes DARK = BAD or LIGHT = GOOD, it reproduces the chromatic hierarchy this book identifies as a foundational tool of racialized oppression. If a phrase frames the architect of oppression as a genius to be admired, it romanticizes the very system being exposed. Replace with structural, architectural, or clinical language.
 
-**REQUIRED TONE:** Clinical, objective, and architectural. Describe the system using software engineering, mathematical, and structural terminology. Use phrases like: "extraction kernel," "five-tier hierarchy," "Predatory Min-Max Function," "asymmetric autonomy restriction," "interface vs. kernel," "set-theoretic framework," "fractal computer virus," "polymorphic code," "damped harmonic oscillator."
+**REQUIRED TONE:** Clinical, objective, and architectural. Describe the system using software engineering, mathematical, and structural terminology. Use phrases like: "extraction kernel," "five-tier hierarchy," "Predatory Min-Max Function," "asymmetric autonomy restriction," "interface vs. kernel," "set-theoretic framework," "psychosocial fractal mind virus," "polymorphic code," "damped harmonic oscillator."
 
 ---
 
@@ -97,14 +97,16 @@ Cover the following concepts from Chapter 1 and the Preface:
 
 6. **The Tri-Modal Enclosure Model**: Introduce the Enclosure Score ($E_{score}$) and its three domains — Internal Outlets (communal capacity), External Outlets (geographic/economic mobility), and Self-Outlets (psychological/epistemic autonomy). Explain why isolated reforms fail: reducing one dimension from 1.0 to 0.8 does not liberate the subject. Note to the listener: the Self-Outlet domain ($e_3$) operates not only through ideological capture but also through metabolic suppression — institutionalized hunger (documented in the archival record, e.g., Somerset Place field laborers rationed a peck of corn and three pounds of meat per month) empties the population's capacity for class-coherence formation by biological mechanism before any organizational effort can begin. The full archival case for hunger as $e_3$ / $M(t)$ suppression is developed in Episodes 4 and 6.
 
-7. **The Diagnostic Model: Racism as a Fractal Computer Virus**: This is a MAJOR section. Cover each component of the virus architecture:
+6a. **Host Hardware — Psycho-Legal Software on Predictive-Coding Hardware**: Before entering the mind virus architecture, make the hardware/software relation explicit. The extraction code executes on human cognitive hardware: a fast, energy-efficient predictive system built to classify, compress, and anticipate social reality. The legal and social software supplies the malicious input — the racial prior — and the brain's predictive machinery executes it as if it were neutral environmental data. This is not a claim that racism is innate or inevitable. It is the diagnostic opposite: the hardware vulnerability is general human cognition; the malicious software is the legally engineered racial partition and the institutional reinforcement that makes the prior feel like perception.
+
+7. **The Diagnostic Model: Racism as a Psychosocial Fractal Mind Virus**: This is a MAJOR section. Cover each component of the mind virus architecture:
    - **The Core Payload**: A resource-mining rootkit installed by the Elite. The extraction has been running since 1619 and no user-level intervention has interrupted it.
    - **The Zero-Day Exploit**: The invention of race — but be precise about what the zero-day actually was. Phenotypic awareness predates Portugal by millennia; it is as old as human categorization. The zero-day was the *industrialization* of phenotype as a permanent, heritable, *legally codified capital asset* at transatlantic scale. What Portugal invented was the mechanism by which phenotype could be embedded simultaneously in property law, inheritance law, and international commodity markets — converting a soft cultural variable into a hardware-level legal partition that no amount of individual behavior (conversion, migration, economic achievement) could override. The zero-day was the legal codification at industrial scale, not phenotypic awareness itself.
    - **The Bayesian Defense**: The system hardwires priors — installed assumptions that filter out Out-group harm. The 1966 IFAS Protocol and the epistemic shutdown. Frame this in Mode 2 terms: the scheduling of LSD and the defunding of psychedelic research are read as a *functional output* of epistemic enclosure — the tool that could relax predictive priors was removed from the research environment; whether that removal was designed or emergent is explicitly left open. Do not frame the system's response as "decisive" in a causal-intent sense; frame it as a Mode 2 observation: the functional output was epistemic containment, and the framework records it as such regardless of mechanism.
    - **Polymorphic Code**: The Interface Swap — Chattel_Slavery.exe → Convict_Leasing.exe → Jim_Crow.exe → War_on_Drugs.exe. The file name changes; the payload never does. The book now defines the Interface Swap as a formal optimizer with three cost functions: $C_{\text{coercive}}$ (enforcement cost), $C_{\text{legitimacy}}$ (ideological exposure), and $C_{\text{economic}}$ (direct expense). The Jim Crow → War on Drugs transition is calibrated as a case where all three costs rose simultaneously, forcing the swap. You cannot educate malware into deleting itself.
    - **The Backlash Constant**: Racism as a damped harmonic oscillator. Reform movements are kinetic shocks; the restorative force always overshoots. 1865 → Black Codes. 1964 → War on Drugs.
-   - **Fractal Execution**: The virus replicates at every scale — macro (global imperialism), system (national redlining), subroutine (reproductive extraction), application (intersectionality), micro (colorism). The same sorting algorithm at every level. The book provides a formal isomorphism table mapping all five tier variables at each scale level, and qualifies the fractal claim as *statistically* self-similar (like coastlines or river deltas), not exactly self-similar — which is sufficient for diagnostic purposes.
-   - **The Corrupted Firewall**: The Buffer Class — programmed to believe they are the antivirus software rather than the system's second-most-exploited resource.
+   - **Fractal Execution**: The mind virus replicates at every scale — macro (global imperialism), system (national redlining), subroutine (reproductive extraction), application (intersectionality), micro (colorism). The same sorting algorithm at every level. The book provides a formal isomorphism table mapping all five tier variables at each scale level, and qualifies the fractal claim as *statistically* self-similar (like coastlines or river deltas), not exactly self-similar — which is sufficient for diagnostic purposes.
+   - **The Corrupted Firewall**: The Buffer Class — programmed to believe they are the anti-mind-virus software rather than the system's second-most-exploited resource.
 
 8. **The Central Insight — Out-group Expansion**: The Out-group does not contract over time; it *expands*. The system does not serve the racial In-group; it serves the Elite class ($E \subset I$). The "wages of whiteness" are a suppression allocation — status wages ($\psi_s$) by default, escalating to material concessions ($\psi_m$) when kinetic threat demands it, but always sourced from Out-group extraction.
 
@@ -112,11 +114,11 @@ Cover the following concepts from Chapter 1 and the Preface:
 
 10. **The Canonical Variable Map**: Briefly introduce the dual notation system — kernel semantics (Max/Min) and dynamic state variables ($\mathcal{E}(t)$, $M(t)$, $\tau$, $\psi(t) = \psi_s(t) + \psi_m(t)$, $R(t)$, $\phi/\Phi$). Note: $\mathcal{E}(t)$ denotes extraction output (distinct from $E$, the Elite class set); $\psi$ denotes the suppression allocation with status ($\psi_s$) and material ($\psi_m$) components. This gives listeners a reference key for the entire series.
 
-11. **The Three-Mode Agency Framework**: The book explicitly addresses whether the system is a "conspiracy" or "emergent." The answer: three modes. (1) **Intentional Design** — the virus was written (Zurara, Virginia Slave Codes, Constitutional Convention). (2) **Autonomous Propagation** — the virus replicates through incentive gradients without central coordination (the vast majority of the system's runtime). (3) **Conscious Intervention** — the update server pushes patches at crisis points (Ehrlichman's War on Drugs, Atwater's admission, the 2020 Super Tuesday consolidation). Both the "conspiracy theory" and "no one is responsible" objections fail because each accounts for only one mode.
+11. **The Three-Mode Agency Framework**: The book explicitly addresses whether the system is a "conspiracy" or "emergent." The answer: three modes. (1) **Intentional Design** — the mind virus was written (Zurara, Virginia Slave Codes, Constitutional Convention). (2) **Autonomous Propagation** — the mind virus replicates through incentive gradients without central coordination (the vast majority of the system's runtime). (3) **Conscious Intervention** — the update server pushes patches at crisis points (Ehrlichman's War on Drugs, Atwater's admission, the 2020 Super Tuesday consolidation). Both the "conspiracy theory" and "no one is responsible" objections fail because each accounts for only one mode.
 
 12. **Differential Buffer-Tier Insertion — The Framework's Answer to the Model-Minority Question**: A common objection to the five-tier hierarchy is the "model minority" counterexample: if the framework predicts uniform extraction from all racialized groups, why do East Asian and South Asian immigrant communities outperform the white working class on certain metrics? The framework has a structural answer: it predicts differential outcomes by *differential insertion point in the hierarchy*, not uniform extraction at every node. The 1965 Immigration and Nationality Act selected professional-class immigrants calibrated toward buffer-tier insertion (high-credential, high-productivity workers occupying $I_{\text{buffer}}$ positions). The racialized partition still applies — these groups face housing discrimination, glass ceilings, and wartime internment — but their insertion point in the hierarchy was different from the groups whose enclosure the extraction kernel was maximizing. This is evidence *for* the framework's tier flexibility, not against it.
 
-13. **Prior Art and Conceptual Ancestors (Forward Pointers — Names Only)**: Two prior analytic frameworks will be engaged in later episodes. (1) W.E.B. Du Bois's "Propaganda of History" — the final chapter of *Black Reconstruction* (1935) — is the earliest formal diagnosis of $P_{\text{gaslight}}$: Dunning-school historiography systematically erased Black agency to manufacture the historical substrate on which subsequent concealment depends. Full treatment in Episode 14. (2) Acemoglu & Robinson's "critical junctures" concept — structural inflection points that reset institutional paths — is the conceptual ancestor of the book's Runtime Logs (1486, 1676, 1705, 1787, 1865, 1934, 1964, 1968, 1994); the book's version-update model operationalizes what AJR left conceptual. Full engagement in Episodes 2, 15, and 16. Name these only — do not define or explain their content here.
+13. **Prior Art and Conceptual Ancestors (Forward Pointers — Names Only)**: Two prior analytic frameworks will be engaged in later episodes. (1) W.E.B. Du Bois's "Propaganda of History" — the final chapter of *Black Reconstruction* (1935) — is the earliest formal diagnosis of $P_{\text{gaslight}}$: Dunning-school historiography systematically erased Black agency to manufacture the historical substrate on which subsequent concealment depends. Full treatment in Episode 15. (2) Acemoglu & Robinson's "critical junctures" concept — structural inflection points that reset institutional paths — is the conceptual ancestor of the book's Runtime Logs (1486, 1676, 1705, 1787, 1865, 1934, 1964, 1968, 1994); the book's version-update model operationalizes what AJR left conceptual. Full engagement in Episodes 2, 15, and 16. Name these only — do not define or explain their content here.
 
 ### Sign-Off
 

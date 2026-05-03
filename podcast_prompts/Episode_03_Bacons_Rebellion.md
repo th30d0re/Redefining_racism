@@ -13,7 +13,7 @@ In Episodes 1 and 2, you introduced the framework and traced the algorithm's com
 
 ### Series Arc
 
-This 18-episode series mirrors the manuscript's four-part structure: **Part I — Specification and Origins** (Eps 1–3), **Part II — The Installation** (Eps 4–8), **Part III — Scaling and Runtime** (Eps 9–13), **Part IV — Diagnostics and Output** (Eps 14–18). This episode is the closing beat of **Part I**: Bacon's Rebellion is the system crash the Elite patched with the invention of whiteness and then compiled into the Constitutional source code at Philadelphia in 1787. Part II opens in Episode 4 by pulling back to the pre-colonial African kinship baseline the algorithm would later have to overwrite.
+This 21-episode series mirrors the manuscript's four-part structure: **Part I — Specification and Origins** (Eps 1–3), **Part II — The Installation** (Eps 5–9), **Part III — Scaling and Runtime** (Eps 10–14), **Part IV — Diagnostics and Output** (Eps 15–21). This episode is the closing beat of **Part I**: Bacon's Rebellion is the system crash the Elite patched with the invention of whiteness and then compiled into the Constitutional source code at Philadelphia in 1787. Part II opens in Episode 5 by pulling back to the pre-colonial African kinship baseline the algorithm would later have to overwrite.
 
 ---
 
@@ -22,25 +22,25 @@ This 18-episode series mirrors the manuscript's four-part structure: **Part I �
 This is **Episode 3**. You must strictly limit your discussion to **Chapter 3 ("The Application: Bacon's Rebellion, the Buffer Class, and the Constitutional Patch, 1676–1787")**.
 
 **ALREADY COVERED — Do NOT re-explain:**
-- (Ep 1) The four architectural components, the 5-Tier Hierarchy overview, the Predatory Min-Max Function, the Tri-Modal Enclosure Model, the virus model, the Out-group expansion thesis, the Divide-and-Conquer formalization, the canonical variable map.
+- (Ep 1) The four architectural components, the 5-Tier Hierarchy overview, the Predatory Min-Max Function, the Tri-Modal Enclosure Model, the mind virus model, the Out-group expansion thesis, the Divide-and-Conquer formalization, the canonical variable map.
 - (Ep 2) The Portuguese origin of racialization, the vector equation ($\vec{R}_{acism} = M_{agnitude} \cdot \hat{d}_{state}$), the scalar vs. vector distinction, the dual-authorization mechanism, the Implicit Contract and the suppression allocation ($\psi = \psi_s + \psi_m$), the three initial variables ($E$, $O_{racialized}$, $I$), the Roman control case, the religious partition as predecessor algorithm, the ontological exclusion via Zurara, the self-reinforcing feedback loop, the pirating of the source code to America.
 
 You may *reference* these by name (e.g., "as we established in Episode 2, the Portuguese model deployed only three variables — and that proved fatally unstable") but do not re-define or re-explain them.
 
 **DO NOT** discuss or preview:
-- Pre-colonial African kinship and the colonial overwrite (Episode 4)
+- Pre-colonial African kinship and the colonial overwrite (Episode 5)
 - The gendered axis, coverture, or the proto-partition (Episodes 5–6)
-- The enforcement engine or slave patrols (Episode 7)
-- The compounding chain, judicial entrenchment of the 13th Amendment loophole, or financial lineage (Episode 8)
-- Redlining, spatial warfare, or the containment field (Episode 9)
-- The Puppet Class scaling, Tweedism, or voter capture (Episode 10)
-- COINTELPRO, the Variable Swap, or the War on Drugs (Episode 11)
-- The Demographic Paradox, cannibalization, or the 5-Tier Reveal (Episode 12)
-- Gun control or the disarmament timeline (Episode 13)
-- The gaslighting or nonviolence mandate (Episode 14)
-- The Concession Theorem or Haitian Theorem (Episode 15)
-- The global containment field (Episode 16)
-- The conclusion's terminal findings (Episode 18)
+- The enforcement engine or slave patrols (Episode 8)
+- The compounding chain, judicial entrenchment of the 13th Amendment loophole, or financial lineage (Episode 9)
+- Redlining, spatial warfare, or the containment field (Episode 10)
+- The Puppet Class scaling, Tweedism, or voter capture (Episode 11)
+- COINTELPRO, the Variable Swap, or the War on Drugs (Episode 12)
+- The Demographic Paradox, cannibalization, or the 5-Tier Reveal (Episode 13)
+- Gun control or the disarmament timeline (Episode 14)
+- The gaslighting or nonviolence mandate (Episode 15)
+- The Concession Theorem or Haitian Theorem (Episode 16)
+- The global containment field (Episode 17)
+- The conclusion's terminal findings (Episode 21)
 
 **ANTI-SUPPRESSION LANGUAGE PROTOCOL (CRITICAL — READ BEFORE GENERATING):**
 
@@ -67,7 +67,7 @@ This podcast dissects the architecture of oppression. Its language must not repr
 
 **4. General principle:** If a phrase encodes DARK = BAD or LIGHT = GOOD, it reproduces the chromatic hierarchy this book identifies as a foundational tool of racialized oppression. If a phrase frames the architect of oppression as a genius to be admired, it romanticizes the very system being exposed. Replace with structural, architectural, or clinical language.
 
-**REQUIRED TONE:** Clinical, objective, and architectural. Use phrases like: "system crash," "emergency recompile," "partitioning the poor," "cross-racial solidarity as existential vulnerability," "Buffer Class deployment," "suppression allocation," "status wage ($\psi_s$)," "material wage ($\psi_m$)," "constitutional front-end/back-end separation," "Puppet Class prototype," "iterative compilation," "racially bifurcated punishment," "hereditary slavery as supply-chain optimization," "boundary enforcement," "artificial partition," "threat absorption function," "perimeter defense," "antivirus misdirection," "zero-sum status calculus."
+**REQUIRED TONE:** Clinical, objective, and architectural. Use phrases like: "system crash," "emergency recompile," "partitioning the poor," "cross-racial solidarity as existential vulnerability," "Buffer Class deployment," "suppression allocation," "status wage ($\psi_s$)," "material wage ($\psi_m$)," "constitutional front-end/back-end separation," "Puppet Class prototype," "iterative compilation," "racially bifurcated punishment," "hereditary slavery as supply-chain optimization," "boundary enforcement," "artificial partition," "threat absorption function," "perimeter defense," "anti-mind-virus misdirection," "zero-sum status calculus."
 
 ---
 
@@ -86,7 +86,7 @@ Cover the following concepts from Chapter 3:
 
 3. **The Explicit Codification of Whiteness (1705)**: The Virginia Slave Codes. The Elite did not *invent* whiteness as a feeling — they *legally codified* it as a structural category. The partition: assigned $L_{white}$ to "White" — a new legal identity that had not previously existed as a formal classification. The bribe package included: the suppression allocation ($\psi$) — in its default mode, the status wage ($\psi_s$): a permanent sense of racial superiority that cost the Elite nothing; the right to police the Black population — deputizing poor whites as enforcement agents; the right to bear arms — a kinetic advantage denied to the Out-group; and immunity from chattel slavery — the guarantee that no matter how poor, the In-group would never occupy the Out-group's position. "Race" was deployed to destroy "Class." The partition surgically severed the cross-racial solidarity that had produced Bacon's Rebellion and replaced it with a racial solidarity that served Elite interests.
 
-4. **Formalizing the Buffer Class ($I_{buffer}$)**: The 1705 codes upgraded the passive In-group into an actively weaponized Buffer Class. The Buffer Class performs three structural functions: (1) **Threat absorption** — race riots, racial violence, and class resentment occur at the $I_{buffer}/O_{racialized}$ boundary, never at the $E/I_{buffer}$ boundary. The Buffer Class absorbs the kinetic energy that would otherwise reach the Elite. (2) **Perimeter defense** — the Buffer Class patrols the racial boundary, enforcing the partition through social pressure, violence, and legal mechanisms. (3) **Antivirus misdirection** — the Buffer Class is programmed to treat structural critique of the system as the virus itself, rather than recognizing the extraction kernel as the actual threat. The suppression allocation ($\psi$) operates on a zero-sum calculus: any gain by the Out-group is perceived as a direct loss of Buffer Class status. This ensures the Buffer Class opposes Out-group advancement *even when that advancement has no material impact on the Buffer Class*.
+4. **Formalizing the Buffer Class ($I_{buffer}$)**: The 1705 codes upgraded the passive In-group into an actively weaponized Buffer Class. The Buffer Class performs three structural functions: (1) **Threat absorption** — race riots, racial violence, and class resentment occur at the $I_{buffer}/O_{racialized}$ boundary, never at the $E/I_{buffer}$ boundary. The Buffer Class absorbs the kinetic energy that would otherwise reach the Elite. (2) **Perimeter defense** — the Buffer Class patrols the racial boundary, enforcing the partition through social pressure, violence, and legal mechanisms. (3) **Antivirus misdirection** — the Buffer Class is programmed to treat structural critique of the system as the virus itself, rather than recognizing the extraction kernel as the actual threat. The suppression allocation ($\psi$) operates on a zero-sum calculus: any gain by the Out-group is perceived as a direct loss of Buffer Class status. This ensures the Buffer Class opposes Out-group advancement *even when that advancement has no material impact on the Buffer Class*. Add the psychological uptake layer here: Social Dominance Orientation (SDO) is the hierarchy appetite that makes status compensation feel valuable; Right-Wing Authoritarianism (RWA) is the threat/obedience circuitry that makes boundary enforcement feel protective. Treat SDO/RWA as cultivated host-state variables that amplify $\psi$ inside $I_{buffer}$, not as root causes that replace the legal architecture.
 
 5. **The Johnson Theorem**: Lyndon B. Johnson's explicit articulation of the algorithm: "If you can convince the lowest white man he's better than the best colored man, he won't notice you're picking his pocket. Hell, give him somebody to look down on, and he'll empty his pockets for you." Map each phrase to the framework: "the lowest white man" = $I_{buffer}$ (the Buffer Class); "he's better than the best colored man" = $\psi$ (the psychological wage); "he won't notice you're picking his pocket" = the extraction function operating on the Buffer Class itself — the Elite extracts from *both* classes; "he'll empty his pockets for you" = the Buffer Class actively subsidizing the system that exploits it. This is the algorithm stated in plain English by a sitting president of the United States.
 
@@ -105,4 +105,4 @@ Cover the following concepts from Chapter 3:
 
 ### Sign-Off
 
-Tease Episode 4: "Next time, Part II opens with a move the framework has been setting up since Episode 1. Before we can see what the American extraction engine *installed*, we have to see what it had to *overwrite*. Episode 4 pulls back to pre-colonial West Africa — the Igbo, the Yoruba, the Akan — to document the distributed kinship architecture that the algorithm could not compile on, and the demographic and colonial machinery the Elite deployed to make it compile."
+Tease Episode 5: "Next time, Part II opens with a move the framework has been setting up since Episode 1. Before we can see what the American extraction engine *installed*, we have to see what it had to *overwrite*. Episode 5 pulls back to pre-colonial West Africa — the Igbo, the Yoruba, the Akan — to document the distributed kinship architecture that the algorithm could not compile on, and the demographic and colonial machinery the Elite deployed to make it compile."
