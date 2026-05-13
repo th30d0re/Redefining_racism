@@ -27,10 +27,11 @@ class TTSEngine(ABC):
 
 
 class MLXKokoroEngine(TTSEngine):
-    def __init__(self, model_id: str) -> None:
+    def __init__(self, model_id: str, trim_edges: bool = True) -> None:
         self.model_id = model_id
         self._pipeline: Any | None = None
         self._pipeline_lang_code = "a"
+        self.trim_edges = trim_edges
 
     async def load(self) -> None:
         if self._pipeline is not None:
@@ -77,10 +78,13 @@ class MLXKokoroEngine(TTSEngine):
             array = numpy.asarray(audio)
             if array.ndim > 1:
                 array = numpy.squeeze(array)
-            trimmed_array = _trim_edge_silence(array, self.sample_rate)
-            if trimmed_array.size == 0:
-                continue
-            arrays.append(trimmed_array)
+            if self.trim_edges:
+                trimmed_array = _trim_edge_silence(array, self.sample_rate)
+                if trimmed_array.size == 0:
+                    continue
+                arrays.append(trimmed_array)
+            else:
+                arrays.append(array)
 
         if not arrays:
             return numpy.array([], dtype=numpy.float32)
@@ -93,6 +97,9 @@ class MLXKokoroEngine(TTSEngine):
 
 
 class MLXDiaEngine(TTSEngine):
+    def __init__(self, model_id: str, **kwargs: Any) -> None:
+        del model_id, kwargs
+
     async def load(self) -> None:
         raise NotImplementedError("MLXDiaEngine is not yet implemented. Use mlx_kokoro.")
 
@@ -105,6 +112,9 @@ class MLXDiaEngine(TTSEngine):
 
 
 class MLXChatterboxEngine(TTSEngine):
+    def __init__(self, model_id: str, **kwargs: Any) -> None:
+        del model_id, kwargs
+
     async def load(self) -> None:
         raise NotImplementedError("MLXChatterboxEngine is not yet implemented. Use mlx_kokoro.")
 

@@ -113,6 +113,7 @@ def _build_audio_clip(
     clip_id: int,
     start_beats: float,
     length_beats: float,
+    file_length_beats: float,
     segment: SegmentResult,
     project_root: Path,
 ) -> ET.Element:
@@ -257,7 +258,7 @@ def _build_audio_clip(
         {
             "Id": str(_GENERATED_WARP_MARKER_ID_OFFSET + (clip_id * 2) + 1),
             "SecTime": _format_number(duration_seconds),
-            "BeatTime": _format_number(length_beats),
+            "BeatTime": _format_number(file_length_beats),
         },
     )
     ET.SubElement(clip, "SavedWarpMarkersForStretched")
@@ -333,7 +334,7 @@ def generate_als(segment_results: list[SegmentResult], output_path: Path) -> Pat
     cursor_ms = 0
     for segment in segment_results:
         positioned_segments.append((segment, cursor_ms))
-        cursor_ms += segment.duration_ms + segment.gap_after_ms
+        cursor_ms += segment.speech_duration_ms + segment.gap_after_ms
 
     clips_by_speaker: dict[str, list[ET.Element]] = {
         speaker_id: [] for speaker_id in _SPEAKERS
@@ -341,11 +342,13 @@ def generate_als(segment_results: list[SegmentResult], output_path: Path) -> Pat
     clip_id = 1
     for segment, start_ms in positioned_segments:
         start_beats = _ms_to_beats(start_ms)
-        length_beats = _ms_to_beats(segment.duration_ms)
+        length_beats = _ms_to_beats(segment.speech_duration_ms)
+        file_length_beats = _ms_to_beats(segment.duration_ms)
         clip = _build_audio_clip(
             clip_id,
             start_beats,
             length_beats,
+            file_length_beats,
             segment,
             project_root,
         )

@@ -22,7 +22,7 @@ from voice_pipeline.markup import tokenize_markup
 from voice_pipeline.models import SegmentResult, Turn, VoiceConfig
 from voice_pipeline.parser import parse_transcript
 from voice_pipeline.platform_check import require_apple_silicon
-from voice_pipeline.post_processor import process_segment
+from voice_pipeline.post_processor import _measure_speech_duration, process_segment
 from voice_pipeline.voices import load_voices
 
 _DEFAULT_MODEL = "prince-canuma/Kokoro-82M"
@@ -100,6 +100,28 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         "-verwrite",
         action="store_true",
         help="Bypass resume/overwrite prompt",
+    )
+    parser.add_argument(
+        "--speech-threshold",
+        type=float,
+        default=0.04,
+        help="RMS threshold for speech-end detection (default: 0.04). "
+             "Lower = looser trim, higher = tighter trim.",
+    )
+    parser.add_argument(
+        "--compare-thresholds",
+        nargs="?",
+        const="default",
+        default=None,
+        help="Generate comparison ALS files at multiple thresholds without "
+             "re-synthesizing audio. Use default set (0.02,0.03,0.04,0.05,0.06,0.08) "
+             "or provide comma-separated values (e.g., 0.03,0.05,0.07).",
+    )
+    parser.add_argument(
+        "--no-trim",
+        action="store_true",
+        help="Disable destructive edge-silence trimming on output WAVs. "
+             "Preserves full audio including any leading/trailing silence.",
     )
     return parser
 
@@ -251,9 +273,14 @@ def _segment_from_wav(
     chunk_index: int,
     speaker_id: str,
     gap_after_ms: int,
+    speech_threshold: float = 0.04,
 ) -> SegmentResult:
     info = soundfile.info(wav_path)
     duration_ms = int(info.frames / info.samplerate * 1000)
+    audio, sr = soundfile.read(wav_path, dtype="float32")
+    if audio.ndim > 1:
+        audio = audio.mean(axis=1)
+    speech_duration_ms = _measure_speech_duration(audio, sr, speech_threshold)
     checksum = hashlib.sha256(wav_path.read_bytes()).hexdigest()
     return SegmentResult(
         turn_index=turn_index,
@@ -261,6 +288,7 @@ def _segment_from_wav(
         speaker_id=speaker_id,
         wav_path=wav_path,
         duration_ms=duration_ms,
+        speech_duration_ms=speech_duration_ms,
         sample_rate=int(info.samplerate),
         gap_after_ms=gap_after_ms,
         checksum=checksum,
@@ -271,6 +299,7 @@ def _load_completed_turn_segments(
     turn: Turn,
     jobs: list[_SpeechJob],
     output_path: Path,
+    speech_threshold: float = 0.04,
 ) -> list[SegmentResult] | None:
     if not jobs:
         return []
@@ -301,6 +330,7 @@ def _load_completed_turn_segments(
             chunk_index,
             turn.speaker_id,
             gap_after_ms,
+            speech_threshold,
         )
         for chunk_index, gap_after_ms, wav_path in expected_paths
     ]
@@ -340,6 +370,8 @@ async def render_loop(
     gap_ms: int,
     resume: bool = False,
     sample_budget_ms: int | None = None,
+    speech_threshold: float = 0.04,
+    trim_edges: bool = True,
 ) -> list[SegmentResult]:
     del episode_id
     await engine.load()
@@ -358,7 +390,9 @@ async def render_loop(
         stop_rendering = False
 
         if resume:
-            existing_segments = _load_completed_turn_segments(turn, jobs, out_dir)
+            existing_segments = _load_completed_turn_segments(
+                turn, jobs, out_dir, speech_threshold
+            )
             if existing_segments is not None:
                 for segment in existing_segments:
                     if (
@@ -402,6 +436,8 @@ async def render_loop(
                 job.chunk_index,
                 turn.speaker_id,
                 job.gap_after_ms,
+                speech_threshold,
+                trim_edges,
             )
             segment_results.append(segment_result)
             emitted_ms += segment_result.duration_ms + segment_result.gap_after_ms
@@ -420,7 +456,9 @@ async def render_loop(
     return segment_results
 
 
-def _engine_for_key(engine_key: str, model_id: str) -> TTSEngine:
+def _engine_for_key(
+    engine_key: str, model_id: str, trim_edges: bool = True
+) -> TTSEngine:
     engine_class = ENGINE_REGISTRY.get(engine_key)
     if engine_class is None:
         available = ", ".join(sorted(ENGINE_REGISTRY))
@@ -429,7 +467,7 @@ def _engine_for_key(engine_key: str, model_id: str) -> TTSEngine:
         )
 
     try:
-        return engine_class(model_id)
+        return engine_class(model_id, trim_edges=trim_edges)
     except TypeError as exc:
         raise SystemExit(
             f"Engine {engine_key!r} cannot be instantiated with model {model_id!r}"
@@ -465,6 +503,39 @@ def _print_completion_summary(
     print(f"Total estimated duration: {_format_duration(total_duration_ms)}")
     print(f"Manifest: {manifest_path}")
     print(f"ALS: {als_path}")
+
+
+def _generate_comparison_als_files(
+    segment_results: list[SegmentResult],
+    episode_out_dir: Path,
+    episode_id: str,
+    thresholds: list[float],
+) -> None:
+    print("\nGenerating comparison ALS files...")
+    for threshold in thresholds:
+        remeasured: list[SegmentResult] = []
+        for segment in segment_results:
+            audio, sr = soundfile.read(segment.wav_path, dtype="float32")
+            if audio.ndim > 1:
+                audio = audio.mean(axis=1)
+            speech_duration_ms = _measure_speech_duration(audio, sr, threshold)
+            remeasured.append(
+                SegmentResult(
+                    turn_index=segment.turn_index,
+                    chunk_index=segment.chunk_index,
+                    speaker_id=segment.speaker_id,
+                    wav_path=segment.wav_path,
+                    duration_ms=segment.duration_ms,
+                    speech_duration_ms=speech_duration_ms,
+                    sample_rate=segment.sample_rate,
+                    gap_after_ms=segment.gap_after_ms,
+                    checksum=segment.checksum,
+                )
+            )
+        threshold_str = f"{threshold:g}"
+        als_name = f"{episode_id}_t{threshold_str}.als"
+        compare_als_path = generate_als(remeasured, episode_out_dir / als_name)
+        print(f"  Threshold {threshold}: {compare_als_path.name}")
 
 
 def _turns_with_segments(
@@ -551,8 +622,17 @@ def main() -> None:
         _print_dry_run_summary(turns, manifest_path)
         return
 
+    compare_thresholds: list[float] | None = None
+    if args.compare_thresholds is not None:
+        if args.compare_thresholds == "default":
+            compare_thresholds = [0.02, 0.03, 0.04, 0.05, 0.06, 0.08]
+        else:
+            compare_thresholds = [
+                float(x.strip()) for x in args.compare_thresholds.split(",")
+            ]
+
     resume = _prepare_episode_output(episode_out_dir, args.overwrite)
-    engine = _engine_for_key(args.engine, args.model)
+    engine = _engine_for_key(args.engine, args.model, trim_edges=not args.no_trim)
     segment_results = asyncio.run(
         render_loop(
             turns=turns,
@@ -563,6 +643,8 @@ def main() -> None:
             gap_ms=args.gap_ms,
             resume=resume,
             sample_budget_ms=sample_budget,
+            speech_threshold=args.speech_threshold,
+            trim_edges=not args.no_trim,
         )
     )
 
@@ -589,6 +671,11 @@ def main() -> None:
         manifest_path,
         als_path,
     )
+
+    if compare_thresholds:
+        _generate_comparison_als_files(
+            segment_results, episode_out_dir, episode_id, compare_thresholds
+        )
 
 
 if __name__ == "__main__":

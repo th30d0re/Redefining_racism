@@ -114,7 +114,7 @@ def write_manifest(
 
             for segment in turn_segments:
                 start_ms = cursor_ms
-                end_ms = start_ms + segment.duration_ms
+                end_ms = start_ms + segment.speech_duration_ms
                 if not segment_entries:
                     turn_start_ms = start_ms
                 turn_end_ms = end_ms
@@ -123,6 +123,7 @@ def write_manifest(
                         chunk_index=segment.chunk_index,
                         segment_wav=_segment_relative_path(segment, output_path),
                         duration_ms=segment.duration_ms,
+                        speech_duration_ms=segment.speech_duration_ms,
                         start_ms=start_ms,
                         end_ms=end_ms,
                         gap_after_ms=segment.gap_after_ms,

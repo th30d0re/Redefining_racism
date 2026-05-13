@@ -13,6 +13,7 @@ struct SegmentEntry: Codable, Sendable {
     let chunkIndex: Int
     let segmentWav: String
     let durationMs: Int
+    let speechDurationMs: Int
     let startMs: Int
     let endMs: Int
     let gapAfterMs: Int
@@ -22,6 +23,7 @@ struct SegmentEntry: Codable, Sendable {
         case chunkIndex = "chunk_index"
         case segmentWav = "segment_wav"
         case durationMs = "duration_ms"
+        case speechDurationMs = "speech_duration_ms"
         case startMs = "start_ms"
         case endMs = "end_ms"
         case gapAfterMs = "gap_after_ms"

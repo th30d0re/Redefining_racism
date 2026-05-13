@@ -44,6 +44,7 @@ def test_manifest_paths_are_relative_to_manifest_directory(tmp_path) -> None:
             speaker_id="ai_1",
             wav_path=wav_path,
             duration_ms=1000,
+            speech_duration_ms=850,
             sample_rate=48000,
             gap_after_ms=250,
             checksum="checksum",
@@ -68,3 +69,5 @@ def test_manifest_paths_are_relative_to_manifest_directory(tmp_path) -> None:
     assert (manifest_path.parent / segment_wav).resolve() == wav_path.resolve()
     assert manifest["source_file"] == "Architecting_the_operation/podcasts/ATO_EP0.md"
     assert not Path(manifest["source_file"]).is_absolute()
+    # speech_duration_ms should be present in the segment entry
+    assert manifest["turns"][0]["segments"][0]["speech_duration_ms"] == 850

@@ -16,9 +16,9 @@ class GenerateAlsTests(TestCase):
             project_root = Path(tmp)
             output_path = project_root / "ATO_EP0.als"
             segments = [
-                self._segment(project_root, 0, "emmanuel_theodore", 1000, 250),
-                self._segment(project_root, 1, "ai_1", 500, 100),
-                self._segment(project_root, 2, "ai_2", 250, 0),
+                self._segment(project_root, 0, "emmanuel_theodore", 1000, 800, 250),
+                self._segment(project_root, 1, "ai_1", 500, 400, 100),
+                self._segment(project_root, 2, "ai_2", 250, 200, 0),
             ]
 
             result_path = generate_als(segments, output_path)
@@ -48,11 +48,16 @@ class GenerateAlsTests(TestCase):
         clips = root.findall(".//AudioClip")
         self.assertEqual(len(clips), len(segments))
 
+        # Cursor advances by speech_duration_ms + gap_after_ms:
+        # seg0: 0 + 800 + 250 = 1050ms -> 1050/500 = 2.1 beats
+        # seg1: 2.1 + 400 + 100 = 2600ms -> 2600/500 = 5.2 beats (but wait, cursor is in ms)
+        # Actually cursor_ms: 0 -> 0 + 800 + 250 = 1050 -> 1050 + 400 + 100 = 1550
+        # In beats: 0, 1050/500=2.1, 1550/500=3.1
         self.assertEqual(
             {
                 "turn_0000_chunk_0000": "0",
-                "turn_0001_chunk_0000": "2.5",
-                "turn_0002_chunk_0000": "3.7",
+                "turn_0001_chunk_0000": "2.1",
+                "turn_0002_chunk_0000": "3.1",
             },
             {
                 clip.find("./Name").attrib["Value"]: clip.attrib["Time"]
@@ -64,9 +69,17 @@ class GenerateAlsTests(TestCase):
             for clip in clips
             if clip.find("./Name").attrib["Value"] == "turn_0000_chunk_0000"
         )
-        self.assertEqual(first_clip.find("./CurrentEnd").attrib["Value"], "2")
-        self.assertEqual(first_clip.find("./Loop/LoopEnd").attrib["Value"], "2")
-        self.assertEqual(first_clip.find("./Loop/OutMarker").attrib["Value"], "2")
+        # length_beats from speech_duration_ms = 800/500 = 1.6
+        self.assertEqual(first_clip.find("./CurrentEnd").attrib["Value"], "1.6")
+        self.assertEqual(first_clip.find("./Loop/LoopEnd").attrib["Value"], "1.6")
+        self.assertEqual(first_clip.find("./Loop/OutMarker").attrib["Value"], "1.6")
+
+        # Warp marker BeatTime must describe the full WAV file, not the clipped region.
+        # duration_ms = 1000 -> 1000/500 = 2.0 beats
+        warp_markers = first_clip.findall("./WarpMarkers/WarpMarker")
+        self.assertEqual(len(warp_markers), 2)
+        self.assertEqual(warp_markers[0].attrib["BeatTime"], "0")
+        self.assertEqual(warp_markers[1].attrib["BeatTime"], "2")
 
         event_clips = root.findall(
             ".//MainSequencer/Sample/ArrangerAutomation/Events/AudioClip"
@@ -89,7 +102,7 @@ class GenerateAlsTests(TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)
             output_path = project_root / "ATO_EP0.als"
-            segment = self._segment(project_root, 0, "guest", 1000, 0)
+            segment = self._segment(project_root, 0, "guest", 1000, 900, 0)
 
             with self.assertRaisesRegex(ValueError, "Unknown speaker_id 'guest'"):
                 generate_als([segment], output_path)
@@ -102,6 +115,7 @@ class GenerateAlsTests(TestCase):
         turn_index: int,
         speaker_id: str,
         duration_ms: int,
+        speech_duration_ms: int,
         gap_after_ms: int,
     ) -> SegmentResult:
         wav_path = (
@@ -120,6 +134,7 @@ class GenerateAlsTests(TestCase):
             speaker_id=speaker_id,
             wav_path=wav_path,
             duration_ms=duration_ms,
+            speech_duration_ms=speech_duration_ms,
             sample_rate=48000,
             gap_after_ms=gap_after_ms,
             checksum=f"checksum-{turn_index}",

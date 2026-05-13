@@ -21,6 +21,7 @@ class SegmentResult:
     speaker_id: str
     wav_path: Path
     duration_ms: int
+    speech_duration_ms: int
     sample_rate: int
     gap_after_ms: int
     checksum: str
@@ -52,6 +53,7 @@ class SegmentEntry:
     chunk_index: int
     segment_wav: str
     duration_ms: int
+    speech_duration_ms: int
     start_ms: int
     end_ms: int
     gap_after_ms: int

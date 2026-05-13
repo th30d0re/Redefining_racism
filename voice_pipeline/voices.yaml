@@ -8,6 +8,6 @@ speakers:
     lang_code: a
     speed: 1.15
   ai_2:
-    kokoro_voice: am_onyx
+    kokoro_voice: am_echo
     lang_code: a
     speed: 1.15

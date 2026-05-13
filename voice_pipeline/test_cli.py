@@ -46,7 +46,10 @@ async def _fake_process_segment(
     chunk_index: int,
     speaker_id: str,
     gap_after_ms: int,
+    speech_threshold: float = 0.04,
+    trim_edges: bool = True,
 ) -> SegmentResult:
+    del audio, source_rate, speech_threshold, trim_edges
     wav_path = (
         output_path
         / "Samples"
@@ -62,6 +65,7 @@ async def _fake_process_segment(
         speaker_id=speaker_id,
         wav_path=wav_path,
         duration_ms=1000,
+        speech_duration_ms=850,
         sample_rate=target_rate,
         gap_after_ms=gap_after_ms,
         checksum=f"{turn_index}-{chunk_index}",
@@ -76,7 +80,7 @@ def test_sample_seconds_cli_uses_rendered_timeline_and_reaches_ep0_speakers(
     episode_id = "ep0_sample"
     transcript_path = Path("Architecting_the_operation/podcasts/ATO_EP0.md")
     monkeypatch.setattr(cli, "require_apple_silicon", lambda: None)
-    monkeypatch.setattr(cli, "_engine_for_key", lambda _key, _model: _FakeEngine())
+    monkeypatch.setattr(cli, "_engine_for_key", lambda _key, _model, trim_edges=True: _FakeEngine())
     monkeypatch.setattr(cli, "process_segment", _fake_process_segment)
     monkeypatch.setattr(
         sys,
@@ -262,7 +266,7 @@ def test_standalone_pause_turn_is_preserved_in_manifest_timeline(
         encoding="utf-8",
     )
     monkeypatch.setattr(cli, "require_apple_silicon", lambda: None)
-    monkeypatch.setattr(cli, "_engine_for_key", lambda _key, _model: _FakeEngine())
+    monkeypatch.setattr(cli, "_engine_for_key", lambda _key, _model, trim_edges=True: _FakeEngine())
     monkeypatch.setattr(cli, "process_segment", _fake_process_segment)
     monkeypatch.setattr(
         sys,
@@ -289,12 +293,12 @@ def test_standalone_pause_turn_is_preserved_in_manifest_timeline(
     first_turn, pause_turn, third_turn = manifest["turns"]
 
     assert first_turn["start_ms"] == 0
-    assert first_turn["end_ms"] == 1000
+    assert first_turn["end_ms"] == 850
     assert first_turn["segments"][0]["gap_after_ms"] == 250
 
     assert pause_turn["segments"] == []
-    assert pause_turn["start_ms"] == 1250
-    assert pause_turn["end_ms"] == 2000
+    assert pause_turn["start_ms"] == 1100
+    assert pause_turn["end_ms"] == 1850
 
-    assert third_turn["start_ms"] == 2000
-    assert third_turn["end_ms"] == 3000
+    assert third_turn["start_ms"] == 1850
+    assert third_turn["end_ms"] == 2700
